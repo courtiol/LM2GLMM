@@ -164,8 +164,36 @@ foo
 ## Functions
 
 ```{r function}
-addAandB <- function(a = 0, b = 0) {
+addA_B <- function(a = 0, b = 0) {
   c <- a + b
   return(c)
   }
 ```
+
+```{r function test}
+addA_B(a = 5, b = 7)
+addA_B(a = 5)
+```
+
+```{r function short}
+addA_B_bis <- function(a, b) a + b
+addA_B_bis(2, 3)
+```
+
+# Simulating data
+
+## Why simulating data?
+
+## Pseudo-random numbers in R
+
+```{r rnorm}
+rnorm(5, mean = 2, sd = 0.1)
+rnorm(5, mean = 2, sd = 0.1)
+set.seed(14353L)
+rnorm(5, mean = 2, sd = 0.1)
+set.seed(14353L)
+rnorm(5, mean = 2, sd = 0.1)
+```
+
+
+
