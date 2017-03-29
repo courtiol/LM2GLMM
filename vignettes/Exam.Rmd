@@ -1,0 +1,52 @@
+---
+title: "The exam"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+vignette: >
+  %\VignetteIndexEntry{6 The exam}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Procedure
+
+###What?
+
+* biological questions for which the answers will require you to build models and analyse data
+* you will answer by writing text and by creating figures and/or tables 
+
+### When?
+
+* one afternoon suiting everyone, once the course will be over
+* duration for the examination: **one hour**
+
+(It should be sufficient, but you will be able to stay longer if you need to!)
+
+
+###Condition?
+
+* individually
+* you are free to look at your course and R-help files (no internet)
+
+
+## Grading
+
+###I will grade:
+
+* the correctness of the answers
+* the correctness of the code (did you get the good answer by plain luck or good thought process?)
+
+###I will give bonuses for the quality/elegance of:
+
+* the writing
+* the code
+* the illustrations
+
+###I will give penalty if:
+
+* you cheat (looking at internet, colleagues)
+* you ask for my help because you really are stuck

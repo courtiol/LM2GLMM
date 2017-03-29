@@ -1,0 +1,23 @@
+---
+title: "From LM to GLMM"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: false
+    logo: FU.png
+vignette: >
+  %\VignetteIndexEntry{0 Table of content}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Working sessions
+
+1. [Introduction](./Introduction.html)
+2. The Linear Model (LM)
+3. The Generalized Linear Model (GLM)
+4. The Linear Mixed-effects Model (LMM)
+5. The Generalized Linear Mixed-effects Model (GLMM)
+6. [The exam](./Exam.html)

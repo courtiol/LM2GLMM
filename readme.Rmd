@@ -1,0 +1,13 @@
+## How to create the vignettes
+
+To rebuild the package:
+`devtools::build_vignettes(); devtools::build(binary = TRUE); devtools::install(); browseVignettes(package = "LM2GLMM")`
+
+To create a new vignette:
+`devtools::use_vignette("new_vignette")`
+
+To compile the vignette:
+`devtools::build_vignettes()`
+
+To list the vignettes:
+`browseVignettes(package = "LM2GLMM")`

@@ -1,0 +1,95 @@
+---
+title: "Introduction"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+vignette: >
+  %\VignetteIndexEntry{1 Introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+
+---
+# General information
+
+## What do you need?
+* a computer with internet connection
+* a web browser (up-to-date)
+* R version $\geq$ 3.3
+* RStudio version $\geq$ 1.0 (recommended)
+
+## How to access the course?
+
+The course is an **R package** called **LM2GLMM**.
+
+### Installation
+
+identify the correct `path`, then type:
+
+```{r install_package, eval = FALSE}
+install.packages(pkgs = "path/LM2GLMM")
+```
+<br>
+
+### Loading
+
+```{r load_package, eval = FALSE}
+library(package = "LM2GLMM")
+```
+
+
+## You should get that:
+
+```
+ #############################################
+ #                                           #
+ #     This is the package for the course    #
+ #                                           #
+ #    Advanced Statistical Applications:     #
+ #          from LM to GLMM using R          #
+ #                                           #
+ #   You have the version X.X.X installed!   #
+ #                                           #
+ # Type browseVignettes(package = 'LM2GLMM') #
+ #    to access the slides of the course     #
+ #                                           #
+ #############################################
+```
+
+### !!! Always check the version number !!!
+
+# Refreshing your R skills
+
+## Vectors
+
+```{r vectors}
+foo <- c(1, 5, 10, 23)
+foo[2]
+foo2 <- c(a = 1, b = 5, c = 10, d = 23)
+foo2[2]
+foo2["b"]
+foo2["b"][[1]]
+```
+
+## Vectors
+
+```{r vectors2}
+foo3 <- c(foo, as.numeric(foo2))
+foo3
+foo3[foo3 > 3]
+summary(foo3)
+table(foo3)
+```
+
+## Vectors
+
+```{r vectors3}
+class(foo3)
+(foo4 <- names(foo2)) ## Tip: the brackets are used for immediate display
+class(foo4)
+foo5 <- factor(foo4)
+class(foo5)
+```
+
