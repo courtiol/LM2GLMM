@@ -183,11 +183,14 @@ addA_B_bis(2, 3)
 # Simulating data
 
 ## Why simulating data?
+* it helps to understand what exactly linear models estimate
+* it is the only way for you to know that you implemented your model correctly
+* it helps to study the influence of the departure from assumptions
 
 ## Pseudo-random numbers in R
 
 ```{r rnorm}
-rnorm(5, mean = 2, sd = 0.1)
+rnorm(5, mean = 2, sd = 0.1)  ## Tip: check ?Distributions for other distribution
 rnorm(5, mean = 2, sd = 0.1)
 set.seed(14353L)
 rnorm(5, mean = 2, sd = 0.1)
@@ -195,5 +198,18 @@ set.seed(14353L)
 rnorm(5, mean = 2, sd = 0.1)
 ```
 
+## Step one: simulating the independent variables
+
+### Goal: 
+Complete the function that follows, so that is returns a dataframe containing 
+1 continuous independent variable and 1 categorical independent variable.
+
+```{r goal function}
+simulate_my_predictors_1C1G <- function(n, k){
+  ## n is the number of datapoints per group
+  ## k is the number of groups
+  ...
+  }
+```
 
 
