@@ -1,12 +1,12 @@
 # LM2GLMM
 
 This is the repository for the R package LM2GLMM.
-This R pacakge is only aimed at the students and helpers of the course I am giving at the 
-Freie Universitaät, Berlin. It is not aimed at general users.
+This R package is only aimed at the students and helpers of the course I am giving at the 
+Freie Universität, Berlin. It is not aimed at general users.
 
 ## Tips for the students
 
-You should download the release version on the package available here:
+You should download the release version on the package, available here:
 https://github.com/courtiol/LM2GLMM/releases
 
 ## Tips for the helpers
