@@ -12,6 +12,11 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 
 ---
+```{r setup, include=FALSE}
+library(LM2GLMM)
+```
+
+
 # General information
 
 ## What do you need?
@@ -200,7 +205,7 @@ rnorm(5, mean = 2, sd = 0.1)
 
 ## Step one: simulating the independent variables
 
-### Goal: 
+### Goal
 Complete the function that follows, so that is returns a dataframe containing 
 1 continuous independent variable and 1 categorical independent variable.
 
@@ -210,6 +215,17 @@ simulate_my_predictors_1C1G <- function(n, k){
   ## k is the number of groups
   ...
   }
+```
+
+## Step one: simulating the independent variables
+
+### Goal
+Complete the function that follows, so that is returns a dataframe containing 
+1 continuous independent variable and 1 categorical independent variable.
+
+### Possible solution
+```{r target function}
+simulate_predictors_1C1G
 ```
 
 
