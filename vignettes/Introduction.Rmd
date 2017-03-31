@@ -228,4 +228,7 @@ Complete the function that follows, so that is returns a dataframe containing
 simulate_predictors_1C1G
 ```
 
+## Step two: simulating the response variables
+
+### We first need to discus some basics about linear models!
 
