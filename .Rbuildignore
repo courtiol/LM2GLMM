@@ -3,3 +3,4 @@
 ^sources$
 ^readme\.Rmd$
 ^\.git$
+^readme\.html$
