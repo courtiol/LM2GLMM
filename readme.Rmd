@@ -1,13 +1,34 @@
-## How to create the vignettes
+# LM2GLMM
 
-To rebuild the package:
-`devtools::build_vignettes(); devtools::build(binary = TRUE); devtools::install(); browseVignettes(package = "LM2GLMM")`
+This is the repository for the R package LM2GLMM.
+This R pacakge is only aimed at the students and helpers of the course I am giving at the 
+Freie Universitaät, Berlin. It is not aimed at general users.
+
+## Tips for the students
+
+You should download the release version on the package available here:
+https://github.com/courtiol/LM2GLMM/releases
+
+## Tips for the helpers
+
+To rebuild the package using devtools:
+```{r, eval = FALSE}
+devtools::build_vignettes()
+devtools::build(binary = TRUE)
+devtools::install()
+```
 
 To create a new vignette:
-`devtools::use_vignette("new_vignette")`
+```{r, eval = FALSE}
+devtools::use_vignette("new_vignette")
+```
 
 To compile the vignette:
-`devtools::build_vignettes()`
+```{r, eval = FALSE}
+devtools::build_vignettes()
+```
 
 To list the vignettes:
-`browseVignettes(package = "LM2GLMM")`
+```{r, eval = FALSE}
+browseVignettes(package = "LM2GLMM")
+```
