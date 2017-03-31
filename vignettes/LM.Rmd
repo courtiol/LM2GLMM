@@ -1,0 +1,34 @@
+---
+title: "Linear models"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+vignette: >
+  %\VignetteIndexEntry{2 Linear models}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+
+---
+```{r setup, include=FALSE}
+library(LM2GLMM)
+```
+
+# Basics
+
+## What is a linear model?
+
+### What is a statistical model?
+
+###***A statistical model represents, often in considerably idealized form, the data-generating process.*** [(wikipedia)](https://en.wikipedia.org/wiki/Statistical_model)
+<br>
+
+### What is linear?
+
+###***The data-generating process is assumed to be a linear function: it is constructed from a set of terms by multiplying each term by a constant and adding the results .***
+
+## Mathematical notation of LM
+
+$y_{i} = \beta_0$
