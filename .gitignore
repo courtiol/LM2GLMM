@@ -3,3 +3,4 @@ inst/doc
 vignettes/*.html
 vignettes/*.R
 .DS_Store
+readme.html
