@@ -29,6 +29,23 @@ library(LM2GLMM)
 
 ###***The data-generating process is assumed to be a linear function: it is constructed from a set of terms by multiplying each term by a constant and adding the results .***
 
-## Mathematical notation of LM
+## Mathematical notation of LM: simple notation {.build}
 
-$y_{i} = \beta_0$
+<font size="5"> $y_i = \beta_0 + \beta_1 \times x_{1,i} + \beta_2 \times x_{2,i} + \dots + \beta_{p,i} \times x_p + \epsilon_i$ </font>
+ 
+* $y_i$ = the observations to explain / explanatory variable / dependent variable
+* $x_{j,i}$ = the predictors / explanatory variables / independent variables
+* $\beta_j$ = the regression coefficients / model parameters
+* $\beta_0$ = the intercept
+* $\epsilon_i$ = the errors
+
+<font size="5"> $\hat{y_i} = \hat{\beta_0} + \hat{\beta_1} \times x_{1,i} + \hat{\beta_2} \times x_{2,i} + \dots + \hat{\beta_p} \times x_{p,i}$ </font>
+
+* $\hat{y_i}$ = the predictions / predicted values
+* $x_{j,i}$ = the predictors / explanatory variables / independent variables
+* $\hat{\beta_j}$ = the (coefficient / parameter) estimates
+* $y_i - \hat{y_i} = \hat{\varepsilon_i}$ = the residuals
+
+
+## Mathematical notation of LM: matrix notation {.build}
+
