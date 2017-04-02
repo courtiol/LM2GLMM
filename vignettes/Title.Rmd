@@ -20,4 +20,6 @@ vignette: >
 3. The Generalized Linear Model (GLM)
 4. The Linear Mixed-effects Model (LMM)
 5. The Generalized Linear Mixed-effects Model (GLMM)
-6. [The exam](./Exam.html)
+
+### Annexes
+1. [Simulating data](./Simulation.html)
