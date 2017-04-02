@@ -1,0 +1,60 @@
+---
+title: "Simulating data"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+vignette: >
+  %\VignetteIndexEntry{Simulating data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+
+---
+```{r setup, include=FALSE}
+library(LM2GLMM)
+```
+
+## Why simulating data?
+* it helps to understand what exactly linear models are
+* it is a good way for you to know that you understand the meaning of your estimates
+* it allows for the study of the power and robustness of LM in general and particular cases
+
+## Pseudo-random numbers in R
+
+```{r rnorm}
+rnorm(5, mean = 2, sd = 0.1)  ## Tip: check ?Distributions for other distribution
+rnorm(5, mean = 2, sd = 0.1)
+set.seed(14353L)
+rnorm(5, mean = 2, sd = 0.1)
+set.seed(14353L)
+rnorm(5, mean = 2, sd = 0.1)
+```
+
+## Step one: simulating the independent variables
+
+### Goal
+Complete the function that follows, so that is returns a dataframe containing
+1 continuous independent variable and 1 categorical independent variable.
+
+```{r goal function}
+simulate_my_predictors_1C1G <- function(n, k){
+  ## n is the number of datapoints per group
+  ## k is the number of groups
+  ...
+  }
+```
+
+## Step one: simulating the independent variables
+
+### Goal
+Complete the function that follows, so that is returns a dataframe containing
+1 continuous independent variable and 1 categorical independent variable.
+
+### Possible solution
+```{r target function}
+simulate_predictors_1C1G
+```
+
+## Step two: simulating the response variables
