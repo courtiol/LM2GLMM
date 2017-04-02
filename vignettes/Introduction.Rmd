@@ -16,6 +16,47 @@ vignette: >
 library(LM2GLMM)
 ```
 
+# The exam
+
+## Procedure
+
+###What?
+
+* biological questions for which the answers will require you to build models and analyse data
+* you will answer by writing text and by creating figures and/or tables 
+
+### When?
+
+* one afternoon suiting everyone, once the course will be over
+* duration for the examination: **one hour**
+
+(It should be sufficient, but you will be able to stay longer if you need to!)
+
+
+###Condition?
+
+* individually
+* you are free to look at your course and R-help files (no internet)
+
+
+## Grading
+
+###I will grade:
+
+* the correctness of the answers
+* the correctness of the code (did you get the good answer by plain luck or good thought process?)
+
+###I will give bonuses for the quality/elegance of:
+
+* the writing
+* the code
+* the illustrations
+
+###I will give penalty if:
+
+* you cheat (looking at internet, colleagues)
+* you ask for my help because you really are stuck
+
 
 # General information
 
@@ -184,51 +225,3 @@ addA_B(a = 5)
 addA_B_bis <- function(a, b) a + b
 addA_B_bis(2, 3)
 ```
-
-# Simulating data
-
-## Why simulating data?
-* it helps to understand what exactly linear models are
-* it is a good way for you to know that you understand the meaning of your estimates
-* it allows for the study of the power and robustness of LM in general and particular cases
-
-## Pseudo-random numbers in R
-
-```{r rnorm}
-rnorm(5, mean = 2, sd = 0.1)  ## Tip: check ?Distributions for other distribution
-rnorm(5, mean = 2, sd = 0.1)
-set.seed(14353L)
-rnorm(5, mean = 2, sd = 0.1)
-set.seed(14353L)
-rnorm(5, mean = 2, sd = 0.1)
-```
-
-## Step one: simulating the independent variables
-
-### Goal
-Complete the function that follows, so that is returns a dataframe containing 
-1 continuous independent variable and 1 categorical independent variable.
-
-```{r goal function}
-simulate_my_predictors_1C1G <- function(n, k){
-  ## n is the number of datapoints per group
-  ## k is the number of groups
-  ...
-  }
-```
-
-## Step one: simulating the independent variables
-
-### Goal
-Complete the function that follows, so that is returns a dataframe containing 
-1 continuous independent variable and 1 categorical independent variable.
-
-### Possible solution
-```{r target function}
-simulate_predictors_1C1G
-```
-
-## Step two: simulating the response variables
-
-### We first need to discus some basics about linear models!
-
