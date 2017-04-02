@@ -191,7 +191,7 @@ addA_B_bis(2, 3)
 * it helps to understand what exactly linear models estimate
 * it is the only way for you to know that you implemented your model correctly
 * it helps to study the influence of the departure from assumptions
-* it allows you for studying power, robustness...
+* it allows you for studying power, robustness... Also important for plla bla
 
 ## Pseudo-random numbers in R
 
