@@ -8,9 +8,10 @@ output:
     smaller: true
 vignette: >
   %\VignetteIndexEntry{2 Linear models}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: inline
 ---
 ```{r setup, include=FALSE}
 library(LM2GLMM)
@@ -428,8 +429,8 @@ Alien3$size <- rnorm(n = 30, mean = 50 + 1.5*Alien3$humans_eaten, sd = sqrt(25))
 Alien3$half_humans_eaten <-  0.5 * Alien3$humans_eaten
 mod_alien3_lm <- lm(size ~ humans_eaten + half_humans_eaten, data = Alien3)
 coef(mod_alien3_lm)
+det(crossprod(model.matrix(mod_alien3_lm)))  ## when det(XTX) == 0, the matrix is singular / degenerated / not of full rank
 mod_alien3_lm$rank
-solve(qr.R(mod_alien3_lm$qr))
 ```
 
 
