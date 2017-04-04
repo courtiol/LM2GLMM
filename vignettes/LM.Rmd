@@ -530,4 +530,4 @@ mod_uk_boys <- lm(height ~ milk_f, data = UKBoys)
 mod <- lm(log(weight) ~ sex*(weight + drink + height), data = UK) ## notice weight used twice...
 ```
 
-
+bla bla
