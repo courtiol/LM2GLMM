@@ -392,7 +392,7 @@ Alien2$pred <- mod_alien2_lm$fitted.values
 ## The rows with NA(s) are being omited
 
 Think:
-```data``` $\rightarrow$ ```model.frame()``` $\rightarrow$ ```model.matrix()``` $\rightarrow$ ```qr()``` $\rightarrow$ ```qr.fitted()```
+$\texttt{data} \rightarrow \texttt{model.frame()} \rightarrow \texttt{model.matrix()} \rightarrow \texttt{qr()} \rightarrow \texttt{qr.fitted()}$
 
 ```{r missing data}
 mfAlien2 <- model.frame(formula = size ~ humans_eaten, data = Alien2)
@@ -420,7 +420,7 @@ Alien2$pred <- predict(mod_alien2_lm, newdata = Alien2)
 head(Alien2)
 ```
 
-## Difficulty 2: model matrix not with full rank
+## Difficulty 2: degenerated model matrix
 
 ```{r Alien3, error = TRUE}
 Alien3 <- data.frame(humans_eaten = 1:30)
@@ -433,8 +433,7 @@ det(crossprod(model.matrix(mod_alien3_lm)))  ## when det(XTX) <= 0, the matrix i
 mod_alien3_lm$rank
 ```
 
-## More subtle degenerated model matrix
-
+## More subtle linear combination
 ```{r Alien4, error = TRUE}
 set.seed(1L)
 Alien4 <- data.frame(humans_eaten = 1:30,
@@ -465,9 +464,10 @@ mod_alien5_lm <- lm(size ~  humans_eaten + flowers_eaten + cactus_eaten, data = 
 coef(mod_alien5_lm)
 ```
 
-## Difficulty 3: categorical predictors
+## Real case: the growth data
 
-In facts, not difficult at all:
+Wait for Lena to give green light...
+
 
 # Fitting linear models with both continuous and categorical predictors
 
@@ -475,10 +475,13 @@ In facts, not difficult at all:
 
 ```{r UK data}
 head(UK)
+mod_UK1 <- lm(height ~ drink + sex*weight, data = UK)
 ```
 
-
-
+## Model frame of ```mod_UK1```
+```{r UK model frame}
+str(mod_UK1$model)
+```
 
 # Junk for later
 
@@ -522,5 +525,9 @@ UKBoys$milk_f <- factor(UKBoys$milk)
 mod_uk_boys <- lm(height ~ milk_f, data = UKBoys)
 ```
 
+## terrible residuals
+```{r terrible}
+mod <- lm(log(weight) ~ sex*(weight + drink + height), data = UK) ## notice weight used twice...
+```
 
 
