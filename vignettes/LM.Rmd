@@ -325,8 +325,7 @@ qr_list <- qr(X)  ## same as mod_alien_lm$qr
 Q <- qr.Q(qr_list, complete = TRUE)  ## orthogonal matrix n * n
 # all.equal(Q %*% t(Q), diag(nrow(Alien))) ## TRUE
 R <- qr.R(qr_list, complete = TRUE)  ## upper triangular matrix n * p
-QR <- Q %*% R
-all.equal(QR, X, check.attributes = FALSE)  ## QR is equal to X!!
+all.equal(Q %*% R, X, check.attributes = FALSE)  ## Q %*% R is equal to X!!
 ```
 
 We can even simplify:
@@ -338,7 +337,7 @@ all.equal(Q1 %*% R1, X, check.attributes = FALSE)  ## Q1R1 is equal to X!!
 Note: other decompositions are sometimes used (e.g. Cholesky).
 
 ## Recovering the estimates using QR
-<font size = 8> $\hat{\beta} = R_1^{-1} Q_1^{\mathrm{T}}Y$ </font> 
+<script> /* <font size = 8> $\hat{\beta} = R_1^{-1} Q_1^{\mathrm{T}}Y$ </font> */ </script>
 ```{r}
 solve(R1) %*% t(Q1) %*% Y  ## Note: lm does that without computing solve(R1) by using QTY instead of Q1TY
 QTY <- t(Q) %*% Y ## same as mod_alien_lm$effects
