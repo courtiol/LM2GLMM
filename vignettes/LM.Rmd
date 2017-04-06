@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{2 Linear models}
+  %\VignetteIndexEntry{2.0 Linear models}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -16,6 +16,8 @@ editor_options:
 ```{r setup, include=FALSE}
 library(LM2GLMM)
 ```
+
+# Introduction
 
 ## What is a linear model?
 
@@ -28,246 +30,34 @@ library(LM2GLMM)
 
 ###***The data-generating process is assumed to be a linear function: it is constructed from a set of terms by multiplying each term by a constant and adding the results .***
 
-## Mathematical notation of LM: simple notation {.build}
+## Mathematical notation of LM: simple notation
 
-<font size="5"> $y_i = \beta_0 + \beta_1 \times x_{1,i} + \beta_2 \times x_{2,i} + \dots + \beta_{p} \times x_{p,i} + \epsilon_i$ </font>
- 
+<center><font size="5"> $y_i = \beta_0 + \beta_1 \times x_{1,i} + \beta_2 \times x_{2,i} + \dots + \beta_{p} \times x_{p,i} + \epsilon_i$ </font></center>
+
+<br>
+
 * $y_i$ = the observations to explain / explanatory variable / dependent variable
-* $x_{j,i}$ = the predictors / explanatory variables / independent variables
+* $x_{j,i}$ = the constants derived from the predictors / explanatory variables / independent variables
 * $\beta_j$ = the regression coefficients / model parameters
-* $\beta_0$ = the intercept
-* $\epsilon_i$ = the errors $\rightarrow$ **We assume: <font size="5"> $\epsilon_i \sim \mathcal{N}(0, \sigma^2)$</font>**
+* $\epsilon_i$ = the errors $\rightarrow$ **we assume: <font size="5"> $\epsilon_i \sim \mathcal{N}(0, \sigma^2)$</font>**
 
-<font size="5"> $\hat{y_i} = \hat{\beta_0} + \hat{\beta_1} \times x_{1,i} + \hat{\beta_2} \times x_{2,i} + \dots + \hat{\beta_p} \times x_{p,i}$ </font>
-
-* $\hat{y_i}$ = the predictions / predicted values
-* $x_{j,i}$ = the predictors / explanatory variables / independent variables
-* $\hat{\beta_j}$ = the (coefficient / parameter) estimates
-* $y_i - \hat{y_i} = \varepsilon_i$ = the residuals
-
-## Fitting the model to the data...
-
-### ... means estimating the values of the regression coefficients of the model.
-
-# Fitting simple linear regressions
-
-## Fitting a model on simulated data
-
-### Imagine an ideal (unrealistic) situation
-We know that the process generating the height of aliens can be 
-approximated by the following linear model:
-
-* $\texttt{height}_i = 50 + 1.5 \times \texttt{humans_eaten}_{i} + \epsilon_i$
-* $\epsilon_i \sim \mathcal{N}(0, \sigma^2 = 25)$
-
-<br>
-
-We can thus generate the data corresponding to 30 aliens that have eaten 
-between 1 and 30 humans.
-
-```{r alien data}
-Alien <- data.frame(humans_eaten = 1:30)
-
-set.seed(1L)
-Alien$size <- rnorm(n = 30, mean = 50 + 1.5*Alien$humans_eaten, sd = sqrt(25))
-```
-
-## The Alien data
-
-```{r alien data 2, eval = FALSE}
-plot(size ~ humans_eaten, data = Alien, ylab = "Alien size (cm)", xlab = "No. of humans eaten")
-abline(a = 50, b = 1.5, col = "green", lwd = 2)  ## True relationship
-```
-
-<div class="columns-2">
-
-```{r alien data 2 eval, fig.align='center', fig.asp=1, fig.width=4, echo = FALSE}
-plot(size ~ humans_eaten, data = Alien, ylab = "Alien size (cm)", xlab = "No. of humans eaten")
-abline(a = 50, b = 1.5, col = "green", lwd = 2)
-```
-
-```{r alien data 3 eval, fig.align='center', fig.asp=1, fig.width=4, echo = FALSE}
-plot(size ~ humans_eaten, data = Alien, ylab = "Alien size (cm)", xlab = "No. of humans eaten")
-text(x = 15, y = 150, labels = "?", cex = 8, col = "green")
-```
-</div>
-
-
-## How to fit a LM?
-
-### By maximum likelihood
-We want the $\hat{\beta_j}$ maximizing the likelihood.
-
-The likelihood of the model (i.e. of a vector $\theta$ of the $\hat{\beta_j}$) given the data is 
-equal to the probability density assumed for those data given those parameter
-values, that is: $\displaystyle {\mathcal {L}}(\theta \mid x) = P(x \mid \theta)$.
-
-<br>
-
-### By ordinary least squares
-We want the $\hat{\beta_j}$ minimizing the residual sum of squares (RSS).
-
-The RSS = $\displaystyle\sum_{i=1}^{n}{\varepsilon_i^2}$.
-
-### Both methods are equivalent in the case of LM!
-
-## Fitting the Alien data using ```lm()``` as a blackbox
-
-```{r fit alien lm}
-mod_alien_lm <- lm(size ~ humans_eaten, data = Alien)
-(coef_lm <- mod_alien_lm$coef) ## We expect something close to 50 and 1.5
-(Alien$sigma2 <- summary(mod_alien_lm)$sigma^2)[1] ## We expect something close to 25
-(logLik_lm <- logLik(mod_alien_lm)[[1]])
-(rss_lm <- anova(mod_alien_lm)$"Sum Sq"[2])
-```
-
-## Recovering the min RSS from the fit
-
-```{r rss alien}
-(rss_lm <- anova(mod_alien_lm)$"Sum Sq"[2])
-
-Alien$pred_lm <- coef_lm[1] + coef_lm[2] * Alien$humans_eaten
-## Tip: this is the same as mod_alien_lm$fitted.values / fitted(mod_alien_lm) / predict(mod_alien_lm)
-
-Alien$resid_lm <- Alien$size - Alien$pred_lm
-## Tip: this is the same as mod_alien_lm$residuals / residuals(mod_alien_lm)
-
-sum(Alien$resid_lm^2)
-```
-
-
-## The Residual Sum of Squares (RSS)
-
-<div class="columns-2">
-```{r alien RSS plot, fig.align='center', fig.asp=1, fig.width=5, echo = FALSE, fig.cap="Residuals"}
-plot(size ~ humans_eaten, data = Alien, ylab = "Alien size (cm)", xlab = "No. of humans eaten", asp = 1)
-points(pred_lm ~ humans_eaten, col = "blue", data = Alien, pch = 20)
-with(Alien, segments(x0 = humans_eaten, x1 = humans_eaten, y0 = size, y1 = pred_lm, col = "orange"))
-legend("topleft", bty = "n", col = c("black", "blue"), pch = c(1, 20), legend = c("obs", "pred"))
-```
-
-```{r alien RSS plot2, fig.align='center', fig.asp=1, fig.width=5, echo = FALSE, fig.cap="Squared residuals"}
-plot(
-  size ~ humans_eaten,
-  data = Alien,
-  ylab = "Alien size (cm)",
-  xlab = "No. of humans eaten",
-  asp = 1,
-  col = NULL
-  )
-points(pred_lm ~ humans_eaten, col = "blue", data = Alien, pch = 20)
-for (i in 1:nrow(Alien)) {
-  with(Alien, polygon(
-    x = c(
-    humans_eaten[i],
-    humans_eaten[i],
-    humans_eaten[i] + abs(resid_lm[i]),
-    humans_eaten[i] + abs(resid_lm[i])
-    ),
-    y = c(pred_lm[i], size[i], size[i], pred_lm[i])
-    ))
-}
-with(Alien, segments(x0 = humans_eaten, x1 = humans_eaten, y0 = size, y1 = pred_lm, col = "orange"))
-```
-</div>
-
-## Recovering the max (log-)likelihood from the fit
-
-```{r alien loglik}
-correction <- (nrow(Alien) - mod_alien_lm$rank) / nrow(Alien)
-Alien$density <- dnorm(x = Alien$size, mean = Alien$pred_lm, sd = sqrt(Alien$sigma2*correction))
-Alien[1, ]
-```
-
-
-<div class="columns-2">
-
-```{r alien lik plot, fig.align='center', fig.asp=1, fig.width=4, echo = FALSE}
-par(mar = c(4, 4, 1, 1))
-curve(dnorm(x, mean = Alien[1, "pred_lm"], sd = sqrt(Alien[1, "sigma2"])), from = 30, to = 30 + Alien[1, "pred_lm"], ylab = "probability density", xlab = "size")
-abline(h = 0, lty = 2)
-abline(v = Alien[1, "pred_lm"], lty = 2, col = "blue")
-points(x = Alien[1, "pred_lm"], y = 0, pch = 20, col = "blue")
-points(x = Alien[1, "size"], y = 0)
-segments(x0 = Alien[1, "pred_lm"], x1 = Alien[1, "size"], y0 = 0, y1 = 0, col = "orange")
-segments(x0 = Alien[1, "size"], x1 = Alien[1, "size"], y0 = 0, y1 = Alien[1, "density"], col = "purple")
-arrows(x0 = Alien[1, "size"], x1 = 30, y0 = Alien[1, "density"], y1 = Alien[1, "density"], col = "purple", length = 0.1)
-```
-
-```{r alien log density}
-(logLik_lm <- logLik(mod_alien_lm)[[1]])
-log(prod(Alien$density))
-sum(log(Alien$density))
-```
-
-</div>
-
-## Recovering ```sigma2``` from the fit
-
-```{r alien sigma2}
-summary(mod_alien_lm)$sigma^2
-```
-
-$\sigma^2 = \hat{\sigma^2} \times \frac{n - p}{n}$
-
-```{r alien sigma2 cont}
-correction <- (nrow(Alien) - 1) / (nrow(Alien) - mod_alien_lm$rank)
-var(Alien$resid_lm) * correction
-sum(Alien$resid_lm^2) / (nrow(Alien) - mod_alien_lm$rank)
-```
-
-
-## Recovering the estimates numerically
-
-### By maximum likelihood
-```{r def comput_logLik_Alien}
-compute_logLik_Alien <- function(param, data = Alien) {
-  predicts <- param["intercept"] + param["slope"] * data$humans_eaten
-  sigma2 <- abs(param["sigma2"]) * ((nrow(data) - 2)/nrow(data))
-  return(sum(dnorm(data$size, mean = predicts, sd = sqrt(sigma2), log = TRUE)))}
-
-(theta.lm <- c("intercept" = coef_lm[1][[1]], "slope" = coef_lm[2][[1]],
-               "sigma2" = summary(mod_alien_lm)$sigma[[1]]^2)) ## For testing
-
-compute_logLik_Alien(param = theta.lm)
-```
-
-```{r def logLik Alien computation}
-(optim(c("intercept" = 0, "slope" = 1, "sigma2" = 1), compute_logLik_Alien, control = list(fnscale = -1)))$par
-```
-
-## Recovering the estimates numerically
-
-### By ordinary least squares
-
-```{r def compute_rss_Alien}
-compute_rss_Alien <- function(param, data = Alien) {
-	predicts <- param["intercept"] + param["slope"] * data$humans_eaten
-	return(sum((data$size - predicts)^2))
-}
-
-compute_rss_Alien(param = theta.lm)  ## For testing
-```
-
-```{r}
-est_min_rss <- optim(c("intercept" = 0, "slope" = 1), compute_rss_Alien)
-est_min_rss$par
-est_min_rss$value / (nrow(Alien) - 2)
-```
 
 ## Mathematical notation of LM: matrix notation
+
+<center><font size = 8> $Y = X \beta + \epsilon$ </font></center>
+
 $$
-\begin{bmatrix} y_1 \\ y_2 \\ y_3 \\ \dots \\ y_n \end{bmatrix} = 
+\begin{bmatrix} y_1 \\ y_2 \\ y_3 \\ \dots \\ y_n \end{bmatrix} =
 \begin{bmatrix}
-1 & x_{1,1} & x_{2,1} & \dots & & x_{p,1} \\
-1 & x_{1,2} & x_{2,2} & \dots & & x_{p,2} \\
-1 & x_{1,3} & x_{2,3} & \dots & & x_{p,3} \\
-\dots \\
-1 & x_{1,n} & x_{2,n} & \dots & & x_{p,n}
+1 & x_{1,1} & x_{2,1} & \dots & x_{p,1} \\
+1 & x_{1,2} & x_{2,2} & \dots & x_{p,2} \\
+1 & x_{1,3} & x_{2,3} & \dots & x_{p,3} \\
+\dots & \dots & \dots & \dots & \dots \\
+1 & x_{1,n} & x_{2,n} & \dots & x_{p,n}
 \end{bmatrix}
 \begin{bmatrix}
 \beta_0 \\ \beta_1 \\ \beta_2 \\ \beta_3 \\ \dots \\ \beta_n
-\end{bmatrix} + 
+\end{bmatrix} +
 \begin{bmatrix}
 \epsilon_1 \\ \epsilon_2 \\ \epsilon_3 \\ \dots \\ \epsilon_n
 \end{bmatrix}
@@ -275,257 +65,103 @@ $$
 
 <br>
 
-for short: <font size = 8> $Y = X \beta + \epsilon$ </font>; and again: <font size = 8> $\hat{Y} = X \hat{\beta}$ </font>
+* $Y$ = a vector of observations
+* $X$ = an matrix called the model (or design) matrix
+* $\beta$ = a vector of model parameters
+* $\epsilon$ = a vector of errors $\rightarrow$ **we assume:  <font size="5"> $\epsilon \sim \mathcal{N}(0, \sigma^2 I)$</font>**
 
-## The model matrix ```X```
+## The Alien dataset
+
+### Imagine an ideal (unrealistic) situation
+
+We know that the process generating the height of aliens can be
+approximated by the following linear model:
+
+* $\texttt{height}_i = 50 + 1.5 \times \texttt{humans_eaten}_{i} + \epsilon_i$
+* $\epsilon_i \sim \mathcal{N}(0, \sigma^2 = 25)$
+
+<br>
+
+We can thus generate the data corresponding to 6 aliens that have eaten
+between 1 and 6 humans.
+
+```{r alien data}
+set.seed(123L)
+Alien <- data.frame(humans_eaten = sample(1:6))
+Alien$error <- rnorm(n = 6, mean = 0, sd = sqrt(25))
+Alien$size <- 50 + 1.5*Alien$humans_eaten + Alien$error
+```
+
+## The Alien dataset
+
+```{r alien data show}
+Alien
+```
+<div class="columns-2">
+
+### Simple notation
+* $y_1 = 50 + 1.5 \times `r Alien$humans_eaten[1]` + `r Alien$error[1]`$
+* $y_2 = 50 + 1.5 \times `r Alien$humans_eaten[2]` + `r Alien$error[2]`$
+* $y_3 = 50 + 1.5 \times `r Alien$humans_eaten[3]` + `r Alien$error[3]`$
+* $y_4 = 50 + 1.5 \times `r Alien$humans_eaten[4]` + `r Alien$error[4]`$
+* $y_5 = 50 + 1.5 \times `r Alien$humans_eaten[5]` + `r Alien$error[5]`$
+* $y_6 = 50 + 1.5 \times `r Alien$humans_eaten[6]` + `r Alien$error[6]`$
+
+### Matrix notation
+$$
+Y = \begin{bmatrix}
+1 & `r Alien$humans_eaten[1]` \\
+1 & `r Alien$humans_eaten[2]` \\
+1 & `r Alien$humans_eaten[3]` \\
+1 & `r Alien$humans_eaten[4]` \\
+1 & `r Alien$humans_eaten[5]` \\
+1 & `r Alien$humans_eaten[6]`
+\end{bmatrix}
+\begin{bmatrix}
+50 \\
+1.5
+\end{bmatrix}
++
+\begin{bmatrix}
+`r Alien$error[1]`\\
+`r Alien$error[2]`\\
+`r Alien$error[3]`\\
+`r Alien$error[4]`\\
+`r Alien$error[5]`\\
+`r Alien$error[6]`
+\end{bmatrix}
+$$
+
+</div>
+
+
+## How to get the model (or design) matrix?
 
 ```{r pred matrix}
-X <- model.matrix(mod_alien_lm)
-head(X)
+model.matrix(object = ~ humans_eaten, data = Alien)
 ```
 
-The number of columns of the model matrix is **the rank** of the fitted LM
-```{r rank}
-all.equal(ncol(X), mod_alien_lm$rank)
+<br>
+
+### This should always work, even if the model gets much more complex!
+
+
+## Matrix operations in R
+
+```{r matrix multiplication}
+X <- model.matrix(object = ~ humans_eaten, data = Alien)
+B <- matrix(c(50, 1.5), ncol = 1)
+X %*% B
 ```
-
-
-## Predictions using the matrix notation
-
-```{r pred matrix 2}
-X %*% coef(mod_alien_lm)
-```
-
-## Residuals using the matrix notation
-```{r resid matrix}
-Y <- as.matrix(Alien$size)
-Y - X %*% coef(mod_alien_lm)
-```
-
-## Computing estimates using linear algebra
-
-<font size = 8> $\hat{\beta} = (X^\text{T}X)^{-1}X^\text{T}Y$ </font> (see [wikipedia](https://en.wikipedia.org/wiki/Linear_least_squares_(mathematics)) for demonstration)
-
-### The direct implementation works:
-```{r lin algebra}
-solve(t(X) %*% X) %*% t(X) %*% Y  ## Tip: solve(x) returns the inverse of the matrix x
-```
-
-... but ```lm()``` does not do that because it is somewhat inefficient.
-
-For example, the computation ```t(X) %*% X``` does not consider that the same matrix is used twice, so it does not consider that this particular crossproduct leads to a symmetric matrix. Thus half of the computations could be spared.
-
-
-## The QR decomposition
-
-The goal is simply to decompose the model matrix into two new matrices that present nice properties for doing math efficiently.
-
-```{r QR}
-qr_list <- qr(X)  ## same as mod_alien_lm$qr
-Q <- qr.Q(qr_list, complete = TRUE)  ## orthogonal matrix n * n
-# all.equal(Q %*% t(Q), diag(nrow(Alien))) ## TRUE
-R <- qr.R(qr_list, complete = TRUE)  ## upper triangular matrix n * p
-all.equal(Q %*% R, X, check.attributes = FALSE)  ## Q %*% R is equal to X!!
-```
-
-We can even simplify:
-```{r Q1R1}
-Q1 <- qr.Q(qr_list) ## dim = n * p
-R1 <- qr.R(qr_list)  ## dim = p * p
-all.equal(Q1 %*% R1, X, check.attributes = FALSE)  ## Q1R1 is equal to X!!
-```
-Note: other decompositions are sometimes used (e.g. Cholesky).
-
-## Recovering the estimates using QR
-<script> /* <font size = 8> $\hat{\beta} = R_1^{-1} Q_1^{\mathrm{T}}Y$ </font> */ </script>
-```{r}
-solve(R1) %*% t(Q1) %*% Y  ## Note: lm does that without computing solve(R1) by using QTY instead of Q1TY
-QTY <- t(Q) %*% Y ## same as mod_alien_lm$effects
-backsolve(R1, QTY)
-```
-
-(the matrix $Q^\text{T}Y$ is also used to compute sum of squares in ```anova()```)
-
-
-## Recovering almost everything efficiently using QR
-```{r QR recover all}
-compare <- function(A, vB) {all.equal(A, as.matrix(vB), check.attributes = FALSE)}
-compare(qr.coef(qr_list, Y), mod_alien_lm$coef)
-compare(qr.fitted(qr_list, Y), mod_alien_lm$fitted.values)
-compare(qr.resid(qr_list, Y), mod_alien_lm$residuals)
-```
-
-## Dissecting the output from ```lm()```
-
-```{r lm output}
-names(mod_alien_lm)
-```
-We have already seen all non-trivial components!
-
-We have not yet seen:
-
-* ```assign``` comes from ```attr(X, "assign")```: it indicates which parameters belong to each covariate (more later!).
-* ```df.residuals``` is simply nrow(Alien) - rank.
-* ```xlevels``` is here empty.
-* ```call``` the clean function call to ```lm()```.
-* ```terms``` an object of class terms: the formula with many attributes (```?terms.object```).
-* ```model``` comes from ```model.frame()```: the data used for the fit.
-
-# Fiting more problematic linear regressions
-
-## Difficulty 1: missing data
-
-```{r Alien 2, error = TRUE}
-rm(Alien) ## Tip: clean start
-Alien <- data.frame(humans_eaten = 1:30)
-set.seed(1L)
-Alien$size <- rnorm(n = 30, mean = 50 + 1.5*Alien$humans_eaten, sd = sqrt(25))
-Alien2 <- Alien
-Alien2$size[c(2, 4)] <- NA
-Alien2$humans_eaten[c(3, 4)] <- NA
-head(Alien2)
-mod_alien2_lm <- lm(size ~ humans_eaten, data = Alien2)
-Alien2$pred <- mod_alien2_lm$fitted.values
-```
-
-## The rows with NA(s) are being omited
-
-Think:
-$\texttt{data} \rightarrow \texttt{model.frame()} \rightarrow \texttt{model.matrix()} \rightarrow \texttt{qr()} \rightarrow \texttt{qr.fitted()}$
-
-```{r missing data}
-mfAlien2 <- model.frame(formula = size ~ humans_eaten, data = Alien2)
-head(mfAlien2)  ## same as mod_alien2_lm$model
-head(model.matrix(object = ~ humans_eaten, data = mfAlien2))
-```
-
-## New ```lm()``` component
-
-```{r na.action}
-mod_alien2_lm$na.action
-```
-
-
-## Prediction with NAs
-
-```{r pred NA manual}
-mfAlien2NA <- model.frame(formula = size ~ humans_eaten, data = Alien2, na.action = NULL)
-XNA <- model.matrix(object = ~ humans_eaten, data = mfAlien2NA)
-as.numeric(XNA %*% coef(mod_alien2_lm))
-```
-
-```{r pred na}
-Alien2$pred <- predict(mod_alien2_lm, newdata = Alien2)
-head(Alien2)
-```
-
-## Difficulty 2: degenerated model matrix
-
-```{r Alien3, error = TRUE}
-Alien3 <- data.frame(humans_eaten = 1:30)
-set.seed(1L)
-Alien3$size <- rnorm(n = 30, mean = 50 + 1.5*Alien3$humans_eaten, sd = sqrt(25))
-Alien3$half_humans_eaten <-  0.5 * Alien3$humans_eaten
-mod_alien3_lm <- lm(size ~ humans_eaten + half_humans_eaten, data = Alien3)
-coef(mod_alien3_lm)
-det(crossprod(model.matrix(mod_alien3_lm)))  ## when det(XTX) <= 0, the matrix is singular / degenerated
-mod_alien3_lm$rank
-```
-
-## More subtle linear combination
-```{r Alien4, error = TRUE}
-set.seed(1L)
-Alien4 <- data.frame(humans_eaten = 1:30,
-                     flowers_eaten = round(runif(30, min = 1, max = 15)), 
-                     cactus_eaten = 0)
-Alien4$food_units <- 1.2*Alien4$humans_eaten + 0.6*Alien4$flowers_eaten
-Alien4$size <- rnorm(n = 30, mean = 50 + 1*Alien4$food_units, sd = sqrt(25))
-mod_alien4_lm <- lm(size ~ food_units + humans_eaten + flowers_eaten + cactus_eaten, data = Alien4)
-coef(mod_alien4_lm)
-caret::findLinearCombos(model.matrix(mod_alien4_lm))  ## Tip: help to see what creates the issue
-```
-
-
-## Degenerated because of less data than predictors
-```{r Alien5, error = TRUE}
-set.seed(1L)
-Alien5 <- data.frame(humans_eaten = 1:3,
-                     flowers_eaten = round(runif(3, min = 1, max = 15)),
-                     cactus_eaten =  round(runif(3, min = 1, max = 10)))
-
-Alien5$size <- rnorm(n = 3,
-  mean = 50 + 0.2 * Alien5$humans_eaten + 0.9 * Alien5$flowers_eaten + 0.1 * Alien5$cactus_eaten,
-  sd = sqrt(25))
-
-mod_alien5_lm <- lm(size ~  cactus_eaten + humans_eaten + flowers_eaten, data = Alien5)
-coef(mod_alien5_lm)
-mod_alien5_lm <- lm(size ~  humans_eaten + flowers_eaten + cactus_eaten, data = Alien5)
-coef(mod_alien5_lm)
-```
-
-## Real case: the growth data
-
-Wait for Lena to give green light...
-
-
-# Fitting linear models with both continuous and categorical predictors
-
-## Back to earth: the UK dataset
-
-```{r UK data}
-head(UK)
-mod_UK1 <- lm(height ~ drink + sex*weight, data = UK)
-```
-
-## Model frame of ```mod_UK1```
-```{r UK model frame}
-str(mod_UK1$model)
-```
-
-# Junk for later
-
-##
-
-```{r cov matrix}
-summary(mod_alien_lm)$sigma^2 * solve(t(X) %*% X)  ## same as vcov(mod_alien_lm)
-```
-
-
-## A very simple example
-
-```{r orange data}
-OrangeTree1 <- subset(Orange, Tree == 1)
-OrangeTree1
-```
-
-
-### Our first model
-<font size="5"> $\texttt{circumference}_i = \beta_0 + \beta_{\texttt{age}} \times \texttt{age}_{i} + \epsilon_i$ </font>
-
-```{r lm orange}
-mod_orange_lm <- lm(circumference ~ age, data = OrangeTree1)
-mod_orange_glm <- glm(circumference ~ age, data = OrangeTree1, family = gaussian())
-
+```{r matrix sum}
+E <- as.matrix(Alien$error)
+X %*% B + E
 ```
 
 
 
+# Table of content
 
-## A very simple example
+## The Linear Model: LM
 
-
-
-
-## A simple example
-
-```{r UK boys data}
-UKBoys <- subset(UK, sex == "Boy")
-UKBoys$milk_f <- factor(UKBoys$milk)
-mod_uk_boys <- lm(height ~ milk_f, data = UKBoys)
-```
-
-## terrible residuals
-```{r terrible}
-mod <- lm(log(weight) ~ sex*(weight + drink + height), data = UK) ## notice weight used twice...
-```
-
+2.1 [Fitting Linear Models](./fitting_LM.html)
