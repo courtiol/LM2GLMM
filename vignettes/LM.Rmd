@@ -1,5 +1,5 @@
 ---
-title: "Linear models"
+title: "Linear models: Introduction"
 author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
 output:
@@ -17,18 +17,18 @@ editor_options:
 library(LM2GLMM)
 ```
 
-# Introduction
-
-## What is a linear model?
+## What is a Linear Model (LM)?
 
 ### What is a statistical model?
 
 ###***A statistical model represents, often in considerably idealized form, the data-generating process.*** [(wikipedia)](https://en.wikipedia.org/wiki/Statistical_model)
 <br>
 
-### What is linear?
+### What is a linear model?
 
-###***The data-generating process is assumed to be a linear function: it is constructed from a set of terms by multiplying each term by a constant and adding the results .***
+###***The data-generating process is assumed to be a linear function: it is constructed from a set of terms by multiplying each term by a constant (a model parameter) and adding the results .***
+
+# Notations
 
 ## Mathematical notation of LM: simple notation
 
@@ -37,9 +37,9 @@ library(LM2GLMM)
 <br>
 
 * $y_i$ = the observations to explain / explanatory variable / dependent variable
-* $x_{j,i}$ = the constants derived from the predictors / explanatory variables / independent variables
+* $x_{j,i}$ = constants derived from the predictors / explanatory variables / independent variables
 * $\beta_j$ = the regression coefficients / model parameters
-* $\epsilon_i$ = the errors $\rightarrow$ **we assume: <font size="5"> $\epsilon_i \sim \mathcal{N}(0, \sigma^2)$</font>**
+* $\epsilon_i$ = the errors (not the same thing as residuals!)
 
 
 ## Mathematical notation of LM: matrix notation
@@ -66,13 +66,119 @@ $$
 <br>
 
 * $Y$ = a vector of observations
-* $X$ = an matrix called the model (or design) matrix
+* $X$ = an matrix called the design (or model) matrix
 * $\beta$ = a vector of model parameters
-* $\epsilon$ = a vector of errors $\rightarrow$ **we assume:  <font size="5"> $\epsilon \sim \mathcal{N}(0, \sigma^2 I)$</font>**
+* $\epsilon$ = a vector of errors
 
-## The Alien dataset
+# The response
 
-### Imagine an ideal (unrealistic) situation
+## What kind of responses LM can handle?
+
+* one dimension: $n \times 1$
+* continuous
+* no other restriction
+
+# The design matrix
+
+## The design matrix
+
+* multi-dimensional: $n \times p$ with $n > p$
+* deduced from the predictors
+* known and measured without error
+* columns shoud be linearly independent
+
+## How to get the design (or model) matrix?
+
+```{r pred matrix}
+somedata <- data.frame(x1 = 1:6)
+model.matrix(object = ~ x1, data = somedata)
+```
+
+## A more simple design matrix
+```{r pred matrix 0}
+model.matrix(object = ~ 0 + x1, data = somedata)
+model.matrix(object = ~ -1 + x1, data = somedata)
+```
+
+
+## A more complex design matrix
+
+```{r pred matrix 2}
+somedata$x2 <- c(10, 11, 12, 13, 14, 15)
+somedata$x3 <- factor(c("b", "b", "a", "a", "c", "c"))
+(MA <- model.matrix(object = ~ x1 + x2 + x3, data = somedata))
+```
+
+## An alternative representation of the more complex design matrix
+
+```{r pred matrix 3}
+(MB <- model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = "contr.helmert")))
+```
+
+# The model parameters
+
+## Model parameters:
+
+* one dimension: $p \times 1$ vector
+* fixed unobservable quantities
+
+### The meaning of the parameters depends on the model matrix:
+
+<div  class="columns-2">
+
+```{r param MA}
+BetaA <-  matrix(c(50, 1.5, 20, 2, 3))
+rownames(BetaA) <-
+  c("intercept", "x1", "x2", "x3b", "x3c")
+MA %*% BetaA
+```
+
+<br>
+
+```{r param MB}
+BetaB <-  matrix(c(51.66667, 1.5, 20, 1, 0.66667))
+rownames(BetaB) <- 
+  c("intercept","x1", "x2", "x31", "x32")
+MB %*% BetaB
+```
+
+</div>
+
+## Conversion from one type of contrasts to another
+
+```{r}
+solve(cbind(1, contr.helmert(levels(somedata$x3))),
+      cbind(1, contr.treatment(levels(somedata$x3))) %*% BetaA[c("intercept", "x3b", "x3c"),])
+```
+
+# The errors
+
+## The errors
+
+* one dimension: $n \times 1$ vector
+* equal observation - model approximation ($Y - X\beta$)
+* random variable
+* we assume it Gaussian, independent and identically distributed (homoscedasticity)
+
+<center><font size="8"> $\epsilon \sim \mathcal{N}(0, \sigma^2 I)$</font></center>
+
+###The covariance matrix $\sigma^2 I$
+
+* square matrix: $n \times n$
+
+$$
+\begin{bmatrix}
+\sigma^2 & 0 & \dots & 0 \\
+0 & \sigma^2 & \dots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \dots & \sigma^2 \\
+\end{bmatrix}
+$$
+
+
+# Illustration with the Alien dataset
+
+## Imagine an ideal (unrealistic) situation
 
 We know that the process generating the height of aliens can be
 approximated by the following linear model:
@@ -92,7 +198,12 @@ Alien$error <- rnorm(n = 6, mean = 0, sd = sqrt(25))
 Alien$size <- 50 + 1.5*Alien$humans_eaten + Alien$error
 ```
 
-## The Alien dataset
+We could also write the last 2 lines as the following line, but we want to keep the error distinct here.
+```{r alien data2, eval = FALSE}
+Alien$size <- rnorm(n = 6, mean = 50 + 1.5*Alien$humans_eaten, sd = sqrt(25))
+```
+
+## Computing the response with both notations
 
 ```{r alien data show}
 Alien
@@ -134,19 +245,7 @@ $$
 
 </div>
 
-
-## How to get the model (or design) matrix?
-
-```{r pred matrix}
-model.matrix(object = ~ humans_eaten, data = Alien)
-```
-
-<br>
-
-### This should always work, even if the model gets much more complex!
-
-
-## Matrix operations in R
+## Matrix multiplication in R
 
 ```{r matrix multiplication}
 X <- model.matrix(object = ~ humans_eaten, data = Alien)
