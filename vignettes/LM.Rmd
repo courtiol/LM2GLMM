@@ -151,6 +151,18 @@ solve(cbind(1, contr.helmert(levels(somedata$x3))),
       cbind(1, contr.treatment(levels(somedata$x3))) %*% BetaA[c("intercept", "x3b", "x3c"),])
 ```
 
+
+## Exercise
+
+Explore the differences in the design matrix stemming from coding the gender as:
+
+* ```"boy"``` vs ```"girl"```
+* ```"male"``` vs ```"female"```
+* ```0``` vs ```1```
+* ```1``` vs ```2```
+* ```TRUE``` vs ```FALSE```
+
+
 # The errors
 
 ## The errors
@@ -244,6 +256,7 @@ Y = \begin{bmatrix}
 $$
 
 </div>
+
 
 ## Matrix multiplication in R
 
