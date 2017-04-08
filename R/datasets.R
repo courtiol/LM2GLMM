@@ -39,3 +39,40 @@
 #' }
 #' @source Study number 3723 from the BCS70: \url{https://discover.ukdataservice.ac.uk/series/?sn=200001}
 "UK"
+
+
+#' The Fungi dataset
+#'
+#' This dataset is the result of an experiment aiming at assessing how the heat
+#' and pre-exposure to heat influences the growth rate and survival of two
+#' species of fungi in petry dishes.
+#'
+#' This dataset has not yet been published, so the identity of the species and
+#' the exact protocol of the experiement will not be revealed.
+#'
+#' The experiement ran in two steps: (i) a pre-treatment was performed on some
+#' but not all fungi, during which the fungi are kept at elevated temperature
+#' (36 or 38 degrees) for some time. (ii) the treatment, during which all fungi
+#' are kept for some time at an elevated temperature (36 or 38 degrees). The
+#' growth rate and survival status of the fungi were recorded at the end of the
+#' experiement.
+#'
+#' Before being put in petry dishes each species were grown in three different
+#' batches referred to as colonies. Each row of the dataset corresponds to a
+#' different petry dish.
+#'
+#' @format A data frame with 8 variables:
+#'  \describe{
+#'    \item{colony}{An identifier indicating the colony}
+#'    \item{species}{An identifier referring to the species}
+#'    \item{T36}{A binary indicating if the heating treatment was 36 degrees}
+#'    \item{T38}{A binary indicating if the heating treatment was 38 degrees}
+#'    \item{PT36}{A binary indicating if a pre-treatment at 36 degrees was performed}
+#'    \item{PT38}{A binary indicating if a pre-treatment at 38 degrees was performed}
+#'    \item{alive}{A boolean indicating if the fungi was alive at the end of the experiment}
+#'    \item{growth}{A quantitative measure of the growth rate}
+#'  }
+#'
+#' @source An excellent bachelor student
+"Fungi"
+
