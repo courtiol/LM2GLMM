@@ -520,24 +520,9 @@ mod_alien5_lm <- lm(size ~  humans_eaten + flowers_eaten + cactus_eaten, data = 
 coef(mod_alien5_lm)
 ```
 
-## Difficulty: let's practice!
+# Interpreting estimates
 
-```{r fungi}
-head(Fungi)
-```
-
-<br>
-
-### Goal:
-
-quantifying the average growth rate of alive fungi for each species,
-in each experimental condition, using a single linear model.
-
-([solution](./Fungi_1.html))
-
-# Fitting linear models with both continuous and categorical predictors
-
-## Back to earth: the UK dataset
+## The UK dataset
 
 ```{r UK data}
 head(UK)
@@ -596,3 +581,19 @@ mod_uk_boys <- lm(height ~ milk_f, data = UKBoys)
 mod <- lm(log(weight) ~ sex*(weight + drink + height), data = UK) ## notice weight used twice...
 ```
 
+# Challenge
+
+## Analysing the Fungi dataset
+
+```{r fungi}
+head(Fungi)
+```
+
+<br>
+
+### Goal:
+
+quantifying the average growth rate of alive fungi for each species,
+in each experimental condition, using a single linear model.
+
+([solution](./Fungi_1.html))
