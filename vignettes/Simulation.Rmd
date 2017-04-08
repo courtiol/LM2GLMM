@@ -10,7 +10,6 @@ vignette: >
   %\VignetteIndexEntry{Simulating data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-
 ---
 ```{r setup, include=FALSE}
 library(LM2GLMM)
