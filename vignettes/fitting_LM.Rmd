@@ -315,7 +315,7 @@ sum(log(Alien$density))
 </div>
 
 
-## Recovering the estimates numerically by maximum likelihood (ML)
+## Recovering the estimates numerically by Maximum Likelihood (ML)
 
 ```{r def comput_logLik_Alien}
 compute_logLik_Alien <- function(param, data = Alien) {
@@ -330,7 +330,7 @@ compute_logLik_Alien <- function(param, data = Alien) {
 compute_logLik_Alien(param = theta.lm)
 ```
 
-## Recovering the estimates numerically by maximum likelihood (ML)
+## Recovering the estimates numerically by Maximum Likelihood (ML)
 
 ### We look for the estimates yielding to the maximum likelihood
 ```{r def logLik Alien computation}
@@ -341,7 +341,7 @@ result_opt$value
 ```
 
 
-## Recovering the estimates numerically by ordinary least squares (OLS)
+## Recovering the estimates numerically by Ordinary Least Squares (OLS)
 
 ```{r def compute_rss_Alien}
 compute_rss_Alien <- function(param, data = Alien) {
@@ -351,18 +351,15 @@ compute_rss_Alien <- function(param, data = Alien) {
 }
 
 all.equal(rss_lm, compute_rss_Alien(param = theta.lm))  ## For testing
-```
-
-```{r}
 optim(c("intercept" = 0, "slope" = 1), compute_rss_Alien)$par
-theta.lm
 ```
 
-## Computing estimates using linear algebra
 
-<font size = 8> $\hat{\beta} = (X^\text{T}X)^{-1}X^\text{T}Y$ </font> (see [wikipedia](https://en.wikipedia.org/wiki/Linear_least_squares_(mathematics)) for demonstration)
+## Recovering the estimates analytically
 
-### The direct implementation works:
+<center><font size = 8> $\widehat{\beta} = (X^\text{T}X)^{-1}X^\text{T}Y$ </font></center> (see [wikipedia](https://en.wikipedia.org/wiki/Linear_least_squares_(mathematics)) for demonstration)
+
+### This gives best estimates directly:
 ```{r lin algebra}
 Y <- matrix(Alien$size)
 X <- model.matrix(mod_alien_lm)
@@ -372,44 +369,27 @@ solve(t(X) %*% X) %*% t(X) %*% Y  ## Tip: solve(x) returns the inverse of the ma
 ... but ```lm()``` does not do that because it is somewhat inefficient.
 
 
-## The QR decomposition
+## Recovering the estimates analytically using the QR decomposition
 
-The goal is simply to decompose the model matrix into two new matrices that present nice properties for doing math efficiently.
+The goal is simply to decompose the design matrix into a product of two new matrices that present nice properties for doing math more efficiently.
 
 ```{r QR}
 qr_list <- qr(X)  ## same as mod_alien_lm$qr
-Q <- qr.Q(qr_list, complete = TRUE)  ## orthogonal matrix n * n
-# all.equal(Q %*% t(Q), diag(nrow(Alien))) ## TRUE
+Q <- qr.Q(qr_list, complete = TRUE)  ## orthogonal matrix n * n (transpose = inverse)
 R <- qr.R(qr_list, complete = TRUE)  ## upper triangular matrix n * p
-all.equal(Q %*% R, X, check.attributes = FALSE)  ## Q %*% R is equal to X!!
+```
+```{r QR2, eval = FALSE}
+all.equal(Q %*% R, X, check.attributes = FALSE)  ## TRUE: Q %*% R is equal to X!!
 ```
 
-We can even simplify:
-```{r Q1R1}
-Q1 <- qr.Q(qr_list) ## dim = n * p
-R1 <- qr.R(qr_list)  ## dim = p * p
-all.equal(Q1 %*% R1, X, check.attributes = FALSE)  ## Q1R1 is equal to X!!
-```
-Note: other decompositions are sometimes used (e.g. Cholesky).
-
-## Recovering the estimates using QR
-<script> /* <font size = 8> $\hat{\beta} = R_1^{-1} Q_1^{\mathrm{T}}Y$ </font> */ </script>
-```{r}
-solve(R1) %*% t(Q1) %*% Y  ## Note: lm does that without computing solve(R1) by using QTY instead of Q1TY
-QTY <- t(Q) %*% Y ## same as mod_alien_lm$effects
-backsolve(R1, QTY)
+```{r QR 3}
+QTY <- t(Q) %*% Y    ## same as mod_alien_lm$effects
+backsolve(R, QTY)    ## RB = QTY 
 ```
 
-(the matrix $Q^\text{T}Y$ is also used to compute sum of squares in ```anova()```)
+* Note 1: the matrix $Q^\text{T}Y$ is also used to compute sum of squares in ```anova()```.
+* Note 2: other decompositions are sometimes used (e.g. Cholesky).
 
-
-## Recovering almost everything efficiently using QR
-```{r QR recover all}
-compare <- function(A, vB) {all.equal(A, as.matrix(vB), check.attributes = FALSE)}
-compare(qr.coef(qr_list, Y), mod_alien_lm$coef)
-compare(qr.fitted(qr_list, Y), mod_alien_lm$fitted.values)
-compare(qr.resid(qr_list, Y), mod_alien_lm$residuals)
-```
 
 ## Dissecting the output from ```lm()```
 
@@ -420,20 +400,49 @@ We have already seen all non-trivial components!
 
 We have not yet seen:
 
-* ```assign``` comes from ```attr(X, "assign")```: it indicates which parameters belong to each covariate (more later!).
-* ```df.residuals``` is simply nrow(Alien) - rank.
-* ```xlevels``` is here empty.
-* ```call``` the clean function call to ```lm()```.
-* ```terms``` an object of class terms: the formula with many attributes (```?terms.object```).
-* ```model``` comes from ```model.frame()```: the data used for the fit.
+* ```rank```: the number of columns that are linearly independent in the design matrix.
+* ```assign```: it comes from ```attr(X, "assign")```; it indicates which parameters belong to each covariate.
+* ```df.residuals```: nrow(Alien) - rank.
+* ```xlevels```: here, empty.
+* ```call```: the clean function call to ```lm()```.
+* ```terms```: an object of class terms; i.e. the formula with many attributes (```?terms.object```).
+* ```model```: it comes from ```model.frame()```; it gives the data used for the fit.
+
+## The guts of ```lm()```
+First, ```lm()``` processes information for ```lm.fit()```
+```{r lm guts, eval = FALSE}
+lm(size ~ humans_eaten, data = Alien)
+mf <- model.frame(size ~ humans_eaten, data = Alien)
+Y  <- model.response(mf)
+X  <- model.matrix(~ humans_eaten, data = Alien)
+lm.fit(X, Y)
+```
+
+Then, ```lm.fit()``` calls a C function (Cdqrls) that calls a Fortran function (dqrls, which computes least square solutions) calling another Fortran function (dqrdc2, which performs the QR decomposition).
+
+```
+C     Dqrdc2 is a *modification* of Linpack's dqrdc ('DQRDC') for R
+c
+c     dqrdc2 uses householder transformations to compute the qr
+c     factorization of an n by p matrix x.  a limited column
+c     pivoting strategy based on the 2-norms of the reduced columns
+c     moves columns with near-zero norm to the right-hand edge of
+c     the x matrix.  this strategy means that sequential one
+c     degree-of-freedom effects can be computed in a natural way.
+c
+c     i am very nervous about modifying linpack code in this way.
+c     if you are a computational linear algebra guru and you really
+c     understand how to solve this problem please feel free to
+c     suggest improvements to this code.
+```
+
+
+# Potential difficulties while fitting
 
 ## Difficulty 1: missing data
 
 ```{r Alien 2, error = TRUE}
-rm(Alien) ## Tip: clean start
-Alien <- data.frame(humans_eaten = 1:12)
-set.seed(1L)
-Alien$size <- rnorm(n = 12, mean = 50 + 1.5*Alien$humans_eaten, sd = sqrt(25))
+Alien$pred <- Alien$resid <- Alien$density <- NULL ## Cleaning up
 Alien2 <- Alien
 Alien2$size[c(2, 4)] <- NA
 Alien2$humans_eaten[c(3, 4)] <- NA
@@ -442,51 +451,46 @@ mod_alien2_lm <- lm(size ~ humans_eaten, data = Alien2)
 Alien2$pred <- mod_alien2_lm$fitted.values
 ```
 
-## The rows with NA(s) are being omited
-
-Think:
-$\texttt{data} \rightarrow \texttt{model.frame()} \rightarrow \texttt{model.matrix()} \rightarrow \texttt{qr()} \rightarrow \texttt{qr.fitted()}$
+## The rows with ```NA(s)``` are being omited
 
 ```{r missing data}
 mfAlien2 <- model.frame(formula = size ~ humans_eaten, data = Alien2)
 head(mfAlien2)  ## same as mod_alien2_lm$model
-head(model.matrix(object = ~ humans_eaten, data = mfAlien2))
 ```
 
-## New ```lm()``` component
-
+### New lm component:
 ```{r na.action}
 mod_alien2_lm$na.action
 ```
 
 
-## Prediction with NAs
+## Prediction with ```NA(s)```
 
+### By hand
 ```{r pred NA manual}
 mfAlien2NA <- model.frame(formula = size ~ humans_eaten, data = Alien2, na.action = NULL)
 XNA <- model.matrix(object = ~ humans_eaten, data = mfAlien2NA)
 as.numeric(XNA %*% coef(mod_alien2_lm))
 ```
 
+### Assisted
 ```{r pred na}
 Alien2$pred <- predict(mod_alien2_lm, newdata = Alien2)
 head(Alien2)
 ```
 
-## Difficulty 2: degenerated model matrix
+## Difficulty 2: degenerated design matrix (trivial)
 
 ```{r Alien3, error = TRUE}
-Alien3 <- data.frame(humans_eaten = 1:12)
-set.seed(1L)
-Alien3$size <- rnorm(n = 12, mean = 50 + 1.5*Alien3$humans_eaten, sd = sqrt(25))
+Alien3 <- Alien
 Alien3$half_humans_eaten <-  0.5 * Alien3$humans_eaten
 mod_alien3_lm <- lm(size ~ humans_eaten + half_humans_eaten, data = Alien3)
 coef(mod_alien3_lm)
-det(crossprod(model.matrix(mod_alien3_lm)))  ## when det(XTX) <= 0, the matrix is singular / degenerated
-mod_alien3_lm$rank
+det(crossprod(model.matrix(mod_alien3_lm)))  ## when det(XTX) <= 0, XTX has no inverse!
+mod_alien3_lm$rank  == ncol(model.matrix(mod_alien3_lm))
 ```
 
-## More subtle linear combination
+## Difficulty 2: degenerated design matrix (subtle)
 ```{r Alien4, error = TRUE}
 set.seed(1L)
 Alien4 <- data.frame(humans_eaten = 1:12,
@@ -499,8 +503,7 @@ coef(mod_alien4_lm)
 caret::findLinearCombos(model.matrix(mod_alien4_lm))  ## Tip: help to see what creates the issue
 ```
 
-
-## Degenerated because of less data than predictors
+## Difficulty 2: degenerated design matrix (```n < p```)
 ```{r Alien5, error = TRUE}
 set.seed(1L)
 Alien5 <- data.frame(humans_eaten = 1:3,
@@ -517,10 +520,20 @@ mod_alien5_lm <- lm(size ~  humans_eaten + flowers_eaten + cactus_eaten, data = 
 coef(mod_alien5_lm)
 ```
 
-## Real case: the growth data
+## Difficulty: let's practice!
 
-Wait for Lena to give green light...
+```{r fungi}
+head(Fungi)
+```
 
+<br>
+
+### Goal:
+
+quantifying the average growth rate of alive fungi for each species,
+in each experimental condition, using a single linear model.
+
+([solution](./Fungi_1.html))
 
 # Fitting linear models with both continuous and categorical predictors
 
