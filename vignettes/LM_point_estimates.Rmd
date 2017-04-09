@@ -65,7 +65,7 @@ abline(mod_alien_lm, col = "blue", lwd = 2, lty = 2)
 
 ### Why?
 
-* for drawing inferences about future (or past) obervable events
+* for drawing inferences about future (or past) observable events
 
 # Notations
 
@@ -110,7 +110,7 @@ The RSS = $\displaystyle\sum_{i=1}^{n}{\varepsilon_i^2}$.
 
 ### Both methods are equivalent in the case of LM!
 
-## Fitting the Alien data using ```lm()``` as a blackbox
+## Fitting the Alien data using ```lm()``` as a black-box
 
 ```{r fit alien lm}
 (mod_alien_lm <- lm(size ~ humans_eaten, data = Alien))
@@ -449,7 +449,7 @@ mod_alien2_lm <- lm(size ~ humans_eaten, data = Alien2)
 Alien2$pred <- mod_alien2_lm$fitted.values
 ```
 
-## The rows with ```NA(s)``` are being omited
+## The rows with ```NA(s)``` are being omitted
 
 ```{r missing data}
 mfAlien2 <- model.frame(formula = size ~ humans_eaten, data = Alien2)
