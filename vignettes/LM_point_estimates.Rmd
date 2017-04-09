@@ -464,17 +464,17 @@ mod_alien2_lm$na.action
 
 ## Prediction with ```NA(s)```
 
+### Assisted
+```{r pred na}
+Alien2$pred <- predict(mod_alien2_lm, newdata = Alien2)
+head(Alien2)
+```
+
 ### By hand
 ```{r pred NA manual}
 mfAlien2NA <- model.frame(formula = size ~ humans_eaten, data = Alien2, na.action = NULL)
 XNA <- model.matrix(object = ~ humans_eaten, data = mfAlien2NA)
 as.numeric(XNA %*% coef(mod_alien2_lm))
-```
-
-### Assisted
-```{r pred na}
-Alien2$pred <- predict(mod_alien2_lm, newdata = Alien2)
-head(Alien2)
 ```
 
 ## Difficulty 2: degenerated design matrix (trivial)
