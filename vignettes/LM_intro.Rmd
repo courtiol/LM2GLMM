@@ -83,7 +83,7 @@ $$
 * multi-dimensional: $n \times p$ with $n > p$
 * deduced from the predictors
 * known and measured without error
-* columns shoud be linearly independent
+* columns should be linearly independent
 
 ## How to get the design (or model) matrix?
 
@@ -140,7 +140,7 @@ model.matrix(object = ~ x1 * x2 + x1 * x3, data = somedata)
 ## Model parameters:
 
 * one dimension: $p \times 1$ vector
-* fixed unobservable quantities
+* fixed non-observable quantities
 
 <br>
 
