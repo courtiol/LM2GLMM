@@ -89,17 +89,33 @@ $$
 
 ```{r pred matrix}
 somedata <- data.frame(x1 = 1:6)
-model.matrix(object = ~ x1, data = somedata)
+(mm <- model.matrix(object = ~ x1, data = somedata))
 ```
 
-## A more simple design matrix
+## Ploting the design matrix
+```{r plot mm, fig.align = "center", fig.width = 5, fig.height = 5}
+matplot(mm)
+```
+
+## A design matrix without intercept
 ```{r pred matrix 0}
 model.matrix(object = ~ 0 + x1, data = somedata)
 model.matrix(object = ~ -1 + x1, data = somedata)
 ```
 
+## A design matrix with functions
 
-## A more complex design matrix
+```{r pred matrix 1}
+model.matrix(object = ~ log(x1) + poly(x1, 2, raw = TRUE), data = somedata)
+```
+
+## An alternative parametrization for polynomials
+
+```{r pred matrix 1b}
+model.matrix(object = ~ log(x1) + poly(x1, 2), data = somedata)
+```
+
+## A design matrix with a factor
 
 ```{r pred matrix 2}
 somedata$x2 <- c(10, 11, 12, 13, 14, 15)
@@ -107,10 +123,16 @@ somedata$x3 <- factor(c("b", "b", "a", "a", "c", "c"))
 (MA <- model.matrix(object = ~ x1 + x2 + x3, data = somedata))
 ```
 
-## An alternative representation of the more complex design matrix
+## An alternative parametrization for the factor
 
 ```{r pred matrix 3}
 (MB <- model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = "contr.helmert")))
+```
+
+## A desing matrix with interactions
+
+```{r pred matrix 4}
+model.matrix(object = ~ x1 * x2 + x1 * x3, data = somedata)
 ```
 
 # The model parameters
@@ -120,7 +142,50 @@ somedata$x3 <- factor(c("b", "b", "a", "a", "c", "c"))
 * one dimension: $p \times 1$ vector
 * fixed unobservable quantities
 
-### The meaning of the parameters depends on the model matrix:
+<br>
+
+### The meaning of the parameters always depends on the model matrix!!!
+
+## The case of polynomials: raw
+
+```{r pred matrix poly a}
+(M2a <- model.matrix(object = ~ poly(x1, 2, raw = TRUE), data = somedata))
+M2a %*% c(1, 2, -2)
+```
+
+## The case of polynomials: orthogonal
+
+```{r pred matrix poly b}
+
+(M2b <- model.matrix(object = ~ poly(x1, 2), data = somedata))
+round(M2b %*% c(-22.33333, -50.19960, -12.22020), 3)
+```
+
+## The case of polynomials: conversions
+
+```{r convert poly}
+convert_raw_to_ortho <- function(var, coef_raw) {
+  ## the coef must contain the intercept!
+  degree <- length(coef_raw) - 1
+  X_ortho <- model.matrix(~ poly(var, degree))
+  X_raw   <- model.matrix(~ poly(var, degree, raw = TRUE))
+  solve(coef(lm.fit(X_raw, X_ortho)), coef_raw)
+}
+
+convert_ortho_to_raw <- function(var, coef_ortho) {
+  ## the coef must contain the intercept!
+  degree <- length(coef_ortho) - 1
+  X_ortho <- model.matrix(~ poly(var, degree))
+  X_raw   <- model.matrix(~ poly(var, degree, raw = TRUE))
+  solve(coef(lm.fit(X_ortho, X_raw)), coef_ortho)
+}
+
+(coef_ortho <- convert_raw_to_ortho(var = somedata$x1, coef_raw = c(1, 2, -2)))
+## (coef_raw <- convert_ortho_to_raw(var = somedata$x1, coef_ortho = coef_ortho)) ## recovers the input!
+```
+
+
+## The case of contrasts: treatment vs Helmert
 
 <div  class="columns-2">
 
@@ -142,7 +207,7 @@ MB %*% BetaB
 
 </div>
 
-## Conversion from one type of contrasts to another
+## The case of contrasts: conversion
 
 ```{r}
 solve(cbind(1, contr.helmert(levels(somedata$x3))),
@@ -188,12 +253,6 @@ $$
 
 # Illustration with the Alien dataset
 
-## Why simulating Aliens?
-
-* it helps to understand what exactly linear models are
-* it is a good way for you to know that you understand the meaning of your estimates
-* it allows for the study of the power and robustness of LM in general and particular cases
-
 ## Imagine an ideal (unrealistic) situation
 
 We know that the process generating the height of aliens can be
@@ -218,6 +277,13 @@ We could also write the last 2 lines as the following line, but we want to keep 
 ```{r alien data2, eval = FALSE}
 Alien$size <- rnorm(n = 6, mean = 50 + 1.5*Alien$humans_eaten, sd = sqrt(25))
 ```
+
+## Why simulating Aliens?
+
+* it helps to understand what exactly linear models are
+* it is a good way for you to know that you understand the meaning of your estimates
+* it allows for the study of the power and robustness of LM in general and particular cases
+
 
 ## Computing the response with both notations
 
