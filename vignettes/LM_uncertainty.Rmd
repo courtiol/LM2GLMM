@@ -1,0 +1,116 @@
+---
+title: "LM: Uncertainty in point estimates"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+vignette: >
+  %\VignetteIndexEntry{2.2 Uncertainty in point estimates}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, include=FALSE}
+library(LM2GLMM)
+library(spaMM)
+```
+
+# Introduction
+
+## Summary of point estimates
+
+```{r point estimates}
+set.seed(123L)
+Alien <- data.frame(humans_eaten = sample(1:12))
+Alien$size <- rnorm(n = 12, mean = 50 + 1.5*Alien$humans_eaten, sd = sqrt(25))
+
+mod_stats <- lm(size ~ humans_eaten, data = Alien)
+c(coef(mod_stats), sigma2 = summary(mod_stats)$sigma^2)
+
+mod_spaMM_ML <- fitme(size ~ humans_eaten, data = Alien, method = "ML")      ## residual variance
+mod_spaMM_REML <- fitme(size ~ humans_eaten, data = Alien, method = "REML")  ## error variance
+c(mod_spaMM_ML$fixef, sigma2 = mod_spaMM_REML$phi)
+```
+
+
+# Likelihood profiling
+
+## Computing the likelihood for specific parameters
+
+```{r spaMM 3}
+logLik(lm(size ~ 0 + offset(50 + 1.5 * humans_eaten), data = Alien))
+
+mod_spaMM_fix <- fitme(size ~ 0 + offset(50 + 1.5 * humans_eaten), fixed = list(phi = 25), data = Alien)
+mod_spaMM_fix$APHLs$p_v
+```
+
+## Likelihood profiling 1 parameter
+
+```{r spaMM 4, fig.align = "center", fig.width = 4, fig.height = 4}
+mod_spaMM_allfix <- fitme(size ~ humans_eaten, fixed = list(phi = 25), data = Alien)
+candidate_sigma <- seq(10, 70, 0.5)
+logLik_profile <- sapply(candidate_sigma, function(sigma2) 
+  update(mod_spaMM_allfix, fixed = list(phi = sigma2))$APHLs$p_v)
+plot(logLik_profile ~ candidate_sigma, type = "l")
+abline(v = 25, col = "green", lwd = 2)
+abline(v = mod_spaMM_ML$phi, col = "blue", lwd = 2)
+```
+
+## Likelihood profiling 2 parameters
+
+```{r spaMM 5}
+candidate_intercept_u <- seq(40, 60, 1)
+candidate_slope_u <- seq(0.8, 2, 0.1)
+
+candidates <- expand.grid(
+  candidate_intercept = candidate_intercept_u,
+  candidate_slope = candidate_slope_u)
+
+candidates$logLik <- NA
+
+for (i in 1:nrow(candidates)) {
+  mod_temp <- fitme(size ~  0 + offset(candidates[i, 1] + candidates[i, 2] * humans_eaten), data = Alien)
+  candidates[i, "logLik"] <- mod_temp$APHLs$p_v
+}
+```
+```{r spaMM 6, fig.align = "center", eval = FALSE}
+library(lattice)
+contourplot(logLik ~ candidate_intercept * candidate_slope, candidates, cuts = 15)
+trellis.focus("panel", 1, 1) 
+lpoints(mod_spaMM_ML$fixef["(Intercept)"], mod_spaMM_ML$fixef["humans_eaten"],
+        col = "blue", pch = 4, lwd = 2, cex = 3)
+lpoints(50, 1.5, col = "green", pch = 4, lwd = 2, cex = 3)
+trellis.unfocus()
+```
+
+## Likelihood profiling 2 parameters: plot
+
+```{r spaMM 7, fig.align = "center", echo = FALSE, results = "hide", fig.height = 5, fig.width = 5}
+library(lattice)
+contourplot(logLik ~ candidate_intercept * candidate_slope, candidates, cuts = 15)
+trellis.focus("panel", 1, 1) 
+lpoints(mod_spaMM_ML$fixef["(Intercept)"], mod_spaMM_ML$fixef["humans_eaten"],
+        col = "blue", pch = 4, lwd = 2, cex = 3)
+lpoints(50, 1.5, col = "green", pch = 4, lwd = 2, cex = 3)
+trellis.unfocus()
+```
+
+# Uncertainty in point estimates
+
+## Estimates are random variables
+
+```{r vcov}
+vcov(mod_stats)
+vcov(mod_spaMM_REML)
+```
+
+# Table of content
+
+## The Linear Model: LM
+
+* 2.0 [Introduction](./LM_intro.html)
+* 2.1 [Point estimates](./LM_point_estimates.html)
+* 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
+

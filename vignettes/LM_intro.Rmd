@@ -1,5 +1,5 @@
 ---
-title: "Linear models: Introduction"
+title: "LM: Introduction"
 author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
 output:
@@ -188,6 +188,12 @@ $$
 
 # Illustration with the Alien dataset
 
+## Why simulating Aliens?
+
+* it helps to understand what exactly linear models are
+* it is a good way for you to know that you understand the meaning of your estimates
+* it allows for the study of the power and robustness of LM in general and particular cases
+
 ## Imagine an ideal (unrealistic) situation
 
 We know that the process generating the height of aliens can be
@@ -269,9 +275,11 @@ X %*% B + E
 ```
 
 
-
 # Table of content
 
 ## The Linear Model: LM
 
-2.1 [Fitting Linear Models](./fitting_LM.html)
+* 2.0 [Introduction](./LM_intro.html)
+* 2.1 [Point estimates](./LM_point_estimates.html)
+* 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
+

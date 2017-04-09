@@ -224,3 +224,15 @@ addA_B(a = 5)
 addA_B_bis <- function(a, b) a + b
 addA_B_bis(2, 3)
 ```
+
+## Using pseudo-random numbers in R
+
+```{r rnorm}
+rnorm(5, mean = 2, sd = 0.1)  ## Tip: check ?Distributions for other distribution
+rnorm(5, mean = 2, sd = 0.1)
+set.seed(14353L)
+rnorm(5, mean = 2, sd = 0.1)
+set.seed(14353L)
+rnorm(5, mean = 2, sd = 0.1)
+```
+

@@ -1,5 +1,5 @@
 ---
-title: "Linear models: Fitting procedure"
+title: "LM: Point estimates"
 author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
 output:
@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{2.1 Fitting LM}
+  %\VignetteIndexEntry{2.1 Point estimates}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
@@ -15,7 +15,7 @@ vignette: >
 library(LM2GLMM)
 ```
 
-# The toy dataset
+# Introduction
 
 ## Let's simulate more Alien data
 
@@ -132,8 +132,8 @@ names(mod_alien_lm)
 ## Recovering the design matrix
 
 ```{r design matrix}
-X_Alien <- model.matrix(mod_alien_lm)  ## Tip: same as model.matrix(~ humans_eaten, data = Alien)
-head(X_Alien)
+X_alien <- model.matrix(mod_alien_lm)  ## Tip: same as model.matrix(~ humans_eaten, data = Alien)
+head(X_alien)
 ```
 
 ## Recovering the predicted values
@@ -141,7 +141,7 @@ head(X_Alien)
 ```{r predict}
 pred_auto   <- predict(mod_alien_lm)  ## Tip: same as mod_alien_lm$fitted.values / fitted(mod_alien_lm)
 pred_simple <- coef_lm[1] + coef_lm[2] * Alien$humans_eaten
-pred_matrix <- X_Alien %*% coef_lm
+pred_matrix <- X_alien %*% coef_lm
 ```
 
 All three methods are identical!
@@ -155,7 +155,7 @@ Alien$pred <- pred_auto
 ```{r residuals}
 resid_auto   <- residuals(mod_alien_lm)  ## Tip: same as mod_alien_lm$residuals 
 resid_simple <- Alien$size - (coef_lm[1] + coef_lm[2] * Alien$humans_eaten)
-resid_matrix <- matrix(Alien$size) - X_Alien %*% coef_lm
+resid_matrix <- matrix(Alien$size) - X_alien %*% coef_lm
 ```
 
 ```{r show residuals}
@@ -529,54 +529,64 @@ mod_UK1 <- lm(height ~ drink + sex*weight, data = UK)
 
 ## Model frame of ```mod_UK1```
 ```{r UK model frame}
-str(mod_UK1$model)
+mf <- mod_UK1$model
+str(mf)
 ```
 
-# Junk for later
-
-##
-
-```{r cov matrix}
-summary(mod_alien_lm)$sigma^2 * solve(t(X) %*% X)  ## same as vcov(mod_alien_lm)
+## Model frame of ```mod_UK1```
+```{r UK model frame 2}
+head(mf)
 ```
 
-
-## A very simple example
-
-```{r orange data}
-OrangeTree1 <- subset(Orange, Tree == 1)
-OrangeTree1
+## Design matrix of ```mod_UK1```
+```{r UK design matrix}
+X <- model.matrix(mod_UK1)
+head(X)
 ```
 
+## Coefficients of  ```mod_UK1```
+```{r UK coef}
+data.frame(coef(mod_UK1))
+```
+<br>
 
-### Our first model
-<font size="5"> $\texttt{circumference}_i = \beta_0 + \beta_{\texttt{age}} \times \texttt{age}_{i} + \epsilon_i$ </font>
+### What do each of these estimate really mean?
 
-```{r lm orange}
-mod_orange_lm <- lm(circumference ~ age, data = OrangeTree1)
-mod_orange_glm <- glm(circumference ~ age, data = OrangeTree1, family = gaussian())
+(If you struggle interpreting the coefficients, try to compute some predictions!)
 
+## Predictions with  ```mod_UK1```
+
+* height of a 30 Kg boy whose mum drank most days?
+* height of a 30 Kg girl whose mum drank most days?
+* height of a 35 Kg boy whose mum drank 2 to 3 times a week?
+
+```{r example predict}
+newX <- matrix(
+  c(1, 1, 0, 0, 0, 30, 0,
+    1, 1, 0, 0, 1, 30, 30,
+    1, 0, 0, 0, 0, 35, 0),
+  nrow = 3, byrow = TRUE)
+colnames(newX) <- names(coef(mod_UK1))
+newX
 ```
 
+## Predictions with  ```mod_UK1```
 
+* height of a 30 Kg boy whose mum drank most days?
+* height of a 30 Kg girl whose mum drank most days?
+* height of a 35 Kg boy whose mum drank 2 to 3 times a week?
 
-
-## A very simple example
-
-
-
-
-## A simple example
-
-```{r UK boys data}
-UKBoys <- subset(UK, sex == "Boy")
-UKBoys$milk_f <- factor(UKBoys$milk)
-mod_uk_boys <- lm(height ~ milk_f, data = UKBoys)
+```{r example predict 2}
+newX %*% coef(mod_UK1)
 ```
 
-## terrible residuals
-```{r terrible}
-mod <- lm(log(weight) ~ sex*(weight + drink + height), data = UK) ## notice weight used twice...
+Let's check:
+```{r example predict 3}
+newdata1 <- data.frame(
+  drink = c("Most days", "Most days", "2 to 3 times a week"),
+  sex = c("Boy", "Girl", "Boy"),
+  weight = c(30, 30, 35))
+predict(mod_UK1, newdata = newdata1)
 ```
 
 # Challenge
@@ -595,3 +605,43 @@ quantifying the average growth rate of alive fungi for each species,
 in each experimental condition, using a single linear model.
 
 ([solution](./Fungi_1.html))
+
+
+# Fitting LM with ```spaMM```
+
+## For comparison: with ```stats```
+
+```{r stats}
+mod_stats <- lm(size ~ humans_eaten, data = Alien)
+coef(mod_stats)
+summary(mod_stats)$sigma^2  ## error variance
+summary(mod_stats)$sigma^2 * (nrow(Alien) - length(coef_lm)) /  nrow(Alien)  ## residual variance
+logLik(mod_stats)
+```
+
+## With ```spaMM``` using ML
+
+```{r spaMM 1, message = FALSE}
+library(spaMM)
+mod_spaMM_ML <- fitme(size ~ humans_eaten, data = Alien, method = "ML")  ## default: residual variance
+mod_spaMM_ML$fixef
+mod_spaMM_ML$phi
+mod_spaMM_ML$APHLs$p_v
+```
+
+## With ```spaMM``` using REML
+
+```{r spaMM 2}
+mod_spaMM_REML <- fitme(size ~ humans_eaten, data = Alien, method = "REML")  ## non-default: error variance
+mod_spaMM_REML$fixef
+mod_spaMM_REML$phi
+mod_spaMM_REML$APHLs$p_v
+```
+
+# Table of content
+
+## The Linear Model: LM
+
+* 2.0 [Introduction](./LM_intro.html)
+* 2.1 [Point estimates](./LM_point_estimates.html)
+* 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
