@@ -1,7 +1,7 @@
 inst/doc
 .Rproj.user
-vignettes/*.R
-*.png
+!*vignettes/*.Rmd
+vignettes/
 *.html
 
 # OS generated files #
