@@ -16,7 +16,8 @@ Imports:
     spaMM,
     stats,
     lattice,
-    lme4
+    lme4,
+    mvtnorm
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr
