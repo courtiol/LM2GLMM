@@ -39,7 +39,7 @@ c(mod_spaMM_ML$fixef, sigma2 = mod_spaMM_REML$phi)
 
 ## Computing the likelihood for specific parameters
 
-```{r spaMM 3}
+```{r spaMM 1}
 logLik(lm(size ~ 0 + offset(50 + 1.5 * humans_eaten), data = Alien))
 
 mod_spaMM_fix <- fitme(size ~ 0 + offset(50 + 1.5 * humans_eaten), fixed = list(phi = 25), data = Alien)
@@ -48,7 +48,7 @@ mod_spaMM_fix$APHLs$p_v
 
 ## Likelihood profiling 1 parameter
 
-```{r spaMM 4, fig.align = "center", fig.width = 4, fig.height = 4}
+```{r spaMM 2, fig.align = "center", fig.width = 4, fig.height = 4}
 mod_spaMM_allfix <- fitme(size ~ humans_eaten, fixed = list(phi = 25), data = Alien)
 candidate_sigma <- seq(10, 70, 0.5)
 logLik_profile <- sapply(candidate_sigma, function(sigma2) 
@@ -60,9 +60,9 @@ abline(v = mod_spaMM_ML$phi, col = "blue", lwd = 2)
 
 ## Likelihood profiling 2 parameters
 
-```{r spaMM 5}
+```{r spaMM profile 2p}
 candidate_intercept_u <- seq(40, 60, 1)
-candidate_slope_u <- seq(0.8, 2, 0.1)
+candidate_slope_u     <- seq(0.7, 2.1, 0.1)
 
 candidates <- expand.grid(
   candidate_intercept = candidate_intercept_u,
@@ -87,7 +87,7 @@ trellis.unfocus()
 
 ## Likelihood profiling 2 parameters: plot
 
-```{r spaMM 7, fig.align = "center", echo = FALSE, results = "hide", fig.height = 5, fig.width = 5}
+```{r spaMM 4, fig.align = "center", echo = FALSE, results = "hide", fig.height = 5, fig.width = 5}
 library(lattice)
 contourplot(logLik ~ candidate_intercept * candidate_slope, candidates, cuts = 15)
 trellis.focus("panel", 1, 1) 
