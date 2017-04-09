@@ -15,6 +15,8 @@ vignette: >
 ```{r setup, include=FALSE}
 library(LM2GLMM)
 library(spaMM)
+library(lattice)
+library(mvtnorm)
 ```
 
 # Introduction
@@ -34,6 +36,84 @@ mod_spaMM_REML <- fitme(size ~ humans_eaten, data = Alien, method = "REML")  ## 
 c(mod_spaMM_ML$fixef, sigma2 = mod_spaMM_REML$phi)
 ```
 
+### Those are point estimates. Estimates are random variable!
+
+# Distribution of point estimates
+
+## Covariances of the estimates
+
+```{r vcov}
+XTX <- crossprod(model.matrix(mod_stats))
+summary(mod_stats)$sigma^2 * solve(XTX)
+vcov(mod_stats)
+vcov(mod_spaMM_REML)
+```
+
+## The estimates of $\beta$ are gaussian (assymptotically)
+
+```{r, fig.align = "center", fig.height = 4, fig.width = 4}
+candidate_intercept_u <- seq(40, 60, 1)
+candidate_slope_u     <- seq(0.7, 2.1, 0.1)
+
+candidates <- expand.grid(
+  candidate_intercept = candidate_intercept_u,
+  candidate_slope = candidate_slope_u)
+
+candidates$d <- dmvnorm(
+  x = candidates[, 1:2],
+  mean = coef(mod_stats),
+  sigma = vcov(mod_stats),
+  log = FALSE)
+```
+
+## Density of the estimates for $\beta$
+
+```{r}
+contourplot(d ~ candidate_intercept * candidate_slope, candidates, cuts = 5)
+```
+
+## Comparison with parametric boostrap
+
+```{r}
+newYs <- simulate(mod_stats, nsim = 5000)
+res_sim <- t(coef(lm(as.matrix(newYs) ~ humans_eaten, data = Alien)))
+```
+
+<div class="columns-2">
+
+```{r, fig.align = "center", fig.height = 4, fig.width = 4}
+curve(pnorm(x, mean = coef(mod_stats)[1],
+    sd = sqrt(vcov(mod_stats)[[1]])),
+  from = 30, to = 60, ylab = "pdf", lwd = 3)
+plot(ecdf(res_sim[, 1]), col = "red", add = TRUE)
+```
+
+```{r, fig.align = "center", fig.height = 4, fig.width = 4}
+curve(pnorm(x, mean = coef(mod_stats)[2],
+    sd = sqrt(vcov(mod_stats)[[4]])),
+    from = 0, to = 3, ylab = "pdf", lwd = 3)
+plot(ecdf(res_sim[, 2]), col = "red", add = TRUE)
+```
+
+
+## Same in 2D
+
+```{r, fig.align = "center", fig.height = 4, fig.width = 4, results = "hide"}
+contourplot(d ~ candidate_intercept * candidate_slope, candidates, cuts = 5)
+trellis.focus("panel", 1, 1) 
+lpoints(res_sim[, "(Intercept)"], res_sim[, "humans_eaten"], col = "red", pch = 1, cex = 0.5, lwd = 0.2)
+trellis.unfocus()
+```
+
+## Distribution of the estimate of the error variance
+
+```{r, fig.align = "center", fig.height = 4, fig.width = 4}
+res_sigma2 <- unlist(
+  lapply(summary(lm(as.matrix(newYs) ~ humans_eaten, data = Alien)),
+         function(m) m$sigma^2))
+
+plot(ecdf(res_sigma2), col = "red")  ## theoretical distrib Gamma???
+```
 
 # Likelihood profiling
 
@@ -61,13 +141,6 @@ abline(v = mod_spaMM_ML$phi, col = "blue", lwd = 2)
 ## Likelihood profiling 2 parameters
 
 ```{r spaMM profile 2p}
-candidate_intercept_u <- seq(40, 60, 1)
-candidate_slope_u     <- seq(0.7, 2.1, 0.1)
-
-candidates <- expand.grid(
-  candidate_intercept = candidate_intercept_u,
-  candidate_slope = candidate_slope_u)
-
 candidates$logLik <- NA
 
 for (i in 1:nrow(candidates)) {
@@ -76,7 +149,6 @@ for (i in 1:nrow(candidates)) {
 }
 ```
 ```{r spaMM 6, fig.align = "center", eval = FALSE}
-library(lattice)
 contourplot(logLik ~ candidate_intercept * candidate_slope, candidates, cuts = 15)
 trellis.focus("panel", 1, 1) 
 lpoints(mod_spaMM_ML$fixef["(Intercept)"], mod_spaMM_ML$fixef["humans_eaten"],
@@ -97,14 +169,6 @@ lpoints(50, 1.5, col = "green", pch = 4, lwd = 2, cex = 3)
 trellis.unfocus()
 ```
 
-# Uncertainty in point estimates
-
-## Estimates are random variables
-
-```{r vcov}
-vcov(mod_stats)
-vcov(mod_spaMM_REML)
-```
 
 # Table of content
 
