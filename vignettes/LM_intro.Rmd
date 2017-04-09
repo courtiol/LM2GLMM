@@ -146,6 +146,32 @@ model.matrix(object = ~ x1 * x2 + x1 * x3, data = somedata)
 
 ### The meaning of the parameters always depends on the model matrix!!!
 
+
+## Conversion between alternative parameterizations
+
+### This function converts parameters between equivalent design matrices:
+```{r convert}
+conv_betaXA_to_betaXB <- function(XA, XB, betaXA) {
+  ## Test that inputs are OK:
+  if (!any(dim(XA) == dim(XB)))   stop("design matrices differ in size")
+  if (ncol(XA) != length(betaXA)) stop("betaXA of wrong length")
+  ## Identify parameters that need to be converted
+  id_col_keep <- which(apply(XA != XB, 2, sum) != 0) ## index columns to keep
+  if (all(XA[, 1] == 1)) id_col_keep <- c(1, id_col_keep) ## add intercept
+  id_col_drop <- setdiff(1:ncol(XA), id_col_keep) ## index columns to discard
+  ## Conversion per se:
+  betaXB_temp <- solve(coef(lm.fit(XA[, id_col_keep], XB[, id_col_keep])), betaXA[id_col_keep])
+  ## Put back non converted parameters into output
+  betaXB <- numeric(length(betaXA))
+  betaXB[id_col_keep] <- betaXB_temp
+  betaXB[id_col_drop] <- betaXA[id_col_drop]
+  ## Output
+  return(betaXB)
+}
+## homemade: this function may break in some legitimate cases...
+```
+
+
 ## The case of polynomials: raw
 
 ```{r pred matrix poly a}
@@ -161,58 +187,35 @@ M2a %*% c(1, 2, -2)
 round(M2b %*% c(-22.33333, -50.19960, -12.22020), 3)
 ```
 
-## The case of polynomials: conversions
+## The case of polynomials: conversion
 
 ```{r convert poly}
-convert_raw_to_ortho <- function(var, coef_raw) {
-  ## the coef must contain the intercept!
-  degree <- length(coef_raw) - 1
-  X_ortho <- model.matrix(~ poly(var, degree))
-  X_raw   <- model.matrix(~ poly(var, degree, raw = TRUE))
-  solve(coef(lm.fit(X_raw, X_ortho)), coef_raw)
-}
-
-convert_ortho_to_raw <- function(var, coef_ortho) {
-  ## the coef must contain the intercept!
-  degree <- length(coef_ortho) - 1
-  X_ortho <- model.matrix(~ poly(var, degree))
-  X_raw   <- model.matrix(~ poly(var, degree, raw = TRUE))
-  solve(coef(lm.fit(X_ortho, X_raw)), coef_ortho)
-}
-
-(coef_ortho <- convert_raw_to_ortho(var = somedata$x1, coef_raw = c(1, 2, -2)))
-## (coef_raw <- convert_ortho_to_raw(var = somedata$x1, coef_ortho = coef_ortho)) ## recovers the input!
+p1 <- model.matrix(~ poly(somedata$x1, 2, raw = TRUE))
+p2 <- model.matrix(~ poly(somedata$x1, 2))
+conv_betaXA_to_betaXB(XA = p1, XB = p2, betaXA = c(1, 2, -2))
 ```
 
 
 ## The case of contrasts: treatment vs Helmert
 
+```{r helmert conv}
+BetaA <- matrix(c(50, 1.5, 20, 2, 3))
+(BetaB <- conv_betaXA_to_betaXB(XA = MA, XB = MB, betaXA = BetaA))
+```
+
 <div  class="columns-2">
 
 ```{r param MA}
-BetaA <-  matrix(c(50, 1.5, 20, 2, 3))
-rownames(BetaA) <-
-  c("intercept", "x1", "x2", "x3b", "x3c")
 MA %*% BetaA
 ```
 
 <br>
 
 ```{r param MB}
-BetaB <-  matrix(c(51.66667, 1.5, 20, 1, 0.66667))
-rownames(BetaB) <- 
-  c("intercept","x1", "x2", "x31", "x32")
 MB %*% BetaB
 ```
 
 </div>
-
-## The case of contrasts: conversion
-
-```{r}
-solve(cbind(1, contr.helmert(levels(somedata$x3))),
-      cbind(1, contr.treatment(levels(somedata$x3))) %*% BetaA[c("intercept", "x3b", "x3c"),])
-```
 
 
 ## Exercise
