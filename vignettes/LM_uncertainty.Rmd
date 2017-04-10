@@ -111,8 +111,10 @@ trellis.unfocus()
 res_sigma2 <- unlist(
   lapply(summary(lm(as.matrix(newYs) ~ humans_eaten, data = Alien)),
          function(m) m$sigma^2))
-
-plot(ecdf(res_sigma2), col = "red")  ## theoretical distrib Gamma???
+curve(pgamma(x, shape = mod_stats$df.residual/2,
+             scale = 2*summary(mod_stats)$sigma^2/mod_stats$df.residual),
+    from = 0, to = 80, ylab = "pdf", lwd = 3)
+plot(ecdf(res_sigma2), col = "red", add = TRUE)
 ```
 
 # Likelihood profiling
