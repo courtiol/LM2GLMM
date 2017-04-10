@@ -3,6 +3,7 @@ inst/doc
 !*vignettes/*.Rmd
 vignettes/
 *.html
+sources/
 
 # OS generated files #
 ######################
