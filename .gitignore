@@ -5,6 +5,7 @@ vignettes/
 *.html
 sources/biblio
 
+
 # OS generated files #
 ######################
 .DS_Store
