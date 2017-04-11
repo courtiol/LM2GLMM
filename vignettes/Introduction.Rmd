@@ -195,7 +195,7 @@ rownames(foo) <- c("A", "B", "C")
 foo
 ```
 
-###You can manipulation them similarly as dataframe!
+###You can manipulate them similarly as dataframe!
 
 ## Lists
 
