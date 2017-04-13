@@ -22,6 +22,7 @@ library(LM2GLMM)
 ###What?
 
 * biological questions for which the answers will require you to build models and analyse data
+* statistical questions (not many) for which the answers will require you to think
 * you will answer by writing text and by creating figures and/or tables 
 
 ### When?
@@ -43,7 +44,7 @@ library(LM2GLMM)
 ###I will grade:
 
 * the correctness of the answers
-* the correctness of the code (did you get the good answer by plain luck or good thought process?)
+* the correctness of the R code (did you get the good answer by plain luck or good thought process?)
 
 ###I will give bonuses for the quality/elegance of:
 
@@ -59,7 +60,8 @@ library(LM2GLMM)
 
 # General information
 
-## What do you need?
+## What do you need for the course?
+* a laptop
 * a computer with internet connection
 * a web browser (up-to-date)
 * R version $\geq$ 3.3
@@ -75,7 +77,7 @@ https://github.com/courtiol/LM2GLMM/releases
 
 ### Installation
 ```{r install_package, eval = FALSE}
-install.packages(pkgs = "path/LM2GLMM") ## replace path by your path!
+install.packages(pkgs = "path/LM2GLMM") ## replace path by your actual path!
 ```
 <br>
 
@@ -104,7 +106,7 @@ library(package = "LM2GLMM")
  #############################################
 ```
 
-### !!! Always check the version number !!!
+### !!! Always check the version number with me!!!
 
 # Refreshing your R skills
 
@@ -195,7 +197,11 @@ rownames(foo) <- c("A", "B", "C")
 foo
 ```
 
-###You can manipulate them similarly as dataframe!
+The indexing is similar to dataframes!
+
+```{r matrix multiplication}
+foo %*% matrix(c(0, 1, -1))  ## matrix multiplication
+```
 
 ## Lists
 

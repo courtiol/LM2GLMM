@@ -40,6 +40,8 @@ Alien$size <- rnorm(n = 12, mean = 50 + 1.5*Alien$humans_eaten, sd = sqrt(25))
 
 ## In reality, model parameters are unknown, so we will have to estimate them!
 
+(that is the whole point of statistical modelling...)
+
 ```{r alien lm, echo = FALSE}
 mod_alien_lm <- lm(size ~ humans_eaten, data = Alien)
 ```
@@ -61,11 +63,11 @@ abline(mod_alien_lm, col = "blue", lwd = 2, lty = 2)
 
 ## Fitting the model to the data...
 
-### ... means estimating the values of the model parameters.
+... means estimating the values of the model parameters.
 
 ### Why?
 
-* for drawing inferences about future (or past) observable events
+For drawing inferences about population processes (i.e. about what you could observe in other samples).
 
 # Notations
 
@@ -88,14 +90,16 @@ abline(mod_alien_lm, col = "blue", lwd = 2, lty = 2)
 
 <center><font size = 5> $\widehat{Y} = X \widehat{\beta}$ </font></center>
 
-<center><font size = 5> $\widehat{\epsilon} = \varepsilon = Y - \widehat{Y}$ </font></center>
+<center><font size = 5> $Y = X \widehat{\beta} + \varepsilon = \widehat{Y} + \varepsilon$ </font></center>
+
+<center><font size = 5> $\varepsilon = \widehat{\epsilon} = Y - \widehat{Y}$ </font></center>
 
 # Fitting procedure
 
 ## How to fit a LM?
 
 ### By maximum likelihood
-We want the $\widehat{\beta}$ maximizing the likelihood.
+We want to find the $\widehat{\beta}$ maximizing the likelihood.
 
 The likelihood of the model given the data is
 equal to the probability density assumed for those data given those parameter
@@ -103,12 +107,14 @@ values, that is: $\displaystyle {\mathcal {L}}(\theta \mid x) = P(x \mid \theta)
 
 <br>
 
-### By ordinary least squares
-We want the $\widehat{\beta}$ minimizing the residual sum of squares (RSS).
+### In LM, this is equivalent as performing the estimation by 
+
+### ordinary least squares (OLS)
+
+We want to find the $\widehat{\beta}$ minimizing the residual sum of squares (RSS).
 
 The RSS = $\displaystyle\sum_{i=1}^{n}{\varepsilon_i^2}$.
 
-### Both methods are equivalent in the case of LM!
 
 ## Fitting the Alien data using ```lm()``` as a black-box
 
@@ -117,14 +123,17 @@ The RSS = $\displaystyle\sum_{i=1}^{n}{\varepsilon_i^2}$.
 names(mod_alien_lm)
 ```
 
+<br>
+
+We will see what all these components are!
 
 ## We can extract all kind of information from the fit
 
 ```{r fit coef}
 (coef_lm <- mod_alien_lm$coef) ## We expect something close to 50 and 1.5
-(sigma2 <- summary(mod_alien_lm)$sigma^2)[1] ## We expect something close to 25
-(logLik_lm <- logLik(mod_alien_lm)[[1]])
-(rss_lm <- anova(mod_alien_lm)$"Sum Sq"[2])
+summary(mod_alien_lm)$sigma^2 ## We expect something close to 25
+logLik(mod_alien_lm)[[1]]
+anova(mod_alien_lm)$"Sum Sq"[2]
 ```
 
 # Reverse engineering the LM fit
@@ -148,7 +157,7 @@ All three methods are identical!
 
 ```{r show predict}
 head(cbind("auto" = pred_auto, "simple" = pred_simple, "matrix" = c(pred_matrix)))
-Alien$pred <- pred_auto
+Alien$pred <- pred_auto ## we store the predicts in the dataframe
 ```
 
 ## Recovering the residuals
@@ -160,7 +169,7 @@ resid_matrix <- matrix(Alien$size) - X_alien %*% coef_lm
 
 ```{r show residuals}
 head(cbind("auto" = resid_auto, "simple" = resid_simple, "matrix" = c(resid_matrix)))
-Alien$resid <- resid_auto
+Alien$resid <- resid_auto ## we store the residuals in the dataframe
 ```
 
 ## Recovering the min Residual Sum of Squares
@@ -264,7 +273,7 @@ legend("topleft", bty = "n", col = c("black", "blue"), pch = c(1, 20), legend = 
 
 </div>
 
-## Recovering the variance of the errors
+## Recovering the estimate of the error variance
 
 ```{r alien sigma2 error}
 (sigma2_error <- summary(mod_alien_lm)$sigma^2)
@@ -280,6 +289,10 @@ var(Alien$resid) * (nrow(Alien) - 1) / (nrow(Alien) - length(coef_lm))
 var(Alien$resid) * (nrow(Alien) - 1) / nrow(Alien) 
 sigma2_error * (nrow(Alien) - length(coef_lm)) /  nrow(Alien)
 ```
+
+<br>
+
+Note: we observe it; this is not an estimate.
 
 
 ## Recovering the max (log-)likelihood
@@ -305,7 +318,7 @@ arrows(x0 = Alien[1, "size"], x1 = 30, y0 = Alien[1, "density"], y1 = Alien[1, "
 ```
 
 ```{r alien log density}
-(logLik_lm <- logLik(mod_alien_lm)[[1]])
+logLik(mod_alien_lm)[[1]]
 log(prod(Alien$density))
 sum(log(Alien$density))
 ```
@@ -318,7 +331,7 @@ sum(log(Alien$density))
 ```{r def comput_logLik_Alien}
 compute_logLik_Alien <- function(param, data = Alien) {
   predicts <- param["intercept"] + param["slope"] * data$humans_eaten
-  sigma2_resid <- abs(param["sigma2_resid"])
+  sigma2_resid <- abs(param["sigma2_resid"])  ## abs() as we don't want a negative var
   logL <- sum(dnorm(data$size, mean = predicts, sd = sqrt(sigma2_resid), log = TRUE))
   return(logL)
   }
@@ -544,7 +557,9 @@ X <- model.matrix(mod_UK1)
 head(X)
 ```
 
-## Coefficients of  ```mod_UK1```
+## Practice
+
+### Coefficients of  ```mod_UK1```
 ```{r UK coef}
 data.frame(coef(mod_UK1))
 ```
@@ -614,8 +629,8 @@ in each experimental condition, using a single linear model.
 ```{r stats}
 mod_stats <- lm(size ~ humans_eaten, data = Alien)
 coef(mod_stats)
-summary(mod_stats)$sigma^2  ## error variance
-summary(mod_stats)$sigma^2 * (nrow(Alien) - length(coef_lm)) /  nrow(Alien)  ## residual variance
+summary(mod_stats)$sigma^2  ## estimate of error variance
+summary(mod_stats)$sigma^2 * (nrow(Alien) - length(coef_lm)) /  nrow(Alien)
 logLik(mod_stats)
 ```
 
@@ -623,18 +638,18 @@ logLik(mod_stats)
 
 ```{r spaMM 1, message = FALSE}
 library(spaMM)
-mod_spaMM_ML <- fitme(size ~ humans_eaten, data = Alien, method = "ML")  ## default: residual variance
+mod_spaMM_ML <- fitme(size ~ humans_eaten, data = Alien, method = "ML")  ## ML is the default
 mod_spaMM_ML$fixef
-mod_spaMM_ML$phi
+mod_spaMM_ML$phi ## biased estimate of error variance (= here to residual variance)
 mod_spaMM_ML$APHLs$p_v
 ```
 
 ## With ```spaMM``` using REML
 
 ```{r spaMM 2}
-mod_spaMM_REML <- fitme(size ~ humans_eaten, data = Alien, method = "REML")  ## non-default: error variance
+mod_spaMM_REML <- fitme(size ~ humans_eaten, data = Alien, method = "REML")
 mod_spaMM_REML$fixef
-mod_spaMM_REML$phi
+mod_spaMM_REML$phi ## unbiased estimate of error variance
 mod_spaMM_REML$APHLs$p_v
 ```
 
