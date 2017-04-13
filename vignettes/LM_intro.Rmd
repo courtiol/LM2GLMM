@@ -37,7 +37,7 @@ library(LM2GLMM)
 * $y_i$ = the observations to explain / explanatory variable / dependent variable
 * $x_{j,i}$ = constants derived from the predictors / explanatory variables / independent variables
 * $\beta_j$ = the regression coefficients / model parameters
-* $\epsilon_i$ = the errors (not the same thing as residuals!)
+* $\epsilon_i$ = the errors / residual errors
 
 
 ## Mathematical notation of LM: matrix notation
@@ -80,6 +80,10 @@ $$
 
 ## The design matrix
 
+### It is the representation of the predictors!
+
+<br>
+
 * multi-dimensional: $n \times p$ with $n > p$
 * deduced from the predictors
 * known and measured without error
@@ -91,6 +95,10 @@ $$
 somedata <- data.frame(x1 = 1:6)
 (mm <- model.matrix(object = ~ x1, data = somedata))
 ```
+
+<br>
+
+The term ```~ X1``` is an object of class formula.
 
 ## Ploting the design matrix
 ```{r plot mm, fig.align = "center", fig.width = 5, fig.height = 5}
@@ -115,6 +123,11 @@ model.matrix(object = ~ log(x1) + poly(x1, 2, raw = TRUE), data = somedata)
 model.matrix(object = ~ log(x1) + poly(x1, 2), data = somedata)
 ```
 
+<br>
+
+Looking at the design matrix shows whether some transformation are happening behind the scene.
+This is important as when it happens model parameters should be interpreted accordingly.
+
 ## A design matrix with a factor
 
 ```{r pred matrix 2}
@@ -123,17 +136,30 @@ somedata$x3 <- factor(c("b", "b", "a", "a", "c", "c"))
 (MA <- model.matrix(object = ~ x1 + x2 + x3, data = somedata))
 ```
 
+<br>
+
+This traditional parameterization of ```x3``` is called the "treatement contrast". It is the easiest one to interpret.
+
 ## An alternative parametrization for the factor
 
 ```{r pred matrix 3}
 (MB <- model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = "contr.helmert")))
 ```
 
+<br>
+
+Alternative parameterizations can ease convergence (for continuous variable) or can allow for testing specific hypotheses (for qualitative variables). 
+
+
 ## A desing matrix with interactions
 
 ```{r pred matrix 4}
 model.matrix(object = ~ x1 * x2 + x1 * x3, data = somedata)
 ```
+
+<br>
+
+Interactions allow to consider that the effect of one predictor depends on the value take by other(s). If interaction are not considered, then effects are assumed to be independent.
 
 # The model parameters
 
@@ -144,12 +170,18 @@ model.matrix(object = ~ x1 * x2 + x1 * x3, data = somedata)
 
 <br>
 
+### They are used to convert each column from the design matrix into units of the response variable.
+
+<br>
+
 ### The meaning of the parameters always depends on the model matrix!!!
 
 
-## Conversion between alternative parameterizations
+## Alternative parameterizations of equivalent design matrices
 
-### This function converts parameters between equivalent design matrices:
+Alternative parameterization of equivalent design matrices lead to the same predictions!
+
+This function converts parameters between equivalent design matrices:
 ```{r convert}
 conv_betaXA_to_betaXB <- function(XA, XB, betaXA) {
   ## Test that inputs are OK:
@@ -176,7 +208,7 @@ conv_betaXA_to_betaXB <- function(XA, XB, betaXA) {
 
 ```{r pred matrix poly a}
 (M2a <- model.matrix(object = ~ poly(x1, 2, raw = TRUE), data = somedata))
-M2a %*% c(1, 2, -2)
+M2a %*% c(1, 2, -2)  ## predictions using matrix multiplication
 ```
 
 ## The case of polynomials: orthogonal
@@ -184,7 +216,7 @@ M2a %*% c(1, 2, -2)
 ```{r pred matrix poly b}
 
 (M2b <- model.matrix(object = ~ poly(x1, 2), data = somedata))
-round(M2b %*% c(-22.33333, -50.19960, -12.22020), 3)
+round(M2b %*% c(-22.33333, -50.19960, -12.22020), 3)  ## predictions
 ```
 
 ## The case of polynomials: conversion
@@ -206,19 +238,19 @@ BetaA <- matrix(c(50, 1.5, 20, 2, 3))
 <div  class="columns-2">
 
 ```{r param MA}
-MA %*% BetaA
+MA %*% BetaA ## predictions
 ```
 
 <br>
 
 ```{r param MB}
-MB %*% BetaB
+MB %*% BetaB ## predictions
 ```
 
 </div>
 
 
-## Exercise
+## Practice
 
 Explore the differences in the design matrix stemming from coding the gender as:
 
@@ -228,6 +260,16 @@ Explore the differences in the design matrix stemming from coding the gender as:
 * ```1``` vs ```2```
 * ```TRUE``` vs ```FALSE```
 
+Are these different representation equivalent?
+
+<br>
+
+Same question with:
+
+* ```baby``` vs ```child``` vs ```adult```
+* ```0``` vs ```1``` vs ```2```
+* ```1``` vs ```2``` vs ```3```
+
 
 # The errors
 
@@ -236,13 +278,13 @@ Explore the differences in the design matrix stemming from coding the gender as:
 * one dimension: $n \times 1$ vector
 * equal observation - model approximation ($Y - X\beta$)
 * random variable
-* we assume it Gaussian, independent and identically distributed (homoscedasticity)
+* we assume it Gaussian (normally distributed), independent (no autocorrelation) and identically distributed (homoscedasticity)
 
 <center><font size="8"> $\epsilon \sim \mathcal{N}(0, \sigma^2 I)$</font></center>
 
-###The covariance matrix $\sigma^2 I$
+<br>
 
-* square matrix: $n \times n$
+With the covariance matrix $\sigma^2 I$ being the following $n \times n$ matrix:
 
 $$
 \begin{bmatrix}
@@ -283,9 +325,8 @@ Alien$size <- rnorm(n = 6, mean = 50 + 1.5*Alien$humans_eaten, sd = sqrt(25))
 
 ## Why simulating Aliens?
 
-* it helps to understand what exactly linear models are
-* it is a good way for you to know that you understand the meaning of your estimates
-* it allows for the study of the power and robustness of LM in general and particular cases
+* it clarifies the meaning of the model parameters
+* it allows for the study of the power and robustness of LM
 
 
 ## Computing the response with both notations
@@ -331,17 +372,13 @@ $$
 </div>
 
 
-## Matrix multiplication in R
+## Practice
 
-```{r matrix multiplication}
-X <- model.matrix(object = ~ humans_eaten, data = Alien)
-B <- matrix(c(50, 1.5), ncol = 1)
-X %*% B
-```
-```{r matrix sum}
-E <- as.matrix(Alien$error)
-X %*% B + E
-```
+<br>
+
+### Compute the response in R.
+
+### Constraint: use a single line of code maximum for each notation.
 
 
 # Table of content
