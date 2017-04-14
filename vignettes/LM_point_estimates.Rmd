@@ -325,6 +325,18 @@ sum(log(Alien$density))
 
 </div>
 
+## Recovering the deviance
+
+```{r deviance}
+deviance(mod_alien_lm)
+
+(logLik_mod <- logLik(mod_alien_lm))
+(logLik_sat <- sum(dnorm(Alien$size, mean = Alien$size, sd = sqrt(sigma2_resid), log = TRUE)))
+
+(-2 * sigma2_resid * (logLik_mod - logLik_sat))  ## unscaled deviance
+```
+
+Note that it is equal to the residual sum of squares!
 
 ## Recovering the estimates numerically by Maximum Likelihood (ML)
 
