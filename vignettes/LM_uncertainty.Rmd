@@ -438,9 +438,9 @@ mean(replicate(1000, sum(findInterval(CI_slope(lm(size ~ humans_eaten,
     data = simulate_Aliens())), 1.5)) == 1))
 
 mean(replicate(1000, sum(findInterval(CI_intercept(lm(size ~ humans_eaten,
-    data = simulate_Aliens(N = 100))), 50)) == 1))
+    data = simulate_Aliens(N = 500))), 50)) == 1))
 mean(replicate(1000, sum(findInterval(CI_slope(lm(size ~ humans_eaten,
-    data = simulate_Aliens(N = 100))), 1.5)) == 1))
+    data = simulate_Aliens(N = 500))), 1.5)) == 1))
 ```
 
 # Table of content
