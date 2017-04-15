@@ -13,7 +13,7 @@ Depends:
     R (>= 3.1.0)
 Imports:
     caret,
-    spaMM,
+    spaMM (>= 2.0.0),
     stats,
     lattice,
     lme4,
