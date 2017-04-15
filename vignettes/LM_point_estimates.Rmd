@@ -391,6 +391,9 @@ solve(t(X) %*% X) %*% t(X) %*% Y  ## Tip: solve(x) returns the inverse of the ma
 
 ... but ```lm()``` does not do that because it is somewhat inefficient.
 
+<br>
+
+Note: $\widehat{Y} = X \widehat{\beta} = X (X^TX)^{-1}X^TY=PY$, and $P$ is called the hat matrix (or projection matrix).
 
 ## Recovering the estimates analytically using the QR decomposition
 
