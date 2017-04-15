@@ -17,6 +17,9 @@ library(LM2GLMM)
 library(spaMM)
 library(lattice)
 library(mvtnorm)
+library(rgl)
+knitr::knit_hooks$set(webgl = hook_webgl) ## for rgl
+knitr::opts_chunk$set(cache=TRUE, cache.path="./cache_knitr/", fig.path="./fig_knitr/")
 ```
 
 # Introduction
@@ -29,35 +32,41 @@ Alien <- data.frame(humans_eaten = sample(1:12))
 Alien$size <- rnorm(n = 12, mean = 50 + 1.5*Alien$humans_eaten, sd = sqrt(25))
 
 mod_stats <- lm(size ~ humans_eaten, data = Alien)
-c(coef(mod_stats), sigma2 = summary(mod_stats)$sigma^2)
+c(coef(mod_stats), sigma2_error <- summary(mod_stats)$sigma^2)
 
-mod_spaMM_ML <- fitme(size ~ humans_eaten, data = Alien, method = "ML")      ## residual variance
-mod_spaMM_REML <- fitme(size ~ humans_eaten, data = Alien, method = "REML")  ## error variance
-c(mod_spaMM_ML$fixef, sigma2 = mod_spaMM_REML$phi)
+mod_spaMM_ML <- fitme(size ~ humans_eaten, data = Alien, method = "ML")
+mod_spaMM_REML <- fitme(size ~ humans_eaten, data = Alien, method = "REML")
+c(mod_spaMM_ML$fixef, sigma2 = mod_spaMM_REML$phi)  ## fixef are same for REML as estimated with ML too
 ```
 
-### Those are point estimates. Estimates are random variable!
+### Those are point estimates. Estimates are random variables!
 
-# Distribution of point estimates
+```{r sigma2 resid}
+sigma2_resid <- mod_spaMM_ML$phi ## stored for later (but it is not an estimate!)
+```
+
+# Assymptotic distributions of point estimates
 
 ## Covariances of the estimates
 
 ```{r vcov}
 XTX <- crossprod(model.matrix(mod_stats))
-summary(mod_stats)$sigma^2 * solve(XTX)
+sigma2_error * solve(XTX)
 vcov(mod_stats)
-vcov(mod_spaMM_REML)
+vcov(mod_spaMM_REML)  ## don't use the ML fit!
 ```
 
 ## The estimates of $\beta$ are gaussian (assymptotically)
 
-```{r, fig.align = "center", fig.height = 4, fig.width = 4}
-candidate_intercept_u <- seq(40, 60, 1)
-candidate_slope_u     <- seq(0.7, 2.1, 0.1)
+```{r compute density betas}
+candidate_intercept_u <- seq(from = 30, to = 70,  by = 0.1)
+candidate_slope_u     <- seq(from =  0, to = 2.5, by = 0.1)
 
 candidates <- expand.grid(
   candidate_intercept = candidate_intercept_u,
   candidate_slope = candidate_slope_u)
+
+head(candidates)
 
 candidates$d <- dmvnorm(
   x = candidates[, 1:2],
@@ -68,109 +77,371 @@ candidates$d <- dmvnorm(
 
 ## Density of the estimates for $\beta$
 
-```{r}
-contourplot(d ~ candidate_intercept * candidate_slope, candidates, cuts = 5)
+```{r plot rgl, webgl=TRUE, fig.align="center"}
+library(rgl)  ## to make interactive plots!
+with(data = candidates, plot3d(candidate_intercept, candidate_slope, d))
 ```
+
+## Same plot with ```graphics```
+
+```{r plot graphics, fig.align = "center", fig.height = 4, fig.width = 4}
+contour(
+  x = candidate_intercept_u, y = candidate_slope_u,
+  z = matrix(candidates$d, nrow = length(candidate_intercept_u)),
+  nlevels = 5, xlab = "intercept", ylab = "slope")
+```
+
+## The estimate of $\sigma^2$ is Gamma (assymptotically)
+
+$\widehat{\sigma}^2$ follows a $\Gamma$ distribution with mean  = $\texttt{error variance}$ and var = $2 ( \texttt{error variance})^2 / (N-K)$.
+
+[for $\Gamma$, mean = $\texttt{shape} \times \texttt{scale}$ and var = 
+$\texttt{shape} \times \texttt{scale}^2$]
+
+```{r gamma, fig.align = "center", fig.height = 4, fig.width = 4}
+curve(dgamma(x, shape = mod_stats$df.residual/2, scale = 2*sigma2_error/mod_stats$df.residual),
+    from = 0, to = 80, xlab = "sigma2_error", ylab = "probability density", lwd = 3)
+```
+
+
+# Comparing assymptotic distributions to the reality
+
+## A simulation function for the generating Aliens
+
+```{r simulate alien fn}
+simulate_Aliens <- function(N = 12, intercept = 50, slope = 1.5, sigma2 = 25) {
+  Alien <- data.frame(humans_eaten = sample(1:N))
+  Alien$size <- rnorm(n = N, mean = intercept + slope*Alien$humans_eaten, sd = sqrt(sigma2))
+  return(Alien)
+}
+```
+
+
+<div class="columns-2">
+
+```{r alien dataset}
+head(Alien)
+```
+
+<br>
+
+```{r simulated dataset}
+set.seed(123L)
+head(simulate_Aliens())
+```
+
+</div>
+
+## Distribution of the estimates for $\beta$
+
+```{r redraw samples}
+new_beta_estimates <- t(replicate(1000, coef(update(mod_stats, data = simulate_Aliens()))))
+```
+
+<div class="columns-2">
+
+```{r plot ecdf intercept, fig.align = "center", fig.height = 4, fig.width = 4}
+curve(pnorm(x, mean = coef(mod_stats)[1],
+    sd = sqrt(vcov(mod_stats)[[1]])),
+  from = 30, to = 60, ylab = "pdf", lwd = 3)
+plot(ecdf(new_beta_estimates[, 1]), col = "red",
+     add = TRUE)
+```
+
+```{r plot ecdf slope, fig.align = "center", fig.height = 4, fig.width = 4}
+curve(pnorm(x, mean = coef(mod_stats)[2],
+    sd = sqrt(vcov(mod_stats)[[4]])),
+    from = 0, to = 3, ylab = "pdf", lwd = 3)
+plot(ecdf(new_beta_estimates[, 2]), col = "red",
+     add = TRUE)
+```
+
+</div>
+
+## Distribution of the estimate for $\sigma^2$
+
+```{r plot ecdf sigma2, fig.align = "center", fig.height = 4, fig.width = 4}
+new_sigma2_error <- t(replicate(1000, summary(update(mod_stats, data = simulate_Aliens()))$sigma^2))
+curve(pgamma(x, shape = mod_stats$df.residual/2, scale = 2*summary(mod_stats)$sigma^2/mod_stats$df.residual),
+    from = 0, to = 80, ylab = "pdf", lwd = 3)
+plot(ecdf(new_sigma2_error), col = "red", add = TRUE)
+```
+
+
+
+# Comparing assymptotic distributions to parametric boostrap
+
 
 ## Comparison with parametric boostrap
 
-```{r}
-newYs <- simulate(mod_stats, nsim = 5000)
+```{r betas param boot}
+newYs <- simulate(mod_stats, nsim = 5000)  ## generate new values for the response variable
 res_sim <- t(coef(lm(as.matrix(newYs) ~ humans_eaten, data = Alien)))
 ```
 
 <div class="columns-2">
 
-```{r, fig.align = "center", fig.height = 4, fig.width = 4}
+```{r plot intercept param boot, fig.align = "center", fig.height = 4, fig.width = 4}
 curve(pnorm(x, mean = coef(mod_stats)[1],
     sd = sqrt(vcov(mod_stats)[[1]])),
   from = 30, to = 60, ylab = "pdf", lwd = 3)
 plot(ecdf(res_sim[, 1]), col = "red", add = TRUE)
 ```
 
-```{r, fig.align = "center", fig.height = 4, fig.width = 4}
+```{r plot slope param boot, fig.align = "center", fig.height = 4, fig.width = 4}
 curve(pnorm(x, mean = coef(mod_stats)[2],
     sd = sqrt(vcov(mod_stats)[[4]])),
     from = 0, to = 3, ylab = "pdf", lwd = 3)
 plot(ecdf(res_sim[, 2]), col = "red", add = TRUE)
 ```
 
+</div>
 
 ## Same in 2D
 
-```{r, fig.align = "center", fig.height = 4, fig.width = 4, results = "hide"}
-contourplot(d ~ candidate_intercept * candidate_slope, candidates, cuts = 5)
-trellis.focus("panel", 1, 1) 
-lpoints(res_sim[, "(Intercept)"], res_sim[, "humans_eaten"], col = "red", pch = 1, cex = 0.5, lwd = 0.2)
-trellis.unfocus()
+```{r plot 2D betas param boot, fig.align = "center", fig.height = 4, fig.width = 4, results = "hide"}
+with(candidates, contour(candidate_intercept_u, candidate_slope_u,
+  matrix(d, nrow = length(candidate_intercept_u)), col = "transparent", xlab = "intercept", ylab = "slope"))
+points(res_sim[, "(Intercept)"], res_sim[, "humans_eaten"], col = "red", pch = 1, cex = 0.5, lwd = 0.2)
+with(candidates, contour(candidate_intercept_u, candidate_slope_u,
+  matrix(d, nrow = length(candidate_intercept_u)), nlevels = 4, add = TRUE, labcex = 1.5))
 ```
 
-## Distribution of the estimate of the error variance
+## Practice
 
-```{r, fig.align = "center", fig.height = 4, fig.width = 4}
-res_sigma2 <- unlist(
-  lapply(summary(lm(as.matrix(newYs) ~ humans_eaten, data = Alien)),
-         function(m) m$sigma^2))
-curve(pgamma(x, shape = mod_stats$df.residual/2,
-             scale = 2*summary(mod_stats)$sigma^2/mod_stats$df.residual),
-    from = 0, to = 80, ylab = "pdf", lwd = 3)
-plot(ecdf(res_sigma2), col = "red", add = TRUE)
+<br>
+
+### Compute the distribution of the estimate of the error variance by parametric bootstrap and compare it to the assymptotic result.
+
+# Confidence intervals
+
+## Computing 95% CI for estimates (assymptotic)
+
+```{r CI Wald}
+confint(mod_stats)
+quantile_min <- qt(0.025, mod_stats$df.residual)
+quantile_max <- qt(0.975, mod_stats$df.residual)
+cbind(coef(mod_stats) + quantile_min * sqrt(diag(vcov(mod_stats))),
+  coef(mod_stats) + quantile_max * sqrt(diag(vcov(mod_stats))))
+```
+
+## Testing the coverage of the 95% CI  (assymptotic)
+
+```{r coverage CI Wald}
+set.seed(1L)
+mean(replicate(5000, sum(findInterval(confint(update(mod_stats, data = simulate_Aliens()))[1, ], 50)) == 1))
+mean(replicate(5000, sum(findInterval(confint(update(mod_stats, data = simulate_Aliens()))[2, ], 1.5)) == 1))
+```
+
+## Computing 95% CI for estimates (param. boot.)
+
+```{r CI param boot}
+confint(mod_stats)  ## asymptotic (for comparison)
+
+ses <- t(apply(res_sim, 2, sd))
+(confint_boot <- cbind(c(coef(mod_stats) + quantile_min * ses), c(coef(mod_stats) + quantile_max * ses)))
+```
+
+## Testing the coverage of the 95% CI (param. boot.)
+
+```{r coverage CI param boot}
+CIboot <- function(rep = 100){
+  data <- simulate_Aliens()
+  mod <- update(mod_stats, data = data)
+  newYs <- simulate(mod, nsim = rep)
+  res_sim <- t(coef(lm(as.matrix(newYs) ~ humans_eaten, data = data)))
+  ses <- apply(res_sim, 2, sd)
+  cbind(coef(mod) + quantile_min * ses, coef(mod) + quantile_max * ses)
+}
+set.seed(1L)
+mean(replicate(5000, sum(findInterval(CIboot()[1, ], 50)) == 1))
+mean(replicate(5000, sum(findInterval(CIboot()[2, ], 1.5)) == 1))
+```
+
+## 95% CI for the mean response
+
+```{r CI predVar, fig.align="center", fig.width=4, fig.height=4}
+pred <- data.frame(humans_eaten = seq(1, 12, 0.1))
+pred <- cbind(pred, predict(mod_stats, newdata = pred, interval = "confidence"))
+plot(size ~ humans_eaten, data = Alien)
+points(fit ~ humans_eaten, data = pred, lty = 1, lwd = 2, col = "blue", type = "l")
+points(upr ~ humans_eaten, data = pred, lty = 2, lwd = 2, col = "blue", type = "l")
+points(lwr ~ humans_eaten, data = pred, lty = 2, lwd = 2, col = "blue", type = "l")
+```
+
+## Computing 95% CI for the mean response
+
+```{r compute predVar}
+predict(mod_stats, newdata = data.frame(humans_eaten = 4), interval = "confidence")
+pred <- predict(mod_stats, newdata = data.frame(humans_eaten = 4), interval = "confidence", se.fit = TRUE)
+c(pred$fit[, "fit"] + quantile_min * pred$se.fit, 
+  pred$fit[, "fit"] + quantile_max * pred$se.fit)
+pred$se.fit^2 ## prediction variance
+t(c(1, 4)) %*% vcov(mod_stats) %*% c(1, 4)
+```
+
+# Prediction interval
+
+## 95% Prediction Interval
+
+```{r respVar, fig.align="center", fig.width=4, fig.height=4}
+pred <- data.frame(humans_eaten = seq(1, 12, 0.1))
+pred <- cbind(pred, predict(mod_stats, newdata = pred, interval = "prediction"))
+plot(size ~ humans_eaten, data = Alien)
+points(fit ~ humans_eaten, data = pred, lty = 1, lwd = 2, col = "red", type = "l")
+points(upr ~ humans_eaten, data = pred, lty = 2, lwd = 2, col = "red", type = "l")
+points(lwr ~ humans_eaten, data = pred, lty = 2, lwd = 2, col = "red", type = "l")
+```
+
+## Computing 95% PI
+
+```{r compute respVar}
+pred <- predict(mod_stats, newdata = data.frame(humans_eaten = 4), interval = "prediction", se.fit = TRUE)
+pred$fit
+predVar <- pred$se.fit^2 + pred$residual.scale^2
+pred$fit[, "fit"] + quantile_min * sqrt(predVar)
+pred$fit[, "fit"] + quantile_max * sqrt(predVar)
+pred$residual.scale^2 == summary(mod_stats)$sigma^2  ## estimate of the error variance
 ```
 
 # Likelihood profiling
 
 ## Computing the likelihood for specific parameters
 
-```{r spaMM 1}
+```{r logLik fixed}
 logLik(lm(size ~ 0 + offset(50 + 1.5 * humans_eaten), data = Alien))
 
 mod_spaMM_fix <- fitme(size ~ 0 + offset(50 + 1.5 * humans_eaten), fixed = list(phi = 25), data = Alien)
 mod_spaMM_fix$APHLs$p_v
 ```
 
-## Likelihood profiling 1 parameter
+## Likelihood profiling 1 parameter: $\sigma^2$
 
-```{r spaMM 2, fig.align = "center", fig.width = 4, fig.height = 4}
+```{r profile sigma2, fig.align = "center", fig.width = 4, fig.height = 4}
 mod_spaMM_allfix <- fitme(size ~ humans_eaten, fixed = list(phi = 25), data = Alien)
-candidate_sigma <- seq(10, 70, 0.5)
-logLik_profile <- sapply(candidate_sigma, function(sigma2) 
+candidate_sigma2 <- seq(10, 70, 0.5)
+logLik_profile <- sapply(candidate_sigma2, function(sigma2) 
   update(mod_spaMM_allfix, fixed = list(phi = sigma2))$APHLs$p_v)
-plot(logLik_profile ~ candidate_sigma, type = "l")
+plot(logLik_profile ~ candidate_sigma2, type = "l")
 abline(v = 25, col = "green", lwd = 2)
 abline(v = mod_spaMM_ML$phi, col = "blue", lwd = 2)
 ```
 
-## Likelihood profiling 2 parameters
+## Likelihood profiling 1 parameter: intercept
 
-```{r spaMM profile 2p}
-candidates$logLik <- NA
-
-for (i in 1:nrow(candidates)) {
-  mod_temp <- fitme(size ~  0 + offset(candidates[i, 1] + candidates[i, 2] * humans_eaten), data = Alien)
-  candidates[i, "logLik"] <- mod_temp$APHLs$p_v
-}
-```
-```{r spaMM 6, fig.align = "center", eval = FALSE}
-contourplot(logLik ~ candidate_intercept * candidate_slope, candidates, cuts = 15)
-trellis.focus("panel", 1, 1) 
-lpoints(mod_spaMM_ML$fixef["(Intercept)"], mod_spaMM_ML$fixef["humans_eaten"],
-        col = "blue", pch = 4, lwd = 2, cex = 3)
-lpoints(50, 1.5, col = "green", pch = 4, lwd = 2, cex = 3)
-trellis.unfocus()
+```{r profile intercept, fig.align = "center", fig.width = 4, fig.height = 4}
+logLik_profile <- sapply(candidate_intercept_u, function(intercept)
+  logLik(lm(size ~ 0 + humans_eaten + offset(rep(intercept, nrow(Alien))), data = Alien)))
+plot(logLik_profile ~ candidate_intercept_u, type = "l")
+abline(v = 50, col = "green", lwd = 2)
+abline(v = coef(mod_stats)[1], col = "blue", lwd = 2)
+abline(v = confint(mod_stats)[1, ], col = "purple", lty = 2, lwd = 2)
+abline(h = logLik(mod_stats) - 0.5*qchisq(0.95, 1), col = "red", lty = 2, lwd = 2)
 ```
 
 ## Likelihood profiling 2 parameters: plot
 
-```{r spaMM 4, fig.align = "center", echo = FALSE, results = "hide", fig.height = 5, fig.width = 5}
-library(lattice)
-contourplot(logLik ~ candidate_intercept * candidate_slope, candidates, cuts = 15)
-trellis.focus("panel", 1, 1) 
-lpoints(mod_spaMM_ML$fixef["(Intercept)"], mod_spaMM_ML$fixef["humans_eaten"],
+```{r profile betas, fig.align = "center", echo = FALSE, results = "hide", fig.height = 5.5, fig.width = 5.5}
+candidates$logLik <- NA
+
+for (i in 1:nrow(candidates)) {
+  mod_temp <- lm(size ~  0 + offset(candidates[i, 1] + candidates[i, 2] * humans_eaten), data = Alien)
+  candidates[i, "logLik"] <- logLik(mod_temp)
+}
+
+par(las = 1)
+limit <- c(logLik(mod_stats) - 0.5*qchisq(0.95, df = 2))
+with(candidates, contour(candidate_intercept_u, candidate_slope_u,
+  matrix(candidates$logLik, nrow = length(candidate_intercept_u)), nlevels = 15,
+  xlab = "slope", ylab = "intercept"))
+with(candidates, contour(candidate_intercept_u, candidate_slope_u,
+  matrix(candidates$logLik, nrow = length(candidate_intercept_u)),
+  levels = limit, add = TRUE, col = "red", lwd = 2))
+points(mod_spaMM_ML$fixef["(Intercept)"], mod_spaMM_ML$fixef["humans_eaten"],
         col = "blue", pch = 4, lwd = 2, cex = 3)
-lpoints(50, 1.5, col = "green", pch = 4, lwd = 2, cex = 3)
-trellis.unfocus()
+points(50, 1.5, col = "green", pch = 4, lwd = 2, cex = 3)
 ```
 
+
+## Likelihood profiling 2 parameters: code
+
+```{r profile betas bis, eval = FALSE}
+candidates$logLik <- NA
+
+for (i in 1:nrow(candidates)) {
+  mod_temp <- lm(size ~  0 + offset(candidates[i, 1] + candidates[i, 2] * humans_eaten), data = Alien)
+  candidates[i, "logLik"] <- logLik(mod_temp)
+}
+
+par(las = 1)
+limit <- c(logLik(mod_stats) - 0.5*qchisq(0.95, df = 2))
+with(candidates, contour(candidate_intercept_u, candidate_slope_u,
+  matrix(candidates$logLik, nrow = length(candidate_intercept_u)), nlevels = 15,
+  xlab = "slope", ylab = "intercept"))
+with(candidates, contour(candidate_intercept_u, candidate_slope_u,
+  matrix(candidates$logLik, nrow = length(candidate_intercept_u)),
+  levels = limit, add = TRUE, col = "red", lwd = 2))
+points(mod_spaMM_ML$fixef["(Intercept)"], mod_spaMM_ML$fixef["humans_eaten"],
+        col = "blue", pch = 4, lwd = 2, cex = 3)
+points(50, 1.5, col = "green", pch = 4, lwd = 2, cex = 3)
+```
+
+## Confidence intervals by likelihood profiling
+
+### Benefit: not based on SE, so works well even if error is not gaussian or if SE is badly estimated.
+
+```{r CI by profile intercept}
+where.is.limit.inter <- function(intercept, model_ref) {
+  logLik_mod <- c(logLik(lm(size ~ 0 + humans_eaten + offset(rep(intercept, nrow(model_ref$model))),
+                            data = model_ref$model)))
+  logLik_goal <- c(logLik(model_ref)) - 0.5*qchisq(0.95, df = 1)
+  return(abs(logLik_mod - logLik_goal))}
+CI_intercept <- function(model_ref) {
+  lwr <- optimise(where.is.limit.inter, interval = c(coef(model_ref)[1] - 10, coef(model_ref)[1]),
+                  model_ref = model_ref)
+  upr <- optimise(where.is.limit.inter, interval = c(coef(model_ref)[1], coef(model_ref)[1] + 10),
+                  model_ref = model_ref)
+  return(c(lwr = lwr$minimum, upr = upr$minimum))}
+rbind("using SE" = confint(mod_stats)[1, ], "using SE boot" = confint_boot[1, ],
+      "using profile" = CI_intercept(mod_stats))
+```
+
+## Same for the slope
+
+```{r CI by profile slope}
+where.is.limit.slope <- function(slope, model_ref) {
+  logLik_mod <- c(logLik(lm(size ~ 1 + offset(slope * humans_eaten),
+                            data = model_ref$model)))
+  logLik_goal <- c(logLik(model_ref)) - 0.5*qchisq(0.95, df = 1)
+  return(abs(logLik_mod - logLik_goal))
+}
+
+CI_slope <- function(model_ref) {
+  lwr <- optimise(where.is.limit.slope, interval = c(coef(model_ref)[2] - 1, coef(model_ref)[2]),
+                  model_ref = model_ref)
+  upr <- optimise(where.is.limit.slope, interval = c(coef(model_ref)[2], coef(model_ref)[2] + 1),
+                  model_ref = model_ref)
+  return(c(lwr = lwr$minimum, upr = upr$minimum))
+}
+
+rbind("using SE" = confint(mod_stats)[2, ], "using SE boot" = confint_boot[2, ],
+      "using profile" = CI_slope(mod_stats))
+```
+
+## Testing the coverage of the 95% CI by profile
+
+```{r coverage CI profile}
+set.seed(1L)
+mean(replicate(1000, sum(findInterval(CI_intercept(lm(size ~ humans_eaten,
+    data = simulate_Aliens())), 50)) == 1))
+mean(replicate(1000, sum(findInterval(CI_slope(lm(size ~ humans_eaten,
+    data = simulate_Aliens())), 1.5)) == 1))
+
+mean(replicate(1000, sum(findInterval(CI_intercept(lm(size ~ humans_eaten,
+    data = simulate_Aliens(N = 100))), 50)) == 1))
+mean(replicate(1000, sum(findInterval(CI_slope(lm(size ~ humans_eaten,
+    data = simulate_Aliens(N = 100))), 1.5)) == 1))
+```
 
 # Table of content
 
