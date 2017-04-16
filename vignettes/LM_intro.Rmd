@@ -227,6 +227,13 @@ M2a %*% c(1, 2, -2)  ## predictions using matrix multiplication
 round(M2b %*% c(-22.33333, -50.19960, -12.22020), 3)  ## predictions
 ```
 
+## The case of polynomials: why making things more complex?
+
+```{r XTX}
+t(M2a) %*% M2a  ## high values mean that predictors are colinear -> will be hard to fit
+zapsmall(t(M2b) %*% M2b)  ## 0 means that predictors are orthogonal -> will be easy to fit
+```
+
 ## The case of polynomials: conversion
 
 ```{r convert poly}
