@@ -15,6 +15,18 @@ vignette: >
 library(LM2GLMM)
 ```
 
+## You will learn in this session
+
+* what fitting a model to the data actually means
+* what predictions, estimates and residuals are
+* that linear models are directly fitted by analytical means
+* how to compute predicted values and residuals
+* that the variance of residuals is a biased estimator of the error variance
+* (how to compute estimates numerically using maximum likelihood)
+* what the component stored in lm() object roughly are
+* how to watch out for degenerated design matrices
+* how to interpret parameter estimates
+
 # Introduction
 
 ## Let's simulate more Alien data
@@ -667,6 +679,18 @@ mod_spaMM_REML$fixef
 mod_spaMM_REML$phi ## unbiased estimate of error variance
 mod_spaMM_REML$APHLs$p_v
 ```
+
+## What you need to remember
+
+* what fitting a model to the data actually means
+* what predictions, estimates and residuals are
+* that linear models are directly fitted by analytical means
+* how to compute predicted values and residuals
+* that the variance of residuals is a biased estimator of the error variance
+* (how to compute estimates numerically using maximum likelihood)
+* what the component stored in lm() object roughly are
+* how to watch out for degenerated design matrices
+* how to interpret parameter estimates
 
 # Table of content
 
