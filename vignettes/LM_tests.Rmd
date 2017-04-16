@@ -27,6 +27,8 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_tests/", fig.
 * how to use the functions ```summary()```, ```anova()``` and ```Anova()```
 * that parameters are tested using t-tests
 * that variables are tested using F-tests or Likelihood Ratio Tests
+* how to check the statistical coverage precisely
+* how to do a LRT by parametric bootstrap
 * that type II ANOVA are the way to go for testing variables
 * that doing many tests is dangerous
 
@@ -128,9 +130,10 @@ c(df = 11225 - 11231, SS = 256402 - 443561, F <- (-187158/-6) / (256402/11225))
 ```{r}
 mod_UK2 <- lm(height ~ milk, data = UK)
 mod_UK0 <- lm(height ~ 1, data = mod_UK2$model)
-anova(mod_UK2, mod_UK0, test = "Chisq")
-1 - pchisq(2*(c(logLik(mod_UK2)) - c(logLik(mod_UK0))), df = 1)  ## df = K model 1 - K model 2
-anova(mod_UK2, mod_UK0, test = "F")["Pr(>F)"]  ## for LM F-test and LRT are equivalent!
+anova(mod_UK2, mod_UK0, test = "Chisq")  ## does not show the statistic :-(
+stat <- 2*(c(logLik(mod_UK2)) - c(logLik(mod_UK0)))
+1 - pchisq(stat, df = 1)  ## df = K model 1 - K model 2
+anova(mod_UK2, mod_UK0, test = "F")[2, "Pr(>F)"]  ## for LM F-test and LRT are equivalent!
 ```
 
 
@@ -185,6 +188,51 @@ Note : test of simple terms consider other simple terms to be there, but not int
 Tip: never use type 3 ANOVA!
 
 
+## Coverage of the F test
+
+```{r F test coverage}
+set.seed(1L)
+pv.F <- replicate(1000, {
+  mod_UK1$model$height_no_alcool <- as.matrix(simulate(mod_UK1_no_alcool))
+  mod_alcool_fooled <- lm(height_no_alcool ~ drink + sex*weight, data = mod_UK1$model)
+  mod_alcool_not_fooled <- lm(height_no_alcool ~ sex*weight, data = mod_UK1$model)
+  anova(mod_alcool_fooled, mod_alcool_not_fooled)[2, "Pr(>F)"]
+})
+mean(pv.F <= 0.05)
+```
+
+## Coverage of the F test
+
+```{r plot coverage F, fig.align = "center", fig.width = 5, fig.height = 5}
+plot(ecdf(pv.F))
+abline(0, 1, col = "red")  ## uniform reference
+```
+
+
+## LRT by parametric boostrap
+
+```{r LRT param boot}
+mod_UK_milk <- lm(height ~ milk + sex*weight, data = UK)
+mod_UK_no_milk <- lm(height ~ sex*weight, data = mod_UK_milk$model)
+anova(mod_UK_milk, mod_UK_no_milk, test = "Chisq")[2, "Pr(>Chi)"]
+(stat.obs <- 2*(c(logLik(mod_UK_milk)) - c(logLik(mod_UK_no_milk))))
+
+stat.rand <- replicate(1000, {
+  newY <- as.matrix(simulate(mod_UK_no_milk))
+  mod_milk <- lm(newY ~ milk + sex*weight, data = mod_UK_milk$model)
+  mod_no_milk <- lm(newY ~ sex*weight, data = mod_UK_milk$model)
+  c(2*(logLik(mod_milk) - logLik(mod_no_milk)))
+  })
+
+mean(stat.rand >= stat.obs)
+```
+
+## LRT by parametric boostrap
+
+```{r plot LRT param boot, fig.align = "center", fig.width = 5, fig.height = 5}
+hist(stat.rand)
+abline(v = stat.obs, lwd = 2, lty = 2, col = "red")
+```
 
 # Comparing two non-nested models
 
@@ -306,6 +354,8 @@ summary(mod_drink2 <- lm(height ~ drink2, data = UK))$coef
 * how to use the functions ```summary()```, ```anova()``` and ```Anova()```
 * that parameters are tested using t-tests
 * that variables are tested using F-tests or Likelihood Ratio Tests
+* how to check the statistical coverage precisely
+* how to do a LRT by parametric bootstrap
 * that type II ANOVA are the way to go for testing variables
 * that doing many tests is dangerous
 
