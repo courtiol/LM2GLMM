@@ -26,11 +26,11 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_tests/", fig.
 
 * how to use the functions ```summary()```, ```anova()``` and ```Anova()```
 * that parameters are tested using t-tests
-* that you can use LM to do usual Student's t-tests
+* that you can use LM to do usual Student's t-tests and Pearson correlation tests
 * that variables are tested using F-tests or Likelihood Ratio Tests
 * how to check the statistical coverage precisely
 * how to do a LRT by parametric bootstrap
-* that type II ANOVA are the way to go for testing variables
+* that type II ANOVA is the way to go for testing variables
 * that doing many tests is dangerous
 
 
@@ -96,6 +96,17 @@ set.seed(1L)
 y <- rnorm(10, mean = 2)
 t.test(y, mu = 2)$p.value
 summary(lm(y ~ 1 + offset(rep(2, 10)), data = sleep))$coef
+```
+
+## Comparison to Pearson's correlation test
+
+```{r correlation}
+x <- c(44.4, 45.9, 41.9, 53.3, 44.7, 44.1, 50.7, 45.2, 60.1) ## from ?cor.test
+y <- c( 2.6,  3.1,  2.5,  5.0,  3.6,  4.0,  5.2,  2.8,  3.8)
+c(rho = cor(y, x), pv = cor.test(y, x)$p.value)
+summary(lm(y ~ x))$coef["x", ]
+cov(x,y)/(sd(x)*sd(y)) # definition of rho
+coef(lm(y~x))["x"] * sd(x)/sd(y)  ## because slope = cov(x, y)/var(x)
 ```
 
 # Comparing the fitted model to the fit of a null model
@@ -248,7 +259,6 @@ abline(v = stat.obs, lwd = 2, lty = 2, col = "red")
 
 ## We should not use F-test or LRT
 
-
 ### You may use Akaike Information Criterion (AIC = -2 * (logLik - K))
 
 ```{r non nested}
@@ -363,11 +373,11 @@ summary(mod_drink2 <- lm(height ~ drink2, data = UK))$coef
 
 * how to use the functions ```summary()```, ```anova()``` and ```Anova()```
 * that parameters are tested using t-tests
-* that you can use LM to do usual Student's t-tests
+* that you can use LM to do usual Student's t-tests and Pearson correlation tests
 * that variables are tested using F-tests or Likelihood Ratio Tests
 * how to check the statistical coverage precisely
 * how to do a LRT by parametric bootstrap
-* that type II ANOVA are the way to go for testing variables
+* that type II ANOVA is the way to go for testing variables
 * that doing many tests is dangerous
 
 
