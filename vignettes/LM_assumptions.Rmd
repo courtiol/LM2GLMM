@@ -18,6 +18,14 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_assumptions/"
 
 ## You will learn in this session
 
+# The (main) assumptions
+
+# How to test some assumptions
+
+# How to visually check some assumptions
+
+# What happens when assumptions are not met?
+
 ## What you need to remember
 
 # Table of content
