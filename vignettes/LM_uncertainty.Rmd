@@ -22,6 +22,21 @@ knitr::knit_hooks$set(webgl = hook_webgl) ## for rgl
 knitr::opts_chunk$set(cache=TRUE, cache.path="./cache_knitr/", fig.path="./fig_knitr/")
 ```
 
+## You will learn in this session
+
+* that point estimates are random variables with estimated means and variances
+* that the estimates for $\beta$ are gaussian and the estimate of the error variance Gamma distributed
+* what parametric bootstrap is
+* what 95% confidence intervals are
+* that boundaries are obtained using the Student distribution
+* what statistical coverage is
+* what the 95% CI on the mean response is
+* what the difference between a confidence interval and a prediction interval is
+* what likelihood profiling is
+* that estimates are not necessarily independent from each others
+* that there are three ways to get 95% CI for LM
+
+
 # Introduction
 
 ## Summary of point estimates
@@ -51,7 +66,9 @@ sigma2_resid <- mod_spaMM_ML$phi ## stored for later (but it is not an estimate!
 
 ```{r vcov}
 XTX <- crossprod(model.matrix(mod_stats))
-sigma2_error * solve(XTX)
+## XTX/sigma2_error is the Hessian (matrix of second derivative) of Lik(X)
+## the inverse of the Hessian gives the covariance matrix
+sigma2_error * solve(XTX)  
 vcov(mod_stats)
 vcov(mod_spaMM_REML)  ## don't use the ML fit!
 ```
@@ -204,7 +221,7 @@ with(candidates, contour(candidate_intercept_u, candidate_slope_u,
   matrix(d, nrow = length(candidate_intercept_u)), col = "transparent", xlab = "intercept", ylab = "slope"))
 points(res_sim[, "(Intercept)"], res_sim[, "humans_eaten"], col = "red", pch = 1, cex = 0.5, lwd = 0.2)
 with(candidates, contour(candidate_intercept_u, candidate_slope_u,
-  matrix(d, nrow = length(candidate_intercept_u)), nlevels = 4, add = TRUE, labcex = 1.5))
+  matrix(d, nrow = length(candidate_intercept_u)), nlevels = 4, add = TRUE))
 ```
 
 ## Practice
@@ -214,6 +231,38 @@ with(candidates, contour(candidate_intercept_u, candidate_slope_u,
 ### Compute the distribution of the estimate of the error variance by parametric bootstrap and compare it to the assymptotic result.
 
 # Confidence intervals
+
+## CI for $\widehat{\beta}$ with known variance
+
+<font size = 6> $\widehat{\beta}\sim \mathcal{N}(\beta, \sigma_{\beta})$ </font>
+
+<font size = 6> $z = \frac{\widehat{\beta} - \beta}{\sigma_{\widehat{\beta}}}\sim \mathcal{N}(0, 1)$ </font>
+
+<font size = 6> 95% CI for $z = [\mathrm{Q}0.025_{\mathcal{N}}; \ \mathrm{Q}0.975_{\mathcal{N}} ]$ </font>
+
+```{r quantile norm}
+c(Q0.025_N = qnorm(0.025), Q0.975_N = qnorm(0.975))
+```
+
+<font size = 6> 95% CI for $\widehat{\beta} = [\widehat{\beta} + \mathrm{Q0.025}_{\mathcal{N}} \times \sigma_{\widehat{\beta}}; \ \widehat{\beta} + \mathrm{Q0.975}_{\mathcal{N}} \times \sigma_{\widehat{\beta}}]$ </font>
+
+## CI for $\widehat{\beta}$ with estimated variance
+
+<font size = 6> $\widehat{\beta}\sim \mathcal{N}(\beta, \sigma_{\beta})$ </font>
+
+<font size = 6> $t = \frac{\widehat{\beta} - \beta}{\widehat{\sigma_{\widehat{\beta}}}}\sim \mathcal{t}_{N - K}$ </font>
+
+<font size = 6> 95% CI for $t = [\mathrm{Q}0.025_{\mathcal{t}_{N - K}}; \ \mathrm{Q}0.975_{\mathcal{t}_{N - K}}]$ </font>
+
+```{r quantile t}
+c(Qt_0.025 = qt(0.025, df = 10), Qt_0.975 = qt(0.975, df = 10))  ## with N-K = 10 (also try with 1000)
+```
+
+<font size = 6> 95% CI for $\widehat{\beta} =$ </font>
+
+<font size = 6> $[\widehat{\beta} + \mathrm{Q}0.025_{\mathcal{t}_{N - K}} \times \widehat{\sigma_{\widehat{\beta}}}; \ \widehat{\beta} + \mathrm{Q}0.025_{\mathcal{t}_{N - K}} \times \widehat{\sigma_{\widehat{\beta}}}]$ </font>
+
+
 
 ## Computing 95% CI for estimates (assymptotic)
 
@@ -235,9 +284,13 @@ mean(replicate(5000, sum(findInterval(confint(update(mod_stats, data = simulate_
 
 ## Computing 95% CI for estimates (param. boot.)
 
-```{r CI param boot}
+```{r CI confint for comp}
 confint(mod_stats)  ## asymptotic (for comparison)
+```
 
+It is still assymptotic but SE are no longer computed analytically:
+
+```{r CI param boot}
 ses <- t(apply(res_sim, 2, sd))
 (confint_boot <- cbind(c(coef(mod_stats) + quantile_min * ses), c(coef(mod_stats) + quantile_max * ses)))
 ```
@@ -329,14 +382,14 @@ abline(v = mod_spaMM_ML$phi, col = "blue", lwd = 2)
 
 ## Likelihood profiling 1 parameter: intercept
 
-```{r profile intercept, fig.align = "center", fig.width = 4, fig.height = 4}
+```{r profile for intercept, fig.align = "center", fig.width = 4, fig.height = 4, fig.show = "hold"}
 logLik_profile <- sapply(candidate_intercept_u, function(intercept)
   logLik(lm(size ~ 0 + humans_eaten + offset(rep(intercept, nrow(Alien))), data = Alien)))
 plot(logLik_profile ~ candidate_intercept_u, type = "l")
 abline(v = 50, col = "green", lwd = 2)
 abline(v = coef(mod_stats)[1], col = "blue", lwd = 2)
-abline(v = confint(mod_stats)[1, ], col = "purple", lty = 2, lwd = 2)
-abline(h = logLik(mod_stats) - 0.5*qchisq(0.95, 1), col = "red", lty = 2, lwd = 2)
+#abline(v = confint(mod_stats)[1, ], col = "purple", lty = 2, lwd = 2)
+#abline(h = logLik(mod_stats) - 0.5*qchisq(0.95, 1), col = "red", lty = 2, lwd = 2)
 ```
 
 ## Likelihood profiling 2 parameters: plot
@@ -350,16 +403,17 @@ for (i in 1:nrow(candidates)) {
 }
 
 par(las = 1)
-limit <- c(logLik(mod_stats) - 0.5*qchisq(0.95, df = 2))
 with(candidates, contour(candidate_intercept_u, candidate_slope_u,
   matrix(candidates$logLik, nrow = length(candidate_intercept_u)), nlevels = 15,
   xlab = "slope", ylab = "intercept"))
-with(candidates, contour(candidate_intercept_u, candidate_slope_u,
-  matrix(candidates$logLik, nrow = length(candidate_intercept_u)),
-  levels = limit, add = TRUE, col = "red", lwd = 2))
 points(mod_spaMM_ML$fixef["(Intercept)"], mod_spaMM_ML$fixef["humans_eaten"],
         col = "blue", pch = 4, lwd = 2, cex = 3)
 points(50, 1.5, col = "green", pch = 4, lwd = 2, cex = 3)
+
+#limit <- c(logLik(mod_stats) - 0.5*qchisq(0.95, df = 2))
+#with(candidates, contour(candidate_intercept_u, candidate_slope_u,
+#  matrix(candidates$logLik, nrow = length(candidate_intercept_u)),
+#  levels = limit, add = TRUE, col = "red", lwd = 2))
 ```
 
 
@@ -374,16 +428,17 @@ for (i in 1:nrow(candidates)) {
 }
 
 par(las = 1)
-limit <- c(logLik(mod_stats) - 0.5*qchisq(0.95, df = 2))
 with(candidates, contour(candidate_intercept_u, candidate_slope_u,
   matrix(candidates$logLik, nrow = length(candidate_intercept_u)), nlevels = 15,
   xlab = "slope", ylab = "intercept"))
-with(candidates, contour(candidate_intercept_u, candidate_slope_u,
-  matrix(candidates$logLik, nrow = length(candidate_intercept_u)),
-  levels = limit, add = TRUE, col = "red", lwd = 2))
 points(mod_spaMM_ML$fixef["(Intercept)"], mod_spaMM_ML$fixef["humans_eaten"],
         col = "blue", pch = 4, lwd = 2, cex = 3)
 points(50, 1.5, col = "green", pch = 4, lwd = 2, cex = 3)
+
+#limit <- c(logLik(mod_stats) - 0.5*qchisq(0.95, df = 2))
+#with(candidates, contour(candidate_intercept_u, candidate_slope_u,
+#  matrix(candidates$logLik, nrow = length(candidate_intercept_u)),
+#  levels = limit, add = TRUE, col = "red", lwd = 2))
 ```
 
 ## Confidence intervals by likelihood profiling
@@ -442,6 +497,20 @@ mean(replicate(1000, sum(findInterval(CI_intercept(lm(size ~ humans_eaten,
 mean(replicate(1000, sum(findInterval(CI_slope(lm(size ~ humans_eaten,
     data = simulate_Aliens(N = 500))), 1.5)) == 1))
 ```
+
+## What you need to remember
+
+* that point estimates are random variables with estimated means and variances
+* that the estimates for $\beta$ are gaussian and the estimate of the error variance Gamma distributed
+* what parametric bootstrap is
+* what 95% confidence intervals are
+* that boundaries are obtained using the Student distribution
+* what statistical coverage is
+* what the 95% CI on the mean response is
+* what the difference between a confidence interval and a prediction interval is
+* what likelihood profiling is
+* that estimates are not necessarily independent from each others
+* that there are three ways to get 95% CI for LM
 
 # Table of content
 
