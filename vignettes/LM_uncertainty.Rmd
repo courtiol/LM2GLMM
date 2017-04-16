@@ -19,7 +19,7 @@ library(lattice)
 library(mvtnorm)
 library(rgl)
 knitr::knit_hooks$set(webgl = hook_webgl) ## for rgl
-knitr::opts_chunk$set(cache=TRUE, cache.path="./cache_knitr/", fig.path="./fig_knitr/")
+knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/", fig.path = "./fig_knitr/")
 ```
 
 ## You will learn in this session
