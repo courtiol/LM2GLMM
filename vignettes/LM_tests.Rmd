@@ -26,6 +26,7 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_tests/", fig.
 
 * how to use the functions ```summary()```, ```anova()``` and ```Anova()```
 * that parameters are tested using t-tests
+* that you can use LM to do usual Student's t-tests
 * that variables are tested using F-tests or Likelihood Ratio Tests
 * how to check the statistical coverage precisely
 * how to do a LRT by parametric bootstrap
@@ -86,6 +87,15 @@ Notice:
 
 ```{r confint Most days}
 confint(mod_UK1, parm = "drinkMost days")
+```
+
+## Comparison to the one sample Student's t-test
+
+```{r compare t-tests one sample}
+set.seed(1L)
+y <- rnorm(10, mean = 2)
+t.test(y, mu = 2)$p.value
+summary(lm(y ~ 1 + offset(rep(2, 10)), data = sleep))$coef
 ```
 
 # Comparing the fitted model to the fit of a null model
@@ -353,6 +363,7 @@ summary(mod_drink2 <- lm(height ~ drink2, data = UK))$coef
 
 * how to use the functions ```summary()```, ```anova()``` and ```Anova()```
 * that parameters are tested using t-tests
+* that you can use LM to do usual Student's t-tests
 * that variables are tested using F-tests or Likelihood Ratio Tests
 * how to check the statistical coverage precisely
 * how to do a LRT by parametric bootstrap
