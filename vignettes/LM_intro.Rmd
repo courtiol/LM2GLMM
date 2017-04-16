@@ -15,6 +15,16 @@ vignette: >
 library(LM2GLMM)
 ```
 
+## You will learn in this session
+
+* how to write a linear model (using both notations)
+* what a response, a design matrix and model parameters are
+* how to get the design matrix
+* that the meaning of the parameter depends on the design matrix
+* how to simulate the data for a linear model
+
+# Definition and notations
+
 ## What is a Linear Model (LM)?
 
 ### What is a statistical model?
@@ -25,8 +35,6 @@ library(LM2GLMM)
 ### What is a linear model?
 
 ###***The data-generating process is assumed to be a linear function: it is constructed from a set of terms by multiplying each term by a constant (a model parameter) and adding the results .***
-
-# Notations
 
 ## Mathematical notation of LM: simple notation
 
@@ -379,6 +387,16 @@ $$
 ### Compute the response in R.
 
 ### Constraint: use a single line of code maximum for each notation.
+
+# Summary
+
+## What you need to remember
+
+* how to write a linear model (using both notations)
+* what a response, a design matrix and model parameters are
+* how to get the design matrix
+* that the meaning of the parameter depends on the design matrix
+* how to simulate the data for a linear model
 
 
 # Table of content
