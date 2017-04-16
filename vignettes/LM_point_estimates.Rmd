@@ -405,7 +405,8 @@ solve(t(X) %*% X) %*% t(X) %*% Y  ## Tip: solve(x) returns the inverse of the ma
 
 <br>
 
-Note: $\widehat{Y} = X \widehat{\beta} = X (X^TX)^{-1}X^TY=HY$, and $H$ is called the hat matrix (it is a projection matrix).
+Note 1: $\widehat{Y} = X \widehat{\beta} = X (X^TX)^{-1}X^TY=HY$, and $H$ is called the hat matrix (it is a projection matrix).
+Note 2: remember that $X^TX$ gives information on the collinearity (see intro).
 
 ## Recovering the estimates analytically using the QR decomposition
 
