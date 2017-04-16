@@ -1,7 +1,8 @@
 inst/doc
 .Rproj.user
 !*vignettes/*.Rmd
-vignettes/
+vignettes/cache_knitr
+vignettes/fig_knitr
 *.html
 sources/biblio
 
