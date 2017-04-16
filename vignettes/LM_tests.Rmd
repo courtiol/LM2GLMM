@@ -63,6 +63,13 @@ p.value <- 2*pt(t.value, df = mod_UK1$df.residual)  ## 2x as bilateral test
 rbind(estimate, std.error, t.value, p.value)
 ```
 
+## Comparison to the Student's t-test
+
+```{r compare t-tests}
+t.test(extra ~ group, data = sleep, var.equal = TRUE)
+summary(lm(extra ~ group, data = sleep))$coef
+```
+
 
 ## Comparing an estimate to a specific value
 
