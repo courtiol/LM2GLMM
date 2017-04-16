@@ -24,6 +24,13 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_tests/", fig.
 
 ## You will learn in this session
 
+* how to use the functions ```summary()```, ```anova()``` and ```Anova()```
+* that parameters are tested using t-tests
+* that variables are tested using F-tests or Likelihood Ratio Tests
+* that type II ANOVA are the way to go for testing variables
+* that doing many tests is dangerous
+
+
 # The fitted model
 
 ## The UK model
@@ -289,6 +296,13 @@ summary(mod_drink2 <- lm(height ~ drink2, data = UK))$coef
 
 ## What you need to remember
 
+* how to use the functions ```summary()```, ```anova()``` and ```Anova()```
+* that parameters are tested using t-tests
+* that variables are tested using F-tests or Likelihood Ratio Tests
+* that type II ANOVA are the way to go for testing variables
+* that doing many tests is dangerous
+
+
 # Table of content
 
 ## The Linear Model: LM
@@ -297,3 +311,5 @@ summary(mod_drink2 <- lm(height ~ drink2, data = UK))$coef
 * 2.1 [Point estimates](./LM_point_estimates.html)
 * 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
 * 2.3 [Tests](./LM_tests.html)
+* 2.4 [Assumptions](./LM_assumptions.html)
+
