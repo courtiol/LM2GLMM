@@ -1,5 +1,5 @@
 ---
-title: "LM: Assumptions"
+title: "LM: Assumptions and Outliers"
 author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
 output:
@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{2.4 Assumptions}
+  %\VignetteIndexEntry{2.4 Assumptions and Outliers}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
@@ -15,11 +15,19 @@ vignette: >
 ```{r setup, include=FALSE}
 library(LM2GLMM)
 library(lmtest)
-knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_assumptions/", fig.path = "./fig_knitr/LM_assumptions/", fig.align = "center", fig.width = 4, fig.height = 4)
+knitr::opts_chunk$set(cache = FALSE, cache.path = "./cache_knitr/LM_assumptions/", fig.path = "./fig_knitr/LM_assumptions/", fig.align = "center", fig.width = 4, fig.height = 4)
 options(width = 200)
 ```
 
 ## You will learn in this session
+
+* the six main assumptions behind LM
+* how to check if these assumptions are met (by means of tests and using your eyes)
+* how to do the Box-Cox transformation
+* that you can manipulate the design matrix to solve problems
+* how to study carefully outliers
+* that you will have to learn GLM and (G)LMM to solve some usual problems
+
 
 # Introduction
 
@@ -376,25 +384,25 @@ abline(h = 0, lty = 2, col = "red")
 
 # Constant variance (homoscedasticity)
 
-## Homoscedasticity in brief
+## Homos(c/k)edasticity in brief
 
 ### Assumption
 
 The variance of the error (not residuals) is constant: $\text{var}(\epsilon_j) = \sigma^2$ for all $j$.
-
 With matrix notation: if $\epsilon^\text{T}$ is the vector of all $\epsilon_j$, then we assume $\text{cov}(\epsilon, \epsilon) = \text{E}(\epsilon \epsilon^\text{T}) = \sigma^2I_n$, where $I_n$ is the $n \times n$ identity matrix. 
 
 ### Causes and consequences of violation
 
-It can emerge when there is a mean - variance relationship, when there is non independence between observations, when reaction norm changes acording to the treatement. If can create both false positives and false negative.
+Heteros(c/k)edasticity can emerge when there is a mean - variance relationship, when there is non independence between observations, when reaction norm changes acording to the treatement. It can create both false positives and false negative.
 
 ### Solution
 
-* post-hoc correction of the SE
+* post-hoc correction of the SE (not so great)
 
 ### Alternative
 
 * Generalized Linear Models (GLM)
+* mixed models modeling the variance
 
 
 ## Example of heteroscedasticity
@@ -402,22 +410,235 @@ It can emerge when there is a mean - variance relationship, when there is non in
 ```{r rpois}
 set.seed(1L)
 Alien5 <- simulate_Aliens(N = 100)
-Alien5$eggs <- rpois(100, lambda = 20 + 5 * Alien5$humans_eaten)
+Alien5$eggs <- rpois(100, lambda = 2 + 1 * Alien5$humans_eaten)
 mod_alien5 <- lm(eggs ~ humans_eaten, data = Alien5)
 summary(mod_alien5)$coef
 bptest(mod_alien5)
 ```
 
+The Breusch-Pagan test follows a Chi-square distribution (thus stat | H0 = df).
+
+## Testing for heteroscedasticity by eye
+
+Residuals must be standardized as raw residuals always have some (minor) heteroscedasticity.
+
+```{r plot heterosced}
+plot(abs(rstandard(mod_alien5)) ~ fitted(mod_alien5))
+```
+
+## Post-hoc correction (not optimal)
+
+```{r rpois correction}
+vcov(mod_alien5)
+hccm(mod_alien5)  ## correct the covariance matrix of parameter estimates
+estimates <- coef(mod_alien5)
+std.errors <- sqrt(diag(hccm(mod_alien5)))
+t.values <- estimates/std.errors
+p.values <- 2*pt(abs(t.values), df = mod_alien5$df.residual, lower.tail = FALSE)
+cbind(estimates, std.errors, t.values, p.values)
+```
+
+# Normality
+
+## Normality in brief
+
+### Assumption
+
+The errors (not the residuals) should be normaly distributed.
+
+### Causes and consequences of violation
+
+The distribution of residuals can be skewed, this is often caused by the presence of outliers, and/or when the process generating the data is very different from normal (e.g. Poisson, Binomial...).
+
+### Solution
+
+* transformation
+* taking outliers out (mindfully!)
+
+### Alternative
+
+* robust regressions
+* GLM
+
+## Testing normality
+
+### There are many tests for normality out there...
+
+Example: the Lilliefors (Kolmogorov-Smirnov) test for normality, Shapiro-Wilk Normality Test...
+
+```{r norm test}
+library(nortest)
+lillie.test(mod_poison$residuals)   ## stat = 0 when normal
+shapiro.test(mod_poison$residuals)  ## stat = 1 when normal
+```
+
+## Testing normality by eye
+
+<div class=columns-2>
+
+```{r norm by eye}
+qqnorm(mod_poison$residuals)
+qqline(mod_poison$residuals, col = 2, lty = 2)
+```
+
+```{r norm by eye 2}
+qqnorm(mod_poison2$residuals)
+qqline(mod_poison2$residuals, col = 2, lty = 2)
+```
+
+</div>
+
+## Testing all assumptions on the errors at once
+
+```{r plot mod, fig.height = 5, fig.width = 5}
+par(mfrow = c(2, 2))
+plot(mod_poison)
+```
+
 # Outliers
 
-## Detecting outliers
+## Outliers in brief
 
-```{r}
-influence.measures(mod_poison)
+### What are they?
+
+They are observation that seem not to belong to the others.
+
+### Why do they matter?
+
+A few very deviant points can strongly influence all your estimations.
+
+### What should you do with them?
+
+It depends... but never trash them blindly.
+
+If you have very good reasons to take them out, do mention it in the paper!
+
+## Example
+
+<div class=columns-2>
+
+```{r Davis}
+data(Davis)
+mod_davis <- lm(weight ~ height, data = Davis)
+plot(weight ~ height, data = Davis)
+abline(mod_davis, col = "red", lwd = 2)
+```
+
+```{r Davis 2}
+# with(Davis, identify(height, weight, 
+#   row.names(Davis))) # click and escape
+mod_davis2 <- update(mod_davis, data = Davis[-12, ])
+plot(weight ~ height, data = Davis[-12, ])
+abline(mod_davis2, col = "blue", lwd = 2)
+```
+</div>
+
+## Leverage vs Influence
+
+A regression outlier is an observation that has an unusual value of the dependent variable Y, conditional on X.
+
+Regression outliers may not look at outliers on any Y or X variables.
+
+### Leverage
+
+The leverage quantifies how unusual on observation is in terms of X values.
+
+A high leverage is not necessarily a bad thing.
+
+### Influence
+
+An observation is influential if it is unusual both in terms of X values (high leverage) and in terms of Y values (conditional to X).
+
+
+## Measuring the leverage
+
+This is done by extracting the diagonal element of the hat matrix: the hat values.
+
+Recall: $\widehat{Y} = HY$
+
+* range: [1/n; 1]
+* mean : (k+1)/n
+
+```{r hat}
+head(sort(hatvalues(mod_davis), decreasing = TRUE))
+```
+
+## Measuring the leverage
+
+```{r hat plot}
+plot(mod_davis, which = 5)
+```
+
+## Measuring the influence on predictions
+
+```{r influence}
+head(sort(dffits(mod_davis), decreasing = TRUE))
+head(sort(cooks.distance(mod_davis), decreasing = TRUE))
+```
+
+Both the DFFITS measure and the Cook distance (aka Cook's D) are two relative measure of the extent to which the predicted y-values changes if a given observation is dropped. DFFITS measures it in standard errors, Cook's D in the value of a F statistics comparing simultaneously the changes in all estimates when the observation is dropped or not.
+
+## Measuring the influence on predictions
+
+```{r influence2}
+plot(dffits(mod_davis2), cooks.distance(mod_davis2), xlab = "DFFITS", ylab = "Cook's distance")
+```
+
+## Measuring the influence on predictions
+
+```{r influence3, fig.width = 10}
+par(mfrow = c(1, 3))
+plot(mod_davis, which = 4:6)
+```
+
+## Measuring the influence on predictions with another example
+
+```{r influence4, fig.width = 10}
+mod_UK <- lm(height ~ sex * milk, data = UK[1:20, ])
+par(mfrow = c(1, 3))
+plot(mod_UK, which = 4:6)
+```
+
+## Measuring the influence on predictions with another example bis
+
+```{r influence5, fig.width = 10}
+mod_UK2 <- lm(height ~ sex * milk, data = UK)
+par(mfrow = c(1, 3))
+plot(mod_UK2, which = 4:6)
+```
+
+## Measuring the influence on each parameter estimates
+
+```{r dfbetas}
+head(dfbeta(mod_davis), n = 3)
+coef(mod_davis) - coef(update(mod_davis, data = Davis[-1, ]))
+head(dfbetas(mod_davis), n = 3) ## same in SE units
+```
+
+## Measuring the influence on the estimation of the covariance matrix
+
+```{r cov}
+head(sort(covratio(mod_davis), decreasing = TRUE))
 ```
 
 
+## Exploring in depth outliers: all at once
+
+Note: don't trust much rule of thumbs to identify outliers "automatically". If you still want to know some of them, you can look at the beginning of the code of the function ```influence.measures()```.
+
+```{r influence.measures}
+influence.measures(mod_davis)  ## stars are just there to attract your attention, there is no proper tests!
+```
+
 ## What you need to remember
+
+* the six main assumptions behind LM
+* how to check if these assumptions are met (by means of tests and using your eyes)
+* how to do the Box-Cox transformation
+* that you can manipulate the design matrix to solve problems
+* how to study carefully outliers
+* that you will have to learn GLM and (G)LMM to solve some usual problems
+
 
 # Table of content
 
@@ -427,4 +648,4 @@ influence.measures(mod_poison)
 * 2.1 [Point estimates](./LM_point_estimates.html)
 * 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
 * 2.3 [Tests](./LM_tests.html)
-* 2.4 [Assumptions](./LM_assumptions.html)
+* 2.4 [Assumptions and Outliers](./LM_assumptions.html)
