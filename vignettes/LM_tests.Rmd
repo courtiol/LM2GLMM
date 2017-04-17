@@ -81,6 +81,9 @@ summary(lm(extra ~ group, data = sleep))$coef
 ```{r compare to 0.5}
 new.t.value <- (estimate - 0.8799548)/std.error
 2*pt(new.t.value, df = mod_UK1$df.residual)
+library(car)
+## this uses a F-test, but can test several parameter at once
+linearHypothesis(mod_UK1, c("drinkMost days = 0.8799548"))$"Pr(>F)"[2]
 ```
 
 Notice:
