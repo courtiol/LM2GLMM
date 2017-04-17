@@ -126,11 +126,7 @@ curve(dgamma(x, shape = mod_stats$df.residual/2, scale = 2*sigma2_error/mod_stat
 ## A simulation function for the generating Aliens
 
 ```{r simulate alien fn}
-simulate_Aliens <- function(N = 12, intercept = 50, slope = 1.5, sigma2 = 25) {
-  Alien <- data.frame(humans_eaten = sample(1:N))
-  Alien$size <- rnorm(n = N, mean = intercept + slope*Alien$humans_eaten, sd = sqrt(sigma2))
-  return(Alien)
-}
+simulate_Aliens
 ```
 
 
