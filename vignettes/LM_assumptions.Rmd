@@ -557,7 +557,7 @@ This is done by extracting the diagonal element of the hat matrix: the hat value
 Recall: $\widehat{Y} = HY$
 
 * range: [1/n; 1]
-* mean : (k+1)/n
+* mean : k/n
 
 ```{r hat}
 head(sort(hatvalues(mod_davis), decreasing = TRUE))
