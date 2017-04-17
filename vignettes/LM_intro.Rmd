@@ -159,7 +159,7 @@ This traditional parameterization of ```x3``` is called the "treatement contrast
 Alternative parameterizations can ease convergence (for continuous variable) or can allow for testing specific hypotheses (for qualitative variables). 
 
 
-## A desing matrix with interactions
+## A design matrix with interactions
 
 ```{r pred matrix 4}
 model.matrix(object = ~ x1 * x2 + x1 * x3, data = somedata)
@@ -285,6 +285,23 @@ Same question with:
 * ```0``` vs ```1``` vs ```2```
 * ```1``` vs ```2``` vs ```3```
 
+
+## Understanding factorial design through the design matrix
+
+```{r factorial}
+data(poison, package = "fastR")  ##  ?fastR::poison for description
+poison$treat <- factor(poison$Treatment)
+poison$poison <- factor(poison$Poison)
+X <- model.matrix( ~ poison + treat, data = poison)
+head(X)
+```
+
+## Understanding factorial design through the design matrix
+
+```{r factorial 2}
+crossprod(X)  ## compute t(X) %*% X, see later
+with(poison, table(treat, poison))
+```
 
 # The errors
 
