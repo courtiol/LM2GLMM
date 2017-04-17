@@ -20,7 +20,8 @@ Imports:
     lme4,
     multcomp,
     mvtnorm,
-    rgl
+    rgl,
+    SMPracticals
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr
