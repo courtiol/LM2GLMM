@@ -14,6 +14,7 @@ vignette: >
 
 ```{r setup, include=FALSE}
 library(LM2GLMM)
+library(lmtest)
 knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_assumptions/", fig.path = "./fig_knitr/LM_assumptions/", fig.align = "center", fig.width = 4, fig.height = 4)
 options(width = 200)
 ```
@@ -32,8 +33,8 @@ options(width = 200)
 
 ### Errors
 
-* constant variance (homoscedasticity)
 * independence (no serial autocorrelation)
+* constant variance (homoscedasticity)
 * normality
 
 # Assumptions about the model structure
@@ -78,15 +79,38 @@ Departure from linearity can originate from a multitude of reasons and can creat
 
 But using this method is not advised as results can be unreliable...
 
-## Example of non-linearity
+## A simple example of non-linearity
+
+```{r simple non linear}
+Alien0 <- data.frame(humans_eaten = sample(1:100)) 
+Alien0$size <- 10 + 50 * Alien0$humans_eaten - 0.02 * (Alien0$humans_eaten^2) + rnorm(100, sd = 5)
+mod0a <- lm(size ~ humans_eaten, data = Alien0)
+coef(mod0a)
+plot(size ~ humans_eaten, data = Alien0)
+```
+
+## A simple example of non-linearity
+
+Solution for continuous design matrix column vectors: plot the residuals against them!
+```{r simple non linear2}
+plot(rstandard(mod0a) ~ model.matrix(mod0a)[,2])
+```
+
+## A simple example of non-linearity
+
+```{r simple non linear3}
+mod0b <- lm(size ~ poly(humans_eaten, 2, raw = TRUE), data = Alien0)
+summary(mod0b)$coef
+```
+
+## Another example of non-linearity
 
 ```{r poison}
 data(poison, package = "fastR")  ##  ?fastR::poison for description
 poison$treat <- factor(poison$Treatment)
 poison$poison <- factor(poison$Poison)
 mod_poison <- lm(Time ~ poison + treat, data = poison)
-plot(rstandard(mod_poison) ~ fitted(mod_poison), xlab = "fitted values",
-     ylab = "standardized residuals")  ## see later
+plot(residuals(mod_poison) ~ fitted(mod_poison), xlab = "fitted values", ylab = "residuals")
 abline(h = 0, col = "red", lty = 2)
 ```
 
@@ -121,8 +145,7 @@ We will consider -1 instead of ```r round(bc$x[which.max(bc$y)], 2)``` as it is 
 
 ```{r poison bc}
 mod_poison2 <- update(mod_poison, (Time^-1 - 1)/(-1) ~ .)
-plot(rstandard(mod_poison2) ~ fitted(mod_poison2), xlab = "fitted values",
-     ylab = "standardized residuals")  ## see later
+plot(residuals(mod_poison2) ~ fitted(mod_poison2), xlab = "fitted values", ylab = "residuals")
 abline(h = 0, col = "red", lty = 2)
 ```
 
@@ -255,20 +278,23 @@ The presence of measurement errors is the main cause of violation. Violation can
 
 ### Alternative
 
-* reduced major axis regression
+* multipurpose numerical approaches
 * errors-in-variables models
-* numerical approaches
+* reduced major axis regression
+
 
 ## Example
 
 ```{r measurement error}
 Alien4 <- simulate_Aliens(100)
 summary(lm(size ~ humans_eaten, data = Alien4))$coef
-Alien4$humans_eaten_err <- Alien4$humans_eaten + rnorm(nrow(Alien4), sd = 20)
+Alien4$humans_eaten_err <- Alien4$humans_eaten + rnorm(nrow(Alien4), sd = 10)
 summary(lm(size ~ humans_eaten_err, data = Alien4))$coef
 ```
 
-## Accounting for error in variable using numerical fits
+## Accounting for errors-in-variables using ```sem```
+
+### Seems to work here... (despite strange value for phi)
 
 ```{r sem}
 library(sem)
@@ -280,23 +306,107 @@ eqns <- specifyEquations(text = "
                         V(humans_eaten_err) = phi
                         ")
 fitted.mod <- sem(eqns, data = Alien4, raw = TRUE, fixed.x = "Intercept")
-summary(fitted.mod)$coef
+summary(fitted.mod, analytic.se = FALSE)$coef  ## use analytic.se = FALSE (uses z as consider variance known)
 ```
 
+# Assumptions about the errors
 
-## Independence
+# Independence
 
-A lack of independence (serial autocorrelation) in the residuals can appear if there is a departure from linearity and/or if data have been sampled non-randomly (e.g. spatial or temporal series)
+## Independence in brief
+
+### Assumption
+
+The errors (not the residuals) are uncorrelated: $\text{cov}(\epsilon_i, \epsilon_j) = 0$, with $i \neq j$.
+
+### Causes and consequences of violation
+
+A lack of independence (serial autocorrelation) in the residuals can appear if there is a departure from linearity, if data have been sampled non-randomly (e.g. spatial or temporal series), or if there is an overarching structure (e.g. repeated measures within individuals, families, species, ...). Lack of independence increases the risk of false positive (sometimes a lot).
 
 
-# How to test some assumptions
+### Solution
 
-# How to visually check some assumptions
+* transformation (see linearity)
+* aggregation (be carefull)
+* sub-sampling
 
-# What happens when assumptions are not met?
+### Alternative
 
-# How to fix departure from assumptions?
+* mixed models (LMM and GLMM)
 
+
+## Testing for independence
+
+We can use the Durbin-Watson test: D-W [0; 4]
+
+* D-W = 2 no-autocorrelation
+* D-W <<2 positive autocorrelation
+* D-W >>2 negative autocorrelation
+
+```{r DW}
+library(car)
+set.seed(1L)
+durbinWatsonTest(modConv <- lm(fconvict ~ tfr + partic + degrees + mconvict, data = Hartnagel), max.lag = 3)
+```
+
+## Testing for independence induced by a specific variable
+
+```{r DW 2, message = FALSE}
+library(lmtest)
+dwtest(modConv, order.by = modConv$model$degrees)
+```
+
+## Testing for independence by eye
+
+### It is difficult when the problem is not extreme
+
+```{r DW by eye}
+plot(residuals(modConv) ~ fitted(modConv))
+abline(h = 0, lty = 2, col = "red")
+```
+
+## Testing for independence by eye
+
+### The origin of the problem is here the time!
+
+```{r DW by eye 2}
+plot(residuals(modConv) ~ Hartnagel$year, type = "o")
+abline(h = 0, lty = 2, col = "red")
+```
+
+# Constant variance (homoscedasticity)
+
+## Homoscedasticity in brief
+
+### Assumption
+
+The variance of the error (not residuals) is constant: $\text{var}(\epsilon_j) = \sigma^2$ for all $j$.
+
+With matrix notation: if $\epsilon^\text{T}$ is the vector of all $\epsilon_j$, then we assume $\text{cov}(\epsilon, \epsilon) = \text{E}(\epsilon \epsilon^\text{T}) = \sigma^2I_n$, where $I_n$ is the $n \times n$ identity matrix. 
+
+### Causes and consequences of violation
+
+It can emerge when there is a mean - variance relationship, when there is non independence between observations, when reaction norm changes acording to the treatement. If can create both false positives and false negative.
+
+### Solution
+
+* post-hoc correction of the SE
+
+### Alternative
+
+* Generalized Linear Models (GLM)
+
+
+## Example of heteroscedasticity
+
+```{r rpois}
+set.seed(1L)
+Alien5 <- simulate_Aliens(N = 100)
+Alien5$eggs <- rpois(100, lambda = 20 + 5 * Alien5$humans_eaten)
+mod_alien5 <- lm(eggs ~ humans_eaten, data = Alien5)
+summary(mod_alien5)$coef
+bptest(mod_alien5)
+```
 
 # Outliers
 
