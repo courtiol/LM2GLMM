@@ -24,7 +24,6 @@ library(LM2GLMM)
 * that the variance of residuals is a biased estimator of the error variance
 * (how to compute estimates numerically using maximum likelihood)
 * what the component stored in lm() object roughly are
-* how to watch out for degenerated design matrices
 * how to interpret parameter estimates
 
 # Introduction
@@ -161,14 +160,15 @@ head(X_alien)
 
 ```{r predict}
 pred_auto   <- predict(mod_alien_lm)  ## Tip: same as mod_alien_lm$fitted.values / fitted(mod_alien_lm)
+pred_auto2 <- predict(mod_alien_lm, newdata = Alien) ## can handle missing data!
 pred_simple <- coef_lm[1] + coef_lm[2] * Alien$humans_eaten
 pred_matrix <- X_alien %*% coef_lm
 ```
 
-All three methods are identical!
+All four methods are identical!
 
 ```{r show predict}
-head(cbind("auto" = pred_auto, "simple" = pred_simple, "matrix" = c(pred_matrix)))
+head(cbind("auto" = pred_auto, "auto2" = pred_auto2, "simple" = pred_simple, "matrix" = c(pred_matrix)))
 Alien$pred <- pred_auto ## we store the predicts in the dataframe
 ```
 
@@ -475,90 +475,6 @@ c     understand how to solve this problem please feel free to
 c     suggest improvements to this code.
 ```
 
-
-# Potential difficulties while fitting
-
-## Difficulty 1: missing data
-
-```{r Alien 2, error = TRUE}
-Alien$pred <- Alien$resid <- Alien$density <- NULL ## Cleaning up
-Alien2 <- Alien
-Alien2$size[c(2, 4)] <- NA
-Alien2$humans_eaten[c(3, 4)] <- NA
-head(Alien2)
-mod_alien2_lm <- lm(size ~ humans_eaten, data = Alien2)
-Alien2$pred <- mod_alien2_lm$fitted.values
-```
-
-## The rows with ```NA(s)``` are being omitted
-
-```{r missing data}
-mfAlien2 <- model.frame(formula = size ~ humans_eaten, data = Alien2)
-head(mfAlien2)  ## same as mod_alien2_lm$model
-```
-
-### New lm component:
-```{r na.action}
-mod_alien2_lm$na.action
-```
-
-
-## Prediction with ```NA(s)```
-
-### Assisted
-```{r pred na}
-Alien2$pred <- predict(mod_alien2_lm, newdata = Alien2)
-head(Alien2)
-```
-
-### By hand
-```{r pred NA manual}
-mfAlien2NA <- model.frame(formula = size ~ humans_eaten, data = Alien2, na.action = NULL)
-XNA <- model.matrix(object = ~ humans_eaten, data = mfAlien2NA)
-as.numeric(XNA %*% coef(mod_alien2_lm))
-```
-
-## Difficulty 2: degenerated design matrix (trivial)
-
-```{r Alien3, error = TRUE}
-Alien3 <- Alien
-Alien3$half_humans_eaten <-  0.5 * Alien3$humans_eaten
-mod_alien3_lm <- lm(size ~ humans_eaten + half_humans_eaten, data = Alien3)
-coef(mod_alien3_lm)
-det(crossprod(model.matrix(mod_alien3_lm)))  ## when det(XTX) <= 0, XTX has no inverse!
-mod_alien3_lm$rank  == ncol(model.matrix(mod_alien3_lm))
-```
-
-## Difficulty 2: degenerated design matrix (subtle)
-```{r Alien4, error = TRUE}
-set.seed(1L)
-Alien4 <- data.frame(humans_eaten = 1:12,
-                     flowers_eaten = round(runif(12, min = 1, max = 15)),
-                     cactus_eaten = 0)
-Alien4$food_units <- 1.2*Alien4$humans_eaten + 0.6*Alien4$flowers_eaten
-Alien4$size <- rnorm(n = 12, mean = 50 + 1*Alien4$food_units, sd = sqrt(25))
-mod_alien4_lm <- lm(size ~ food_units + humans_eaten + flowers_eaten + cactus_eaten, data = Alien4)
-coef(mod_alien4_lm)
-caret::findLinearCombos(model.matrix(mod_alien4_lm))  ## Tip: help to see what creates the issue
-```
-
-## Difficulty 2: degenerated design matrix (```n < p```)
-```{r Alien5, error = TRUE}
-set.seed(1L)
-Alien5 <- data.frame(humans_eaten = 1:3,
-                     flowers_eaten = round(runif(3, min = 1, max = 15)),
-                     cactus_eaten =  round(runif(3, min = 1, max = 10)))
-
-Alien5$size <- rnorm(n = 3,
-  mean = 50 + 0.2 * Alien5$humans_eaten + 0.9 * Alien5$flowers_eaten + 0.1 * Alien5$cactus_eaten,
-  sd = sqrt(25))
-
-mod_alien5_lm <- lm(size ~  cactus_eaten + humans_eaten + flowers_eaten, data = Alien5)
-coef(mod_alien5_lm)
-mod_alien5_lm <- lm(size ~  humans_eaten + flowers_eaten + cactus_eaten, data = Alien5)
-coef(mod_alien5_lm)
-```
-
 # Interpreting estimates
 
 ## The UK dataset
@@ -632,23 +548,6 @@ newdata1 <- data.frame(
 predict(mod_UK1, newdata = newdata1)
 ```
 
-# Challenge
-
-## Analysing the Fungi dataset
-
-```{r fungi}
-head(Fungi)
-```
-
-<br>
-
-### Goal:
-
-quantifying the average growth rate of alive fungi for each species,
-in each experimental condition, using a single linear model.
-
-([solution](./Fungi_1.html))
-
 
 # Fitting LM with ```spaMM```
 
@@ -690,7 +589,6 @@ mod_spaMM_REML$APHLs$p_v
 * that the variance of residuals is a biased estimator of the error variance
 * (how to compute estimates numerically using maximum likelihood)
 * what the component stored in lm() object roughly are
-* how to watch out for degenerated design matrices
 * how to interpret parameter estimates
 
 # Table of content
