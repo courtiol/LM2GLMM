@@ -23,6 +23,7 @@ Imports:
     mvtnorm,
     fastR,
     rgl,
+    sem,
     SMPracticals
 Suggests: knitr,
     rmarkdown
