@@ -547,7 +547,9 @@ A high leverage is not necessarily a bad thing.
 
 ### Influence
 
-An observation is influential if it is unusual both in terms of X values (high leverage) and in terms of Y values (conditional to X).
+An observation is influential if it strongly influences the predicted values.
+
+### Conclusion: we need to look at both!
 
 
 ## Measuring the leverage
@@ -561,7 +563,11 @@ Recall: $\widehat{Y} = HY$
 
 ```{r hat}
 head(sort(hatvalues(mod_davis), decreasing = TRUE))
+X <- model.matrix(mod_davis)
+head(sort(diag(X %*% solve(crossprod(X)) %*% t(X)), decreasing = TRUE))
 ```
+
+For some computations and plots the leverage are rescaled as $\frac{h_{i,i}}{1-h_{i,i}}$, but it does not change the reasoning.
 
 ## Measuring the leverage
 
@@ -577,6 +583,8 @@ head(sort(cooks.distance(mod_davis), decreasing = TRUE))
 ```
 
 Both the DFFITS measure and the Cook distance (aka Cook's D) are two relative measure of the extent to which the predicted y-values changes if a given observation is dropped. DFFITS measures it in standard errors, Cook's D in the value of a F statistics comparing simultaneously the changes in all estimates when the observation is dropped or not.
+
+A high value is obtained when the observation is associated to high leverage, high residual or both.
 
 ## Measuring the influence on predictions
 
