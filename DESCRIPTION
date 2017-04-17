@@ -18,8 +18,10 @@ Imports:
     stats,
     lattice,
     lme4,
+    MASS,
     multcomp,
     mvtnorm,
+    fastR,
     rgl,
     SMPracticals
 Suggests: knitr,
