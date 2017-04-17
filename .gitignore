@@ -3,6 +3,7 @@ inst/doc
 !*vignettes/*.Rmd
 vignettes/cache_knitr
 vignettes/fig_knitr
+vignettes/*.R
 *.html
 sources/biblio
 
