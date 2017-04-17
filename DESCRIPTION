@@ -21,6 +21,7 @@ Imports:
     MASS,
     multcomp,
     mvtnorm,
+    nortest,
     fastR,
     rgl,
     sem,
