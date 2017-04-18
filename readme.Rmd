@@ -8,7 +8,7 @@ Freie Universität, Berlin. It is not aimed at general users.
 
 ### Solution 1 to install the package
 
-1. install the R package ```devtools```
+1. install the R package ```devtools```:
 
 ```{r, eval = FALSE}
 install.packages("devtools")
@@ -30,6 +30,7 @@ install.packages(c('car', 'caret', 'spaMM', 'lme4', 'lmtest', 'multcomp', 'mvtno
 
 2. Download the release version on the package, available here:
 https://github.com/courtiol/LM2GLMM/releases
+
 
 ### Other tips:
 
