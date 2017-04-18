@@ -77,7 +77,12 @@ https://github.com/courtiol/LM2GLMM/releases
 
 ### Installation
 ```{r install_package, eval = FALSE}
-install.packages(pkgs = "path/LM2GLMM") ## replace path by your actual path!
+install.packages(c('car', 'caret', 'spaMM', 'lme4', 'lmtest', 'multcomp', 'mvtnorm', 
+                   'nortest', 'fastR', 'rgl', 'sem'))
+## in what follows replace path by your actual path! and choose one of the 3 options!!
+install.packages(pkgs = "path/LM2GLMM", repos = NULL, type = "source")     ## for the tar.gz file (maybe for all?)
+install.packages(pkgs = "path/LM2GLMM", repos = NULL, type = "win.binary") ## for Windows users and zip file
+install.packages(pkgs = "path/LM2GLMM", repos = NULL, type = "mac.binary") ## for MacOS users and tgz file
 ```
 <br>
 
