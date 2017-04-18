@@ -277,6 +277,22 @@ The model ```mod_UK5``` is ```r round(exp((AIC(mod_UK5) - AIC(mod_UK1)) / 2), 1)
 likely to minimizes the (estimated) information loss than ```mod_UK1```.
 
 
+## We should not use F-test or LRT
+
+### You may use ajusted R-squared
+
+
+```{r}
+summary(mod_UK1)$adj.r.squared
+
+SSF <- sum((fitted(mod_UK1) - mean(fitted(mod_UK1)))^2)
+SSR <- sum((residuals(mod_UK1) - mean(residuals(mod_UK1)))^2)
+(r.squared <- SSF/(SSF+SSR))  ## Note: SSF+SSR = sum((mod_UK1$model$height - mean(mod_UK1$model$height))^2)
+1 - (1 - r.squared) * ((nrow(mod_UK1$model) - 1)/mod_UK1$df.residual)  ## adjusted r-squared
+
+summary(mod_UK5)$adj.r.squared
+```
+
 # Comparing too many things
 
 ## Simulate nothingness
