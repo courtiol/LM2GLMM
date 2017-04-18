@@ -6,14 +6,37 @@ Freie Universität, Berlin. It is not aimed at general users.
 
 ## Tips for the students
 
-Re(install) the dependencies:
+### Solution 1 to install the package
+
+1. install the R package ```devtools```
+
+```{r, eval = FALSE}
+install.packages("devtools")
+```
+
+2. install the R package LM2GLMM:
+
+```{r, eval = FALSE}
+devtools::install_github("courtiol/LM2GLMM")
+```
+
+### Solution 2 to install the package
+
+1. Re(install) the dependencies:
 
 ```{r, eval = FALSE}
 install.packages(c('car', 'caret', 'spaMM', 'lme4', 'lmtest', 'multcomp', 'mvtnorm', 'nortest', 'fastR', 'rgl', 'sem'))
 ```
 
-Then, you should download the release version on the package, available here:
+2. Download the release version on the package, available here:
 https://github.com/courtiol/LM2GLMM/releases
+
+### Other tips:
+
+To list the vignettes:
+```{r, eval = FALSE}
+browseVignettes(package = "LM2GLMM")
+```
 
 ## Tips for the helpers
 
@@ -21,20 +44,6 @@ To rebuild the package using devtools:
 ```{r, eval = FALSE}
 devtools::build_vignettes()
 devtools::build(binary = TRUE)
+devtools::build(binary = FALSE)
 devtools::install()
-```
-
-To create a new vignette:
-```{r, eval = FALSE}
-devtools::use_vignette("new_vignette")
-```
-
-To compile the vignette:
-```{r, eval = FALSE}
-devtools::build_vignettes()
-```
-
-To list the vignettes:
-```{r, eval = FALSE}
-browseVignettes(package = "LM2GLMM")
 ```
