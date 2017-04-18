@@ -2,9 +2,6 @@
 
 ## To do for LM
 
-* r-squares
-* extrapolation
-* (multi)collinearity
 * model building (how many data you need... bla bla)
 
 
