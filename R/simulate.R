@@ -40,6 +40,6 @@ simulate_predictors_1C1G <- function(n, k){
 #'
 simulate_Aliens <- function(N = 12, intercept = 50, slope = 1.5, sigma2 = 25) {
   Alien <- data.frame(humans_eaten = sample(1:N))
-  Alien$size <- rnorm(n = N, mean = intercept + slope*Alien$humans_eaten, sd = sqrt(sigma2))
+  Alien$size <- stats::rnorm(n = N, mean = intercept + slope*Alien$humans_eaten, sd = sqrt(sigma2))
   return(Alien)
 }
