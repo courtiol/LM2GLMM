@@ -4,6 +4,7 @@ vignettes/cache_knitr
 vignettes/fig_knitr
 vignettes/*.R
 *.html
+sources/Students.pdf
 sources/biblio
 
 
