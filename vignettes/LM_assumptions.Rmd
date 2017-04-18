@@ -250,8 +250,6 @@ coef(mod_alien3)
 caret::findLinearCombos(model.matrix(mod_alien3))  ## Tip: help to see what creates the issue
 ```
 
-
-
 ## Chalenge: analysing the Fungi dataset
 
 ```{r fungi}
@@ -266,6 +264,39 @@ quantifying the average growth rate of alive fungi for each species,
 in each experimental condition, using a single linear model.
 
 ([solution](./Fungi_1.html))
+
+## Weaker multicollinearity
+
+### Sometimes assumptions are met, but problems can still occur
+
+```{r USA}
+summary(mod_US  <- lm(Rape ~ Assault + Murder, data = USArrests))$coef
+summary(mod_US2 <- lm(Rape ~ Murder, data = USArrests))$coef
+```
+
+<br>
+
+It is a problem to infer causal inference, not so much for predictions!
+
+## Weaker multicollinearity: why?
+
+```{r USA 2}
+cor(USArrests$Assault, USArrests$Murder)
+cov2cor(vcov(mod_US))
+```
+
+## Weaker multicollinearity: solution?
+
+* drop one variable
+* merge them
+
+```{r pca}
+pca <- prcomp(~ Assault + Murder, data = USArrests, scale. = TRUE)
+USArrests$PC1 <- pca$x[, 1]
+summary(mod_US3 <- lm(Rape ~ PC1, data = USArrests))
+```
+
+
 
 # Predictor variables have fixed values
 
