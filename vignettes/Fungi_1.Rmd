@@ -9,8 +9,9 @@ vignette: >
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
-  ```{r setup, include=FALSE}
+```{r setup, include=FALSE}
 library(LM2GLMM)
+knitr::opts_chunk$set(cache = FALSE, cache.path = "./cache_knitr/Fungi/", fig.path = "./fig_knitr/Fungi/", fig.align = "center", fig.width = 5, fig.height = 5)
 ```
 
 ## Preparing the data
@@ -80,7 +81,7 @@ newdata1 <- data.frame(condition = levels(FungiAlive$condition))
 newdata1$pred <- predict(m1, newdata = newdata1)
 ```
 
-```{r, fig.height=5, fig.width=5, fig.align="center"}
+```{r}
 plot(c(
   newdata1[newdata1$condition == "M_A_36_36", "pred"],
   newdata1[newdata1$condition == "M_A_38_38", "pred"],
@@ -122,7 +123,7 @@ newdata2$pred <- predict(m2, newdata = newdata2)
 newdata2
 ```
 
-```{r, fig.height=5, fig.width=5, fig.align="center"}
+```{r}
 plot(newdata2[newdata2$species == "M_A", "pred"],
      type = "b", axes = FALSE, col = "red",
      ylim = range(newdata2$pred),
