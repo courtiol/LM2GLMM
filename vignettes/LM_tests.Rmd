@@ -317,6 +317,44 @@ mean(replicate(1000, min(Anova(lm(y ~ ., data = simu_null(N = 100, K = 10)))["Pr
 mean(replicate(1000, min(Anova(lm(y ~ ., data = simu_null(N = 1000, K = 50)))["Pr(>F)"][1:50, 1]) <= 0.05))
 ```
 
+## Why not do backward selection?
+
+```{r backward}
+backward <- function(k, nsimu=100) {
+  pv.signif.rec <- matrix(rep(NA, 2*nsimu), nrow = 2)
+  row.names(pv.signif.rec) <- c("full", "backward")
+  for (i in 1:nsimu) {
+    d <- replicate(k, rnorm(500))
+    formul <- as.formula(paste("d[,1] ~", paste("d[,", 2:k,"]", collapse = "+")))
+    mod.full <- lm(formul)
+    mod.null <- lm(d[ ,1] ~ 1)
+    mod.backward <- step(mod.full, direction = "backward", trace = FALSE)
+    pv.full <- anova(mod.full, mod.null)$Pr[2]
+    pv.backward <- anova(mod.backward, mod.null)$Pr[2]
+    pv.signif.rec["full", i] <- ifelse(is.na(pv.full), FALSE, pv.full <= 0.05)
+    pv.signif.rec["backward", i] <- ifelse(is.na(pv.backward), FALSE, pv.backward <= 0.05)
+  }
+  return(apply(pv.signif.rec, 1, mean))
+}
+
+result_backward <- sapply(c(3, 5, 10, 15, 20, 50), function(i) {backward(k = i)})
+```
+
+## Why not do backward selection?
+
+```{r backward plot, fig.align = "center", fig.width = 4, fig.height = 4}
+plot(result_backward["full", ] ~ c(3, 5, 10, 15, 20, 50),
+  type = "b", col = "green", ylim = c(0, 1), xlab = "Initial number of variables",
+  ylab = "Proportion of significant models | H0", log = "x")
+points(result_backward["backward", ] ~ c(3, 5, 10, 15, 20, 50),
+  type = "b", col = "red")
+abline(h = 0.05, lty = 2)
+legend("topleft", fill = c("red", "green"),
+       legend = c("step selection (backward AIC)", "full model"), bty = "n")
+```
+
+
+
 ## What shall I do?
 
 * Don't go fishing (forget backward selection!!!)
