@@ -97,7 +97,7 @@ $$
 * known and measured without error
 * columns should be linearly independent
 
-## How to get the design (or model) matrix?
+## How to compute the design (or model) matrix?
 
 ```{r pred matrix}
 somedata <- data.frame(x1 = 1:6)
@@ -106,7 +106,7 @@ somedata <- data.frame(x1 = 1:6)
 
 <br>
 
-The term ```~ X1``` is an object of class formula.
+The term ```~ x1``` is an object of class formula.
 
 ## Ploting the design matrix
 ```{r plot mm, fig.align = "center", fig.width = 5, fig.height = 5}
@@ -156,7 +156,7 @@ This traditional parameterization of ```x3``` is called the "treatement contrast
 
 <br>
 
-Alternative parameterizations can ease convergence (for continuous variable) or can allow for testing specific hypotheses (for qualitative variables). 
+Alternative parameterizations can ease convergence in GLM(M) (for continuous variable) or can allow for testing specific hypotheses (for qualitative variables). 
 
 
 ## A design matrix with interactions
@@ -275,7 +275,7 @@ Explore the differences in the design matrix stemming from coding the gender as:
 * ```1``` vs ```2```
 * ```TRUE``` vs ```FALSE```
 
-Are these different representation equivalent?
+Are these different representations equivalent?
 
 <br>
 
