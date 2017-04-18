@@ -2,11 +2,11 @@
 
 ## To do for LM
 
-* r-squares, which I am not sure where to squeeze in
-* (multi)collinearity, which I could add to the test bit
-* backward stepAIC demo
-* model building (how many data you need... bla bla), which I could also add to the test bits, or I could create something new with multicollinearity within model building
-* a discussion about extrapolation when predicting which I also don't know where to squeeze in
+* r-squares
+* extrapolation
+* (multi)collinearity
+* model building (how many data you need... bla bla)
+
 
 
 # Code for later?
