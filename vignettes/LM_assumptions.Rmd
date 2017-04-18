@@ -281,6 +281,7 @@ It is a problem to infer causal inference, not so much for predictions!
 ## Weaker multicollinearity: why?
 
 ```{r USA 2}
+crossprod(model.matrix(mod_US))  ## remember: high values show collinearity
 cor(USArrests$Assault, USArrests$Murder)
 cov2cor(vcov(mod_US))
 ```
