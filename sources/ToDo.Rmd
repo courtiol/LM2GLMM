@@ -1,0 +1,18 @@
+# What remains to be done?
+
+## To do for LM
+
+* r-squares, which I am not sure where to squeeze in
+* (multi)collinearity, which I could add to the test bit
+* backward stepAIC demo
+* model building (how many data you need... bla bla), which I could also add to the test bits, or I could create something new with multicollinearity within model building
+* a discussion about extrapolation when predicting which I also don't know where to squeeze in
+
+
+# Code for later?
+
+## Terrible residuals
+
+```{r terrible}
+mod <- lm(log(weight) ~ sex*(weight + drink + height), data = UK) ## notice weight used twice...
+```
