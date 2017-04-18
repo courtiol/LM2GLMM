@@ -6,7 +6,13 @@ Freie Universität, Berlin. It is not aimed at general users.
 
 ## Tips for the students
 
-You should download the release version on the package, available here:
+Re(install) the dependencies:
+
+```{r, eval = FALSE}
+install.packages(c('car', 'caret', 'spaMM', 'lme4', 'lmtest', 'multcomp', 'mvtnorm', 'nortest', 'fastR', 'rgl', 'sem'))
+```
+
+Then, you should download the release version on the package, available here:
 https://github.com/courtiol/LM2GLMM/releases
 
 ## Tips for the helpers
