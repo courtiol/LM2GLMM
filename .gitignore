@@ -1,6 +1,5 @@
 inst/doc
 .Rproj.user
-!*vignettes/*.Rmd
 vignettes/cache_knitr
 vignettes/fig_knitr
 vignettes/*.R
@@ -8,8 +7,8 @@ vignettes/*.R
 sources/biblio
 
 
-# OS generated files #
-######################
+# MacOS and Windows generated files #
+#####################################
 .DS_Store
 .DS_Store?
 ._*
