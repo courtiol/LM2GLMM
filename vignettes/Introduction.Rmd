@@ -71,29 +71,13 @@ library(LM2GLMM)
 
 The course is an **R package** called **LM2GLMM**.
 
-### Download
-https://github.com/courtiol/LM2GLMM/releases
-<br>
+To download and install this package, visit: https://github.com/courtiol/LM2GLMM/
 
-### Installation
-```{r install_package, eval = FALSE}
-install.packages(c('car', 'caret', 'spaMM', 'lme4', 'lmtest', 'multcomp', 'mvtnorm', 
-                   'nortest', 'fastR', 'rgl', 'sem'))
-## in what follows replace path by your actual path! and choose one of the 3 options!!
-install.packages(pkgs = "path/LM2GLMM", repos = NULL, type = "source")     ## for the tar.gz file (maybe for all?)
-install.packages(pkgs = "path/LM2GLMM", repos = NULL, type = "win.binary") ## for Windows users and zip file
-install.packages(pkgs = "path/LM2GLMM", repos = NULL, type = "mac.binary") ## for MacOS users and tgz file
-```
-<br>
-
-### Loading
+To load the package, do:
 
 ```{r load_package, eval = FALSE}
 library(package = "LM2GLMM")
 ```
-
-
-## You should get that:
 
 ```
  #############################################
