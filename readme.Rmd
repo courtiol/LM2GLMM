@@ -8,7 +8,7 @@ Freie Universität, Berlin. It is not aimed at general users.
 
 ## Installation
 
-### Solution 1 to install the package
+### Solution 1 (recommended)
 
 1. install the R package ```devtools```:
 
@@ -22,7 +22,7 @@ install.packages("devtools")
 devtools::install_github("courtiol/LM2GLMM")
 ```
 
-### Solution 2 to install the package
+### Solution 2 (fall back option)
 
 1. Re(install) the dependencies:
 
