@@ -4,7 +4,9 @@ This is the repository for the R package LM2GLMM.
 This R package is only aimed at the students and helpers of the course I am giving at the 
 Freie Universität, Berlin. It is not aimed at general users.
 
-## Tips for the students
+# Tips for the students
+
+## Installation
 
 ### Solution 1 to install the package
 
@@ -32,19 +34,11 @@ install.packages(c('car', 'caret', 'spaMM', 'lme4', 'lmtest', 'multcomp', 'mvtno
 https://github.com/courtiol/LM2GLMM/releases
 
 
-### Other tips:
+## Other tips
 
-To list the vignettes:
+### To list the vignettes:
+
 ```{r, eval = FALSE}
 browseVignettes(package = "LM2GLMM")
 ```
 
-## Tips for the helpers
-
-To rebuild the package using devtools:
-```{r, eval = FALSE}
-devtools::build_vignettes()
-devtools::build(binary = TRUE)
-devtools::build(binary = FALSE)
-devtools::install()
-```

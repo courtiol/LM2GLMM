@@ -1,0 +1,8 @@
+## To rebuild the package using devtools:
+
+```{r, eval = FALSE}
+devtools::build_vignettes()
+devtools::build(binary = TRUE)
+devtools::build(binary = FALSE)
+devtools::install()
+```
