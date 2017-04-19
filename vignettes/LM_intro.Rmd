@@ -17,7 +17,7 @@ library(LM2GLMM)
 
 ## You will learn in this session
 
-* how to write a linear model (using both notations)
+* how to write a linear model (using two notations)
 * what a response, a design matrix and model parameters are
 * how to get the design matrix
 * that the meaning of the parameter depends on the design matrix
@@ -416,7 +416,7 @@ $$
 
 ## What you need to remember
 
-* how to write a linear model (using both notations)
+* how to write a linear model (using two notations)
 * what a response, a design matrix and model parameters are
 * how to get the design matrix
 * that the meaning of the parameter depends on the design matrix
