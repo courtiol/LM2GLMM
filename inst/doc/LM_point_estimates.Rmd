@@ -13,6 +13,7 @@ vignette: >
 ---
 ```{r setup, include=FALSE}
 library(LM2GLMM)
+options(width = 120)
 ```
 
 ## You will learn in this session
@@ -74,11 +75,15 @@ abline(mod_alien_lm, col = "blue", lwd = 2, lty = 2)
 
 ## Fitting the model to the data...
 
-... means estimating the values of the model parameters.
+### ... means estimating the values of the model parameters that maximise the probability of the data.
 
-### Why?
+<br>
 
-For drawing inferences about population processes (i.e. about what you could observe in other samples).
+### Why fitting?
+
+<br>
+
+### For drawing inferences about population processes (i.e. about what you could observe in other samples).
 
 # Notations
 
@@ -127,7 +132,7 @@ We want to find the $\widehat{\beta}$ minimizing the residual sum of squares (RS
 The RSS = $\displaystyle\sum_{i=1}^{n}{\varepsilon_i^2}$.
 
 
-## Fitting the Alien data using ```lm()``` as a black-box
+## Fitting the Alien data using ```lm()``` as a black box
 
 ```{r fit alien lm}
 (mod_alien_lm <- lm(size ~ humans_eaten, data = Alien))
@@ -160,7 +165,7 @@ head(X_alien)
 
 ```{r predict}
 pred_auto   <- predict(mod_alien_lm)  ## Tip: same as mod_alien_lm$fitted.values / fitted(mod_alien_lm)
-pred_auto2 <- predict(mod_alien_lm, newdata = Alien) ## can handle missing data!
+pred_auto2  <- predict(mod_alien_lm, newdata = Alien) ## can handle missing data!
 pred_simple <- coef_lm[1] + coef_lm[2] * Alien$humans_eaten
 pred_matrix <- X_alien %*% coef_lm
 ```
@@ -348,29 +353,32 @@ deviance(mod_alien_lm)
 (-2 * sigma2_resid * (logLik_mod - logLik_sat))  ## unscaled deviance
 ```
 
-Note that it is equal to the residual sum of squares!
+Note: the deviance is in LM equal to the residual sum of squares!
 
 ## Recovering the estimates numerically by Maximum Likelihood (ML)
 
 ```{r def comput_logLik_Alien}
-compute_logLik_Alien <- function(param, data = Alien) {
-  predicts <- param["intercept"] + param["slope"] * data$humans_eaten
-  sigma2_resid <- abs(param["sigma2_resid"])  ## abs() as we don't want a negative var
-  logL <- sum(dnorm(data$size, mean = predicts, sd = sqrt(sigma2_resid), log = TRUE))
+compute_logLik <- function(vector.param, formula, data) {
+  usefull.data <- model.frame(formula = formula, data = data)
+  X <- model.matrix(object = formula, data = usefull.data)
+  predicts <- X %*% matrix(vector.param)
+  response <- model.response(usefull.data)
+  sigma2_resid <- sum((response - predicts)^2) / nrow(usefull.data)
+  logL <- sum(dnorm(response, mean = predicts, sd = sqrt(sigma2_resid), log = TRUE))
   return(logL)
-  }
+}
 
-(theta.lm <- c("intercept" = coef_lm[1][[1]], "slope" = coef_lm[2][[1]],
-               "sigma2_resid" = sigma2_resid)) ## For testing
-compute_logLik_Alien(param = theta.lm)
+(theta.lm <- c("intercept" = coef_lm[1][[1]], "slope" = coef_lm[2][[1]])) ## For testing
+compute_logLik(vector.param = theta.lm, formula = size ~ humans_eaten, data = Alien)
 ```
 
 ## Recovering the estimates numerically by Maximum Likelihood (ML)
 
 ### We look for the estimates yielding to the maximum likelihood
 ```{r def logLik Alien computation}
-result_opt <- optim(c("intercept" = 0, "slope" = 1, "sigma2_resid" = 1), compute_logLik_Alien,
-       control = list(fnscale = -1))
+result_opt <- optim(c("intercept" = 0, "slope" = 1), compute_logLik,
+                    formula = size ~ humans_eaten, data = Alien,
+                    control = list(fnscale = -1))
 result_opt$par
 result_opt$value
 ```
@@ -379,14 +387,34 @@ result_opt$value
 ## Recovering the estimates numerically by Ordinary Least Squares (OLS)
 
 ```{r def compute_rss_Alien}
-compute_rss_Alien <- function(param, data = Alien) {
-  predicts <- param["intercept"] + param["slope"] * data$humans_eaten
-  rss <- sum((data$size - predicts)^2)
+compute_rss <- function(vector.param, formula, data) {
+  usefull.data <- model.frame(formula = formula, data = data)
+  X <- model.matrix(object = formula, data = usefull.data)
+  predicts <- X %*% matrix(vector.param)
+  response <- model.response(usefull.data)
+  rss <- sum((response - predicts)^2)
   return(rss)
 }
 
-all.equal(rss_lm, compute_rss_Alien(param = theta.lm))  ## For testing
-optim(c("intercept" = 0, "slope" = 1), compute_rss_Alien)$par
+compute_rss(vector.param = theta.lm, formula = size ~ humans_eaten, data = Alien)  ## For testing
+optim(c("intercept" = 0, "slope" = 1), compute_rss, formula = size ~ humans_eaten, data = Alien)$par
+```
+
+## Comparing the three methods on a real dataset
+
+```{r computation time}
+time1 <- system.time(mod_test_lm <- lm(height ~ weight*sex + cigarettes + drink, data = UK))
+
+time2 <- system.time(mod_test_alexML <- optim(rep(0, 8), compute_logLik,
+                    formula = height ~ weight*sex + cigarettes + drink, data = UK,
+                    control = list(fnscale = -1), method = "BFGS"))  ## default optim method is getting lost...
+
+time3 <- system.time(mod_test_alexRSS <- optim(rep(0, 8), compute_rss,
+                    formula = height ~ weight*sex + cigarettes + drink,
+                    data = UK, method = "BFGS"))
+
+round(rbind(c(coef(mod_test_lm), time1[1]), c(mod_test_alexML$par, time2[1]), c(mod_test_alexML$par, time3[1])), 2)
+
 ```
 
 
