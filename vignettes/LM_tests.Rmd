@@ -61,7 +61,7 @@ summary(mod_UK1)$coefficient["drinkMost days", ]
 ```{r summary by hand}
 estimate <- coef(mod_UK1)["drinkMost days"]
 std.error <- sqrt(diag(vcov(mod_UK1))["drinkMost days"])
-t.value <- estimate/std.error
+t.value <- (estimate - 0)/std.error
 p.value <- 2*pt(abs(t.value), df = mod_UK1$df.residual, lower.tail = FALSE) ## 2x as bilateral test
 rbind(estimate, std.error, t.value, p.value)
 ```
@@ -128,24 +128,24 @@ anova(mod_UK1, mod_UK0)  ## same line as the last one from summary(mod_UK1)
 ## The F-test step by step
 
 ```{r anova null}
-anova(mod_UK1, mod_UK0)
-c(df = 11225 - 11231, SS = 256402 - 443561, F <- (-187158/-6) / (256402/11225))
+anova(mod_UK0, mod_UK1)
+c(df = 11231 - 11225, SS = 443561 - 256402, F = F <- (187158/6) / (256402/11225))
 c(256402/11225, summary(mod_UK1)$sigma^2)  ## estimate of the error variance
 ```
 
 ## The F-test step by step
 
 ```{r anova null 2}
-anova(mod_UK1, mod_UK0)
-c(df = 11225 - 11231, SS = 256402 - 443561, F <- (-187158/-6) / (256402/11225))
--187158/-6  ## change in estimated error variance
+anova(mod_UK0, mod_UK1)
+c(df = 11231 - 11225, SS = 443561 - 256402, F = F <- (187158/6) / (256402/11225))
+187158/6  ## change in estimated error variance
 ```
 
 ## The F-test step by step
 
 ```{r anova null 3}
-anova(mod_UK1, mod_UK0)
-c(df = 11225 - 11231, SS = 256402 - 443561, F <- (-187158/-6) / (256402/11225))
+anova(mod_UK0, mod_UK1)
+c(df = 11231 - 11225, SS = 443561 - 256402, F = F <- (187158/6) / (256402/11225))
 (p.value <- 1 - pf(F, df1 = 6, df2 = 11225))
 ```
 
@@ -154,10 +154,10 @@ c(df = 11225 - 11231, SS = 256402 - 443561, F <- (-187158/-6) / (256402/11225))
 ```{r}
 mod_UK2 <- lm(height ~ milk, data = UK)
 mod_UK0 <- lm(height ~ 1, data = mod_UK2$model)
-anova(mod_UK2, mod_UK0, test = "Chisq")  ## does not show the statistic :-(
+anova(mod_UK0, mod_UK2, test = "Chisq")  ## does not show the statistic :-(
 stat <- 2*(c(logLik(mod_UK2)) - c(logLik(mod_UK0)))
 1 - pchisq(stat, df = 1)  ## df = K model 1 - K model 2
-anova(mod_UK2, mod_UK0, test = "F")[2, "Pr(>F)"]  ## for LM F-test and LRT are equivalent!
+anova(mod_UK0, mod_UK2, test = "F")[2, "Pr(>F)"]  ## for LM F-test and LRT are equivalent!
 ```
 
 
@@ -169,7 +169,7 @@ anova(mod_UK2, mod_UK0, test = "F")[2, "Pr(>F)"]  ## for LM F-test and LRT are e
 mod_UK3 <- lm(height ~ milk + sex*weight, data = UK)
 summary(mod_UK3)$coefficient["milk", ]
 mod_UK3_no_milk <- lm(height ~ sex*weight, data = mod_UK3$model)
-anova(mod_UK3, mod_UK3_no_milk)
+anova(mod_UK3_no_milk, mod_UK3)
 ```
 
 ## Nested model comparison allows for testing the overall effect of several parameters
@@ -177,7 +177,7 @@ anova(mod_UK3, mod_UK3_no_milk)
 ```{r F test weight}
 mod_UK1 <- lm(height ~ drink + sex*weight, data = UK)
 mod_UK1_no_weight <- lm(height ~ drink + sex, data = mod_UK1$model)
-anova(mod_UK1, mod_UK1_no_weight)
+anova(mod_UK1_no_weight, mod_UK1)
 ```
 
 ## Nested model comparison thus allows for testing the overall effect of a qualitative variable
@@ -185,7 +185,7 @@ anova(mod_UK1, mod_UK1_no_weight)
 ```{r F test alcool}
 mod_UK1 <- lm(height ~ drink + sex*weight, data = UK)
 mod_UK1_no_alcool <- lm(height ~ sex*weight, data = mod_UK1$model)
-anova(mod_UK1, mod_UK1_no_alcool)
+anova(mod_UK1_no_alcool, mod_UK1)
 ```
 
 ## Testing all variables in one go with ```anova()```
@@ -220,7 +220,7 @@ pv.F <- replicate(1000, {
   mod_UK1$model$height_no_alcool <- as.matrix(simulate(mod_UK1_no_alcool))
   mod_alcool_fooled <- lm(height_no_alcool ~ drink + sex*weight, data = mod_UK1$model)
   mod_alcool_not_fooled <- lm(height_no_alcool ~ sex*weight, data = mod_UK1$model)
-  anova(mod_alcool_fooled, mod_alcool_not_fooled)[2, "Pr(>F)"]
+  anova(mod_alcool_not_fooled, mod_alcool_fooled)[2, "Pr(>F)"]
 })
 mean(pv.F <= 0.05)
 ```
@@ -238,7 +238,7 @@ abline(0, 1, col = "red")  ## uniform reference
 ```{r LRT param boot}
 mod_UK_milk <- lm(height ~ milk + sex*weight, data = UK)
 mod_UK_no_milk <- lm(height ~ sex*weight, data = mod_UK_milk$model)
-anova(mod_UK_milk, mod_UK_no_milk, test = "Chisq")[2, "Pr(>Chi)"]
+anova(mod_UK_no_milk, mod_UK_milk, test = "Chisq")[2, "Pr(>Chi)"]
 (stat.obs <- 2*(c(logLik(mod_UK_milk)) - c(logLik(mod_UK_no_milk))))
 
 stat.rand <- replicate(1000, {
@@ -287,7 +287,7 @@ summary(mod_UK1)$adj.r.squared
 
 SSF <- sum((fitted(mod_UK1) - mean(fitted(mod_UK1)))^2)
 SSR <- sum((residuals(mod_UK1) - mean(residuals(mod_UK1)))^2)
-(r.squared <- SSF/(SSF+SSR))  ## Note: SSF+SSR = sum((mod_UK1$model$height - mean(mod_UK1$model$height))^2)
+(r.squared <- SSF/(SSF + SSR))  ## Note: SSF+SSR = sum((mod_UK1$model$height - mean(mod_UK1$model$height))^2)
 1 - (1 - r.squared) * ((nrow(mod_UK1$model) - 1)/mod_UK1$df.residual)  ## adjusted r-squared
 
 summary(mod_UK5)$adj.r.squared
@@ -345,8 +345,8 @@ backward <- function(k, nsimu=100) {
     mod.full <- lm(formul)
     mod.null <- lm(d[ ,1] ~ 1)
     mod.backward <- step(mod.full, direction = "backward", trace = FALSE)
-    pv.full <- anova(mod.full, mod.null)$Pr[2]
-    pv.backward <- anova(mod.backward, mod.null)$Pr[2]
+    pv.full <- anova(mod.null, mod.full)$Pr[2]
+    pv.backward <- anova(mod.null, mod.backward)$Pr[2]
     pv.signif.rec["full", i] <- ifelse(is.na(pv.full), FALSE, pv.full <= 0.05)
     pv.signif.rec["backward", i] <- ifelse(is.na(pv.backward), FALSE, pv.backward <= 0.05)
   }
