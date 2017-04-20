@@ -9,8 +9,7 @@
     "\n #                                           #",
     "\n #   You have the version ", utils::packageDescription("LM2GLMM")$Version," installed!   #",
     "\n #                                           #",
-    "\n # Type browseVignettes(package = 'LM2GLMM') #",
-    "\n #    to access the slides of the course     #",
+    "\n # Type get_vignettes() to access the slides #",
     "\n #                                           #",
     "\n #############################################", "\n")
 }
