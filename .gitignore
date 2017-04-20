@@ -6,6 +6,7 @@ vignettes/*.R
 *.html
 sources/Students.pdf
 sources/biblio
+sources/list_students.ods
 
 
 # MacOS and Windows generated files #
