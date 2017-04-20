@@ -39,6 +39,6 @@ https://github.com/courtiol/LM2GLMM/releases
 ### To list the vignettes:
 
 ```{r, eval = FALSE}
-browseVignettes(package = "LM2GLMM")
+get_vignettes(package = "LM2GLMM")
 ```
 
