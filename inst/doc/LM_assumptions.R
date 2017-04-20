@@ -5,6 +5,7 @@ knitr::opts_chunk$set(cache = FALSE, cache.path = "./cache_knitr/LM_assumptions/
 options(width = 200)
 
 ## ----simple non linear--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+set.seed(1L)
 Alien0 <- data.frame(humans_eaten = sample(1:100)) 
 Alien0$size <- 10 + 50 * Alien0$humans_eaten - 0.02 * (Alien0$humans_eaten^2) + rnorm(100, sd = 5)
 mod0a <- lm(size ~ humans_eaten, data = Alien0)
@@ -102,6 +103,7 @@ USArrests$PC1 <- pca$x[, 1]
 summary(mod_US3 <- lm(Rape ~ PC1, data = USArrests))
 
 ## ----measurement error--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+set.seed(1L)
 Alien4 <- simulate_Aliens(100)
 summary(lm(size ~ humans_eaten, data = Alien4))$coef
 Alien4$humans_eaten_err <- Alien4$humans_eaten + rnorm(nrow(Alien4), sd = 10)
