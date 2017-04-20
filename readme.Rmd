@@ -19,7 +19,7 @@ install.packages("devtools")
 2. install the R package LM2GLMM:
 
 ```{r, eval = FALSE}
-devtools::install_github("courtiol/LM2GLMM")
+devtools::install_github("courtiol/LM2GLMM", build_vignettes = TRUE)
 ```
 
 ### Solution 2 (fall back option)
