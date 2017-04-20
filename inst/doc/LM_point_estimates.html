@@ -607,7 +607,14 @@ c     suggest improvements to this code.</pre>
 ## 3  Boy  143.0         20    3            50   34.9 Once a week or less
 ## 4 Girl  139.7          0    0            63   30.2 Once a week or less
 ## 5 Girl     NA          0    0            NA     NA                &lt;NA&gt;
-## 6  Boy  128.0         15    3            50   24.6          Not at all</pre>
+## 6  Boy  128.0         15    3            50   24.6          Not at all
+##                drink2
+## 1 Once a week or less
+## 2          Not at all
+## 3 Once a week or less
+## 4 Once a week or less
+## 5                &lt;NA&gt;
+## 6          Not at all</pre>
 
 <pre class = 'prettyprint lang-r'>mod_UK1 &lt;- lm(height ~ drink + sex*weight, data = UK)</pre>
 
