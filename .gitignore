@@ -3,9 +3,7 @@ vignettes/cache_knitr
 vignettes/fig_knitr
 vignettes/*.R
 vignettes/*.html
-sources/Students.pdf
-sources/biblio
-sources/list_students.ods
+sources/
 
 
 # MacOS and Windows generated files #
