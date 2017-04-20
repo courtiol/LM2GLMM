@@ -25,6 +25,29 @@ Imports:
     nortest,
     fastR,
     rgl,
-    sem,
-    backports, evaluate, highr, htmltools, knitr, matrixcalc, magrittr, mi, minqa, Rcpp, rmarkdown, rprojroot, stringi, stringr, yaml, zoo
+    sem
+Suggests:
+    backports,
+    caTools,
+    evaluate,
+    highr,
+    htmltools,
+    htmlwidgets,
+    knitr,
+    matrixcalc,
+    magrittr,
+    mi,
+    minqa,
+    nloptr,
+    pbkrtest,
+    proxy,
+    quantreg,
+    Rcpp,
+    rmarkdown,
+    rprojroot,
+    shiny,
+    stringi,
+    stringr,
+    yaml,
+    zoo
 VignetteBuilder: knitr
