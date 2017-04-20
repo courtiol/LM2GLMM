@@ -2,13 +2,34 @@
 
 ```{r, eval = FALSE}
 devtools::build_vignettes()
-devtools::build(binary = TRUE)
 devtools::build(binary = FALSE)
 devtools::install()
 ```
+
+## To create new version without building the package
+
+```{r, eval = FALSE}
+devtools::build_vignettes()
+```
+
+Then, commit and push.
+
+The students can then use:
+
+```{r, eval = FALSE}
+devtools::install_github("courtiol/LM2GLMM")
+```
+
+The vignette swon't show but they exist, so access them using:
+
+```{r, eval = FALSE}
+browseURL(paste0(find.package("LM2GLMM"), "/doc/index.html"))
+```
+
 
 ## Install behind IZW proxy
 
 ```{r, eval = FALSE}
 httr::with_config(httr::use_proxy("192.168.2.2:3128"), devtools::install_github("courtiol/LM2GLMM"))
 ```
+
