@@ -36,9 +36,15 @@ https://github.com/courtiol/LM2GLMM/releases
 
 ## Other tips
 
-### To list the vignettes:
+### To load the package and access to the vignettes:
 
 ```{r, eval = FALSE}
-get_vignettes(package = "LM2GLMM")
+library("LM2GLMM")
+get_vignettes()
 ```
 
+### Example of installation from behind a proxy
+
+```{r, eval = FALSE}
+httr::with_config(httr::use_proxy("192.168.2.2:3128"), devtools::install_github("courtiol/LM2GLMM"))
+```
