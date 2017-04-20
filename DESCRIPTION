@@ -26,6 +26,7 @@ Imports:
     mvtnorm,
     nortest,
     fastR,
+    Rcpp,
     rgl,
     rmarkdown,
     sem
