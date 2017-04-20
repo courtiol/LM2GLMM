@@ -28,5 +28,5 @@ Imports:
     rgl,
     rmarkdown,
     sem,
-    htmltools, Rcpp, rprojroot # for vignettes building
+    htmltools, Rcpp, rprojroot
 VignetteBuilder: knitr
