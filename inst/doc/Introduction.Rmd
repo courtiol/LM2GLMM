@@ -13,6 +13,7 @@ vignette: >
 ---
 ```{r setup, include=FALSE}
 library(LM2GLMM)
+set.seed(1L)
 ```
 
 # The exam
