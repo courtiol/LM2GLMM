@@ -90,6 +90,7 @@ But using this method is not advised as results can be unreliable...
 ## A simple example of non-linearity
 
 ```{r simple non linear}
+set.seed(1L)
 Alien0 <- data.frame(humans_eaten = sample(1:100)) 
 Alien0$size <- 10 + 50 * Alien0$humans_eaten - 0.02 * (Alien0$humans_eaten^2) + rnorm(100, sd = 5)
 mod0a <- lm(size ~ humans_eaten, data = Alien0)
@@ -326,6 +327,7 @@ The presence of measurement errors is the main cause of violation. Violation can
 ## Example
 
 ```{r measurement error}
+set.seed(1L)
 Alien4 <- simulate_Aliens(100)
 summary(lm(size ~ humans_eaten, data = Alien4))$coef
 Alien4$humans_eaten_err <- Alien4$humans_eaten + rnorm(nrow(Alien4), sd = 10)
