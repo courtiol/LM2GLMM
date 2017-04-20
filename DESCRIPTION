@@ -26,6 +26,8 @@ Imports:
     fastR,
     rgl,
     sem
-Suggests: knitr,
-    rmarkdown
+Suggests:
+    knitr,
+    rmarkdown,
+    htmltools
 VignetteBuilder: knitr
