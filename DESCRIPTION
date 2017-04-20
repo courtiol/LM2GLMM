@@ -16,7 +16,6 @@ Imports:
     caret,
     spaMM (>= 2.0.0),
     stats,
-    knitr,
     lattice,
     lme4,
     lmtest,
@@ -26,7 +25,6 @@ Imports:
     nortest,
     fastR,
     rgl,
-    rmarkdown,
     sem,
-    htmltools, Rcpp, rprojroot
+    backports, htmltools, knitr, Rcpp, rmarkdown, rprojroot
 VignetteBuilder: knitr
