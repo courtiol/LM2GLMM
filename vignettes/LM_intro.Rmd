@@ -277,6 +277,8 @@ Explore the differences in the design matrix stemming from coding the gender as:
 
 Are these different representations equivalent?
 
+Create all corresponding design matrices to explore the differences!
+
 <br>
 
 Same question with:
