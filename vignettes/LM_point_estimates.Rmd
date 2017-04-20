@@ -18,14 +18,11 @@ options(width = 120)
 
 ## You will learn in this session
 
-* what fitting a model to the data actually means
 * what predictions, estimates and residuals are
-* that linear models are directly fitted by analytical means
-* how to compute predicted values and residuals
 * that the variance of residuals is a biased estimator of the error variance
-* (how to compute estimates numerically using maximum likelihood)
-* what the component stored in lm() object roughly are
-* how to interpret parameter estimates
+* how to compute estimates numerically in a few lines of code
+* how ```lm()``` works
+* what the components stored within ```lm()``` objects are
 
 # Introduction
 
@@ -148,7 +145,7 @@ We will see what all these components are!
 ```{r fit coef}
 (coef_lm <- mod_alien_lm$coef) ## We expect something close to 50 and 1.5
 summary(mod_alien_lm)$sigma^2 ## We expect something close to 25
-logLik(mod_alien_lm)[[1]]
+logLik(mod_alien_lm)[1]
 anova(mod_alien_lm)$"Sum Sq"[2]
 ```
 
@@ -335,7 +332,7 @@ arrows(x0 = Alien[1, "size"], x1 = 30, y0 = Alien[1, "density"], y1 = Alien[1, "
 ```
 
 ```{r alien log density}
-logLik(mod_alien_lm)[[1]]
+logLik(mod_alien_lm)[1]
 log(prod(Alien$density))
 sum(log(Alien$density))
 ```
@@ -433,8 +430,7 @@ solve(t(X) %*% X) %*% t(X) %*% Y  ## Tip: solve(x) returns the inverse of the ma
 
 <br>
 
-Note 1: $\widehat{Y} = X \widehat{\beta} = X (X^TX)^{-1}X^TY=HY$, and $H$ is called the hat matrix (it is a projection matrix).
-Note 2: remember that $X^TX$ gives information on the collinearity (see intro).
+Note: $\widehat{Y} = X \widehat{\beta} = X (X^TX)^{-1}X^TY=HY$, and $H$ is called the hat matrix (it is a projection matrix).
 
 ## Recovering the estimates analytically using the QR decomposition
 
@@ -537,9 +533,9 @@ data.frame(coef(mod_UK1))
 ```
 <br>
 
-### What do each of these estimate really mean?
+### What do each of these estimates really mean?
 
-(If you struggle interpreting the coefficients, try to compute some predictions!)
+(If you struggle interpreting parameter estimates, try to compute some predictions!)
 
 ## Predictions with  ```mod_UK1```
 
@@ -618,14 +614,11 @@ mod_spaMM_REML$APHLs$p_v
 
 ## What you need to remember
 
-* what fitting a model to the data actually means
 * what predictions, estimates and residuals are
-* that linear models are directly fitted by analytical means
-* how to compute predicted values and residuals
 * that the variance of residuals is a biased estimator of the error variance
-* (how to compute estimates numerically using maximum likelihood)
-* what the component stored in lm() object roughly are
-* how to interpret parameter estimates
+* how to compute estimates numerically in a few lines of code
+* (how ```lm()``` works)
+* (what the components stored within ```lm()``` objects are)
 
 # Table of content
 
