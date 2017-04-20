@@ -1,0 +1,436 @@
+---
+title: "LM: Introduction"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+vignette: >
+  %\VignetteIndexEntry{2.0 Linear models}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+```{r setup, include=FALSE}
+library(LM2GLMM)
+```
+
+## You will learn in this session
+
+* how to write a linear model (using two notations)
+* what a response, a design matrix and model parameters are
+* how to get the design matrix
+* that the meaning of the parameter depends on the design matrix
+* how to simulate the data for a linear model
+
+# Definition and notations
+
+## What is a Linear Model (LM)?
+
+### What is a statistical model?
+
+###***A statistical model represents, often in considerably idealized form, the data-generating process.*** [(wikipedia)](https://en.wikipedia.org/wiki/Statistical_model)
+<br>
+
+### What is a linear model?
+
+###***The data-generating process is assumed to be a linear function: it is constructed from a set of terms by multiplying each term by a constant (a model parameter) and adding the results .***
+
+## Mathematical notation of LM: simple notation
+
+<center><font size="5"> $y_i = \beta_0 + \beta_1 \times x_{1,i} + \beta_2 \times x_{2,i} + \dots + \beta_{p} \times x_{p,i} + \epsilon_i$ </font></center>
+
+<br>
+
+* $y_i$ = the observations to explain / explanatory variable / dependent variable
+* $x_{j,i}$ = constants derived from the predictors / explanatory variables / independent variables
+* $\beta_j$ = the regression coefficients / model parameters
+* $\epsilon_i$ = the errors / residual errors
+
+
+## Mathematical notation of LM: matrix notation
+
+<center><font size = 8> $Y = X \beta + \epsilon$ </font></center>
+
+$$
+\begin{bmatrix} y_1 \\ y_2 \\ y_3 \\ \dots \\ y_n \end{bmatrix} =
+\begin{bmatrix}
+1 & x_{1,1} & x_{2,1} & \dots & x_{p,1} \\
+1 & x_{1,2} & x_{2,2} & \dots & x_{p,2} \\
+1 & x_{1,3} & x_{2,3} & \dots & x_{p,3} \\
+\dots & \dots & \dots & \dots & \dots \\
+1 & x_{1,n} & x_{2,n} & \dots & x_{p,n}
+\end{bmatrix}
+\begin{bmatrix}
+\beta_0 \\ \beta_1 \\ \beta_2 \\ \beta_3 \\ \dots \\ \beta_n
+\end{bmatrix} +
+\begin{bmatrix}
+\epsilon_1 \\ \epsilon_2 \\ \epsilon_3 \\ \dots \\ \epsilon_n
+\end{bmatrix}
+$$
+
+<br>
+
+* $Y$ = a vector of observations
+* $X$ = an matrix called the design (or model) matrix
+* $\beta$ = a vector of model parameters
+* $\epsilon$ = a vector of errors
+
+# The response
+
+## What kind of responses LM can handle?
+
+* one dimension: $n \times 1$
+* continuous
+* no other restriction
+
+# The design matrix
+
+## The design matrix
+
+### It is the representation of the predictors!
+
+<br>
+
+* multi-dimensional: $n \times p$ with $n > p$
+* deduced from the predictors
+* known and measured without error
+* columns should be linearly independent
+
+## How to compute the design (or model) matrix?
+
+```{r pred matrix}
+somedata <- data.frame(x1 = 1:6)
+(mm <- model.matrix(object = ~ x1, data = somedata))
+```
+
+<br>
+
+The term ```~ x1``` is an object of class formula.
+
+## Ploting the design matrix
+```{r plot mm, fig.align = "center", fig.width = 5, fig.height = 5}
+matplot(mm)
+```
+
+## A design matrix without intercept
+```{r pred matrix 0}
+model.matrix(object = ~ 0 + x1, data = somedata)
+model.matrix(object = ~ -1 + x1, data = somedata)
+```
+
+## A design matrix with functions
+
+```{r pred matrix 1}
+model.matrix(object = ~ log(x1) + poly(x1, 2, raw = TRUE), data = somedata)
+```
+
+## An alternative parametrization for polynomials
+
+```{r pred matrix 1b}
+model.matrix(object = ~ log(x1) + poly(x1, 2), data = somedata)
+```
+
+<br>
+
+Looking at the design matrix shows whether some transformation are happening behind the scene.
+This is important as when it happens model parameters should be interpreted accordingly.
+
+## A design matrix with a factor
+
+```{r pred matrix 2}
+somedata$x2 <- c(10, 11, 12, 13, 14, 15)
+somedata$x3 <- factor(c("b", "b", "a", "a", "c", "c"))
+(MA <- model.matrix(object = ~ x1 + x2 + x3, data = somedata))
+```
+
+<br>
+
+This traditional parameterization of ```x3``` is called the "treatement contrast". It is the easiest one to interpret.
+
+## An alternative parametrization for the factor
+
+```{r pred matrix 3}
+(MB <- model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = "contr.helmert")))
+```
+
+<br>
+
+Alternative parameterizations can ease convergence in GLM(M) (for continuous variable) or can allow for testing specific hypotheses (for qualitative variables). 
+
+
+## A design matrix with interactions
+
+```{r pred matrix 4}
+model.matrix(object = ~ x1 * x2 + x1 * x3, data = somedata)
+```
+
+<br>
+
+Interactions allow to consider that the effect of one predictor depends on the value take by other(s). If interaction are not considered, then effects are assumed to be independent.
+
+# The model parameters
+
+## Model parameters:
+
+* one dimension: $p \times 1$ vector
+* fixed non-observable quantities
+
+<br>
+
+### They are used to convert each column from the design matrix into units of the response variable.
+
+<br>
+
+### The meaning of the parameters always depends on the model matrix!!!
+
+
+## Alternative parameterizations of equivalent design matrices
+
+Alternative parameterization of equivalent design matrices lead to the same predictions!
+
+This function converts parameters between equivalent design matrices:
+```{r convert}
+conv_betaXA_to_betaXB <- function(XA, XB, betaXA) {
+  ## Test that inputs are OK:
+  if (!any(dim(XA) == dim(XB)))   stop("design matrices differ in size")
+  if (ncol(XA) != length(betaXA)) stop("betaXA of wrong length")
+  ## Identify parameters that need to be converted
+  id_col_keep <- which(apply(XA != XB, 2, sum) != 0) ## index columns to keep
+  if (all(XA[, 1] == 1)) id_col_keep <- c(1, id_col_keep) ## add intercept
+  id_col_drop <- setdiff(1:ncol(XA), id_col_keep) ## index columns to discard
+  ## Conversion per se:
+  betaXB_temp <- solve(coef(lm.fit(XA[, id_col_keep], XB[, id_col_keep])), betaXA[id_col_keep])
+  ## Put back non converted parameters into output
+  betaXB <- numeric(length(betaXA))
+  betaXB[id_col_keep] <- betaXB_temp
+  betaXB[id_col_drop] <- betaXA[id_col_drop]
+  ## Output
+  return(betaXB)
+}
+## homemade: this function may break in some legitimate cases...
+```
+
+
+## The case of polynomials: raw
+
+```{r pred matrix poly a}
+(M2a <- model.matrix(object = ~ poly(x1, 2, raw = TRUE), data = somedata))
+M2a %*% c(1, 2, -2)  ## predictions using matrix multiplication
+```
+
+## The case of polynomials: orthogonal
+
+```{r pred matrix poly b}
+
+(M2b <- model.matrix(object = ~ poly(x1, 2), data = somedata))
+round(M2b %*% c(-22.33333, -50.19960, -12.22020), 3)  ## predictions
+```
+
+## The case of polynomials: why making things more complex?
+
+```{r XTX}
+t(M2a) %*% M2a  ## high values mean that predictors are colinear -> will be hard to fit
+zapsmall(t(M2b) %*% M2b)  ## 0 means that predictors are orthogonal -> will be easy to fit
+```
+
+## The case of polynomials: conversion
+
+```{r convert poly}
+p1 <- model.matrix(~ poly(somedata$x1, 2, raw = TRUE))
+p2 <- model.matrix(~ poly(somedata$x1, 2))
+conv_betaXA_to_betaXB(XA = p1, XB = p2, betaXA = c(1, 2, -2))
+```
+
+
+## The case of contrasts: treatment vs Helmert
+
+```{r helmert conv}
+BetaA <- matrix(c(50, 1.5, 20, 2, 3))
+(BetaB <- conv_betaXA_to_betaXB(XA = MA, XB = MB, betaXA = BetaA))
+```
+
+<div  class="columns-2">
+
+```{r param MA}
+MA %*% BetaA ## predictions
+```
+
+<br>
+
+```{r param MB}
+MB %*% BetaB ## predictions
+```
+
+</div>
+
+
+## Practice
+
+Explore the differences in the design matrix stemming from coding the gender as:
+
+* ```"boy"``` vs ```"girl"```
+* ```"male"``` vs ```"female"```
+* ```0``` vs ```1```
+* ```1``` vs ```2```
+* ```TRUE``` vs ```FALSE```
+
+Are these different representations equivalent?
+
+<br>
+
+Same question with:
+
+* ```baby``` vs ```child``` vs ```adult```
+* ```0``` vs ```1``` vs ```2```
+* ```1``` vs ```2``` vs ```3```
+
+
+## Understanding factorial design through the design matrix
+
+```{r factorial}
+data(poison, package = "fastR")  ##  ?fastR::poison for description
+poison$treat <- factor(poison$Treatment)
+poison$poison <- factor(poison$Poison)
+X <- model.matrix( ~ poison + treat, data = poison)
+head(X)
+```
+
+## Understanding factorial design through the design matrix
+
+```{r factorial 2}
+crossprod(X)  ## compute t(X) %*% X, see later
+with(poison, table(treat, poison))
+```
+
+# The errors
+
+## The errors
+
+* one dimension: $n \times 1$ vector
+* equal observation - model approximation ($Y - X\beta$)
+* random variable
+* we assume it Gaussian (normally distributed), independent (no autocorrelation) and identically distributed (homoscedasticity)
+
+<center><font size="8"> $\epsilon \sim \mathcal{N}(0, \sigma^2 I)$</font></center>
+
+<br>
+
+With the covariance matrix $\sigma^2 I$ being the following $n \times n$ matrix:
+
+$$
+\begin{bmatrix}
+\sigma^2 & 0 & \dots & 0 \\
+0 & \sigma^2 & \dots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \dots & \sigma^2 \\
+\end{bmatrix}
+$$
+
+
+# Illustration with the Alien dataset
+
+## Imagine an ideal (unrealistic) situation
+
+We know that the process generating the height of aliens can be
+approximated by the following linear model:
+
+* $\texttt{height}_i = 50 + 1.5 \times \texttt{humans_eaten}_{i} + \epsilon_i$
+* $\epsilon_i \sim \mathcal{N}(0, \sigma^2 = 25)$
+
+<br>
+
+We can thus generate the data corresponding to 6 aliens that have eaten
+between 1 and 6 humans.
+
+```{r alien data}
+set.seed(123L)
+Alien <- data.frame(humans_eaten = sample(1:6))
+Alien$error <- rnorm(n = 6, mean = 0, sd = sqrt(25))
+Alien$size <- 50 + 1.5*Alien$humans_eaten + Alien$error
+```
+
+We could also write the last 2 lines as the following line, but we want to keep the error distinct here.
+```{r alien data2, eval = FALSE}
+Alien$size <- rnorm(n = 6, mean = 50 + 1.5*Alien$humans_eaten, sd = sqrt(25))
+```
+
+## Why simulating Aliens?
+
+* it clarifies the meaning of the model parameters
+* it allows for the study of the power and robustness of LM
+
+
+## Computing the response with both notations
+
+```{r alien data show}
+Alien
+```
+<div class="columns-2">
+
+### Simple notation
+* $y_1 = 50 + 1.5 \times `r Alien$humans_eaten[1]` + `r Alien$error[1]`$
+* $y_2 = 50 + 1.5 \times `r Alien$humans_eaten[2]` + `r Alien$error[2]`$
+* $y_3 = 50 + 1.5 \times `r Alien$humans_eaten[3]` + `r Alien$error[3]`$
+* $y_4 = 50 + 1.5 \times `r Alien$humans_eaten[4]` + `r Alien$error[4]`$
+* $y_5 = 50 + 1.5 \times `r Alien$humans_eaten[5]` + `r Alien$error[5]`$
+* $y_6 = 50 + 1.5 \times `r Alien$humans_eaten[6]` + `r Alien$error[6]`$
+
+### Matrix notation
+$$
+Y = \begin{bmatrix}
+1 & `r Alien$humans_eaten[1]` \\
+1 & `r Alien$humans_eaten[2]` \\
+1 & `r Alien$humans_eaten[3]` \\
+1 & `r Alien$humans_eaten[4]` \\
+1 & `r Alien$humans_eaten[5]` \\
+1 & `r Alien$humans_eaten[6]`
+\end{bmatrix}
+\begin{bmatrix}
+50 \\
+1.5
+\end{bmatrix}
++
+\begin{bmatrix}
+`r Alien$error[1]`\\
+`r Alien$error[2]`\\
+`r Alien$error[3]`\\
+`r Alien$error[4]`\\
+`r Alien$error[5]`\\
+`r Alien$error[6]`
+\end{bmatrix}
+$$
+
+</div>
+
+
+## Practice
+
+<br>
+
+### Compute the response in R.
+
+### Constraint: use a single line of code maximum for each notation.
+
+# Summary
+
+## What you need to remember
+
+* how to write a linear model (using two notations)
+* what a response, a design matrix and model parameters are
+* how to get the design matrix
+* that the meaning of the parameter depends on the design matrix
+* how to simulate the data for a linear model
+
+
+# Table of content
+
+## The Linear Model: LM
+
+* 2.0 [Introduction](./LM_intro.html)
+* 2.1 [Point estimates](./LM_point_estimates.html)
+* 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
+* 2.3 [Tests](./LM_tests.html)
+* 2.4 [Assumptions and Outliers](./LM_assumptions.html)
+
+
