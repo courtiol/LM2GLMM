@@ -10,5 +10,5 @@ devtools::install()
 ## Install behind IZW proxy
 
 ```{r, eval = FALSE}
-httr::with_config(httr::use_proxy("192.168.2.2:3128"), devtools::install_github("courtiol/LM2GLMM", build_vignettes = TRUE))
+httr::with_config(httr::use_proxy("192.168.2.2:3128"), devtools::install_github("courtiol/LM2GLMM"))
 ```
