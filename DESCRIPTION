@@ -27,27 +27,6 @@ Imports:
     rgl,
     sem
 Suggests:
-    backports,
-    caTools,
-    evaluate,
-    highr,
-    htmltools,
-    htmlwidgets,
     knitr,
-    matrixcalc,
-    magrittr,
-    mi,
-    minqa,
-    nloptr,
-    pbkrtest,
-    proxy,
-    quantreg,
-    Rcpp,
-    rmarkdown,
-    rprojroot,
-    shiny,
-    stringi,
-    stringr,
-    yaml,
-    zoo
+    rmarkdown
 VignetteBuilder: knitr
