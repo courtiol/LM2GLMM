@@ -1,0 +1,233 @@
+---
+title: "Introduction"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+vignette: >
+  %\VignetteIndexEntry{1 Introduction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+```{r setup, include=FALSE}
+library(LM2GLMM)
+```
+
+# The exam
+
+## Procedure
+
+###What?
+
+* biological questions for which the answers will require you to build models and analyse data
+* statistical questions (not many) for which the answers will require you to think
+* you will answer by writing text and by creating figures and/or tables 
+
+### When?
+
+* one afternoon suiting everyone, once the course will be over
+* duration for the examination: **one hour**
+
+(It should be sufficient, but you will be able to stay longer if you need to!)
+
+
+###Condition?
+
+* individually
+* you are free to look at your course and R-help files (no internet)
+
+
+## Grading
+
+###I will grade:
+
+* the correctness of the answers
+* the correctness of the R code (did you get the good answer by plain luck or good thought process?)
+
+###I will give bonuses for the quality/elegance of:
+
+* the writing
+* the code
+* the illustrations
+
+###I will give penalty if:
+
+* you cheat (looking at internet, colleagues)
+* you ask for my help because you really are stuck
+
+
+# General information
+
+## What do you need for the course?
+* a laptop
+* a computer with internet connection
+* a web browser (up-to-date)
+* R version $\geq$ 3.3
+* RStudio version $\geq$ 1.0 (recommended)
+
+## How to access the course?
+
+The course is an **R package** called **LM2GLMM**.
+
+To download and install this package, visit: https://github.com/courtiol/LM2GLMM/
+
+To load the package, do:
+
+```{r load_package, eval = FALSE}
+library(package = "LM2GLMM")
+```
+
+```
+ #############################################
+ #                                           #
+ #     This is the package for the course    #
+ #                                           #
+ #    Advanced Statistical Applications:     #
+ #          from LM to GLMM using R          #
+ #                                           #
+ #   You have the version X.X.X installed!   #
+ #                                           #
+ # Type browseVignettes(package = 'LM2GLMM') #
+ #    to access the slides of the course     #
+ #                                           #
+ #############################################
+```
+
+### !!! Always check the version number with me!!!
+
+# Refreshing your R skills
+
+## Vectors: basics
+
+```{r vectors basics}
+foo <- c(1, 5, 5, 10, 23, NA, NA)
+foo[2]
+foo > 3
+foo[foo > 3]
+foo2 <- c(a = 1, b = 5, c = 10, d = 23)
+foo2["b"]
+```
+
+## Vectors: some useful functions
+
+```{r vectors function}
+length(foo)
+summary(foo)
+any(is.na(foo))
+table(foo, useNA = "always")
+```
+
+## Vectors: classes
+
+```{r vectors classes}
+foo1 <- c(1, 5, 5, NA)
+foo2 <- c(a = 1, b = 3)
+foo3 <- foo1 > 3
+foo4 <- c("a", "b", "c")
+foo5 <- factor(foo3)
+foo6 <- c(1L, 3L, 5L)
+
+class(foo1)
+```
+
+```{r vectors class table, echo = FALSE}
+classes <- unlist(lapply(as.list(names <- paste0("foo", 1:6)), function(x) class(get(x))))
+knitr::kable(rbind(names, classes))
+```
+
+## Vectors: factors
+
+```{r vetors factors}
+foo <-  factor(c("a", "b", "c"))
+(foo <- foo[foo != "b"]) ## Tip: the brackets force the display
+(foo <- droplevels(foo))
+```
+
+
+## Attributes
+
+```{r attributes}
+foo <- c(a = 1, b = 5, c = 10, d = 23)
+attributes(foo)
+attr(foo, "names")  ## Tip: here a shortcut would be 'names(foo4)', but this is not general
+foo <-  factor(c("a", "b", "c"))
+attributes(foo)
+```
+
+## Dataframes: basics
+
+```{r dataframe}
+foo <- data.frame(
+  x = c(1, 3, 5),
+  z = factor(c("a", "b", "c"))
+  )
+foo
+dim(foo) ## Tip: try nrow() and ncol()
+dimnames(foo) ## Tip: try rownames() and colnames()
+```
+
+## Dataframes: indexing
+
+```{r dataframe indexing}
+foo[2, ]
+foo[, 2]
+foo$x
+foo[, "x"]
+```
+
+## Matrices
+
+```{r matrix}
+foo <- matrix(data = 1:9, nrow = 3, ncol = 3) ## Tip: try with byrow = TRUE
+colnames(foo) <- c("a", "b", "c")
+rownames(foo) <- c("A", "B", "C")
+foo
+```
+
+The indexing is similar to dataframes (but you cannot use $)!
+
+```{r matrix multiplication}
+foo %*% matrix(c(0, 1, -1))  ## matrix multiplication
+```
+
+## Lists
+
+```{r lists}
+  foo <- list("foo1" = c(1:10), "foo2" = factor(c("a", "b")))
+  foo
+  foo[["foo2"]]
+  foo$foo2
+```
+
+## Functions
+
+```{r function}
+addA_B <- function(a = 0, b = 0) {
+  c <- a + b
+  return(c)
+  }
+```
+
+```{r function test}
+addA_B(a = 5, b = 7)
+addA_B(a = 5)
+```
+
+```{r function short}
+addA_B_bis <- function(a, b) a + b
+addA_B_bis(2, 3)
+```
+
+## Using pseudo-random numbers in R
+
+```{r rnorm}
+rnorm(5, mean = 2, sd = 0.1)  ## Tip: check ?Distributions for other distribution
+rnorm(5, mean = 2, sd = 0.1)
+set.seed(14353L)
+rnorm(5, mean = 2, sd = 0.1)
+set.seed(14353L)
+rnorm(5, mean = 2, sd = 0.1)
+```
+
