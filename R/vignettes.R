@@ -11,6 +11,7 @@
 #' get_vignettes()
 #'
 get_vignettes <- function() {
-  browseURL(paste0(find.package("LM2GLMM"), "/doc/index.html"))
+  browseURL(paste0(find.package("LM2GLMM"), "/doc/index.html")) ## for installed
+  browseURL(paste0(find.package("LM2GLMM"), "/inst/doc/Title.html")) ## for development
   return(invisible(NULL))
 }
