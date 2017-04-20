@@ -1,5 +1,6 @@
 ## ----setup, include=FALSE------------------------------------------------
 library(LM2GLMM)
+set.seed(1L)
 
 ## ----load_package, eval = FALSE------------------------------------------
 #  library(package = "LM2GLMM")
