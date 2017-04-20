@@ -16,6 +16,8 @@ Imports:
     caret,
     spaMM (>= 2.0.0),
     stats,
+    htmltools,
+    knitr,
     lattice,
     lme4,
     lmtest,
@@ -25,9 +27,6 @@ Imports:
     nortest,
     fastR,
     rgl,
-    sem
-Suggests:
-    knitr,
     rmarkdown,
-    htmltools
+    sem
 VignetteBuilder: knitr
