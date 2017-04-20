@@ -617,7 +617,7 @@ head(sort(dffits(mod_davis), decreasing = TRUE))
 head(sort(cooks.distance(mod_davis), decreasing = TRUE))
 ```
 
-Both the DFFITS measure and the Cook distance (aka Cook's D) are two relative measure of the extent to which the predicted y-values changes if a given observation is dropped. DFFITS measures it in standard errors, Cook's D in the value of a F statistics comparing simultaneously the changes in all estimates when the observation is dropped or not.
+Both the DFFITS measure and the Cook distance (aka Cook's D) are two relative measures of the extent to which the predicted y-values changes if a given observation is dropped. DFFITS measures it in standard errors, Cook's D in the value of a F statistics comparing simultaneously the changes in all estimates when the observation is dropped or not.
 
 A high value is obtained when the observation is associated to high leverage, high residual or both.
 

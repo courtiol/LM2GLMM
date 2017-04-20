@@ -26,7 +26,7 @@ names(mod_alien_lm)
 ## ----fit coef---------------------------------------------------------------------------------------------------------
 (coef_lm <- mod_alien_lm$coef) ## We expect something close to 50 and 1.5
 summary(mod_alien_lm)$sigma^2 ## We expect something close to 25
-logLik(mod_alien_lm)[[1]]
+logLik(mod_alien_lm)[1]
 anova(mod_alien_lm)$"Sum Sq"[2]
 
 ## ----design matrix----------------------------------------------------------------------------------------------------
@@ -162,7 +162,7 @@ segments(x0 = Alien[1, "size"], x1 = Alien[1, "size"], y0 = 0, y1 = Alien[1, "de
 arrows(x0 = Alien[1, "size"], x1 = 30, y0 = Alien[1, "density"], y1 = Alien[1, "density"], col = "purple", length = 0.1)
 
 ## ----alien log density------------------------------------------------------------------------------------------------
-logLik(mod_alien_lm)[[1]]
+logLik(mod_alien_lm)[1]
 log(prod(Alien$density))
 sum(log(Alien$density))
 
