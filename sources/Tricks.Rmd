@@ -6,13 +6,17 @@ devtools::build(binary = FALSE)
 devtools::install()
 ```
 
-## To create new version without building the package
+## To create new version without uploading a build version of the package
+
+1. build & reload (if any change outside vignettes)
+
+2. 
 
 ```{r, eval = FALSE}
 devtools::build_vignettes()
 ```
 
-Then, commit and push.
+3. commit and push.
 
 The students can then use:
 
