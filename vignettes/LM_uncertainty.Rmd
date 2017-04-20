@@ -27,11 +27,11 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_uncertainty/"
 * that point estimates are random variables with estimated means and variances
 * that the estimates for $\beta$ are gaussian and the estimate of the error variance Gamma distributed
 * what parametric bootstrap is
-* what 95% confidence intervals are
-* that boundaries are obtained using the Student distribution
+* what 95% Confidence Intervals are
+* that boundaries for 95% CI on $\widehat{\beta}$ are given by the Student distribution
 * what statistical coverage is
 * what the 95% CI on the mean response is
-* what the difference between a confidence interval and a prediction interval is
+* what 95% Prediction Intervals are
 * what likelihood profiling is
 * that estimates are not necessarily independent from each others
 * that there are three ways to get 95% CI for LM
@@ -49,7 +49,7 @@ Alien$size <- rnorm(n = 12, mean = 50 + 1.5*Alien$humans_eaten, sd = sqrt(25))
 mod_stats <- lm(size ~ humans_eaten, data = Alien)
 c(coef(mod_stats), sigma2_error <- summary(mod_stats)$sigma^2)
 
-mod_spaMM_ML <- fitme(size ~ humans_eaten, data = Alien, method = "ML")
+mod_spaMM_ML   <- fitme(size ~ humans_eaten, data = Alien, method = "ML")
 mod_spaMM_REML <- fitme(size ~ humans_eaten, data = Alien, method = "REML")
 c(mod_spaMM_ML$fixef, sigma2 = mod_spaMM_REML$phi)  ## fixef are same for REML as estimated with ML too
 ```
@@ -70,26 +70,20 @@ XTX <- crossprod(model.matrix(mod_stats))
 ## the inverse of the Hessian gives the covariance matrix
 sigma2_error * solve(XTX)  
 vcov(mod_stats)
-vcov(mod_spaMM_REML)  ## don't use the ML fit!
+vcov(mod_spaMM_REML)  ## don't use the ML fit here!
 ```
 
 ## The estimates of $\beta$ are gaussian (assymptotically)
+
+<br>
 
 ```{r compute density betas}
 candidate_intercept_u <- seq(from = 30, to = 70,  by = 0.1)
 candidate_slope_u     <- seq(from =  0, to = 2.5, by = 0.1)
 
-candidates <- expand.grid(
-  candidate_intercept = candidate_intercept_u,
-  candidate_slope = candidate_slope_u)
+candidates <- expand.grid(candidate_intercept = candidate_intercept_u, candidate_slope = candidate_slope_u)
 
-head(candidates)
-
-candidates$d <- dmvnorm(
-  x = candidates[, 1:2],
-  mean = coef(mod_stats),
-  sigma = vcov(mod_stats),
-  log = FALSE)
+candidates$d <- dmvnorm(x = candidates[, 1:2], mean = coef(mod_stats), sigma = vcov(mod_stats), log = FALSE)
 ```
 
 ## Density of the estimates for $\beta$
@@ -102,10 +96,9 @@ with(data = candidates, plot3d(candidate_intercept, candidate_slope, d))
 ## Same plot with ```graphics```
 
 ```{r plot graphics, fig.align = "center", fig.height = 4, fig.width = 4}
-contour(
-  x = candidate_intercept_u, y = candidate_slope_u,
-  z = matrix(candidates$d, nrow = length(candidate_intercept_u)),
-  nlevels = 5, xlab = "intercept", ylab = "slope")
+contour(x = candidate_intercept_u, y = candidate_slope_u,
+        z = matrix(candidates$d, nrow = length(candidate_intercept_u)),
+        nlevels = 5, xlab = "intercept", ylab = "slope")
 ```
 
 ## The estimate of $\sigma^2$ is Gamma (assymptotically)
@@ -156,7 +149,7 @@ new_beta_estimates <- t(replicate(1000, coef(update(mod_stats, data = simulate_A
 ```{r plot ecdf intercept, fig.align = "center", fig.height = 4, fig.width = 4}
 curve(pnorm(x, mean = coef(mod_stats)[1],
     sd = sqrt(vcov(mod_stats)[[1]])),
-  from = 30, to = 60, ylab = "pdf", lwd = 3)
+    from = 30, to = 60, ylab = "pdf", lwd = 3)
 plot(ecdf(new_beta_estimates[, 1]), col = "red",
      add = TRUE)
 ```
@@ -197,7 +190,7 @@ res_sim <- t(coef(lm(as.matrix(newYs) ~ humans_eaten, data = Alien)))
 ```{r plot intercept param boot, fig.align = "center", fig.height = 4, fig.width = 4}
 curve(pnorm(x, mean = coef(mod_stats)[1],
     sd = sqrt(vcov(mod_stats)[[1]])),
-  from = 30, to = 60, ylab = "pdf", lwd = 3)
+    from = 30, to = 60, ylab = "pdf", lwd = 3)
 plot(ecdf(res_sim[, 1]), col = "red", add = TRUE)
 ```
 
@@ -228,9 +221,9 @@ with(candidates, contour(candidate_intercept_u, candidate_slope_u,
 
 # Confidence intervals
 
-## CI for $\widehat{\beta}$ with known variance
+## CI for $\widehat{\beta}$ with known variance {.build}
 
-<font size = 6> $\widehat{\beta}\sim \mathcal{N}(\beta, \sigma_{\beta})$ </font>
+<font size = 6> $\widehat{\beta}\sim \mathcal{N}(\beta, \sigma_{\widehat{\beta}})$ </font>
 
 <font size = 6> $z = \frac{\widehat{\beta} - \beta}{\sigma_{\widehat{\beta}}}\sim \mathcal{N}(0, 1)$ </font>
 
@@ -242,11 +235,11 @@ c(Q0.025_N = qnorm(0.025), Q0.975_N = qnorm(0.975))
 
 <font size = 6> 95% CI for $\widehat{\beta} = [\widehat{\beta} + \mathrm{Q0.025}_{\mathcal{N}} \times \sigma_{\widehat{\beta}}; \ \widehat{\beta} + \mathrm{Q0.975}_{\mathcal{N}} \times \sigma_{\widehat{\beta}}]$ </font>
 
-## CI for $\widehat{\beta}$ with estimated variance
+## CI for $\widehat{\beta}$ with estimated variance {.build}
 
-<font size = 6> $\widehat{\beta}\sim \mathcal{N}(\beta, \sigma_{\beta})$ </font>
+<font size = 6> $\widehat{\beta}\sim \mathcal{N}(\beta, \sigma_{\widehat{\beta}})$ </font>
 
-<font size = 6> $t = \frac{\widehat{\beta} - \beta}{\widehat{\sigma_{\widehat{\beta}}}}\sim \mathcal{t}_{N - K}$ </font>
+<font size = 6> $t = \frac{\widehat{\beta} - \beta}{\widehat{\sigma_{\widehat{\beta}}}}\sim \mathcal{t}_{N - K}$ </font> ($t$ = Student's t distribution)
 
 <font size = 6> 95% CI for $t = [\mathrm{Q}0.025_{\mathcal{t}_{N - K}}; \ \mathrm{Q}0.975_{\mathcal{t}_{N - K}}]$ </font>
 
@@ -267,7 +260,7 @@ confint(mod_stats)
 quantile_min <- qt(0.025, mod_stats$df.residual)
 quantile_max <- qt(0.975, mod_stats$df.residual)
 cbind(coef(mod_stats) + quantile_min * sqrt(diag(vcov(mod_stats))),
-  coef(mod_stats) + quantile_max * sqrt(diag(vcov(mod_stats))))
+      coef(mod_stats) + quantile_max * sqrt(diag(vcov(mod_stats))))
 ```
 
 ## Testing the coverage of the 95% CI  (assymptotic)
@@ -287,7 +280,7 @@ confint(mod_stats)  ## asymptotic (for comparison)
 It is still assymptotic but SE are no longer computed analytically:
 
 ```{r CI param boot}
-ses <- t(apply(res_sim, 2, sd))
+ses <- t(apply(res_sim, 2, sd))  ## compute sd of estimates from parametric bootstrap
 (confint_boot <- cbind(c(coef(mod_stats) + quantile_min * ses), c(coef(mod_stats) + quantile_max * ses)))
 ```
 
@@ -321,12 +314,21 @@ points(lwr ~ humans_eaten, data = pred, lty = 2, lwd = 2, col = "blue", type = "
 ## Computing 95% CI for the mean response
 
 ```{r compute predVar}
-predict(mod_stats, newdata = data.frame(humans_eaten = 4), interval = "confidence")
-pred <- predict(mod_stats, newdata = data.frame(humans_eaten = 4), interval = "confidence", se.fit = TRUE)
-c(pred$fit[, "fit"] + quantile_min * pred$se.fit, 
-  pred$fit[, "fit"] + quantile_max * pred$se.fit)
+predict(mod_stats, newdata = data.frame(humans_eaten = 4:5), interval = "confidence")
+pred <- predict(mod_stats, newdata = data.frame(humans_eaten = 4:5), interval = "confidence", se.fit = TRUE)
+rbind(c(pred$fit[1, "fit"] + quantile_min * pred$se.fit[1], 
+        pred$fit[1, "fit"] + quantile_max * pred$se.fit[1]),
+      c(pred$fit[2, "fit"] + quantile_min * pred$se.fit[2], 
+        pred$fit[2, "fit"] + quantile_max * pred$se.fit[2]))
+```
+
+## Computing 95% CI for the mean response
+
+```{r compute predVar2}
 pred$se.fit^2 ## prediction variance
-t(c(1, 4)) %*% vcov(mod_stats) %*% c(1, 4)
+(X <- cbind(c(1, 1), 4:5))  ## design matrix
+(vcov.means <- X %*% vcov(mod_stats) %*% t(X))  ## covariance of predictions
+diag(vcov.means)
 ```
 
 # Prediction interval
@@ -425,10 +427,10 @@ for (i in 1:nrow(candidates)) {
 
 par(las = 1)
 with(candidates, contour(candidate_intercept_u, candidate_slope_u,
-  matrix(candidates$logLik, nrow = length(candidate_intercept_u)), nlevels = 15,
-  xlab = "slope", ylab = "intercept"))
+                         matrix(candidates$logLik, nrow = length(candidate_intercept_u)),
+                         nlevels = 15, xlab = "slope", ylab = "intercept"))
 points(mod_spaMM_ML$fixef["(Intercept)"], mod_spaMM_ML$fixef["humans_eaten"],
-        col = "blue", pch = 4, lwd = 2, cex = 3)
+       col = "blue", pch = 4, lwd = 2, cex = 3)
 points(50, 1.5, col = "green", pch = 4, lwd = 2, cex = 3)
 
 #limit <- c(logLik(mod_stats) - 0.5*qchisq(0.95, df = 2))
@@ -443,9 +445,9 @@ points(50, 1.5, col = "green", pch = 4, lwd = 2, cex = 3)
 
 ```{r CI by profile intercept}
 where.is.limit.inter <- function(intercept, model_ref) {
-  logLik_mod <- c(logLik(lm(size ~ 0 + humans_eaten + offset(rep(intercept, nrow(model_ref$model))),
-                            data = model_ref$model)))
-  logLik_goal <- c(logLik(model_ref)) - 0.5*qchisq(0.95, df = 1)
+  logLik_mod <- logLik(lm(size ~ 0 + humans_eaten + offset(rep(intercept, nrow(model_ref$model))),
+                            data = model_ref$model))[[1]]
+  logLik_goal <- logLik(model_ref)[[1]] - 0.5*qchisq(0.95, df = 1)
   return(abs(logLik_mod - logLik_goal))}
 CI_intercept <- function(model_ref) {
   lwr <- optimise(where.is.limit.inter, interval = c(coef(model_ref)[1] - 10, coef(model_ref)[1]),
@@ -461,9 +463,9 @@ rbind("using SE" = confint(mod_stats)[1, ], "using SE boot" = confint_boot[1, ],
 
 ```{r CI by profile slope}
 where.is.limit.slope <- function(slope, model_ref) {
-  logLik_mod <- c(logLik(lm(size ~ 1 + offset(slope * humans_eaten),
-                            data = model_ref$model)))
-  logLik_goal <- c(logLik(model_ref)) - 0.5*qchisq(0.95, df = 1)
+  logLik_mod <- logLik(lm(size ~ 1 + offset(slope * humans_eaten),
+                            data = model_ref$model))[[1]]
+  logLik_goal <- logLik(model_ref)[[1]] - 0.5*qchisq(0.95, df = 1)
   return(abs(logLik_mod - logLik_goal))
 }
 
@@ -482,15 +484,15 @@ rbind("using SE" = confint(mod_stats)[2, ], "using SE boot" = confint_boot[2, ],
 ## Testing the coverage of the 95% CI by profile
 
 ```{r coverage CI profile}
-set.seed(1L)
-mean(replicate(1000, sum(findInterval(CI_intercept(lm(size ~ humans_eaten,
+set.seed(1L); n.replicates <- 1000
+mean(replicate(n.replicates, sum(findInterval(CI_intercept(lm(size ~ humans_eaten,
     data = simulate_Aliens())), 50)) == 1))
-mean(replicate(1000, sum(findInterval(CI_slope(lm(size ~ humans_eaten,
+mean(replicate(n.replicates, sum(findInterval(CI_slope(lm(size ~ humans_eaten,
     data = simulate_Aliens())), 1.5)) == 1))
 
-mean(replicate(1000, sum(findInterval(CI_intercept(lm(size ~ humans_eaten,
+mean(replicate(n.replicates, sum(findInterval(CI_intercept(lm(size ~ humans_eaten,
     data = simulate_Aliens(N = 500))), 50)) == 1))
-mean(replicate(1000, sum(findInterval(CI_slope(lm(size ~ humans_eaten,
+mean(replicate(n.replicates, sum(findInterval(CI_slope(lm(size ~ humans_eaten,
     data = simulate_Aliens(N = 500))), 1.5)) == 1))
 ```
 
@@ -499,11 +501,11 @@ mean(replicate(1000, sum(findInterval(CI_slope(lm(size ~ humans_eaten,
 * that point estimates are random variables with estimated means and variances
 * that the estimates for $\beta$ are gaussian and the estimate of the error variance Gamma distributed
 * what parametric bootstrap is
-* what 95% confidence intervals are
-* that boundaries are obtained using the Student distribution
+* what 95% Confidence Intervals are
+* that boundaries for 95% CI on $\widehat{\beta}$ are given by the Student distribution
 * what statistical coverage is
 * what the 95% CI on the mean response is
-* what the difference between a confidence interval and a prediction interval is
+* what 95% Prediction Intervals are
 * what likelihood profiling is
 * that estimates are not necessarily independent from each others
 * that there are three ways to get 95% CI for LM
