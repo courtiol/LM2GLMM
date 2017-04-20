@@ -157,11 +157,15 @@ Inferred relationship
 
 </article></slide><slide class=''><hgroup><h2>Fitting the model to the data&#8230;</h2></hgroup><article  id="fitting-the-model-to-the-data..." class="smaller ">
 
-<p>&#8230; means estimating the values of the model parameters.</p>
+<h3>&#8230; means estimating the values of the model parameters that maximise the probability of the data.</h3>
 
-<h3>Why?</h3>
+<p><br></p>
 
-<p>For drawing inferences about population processes (i.e. about what you could observe in other samples).</p>
+<h3>Why fitting?</h3>
+
+<p><br></p>
+
+<h3>For drawing inferences about population processes (i.e. about what you could observe in other samples).</h3>
 
 </article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>Notations</h2></hgroup><article  id="notations" class="smaller ">
 
@@ -226,7 +230,7 @@ Inferred relationship
 
 <p>The RSS = \(\displaystyle\sum_{i=1}^{n}{\varepsilon_i^2}\).</p>
 
-</article></slide><slide class=''><hgroup><h2>Fitting the Alien data using <code>lm()</code> as a black-box</h2></hgroup><article  id="fitting-the-alien-data-using-lm-as-a-black-box" class="smaller ">
+</article></slide><slide class=''><hgroup><h2>Fitting the Alien data using <code>lm()</code> as a black box</h2></hgroup><article  id="fitting-the-alien-data-using-lm-as-a-black-box" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>(mod_alien_lm &lt;- lm(size ~ humans_eaten, data = Alien))</pre>
 
@@ -240,9 +244,8 @@ Inferred relationship
 
 <pre class = 'prettyprint lang-r'>names(mod_alien_lm)</pre>
 
-<pre >##  [1] &quot;coefficients&quot;  &quot;residuals&quot;     &quot;effects&quot;       &quot;rank&quot;         
-##  [5] &quot;fitted.values&quot; &quot;assign&quot;        &quot;qr&quot;            &quot;df.residual&quot;  
-##  [9] &quot;xlevels&quot;       &quot;call&quot;          &quot;terms&quot;         &quot;model&quot;</pre>
+<pre >##  [1] &quot;coefficients&quot;  &quot;residuals&quot;     &quot;effects&quot;       &quot;rank&quot;          &quot;fitted.values&quot; &quot;assign&quot;        &quot;qr&quot;           
+##  [8] &quot;df.residual&quot;   &quot;xlevels&quot;       &quot;call&quot;          &quot;terms&quot;         &quot;model&quot;</pre>
 
 <p><br></p>
 
@@ -285,7 +288,7 @@ head(X_alien)</pre>
 </article></slide><slide class=''><hgroup><h2>Recovering the predicted values</h2></hgroup><article  id="recovering-the-predicted-values" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>pred_auto   &lt;- predict(mod_alien_lm)  ## Tip: same as mod_alien_lm$fitted.values / fitted(mod_alien_lm)
-pred_auto2 &lt;- predict(mod_alien_lm, newdata = Alien) ## can handle missing data!
+pred_auto2  &lt;- predict(mod_alien_lm, newdata = Alien) ## can handle missing data!
 pred_simple &lt;- coef_lm[1] + coef_lm[2] * Alien$humans_eaten
 pred_matrix &lt;- X_alien %*% coef_lm</pre>
 
@@ -446,24 +449,26 @@ Alien[1, ]</pre>
 
 <pre >## &#39;log Lik.&#39; 292.8664 (df=3)</pre>
 
-<p>Note that it is equal to the residual sum of squares!</p>
+<p>Note: the deviance is in LM equal to the residual sum of squares!</p>
 
 </article></slide><slide class=''><hgroup><h2>Recovering the estimates numerically by Maximum Likelihood (ML)</h2></hgroup><article  id="recovering-the-estimates-numerically-by-maximum-likelihood-ml" class="smaller ">
 
-<pre class = 'prettyprint lang-r'>compute_logLik_Alien &lt;- function(param, data = Alien) {
-  predicts &lt;- param[&quot;intercept&quot;] + param[&quot;slope&quot;] * data$humans_eaten
-  sigma2_resid &lt;- abs(param[&quot;sigma2_resid&quot;])  ## abs() as we don&#39;t want a negative var
-  logL &lt;- sum(dnorm(data$size, mean = predicts, sd = sqrt(sigma2_resid), log = TRUE))
+<pre class = 'prettyprint lang-r'>compute_logLik &lt;- function(vector.param, formula, data) {
+  usefull.data &lt;- model.frame(formula = formula, data = data)
+  X &lt;- model.matrix(object = formula, data = usefull.data)
+  predicts &lt;- X %*% matrix(vector.param)
+  response &lt;- model.response(usefull.data)
+  sigma2_resid &lt;- sum((response - predicts)^2) / nrow(usefull.data)
+  logL &lt;- sum(dnorm(response, mean = predicts, sd = sqrt(sigma2_resid), log = TRUE))
   return(logL)
-  }
+}
 
-(theta.lm &lt;- c(&quot;intercept&quot; = coef_lm[1][[1]], &quot;slope&quot; = coef_lm[2][[1]],
-               &quot;sigma2_resid&quot; = sigma2_resid)) ## For testing</pre>
+(theta.lm &lt;- c(&quot;intercept&quot; = coef_lm[1][[1]], &quot;slope&quot; = coef_lm[2][[1]])) ## For testing</pre>
 
-<pre >##    intercept        slope sigma2_resid 
-##    51.139816     1.319579    24.405534</pre>
+<pre >## intercept     slope 
+## 51.139816  1.319579</pre>
 
-<pre class = 'prettyprint lang-r'>compute_logLik_Alien(param = theta.lm)</pre>
+<pre class = 'prettyprint lang-r'>compute_logLik(vector.param = theta.lm, formula = size ~ humans_eaten, data = Alien)</pre>
 
 <pre >## [1] -36.19612</pre>
 
@@ -471,33 +476,60 @@ Alien[1, ]</pre>
 
 <h3>We look for the estimates yielding to the maximum likelihood</h3>
 
-<pre class = 'prettyprint lang-r'>result_opt &lt;- optim(c(&quot;intercept&quot; = 0, &quot;slope&quot; = 1, &quot;sigma2_resid&quot; = 1), compute_logLik_Alien,
-       control = list(fnscale = -1))
+<pre class = 'prettyprint lang-r'>result_opt &lt;- optim(c(&quot;intercept&quot; = 0, &quot;slope&quot; = 1), compute_logLik,
+                    formula = size ~ humans_eaten, data = Alien,
+                    control = list(fnscale = -1))
 result_opt$par</pre>
 
-<pre >##    intercept        slope sigma2_resid 
-##    51.129559     1.318339    24.383516</pre>
+<pre >## intercept     slope 
+## 51.141382  1.319268</pre>
 
 <pre class = 'prettyprint lang-r'>result_opt$value</pre>
 
-<pre >## [1] -36.19621</pre>
+<pre >## [1] -36.19612</pre>
 
 </article></slide><slide class=''><hgroup><h2>Recovering the estimates numerically by Ordinary Least Squares (OLS)</h2></hgroup><article  id="recovering-the-estimates-numerically-by-ordinary-least-squares-ols" class="smaller ">
 
-<pre class = 'prettyprint lang-r'>compute_rss_Alien &lt;- function(param, data = Alien) {
-  predicts &lt;- param[&quot;intercept&quot;] + param[&quot;slope&quot;] * data$humans_eaten
-  rss &lt;- sum((data$size - predicts)^2)
+<pre class = 'prettyprint lang-r'>compute_rss &lt;- function(vector.param, formula, data) {
+  usefull.data &lt;- model.frame(formula = formula, data = data)
+  X &lt;- model.matrix(object = formula, data = usefull.data)
+  predicts &lt;- X %*% matrix(vector.param)
+  response &lt;- model.response(usefull.data)
+  rss &lt;- sum((response - predicts)^2)
   return(rss)
 }
 
-all.equal(rss_lm, compute_rss_Alien(param = theta.lm))  ## For testing</pre>
+compute_rss(vector.param = theta.lm, formula = size ~ humans_eaten, data = Alien)  ## For testing</pre>
 
-<pre >## [1] TRUE</pre>
+<pre >## [1] 292.8664</pre>
 
-<pre class = 'prettyprint lang-r'>optim(c(&quot;intercept&quot; = 0, &quot;slope&quot; = 1), compute_rss_Alien)$par</pre>
+<pre class = 'prettyprint lang-r'>optim(c(&quot;intercept&quot; = 0, &quot;slope&quot; = 1), compute_rss, formula = size ~ humans_eaten, data = Alien)$par</pre>
 
 <pre >## intercept     slope 
 ## 51.147002  1.318594</pre>
+
+</article></slide><slide class=''><hgroup><h2>Comparing the three methods on a real dataset</h2></hgroup><article  id="comparing-the-three-methods-on-a-real-dataset" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>time1 &lt;- system.time(mod_test_lm &lt;- lm(height ~ weight*sex + cigarettes + drink, data = UK))
+
+time2 &lt;- system.time(mod_test_alexML &lt;- optim(rep(0, 8), compute_logLik,
+                    formula = height ~ weight*sex + cigarettes + drink, data = UK,
+                    control = list(fnscale = -1), method = &quot;BFGS&quot;))  ## default optim method is getting lost...
+
+time3 &lt;- system.time(mod_test_alexRSS &lt;- optim(rep(0, 8), compute_rss,
+                    formula = height ~ weight*sex + cigarettes + drink,
+                    data = UK, method = &quot;BFGS&quot;))
+
+round(rbind(c(coef(mod_test_lm), time1[1]), c(mod_test_alexML$par, time2[1]), c(mod_test_alexML$par, time3[1])), 2)</pre>
+
+<pre >##      (Intercept) weight sexGirl cigarettes drinkMost days drinkNot at all drinkOnce a week or less weight:sexGirl
+## [1,]      113.18   0.82    2.22      -0.03          -0.17           -0.62                    -0.14          -0.09
+## [2,]      113.18   0.82    2.22      -0.03          -0.17           -0.62                    -0.14          -0.09
+## [3,]      113.18   0.82    2.22      -0.03          -0.17           -0.62                    -0.14          -0.09
+##      user.self
+## [1,]      0.00
+## [2,]      3.48
+## [3,]      1.19</pre>
 
 </article></slide><slide class=''><hgroup><h2>Recovering the estimates analytically</h2></hgroup><article  id="recovering-the-estimates-analytically" class="smaller ">
 
@@ -551,9 +583,8 @@ backsolve(R, QTY)    ## RB = QTY </pre>
 
 <pre class = 'prettyprint lang-r'>names(mod_alien_lm)</pre>
 
-<pre >##  [1] &quot;coefficients&quot;  &quot;residuals&quot;     &quot;effects&quot;       &quot;rank&quot;         
-##  [5] &quot;fitted.values&quot; &quot;assign&quot;        &quot;qr&quot;            &quot;df.residual&quot;  
-##  [9] &quot;xlevels&quot;       &quot;call&quot;          &quot;terms&quot;         &quot;model&quot;</pre>
+<pre >##  [1] &quot;coefficients&quot;  &quot;residuals&quot;     &quot;effects&quot;       &quot;rank&quot;          &quot;fitted.values&quot; &quot;assign&quot;        &quot;qr&quot;           
+##  [8] &quot;df.residual&quot;   &quot;xlevels&quot;       &quot;call&quot;          &quot;terms&quot;         &quot;model&quot;</pre>
 
 <p>We have already seen all non-trivial components!</p>
 
@@ -601,20 +632,13 @@ c     suggest improvements to this code.</pre>
 
 <pre class = 'prettyprint lang-r'>head(UK)</pre>
 
-<pre >##    sex height cigarettes milk mother_weight weight               drink
-## 1 Girl  134.5          0    0            51   29.4 Once a week or less
-## 2  Boy  141.0         20    1            51   31.6          Not at all
-## 3  Boy  143.0         20    3            50   34.9 Once a week or less
-## 4 Girl  139.7          0    0            63   30.2 Once a week or less
-## 5 Girl     NA          0    0            NA     NA                &lt;NA&gt;
-## 6  Boy  128.0         15    3            50   24.6          Not at all
-##                drink2
-## 1 Once a week or less
-## 2          Not at all
-## 3 Once a week or less
-## 4 Once a week or less
-## 5                &lt;NA&gt;
-## 6          Not at all</pre>
+<pre >##    sex height cigarettes milk mother_weight weight               drink              drink2
+## 1 Girl  134.5          0    0            51   29.4 Once a week or less Once a week or less
+## 2  Boy  141.0         20    1            51   31.6          Not at all          Not at all
+## 3  Boy  143.0         20    3            50   34.9 Once a week or less Once a week or less
+## 4 Girl  139.7          0    0            63   30.2 Once a week or less Once a week or less
+## 5 Girl     NA          0    0            NA     NA                &lt;NA&gt;                &lt;NA&gt;
+## 6  Boy  128.0         15    3            50   24.6          Not at all          Not at all</pre>
 
 <pre class = 'prettyprint lang-r'>mod_UK1 &lt;- lm(height ~ drink + sex*weight, data = UK)</pre>
 
@@ -662,20 +686,13 @@ str(mf)</pre>
 <pre class = 'prettyprint lang-r'>X &lt;- model.matrix(mod_UK1)
 head(X)</pre>
 
-<pre >##   (Intercept) drinkMost days drinkNot at all drinkOnce a week or less
-## 1           1              0               0                        1
-## 2           1              0               1                        0
-## 3           1              0               0                        1
-## 4           1              0               0                        1
-## 6           1              0               1                        0
-## 7           1              0               1                        0
-##   sexGirl weight sexGirl:weight
-## 1       1   29.4           29.4
-## 2       0   31.6            0.0
-## 3       0   34.9            0.0
-## 4       1   30.2           30.2
-## 6       0   24.6            0.0
-## 7       1   40.8           40.8</pre>
+<pre >##   (Intercept) drinkMost days drinkNot at all drinkOnce a week or less sexGirl weight sexGirl:weight
+## 1           1              0               0                        1       1   29.4           29.4
+## 2           1              0               1                        0       0   31.6            0.0
+## 3           1              0               0                        1       0   34.9            0.0
+## 4           1              0               0                        1       1   30.2           30.2
+## 6           1              0               1                        0       0   24.6            0.0
+## 7           1              0               1                        0       1   40.8           40.8</pre>
 
 </article></slide><slide class=''><hgroup><h2>Practice</h2></hgroup><article  id="practice" class="smaller ">
 
@@ -714,14 +731,10 @@ head(X)</pre>
 colnames(newX) &lt;- names(coef(mod_UK1))
 newX</pre>
 
-<pre >##      (Intercept) drinkMost days drinkNot at all drinkOnce a week or less
-## [1,]           1              1               0                        0
-## [2,]           1              1               0                        0
-## [3,]           1              0               0                        0
-##      sexGirl weight sexGirl:weight
-## [1,]       0     30              0
-## [2,]       1     30             30
-## [3,]       0     35              0</pre>
+<pre >##      (Intercept) drinkMost days drinkNot at all drinkOnce a week or less sexGirl weight sexGirl:weight
+## [1,]           1              1               0                        0       0     30              0
+## [2,]           1              1               0                        0       1     30             30
+## [3,]           1              0               0                        0       0     35              0</pre>
 
 </article></slide><slide class=''><hgroup><h2>Predictions with <code>mod_UK1</code></h2></hgroup><article  id="predictions-with-mod_uk1-1" class="smaller ">
 
