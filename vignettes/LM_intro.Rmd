@@ -301,7 +301,7 @@ head(X)
 ## Understanding factorial design through the design matrix
 
 ```{r factorial 2}
-crossprod(X)  ## compute t(X) %*% X, see later
+crossprod(X)  ## compute t(X) %*% X, i.e. x_ij = sum(X[, i]*X[, j])
 with(poison, table(treat, poison))
 ```
 
