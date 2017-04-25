@@ -34,7 +34,7 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_uncertainty/"
 * what 95% Prediction Intervals are
 * what likelihood profiling is
 * that estimates are not necessarily independent from each others
-* that there are many ways to get 95% CI for LM
+* that there are 3 ways to get 95% CI for LM
 
 
 # Introduction
@@ -442,7 +442,7 @@ points(50, 1.5, col = "green", pch = 4, lwd = 2, cex = 3)
 ## Confidence intervals by likelihood profiling
 
 * Benefit: not based on SE, so works well even if error is not gaussian or if SE is badly estimated.
-* Cost: uses the chi-squared distribution, which is an assymptotic approximation, so it needs a lot of observations. BUT: the parametric boostrap is always a way out!
+* Cost: uses the chi-squared distribution, which is an assymptotic approximation, so it needs a lot of observations.
 
 ```{r CI by profile intercept}
 where.is.limit.inter <- function(intercept, model_ref) {
@@ -497,14 +497,6 @@ mean(replicate(n.replicates, sum(findInterval(CI_slope(lm(size ~ humans_eaten,
     data = simulate_Aliens(N = 500))), 1.5)) == 1))
 ```
 
-## Challenge
-
-<br>
-
-### Compute the 95% CI by likelihood profile without relying on the chi-squared approximation thanks to parametric bootstrap.
-
-<br>
-
 
 ## What you need to remember
 
@@ -518,7 +510,7 @@ mean(replicate(n.replicates, sum(findInterval(CI_slope(lm(size ~ humans_eaten,
 * what 95% Prediction Intervals are
 * what likelihood profiling is
 * that estimates are not necessarily independent from each others
-* that there are many ways to get 95% CI for LM
+* that there are 3 ways to get 95% CI for LM
 
 # Table of content
 
