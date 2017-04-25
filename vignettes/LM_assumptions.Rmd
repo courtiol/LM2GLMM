@@ -392,6 +392,16 @@ set.seed(1L)
 durbinWatsonTest(modConv <- lm(fconvict ~ tfr + partic + degrees + mconvict, data = Hartnagel), max.lag = 3)
 ```
 
+## Testing for independence
+
+We can also compute the partial autocorrelations for the residuals serie,
+
+```{r pacf}
+pacf(modConv$residuals)
+```
+
+but mind that the CI plotted here are very aproximative.
+
 ## Testing for independence induced by a specific variable
 
 ```{r DW 2, message = FALSE}
