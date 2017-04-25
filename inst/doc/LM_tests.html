@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2017-04-21" />
+  <meta name="date" content="2017-04-26" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,7 +94,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2017-04-21</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2017-04-26</p>
           </hgroup>
   </slide>
 
@@ -105,7 +105,7 @@
 <li>that parameters are tested using t-tests</li>
 <li>that you can use LM to do usual Student&#39;s t-tests and Pearson correlation tests</li>
 <li>that variables are tested using F-tests or Likelihood Ratio Tests</li>
-<li>how to check the statistical coverage precisely</li>
+<li>how to check the statistical robustness of a test</li>
 <li>how to do a LRT by parametric bootstrap</li>
 <li>that type II ANOVA is the way to go for testing variables</li>
 <li>that doing many tests is dangerous</li>
@@ -216,7 +216,7 @@ rbind(estimate, std.error, t.value, p.value)</pre>
 ##     0.05000001</pre>
 
 <pre class = 'prettyprint lang-r'>library(car)
-## this uses a F-test, but can test several parameter at once
+## this uses a F-test, but similar (see later)
 linearHypothesis(mod_UK1, c(&quot;drinkMost days = 0.8799548&quot;))$&quot;Pr(&gt;F)&quot;[2]</pre>
 
 <pre >## [1] 0.05000001</pre>
@@ -299,14 +299,14 @@ anova(mod_UK1, mod_UK0)  ## same line as the last one from summary(mod_UK1)</pre
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</pre>
 
-<pre class = 'prettyprint lang-r'>c(df = 11231 - 11225, SS = 443561 - 256402, F = F &lt;- (187158/6) / (256402/11225))</pre>
+<pre class = 'prettyprint lang-r'>c(df = df &lt;- 11231 - 11225, SS = SS &lt;- 443561 - 256402, F = F &lt;- (SS/df) / (256402/11225))</pre>
 
 <pre >##         df         SS          F 
-##      6.000 187159.000   1365.596</pre>
+##      6.000 187159.000   1365.603</pre>
 
-<pre class = 'prettyprint lang-r'>c(256402/11225, summary(mod_UK1)$sigma^2)  ## estimate of the error variance</pre>
+<pre class = 'prettyprint lang-r'>SS/df  ## mean square treatment = var between = loss in estimated error variance</pre>
 
-<pre >## [1] 22.84205 22.84209</pre>
+<pre >## [1] 31193.17</pre>
 
 </article></slide><slide class=''><hgroup><h2>The F-test step by step</h2></hgroup><article  id="the-f-test-step-by-step-1" class="smaller ">
 
@@ -322,14 +322,14 @@ anova(mod_UK1, mod_UK0)  ## same line as the last one from summary(mod_UK1)</pre
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</pre>
 
-<pre class = 'prettyprint lang-r'>c(df = 11231 - 11225, SS = 443561 - 256402, F = F &lt;- (187158/6) / (256402/11225))</pre>
+<pre class = 'prettyprint lang-r'>c(df = df &lt;- 11231 - 11225, SS = SS &lt;- 443561 - 256402, F = F &lt;- (SS/df) / (256402/11225))</pre>
 
 <pre >##         df         SS          F 
-##      6.000 187159.000   1365.596</pre>
+##      6.000 187159.000   1365.603</pre>
 
-<pre class = 'prettyprint lang-r'>187158/6  ## change in estimated error variance</pre>
+<pre class = 'prettyprint lang-r'>c(256402/11225, summary(mod_UK1)$sigma^2)  ## mean square error = var within = estimate of error variance</pre>
 
-<pre >## [1] 31193</pre>
+<pre >## [1] 22.84205 22.84209</pre>
 
 </article></slide><slide class=''><hgroup><h2>The F-test step by step</h2></hgroup><article  id="the-f-test-step-by-step-2" class="smaller ">
 
@@ -345,10 +345,10 @@ anova(mod_UK1, mod_UK0)  ## same line as the last one from summary(mod_UK1)</pre
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</pre>
 
-<pre class = 'prettyprint lang-r'>c(df = 11231 - 11225, SS = 443561 - 256402, F = F &lt;- (187158/6) / (256402/11225))</pre>
+<pre class = 'prettyprint lang-r'>c(df = df &lt;- 11231 - 11225, SS = SS &lt;- 443561 - 256402, F = F &lt;- (SS/df) / (256402/11225))</pre>
 
 <pre >##         df         SS          F 
-##      6.000 187159.000   1365.596</pre>
+##      6.000 187159.000   1365.603</pre>
 
 <pre class = 'prettyprint lang-r'>(p.value &lt;- 1 - pf(F, df1 = 6, df2 = 11225))</pre>
 
@@ -379,7 +379,7 @@ anova(mod_UK0, mod_UK2, test = &quot;Chisq&quot;)  ## does not show the statisti
 
 </article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>Comparing two nested models</h2></hgroup><article  id="comparing-two-nested-models" class="smaller ">
 
-</article></slide><slide class=''><hgroup><h2>t-test and F-test are equivalent for quantitative variables</h2></hgroup><article  id="t-test-and-f-test-are-equivalent-for-quantitative-variables" class="smaller ">
+</article></slide><slide class=''><hgroup><h2>t-test and F-test are equivalent for quantit var</h2></hgroup><article  id="t-test-and-f-test-are-equivalent-for-quantit-var" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>mod_UK3 &lt;- lm(height ~ milk + sex*weight, data = UK)
 summary(mod_UK3)$coefficient[&quot;milk&quot;, ]</pre>
@@ -397,6 +397,10 @@ anova(mod_UK3_no_milk, mod_UK3)</pre>
 ##   Res.Df    RSS Df Sum of Sq      F Pr(&gt;F)
 ## 1  10040 227634                           
 ## 2  10039 227595  1    39.495 1.7421 0.1869</pre>
+
+<pre class = 'prettyprint lang-r'>round(summary(mod_UK3)$coefficient[&quot;milk&quot;, &quot;t value&quot;]^2-anova(mod_UK3_no_milk, mod_UK3)$F[2], 2) ## t^2 = F</pre>
+
+<pre >## [1] 0</pre>
 
 </article></slide><slide class=''><hgroup><h2>Nested model comparison allows for testing the overall effect of several parameters</h2></hgroup><article  id="nested-model-comparison-allows-for-testing-the-overall-effect-of-several-parameters" class="smaller ">
 
@@ -473,7 +477,7 @@ Anova(mod_UK1)</pre>
 
 <p>Tip: never use type 3 ANOVA!</p>
 
-</article></slide><slide class=''><hgroup><h2>Coverage of the F test</h2></hgroup><article  id="coverage-of-the-f-test" class="smaller ">
+</article></slide><slide class=''><hgroup><h2>Robustness of the F test</h2></hgroup><article  id="robustness-of-the-f-test" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>set.seed(1L)
 pv.F &lt;- replicate(1000, {
@@ -486,7 +490,7 @@ mean(pv.F &lt;= 0.05)</pre>
 
 <pre >## [1] 0.046</pre>
 
-</article></slide><slide class=''><hgroup><h2>Coverage of the F test</h2></hgroup><article  id="coverage-of-the-f-test-1" class="smaller ">
+</article></slide><slide class=''><hgroup><h2>Robustness of the F test</h2></hgroup><article  id="robustness-of-the-f-test-1" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>plot(ecdf(pv.F))
 abline(0, 1, col = &quot;red&quot;)  ## uniform reference</pre>
@@ -527,12 +531,25 @@ abline(v = stat.obs, lwd = 2, lty = 2, col = &quot;red&quot;)</pre>
 
 </article></slide><slide class=''><hgroup><h2>We should not use F-test or LRT</h2></hgroup><article  id="we-should-not-use-f-test-or-lrt" class="smaller ">
 
-<h3>You may use Akaike Information Criterion (AIC = -2 * (logLik - K))</h3>
+<h3>You may use the deviance (smaller is better)</h3>
 
 <pre class = 'prettyprint lang-r'>UK_for_both &lt;- na.omit(UK[, c(&quot;height&quot;, &quot;drink&quot;, &quot;sex&quot;, &quot;weight&quot;, &quot;milk&quot;)])
 mod_UK1 &lt;- lm(height ~ drink + sex*weight, data = UK_for_both)
 mod_UK5 &lt;- lm(height ~ milk + sex*weight, data = UK_for_both)
-AIC(mod_UK5)</pre>
+
+deviance(mod_UK1)</pre>
+
+<pre >## [1] 208639.7</pre>
+
+<pre class = 'prettyprint lang-r'>deviance(mod_UK5)</pre>
+
+<pre >## [1] 209110.6</pre>
+
+</article></slide><slide class=''><hgroup><h2>We should not use F-test or LRT</h2></hgroup><article  id="we-should-not-use-f-test-or-lrt-1" class="smaller ">
+
+<h3>You may use the AIC (AIC = -2 * (logLik - K)) (smaller is better)</h3>
+
+<pre class = 'prettyprint lang-r'>AIC(mod_UK5)</pre>
 
 <pre >## [1] 55329</pre>
 
@@ -546,17 +563,17 @@ AIC(mod_UK5)</pre>
 
 <p>The model <code>mod_UK5</code> is <code>4811.5</code> times more likely to minimizes the (estimated) information loss than <code>mod_UK1</code>.</p>
 
-</article></slide><slide class=''><hgroup><h2>We should not use F-test or LRT</h2></hgroup><article  id="we-should-not-use-f-test-or-lrt-1" class="smaller ">
+</article></slide><slide class=''><hgroup><h2>We should not use F-test or LRT</h2></hgroup><article  id="we-should-not-use-f-test-or-lrt-2" class="smaller ">
 
-<h3>You may use ajusted R-squared</h3>
+<h3>You may use ajusted R-squared (higher is better)</h3>
 
 <pre class = 'prettyprint lang-r'>summary(mod_UK1)$adj.r.squared</pre>
 
 <pre >## [1] 0.4238154</pre>
 
-<pre class = 'prettyprint lang-r'>SSF &lt;- sum((fitted(mod_UK1) - mean(fitted(mod_UK1)))^2)
+<pre class = 'prettyprint lang-r'>SST &lt;- sum((fitted(mod_UK1) - mean(fitted(mod_UK1)))^2)
 SSR &lt;- sum((residuals(mod_UK1) - mean(residuals(mod_UK1)))^2)
-(r.squared &lt;- SSF/(SSF + SSR))  ## Note: SSF+SSR = sum((mod_UK1$model$height - mean(mod_UK1$model$height))^2)</pre>
+(r.squared &lt;- SST/(SST + SSR))  ## Note: SST+SSR = sum((mod_UK1$model$height - mean(mod_UK1$model$height))^2)</pre>
 
 <pre >## [1] 0.4241874</pre>
 
@@ -750,7 +767,7 @@ summary(mod_drink2 &lt;- lm(height ~ drink2, data = UK))$coef</pre>
 <li>that parameters are tested using t-tests</li>
 <li>that you can use LM to do usual Student&#39;s t-tests and Pearson correlation tests</li>
 <li>that variables are tested using F-tests or Likelihood Ratio Tests</li>
-<li>how to check the statistical coverage precisely</li>
+<li>how to check the statistical robustness of a test</li>
 <li>how to do a LRT by parametric bootstrap</li>
 <li>that type II ANOVA is the way to go for testing variables</li>
 <li>that doing many tests is dangerous</li>

@@ -85,7 +85,7 @@ X <- model.matrix( ~ poison + treat, data = poison)
 head(X)
 
 ## ----factorial 2---------------------------------------------------------
-crossprod(X)  ## compute t(X) %*% X, see later
+crossprod(X)  ## compute t(X) %*% X, i.e. x_ij = sum(X[, i]*X[, j])
 with(poison, table(treat, poison))
 
 ## ----alien data----------------------------------------------------------

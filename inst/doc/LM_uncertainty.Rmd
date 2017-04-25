@@ -34,7 +34,7 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_uncertainty/"
 * what 95% Prediction Intervals are
 * what likelihood profiling is
 * that estimates are not necessarily independent from each others
-* that there are three ways to get 95% CI for LM
+* that there are 3 ways to get 95% CI for LM
 
 
 # Introduction
@@ -73,7 +73,7 @@ vcov(mod_stats)
 vcov(mod_spaMM_REML)  ## don't use the ML fit here!
 ```
 
-## The estimates of $\beta$ are gaussian (assymptotically)
+## The estimates of $\beta$ are gaussian
 
 <br>
 
@@ -149,7 +149,7 @@ new_beta_estimates <- t(replicate(1000, coef(update(mod_stats, data = simulate_A
 ```{r plot ecdf intercept, fig.align = "center", fig.height = 4, fig.width = 4}
 curve(pnorm(x, mean = coef(mod_stats)[1],
     sd = sqrt(vcov(mod_stats)[[1]])),
-    from = 30, to = 60, ylab = "pdf", lwd = 3)
+    from = 30, to = 60, ylab = "cdf", lwd = 3)
 plot(ecdf(new_beta_estimates[, 1]), col = "red",
      add = TRUE)
 ```
@@ -157,7 +157,7 @@ plot(ecdf(new_beta_estimates[, 1]), col = "red",
 ```{r plot ecdf slope, fig.align = "center", fig.height = 4, fig.width = 4}
 curve(pnorm(x, mean = coef(mod_stats)[2],
     sd = sqrt(vcov(mod_stats)[[4]])),
-    from = 0, to = 3, ylab = "pdf", lwd = 3)
+    from = 0, to = 3, ylab = "cdf", lwd = 3)
 plot(ecdf(new_beta_estimates[, 2]), col = "red",
      add = TRUE)
 ```
@@ -169,7 +169,7 @@ plot(ecdf(new_beta_estimates[, 2]), col = "red",
 ```{r plot ecdf sigma2, fig.align = "center", fig.height = 4, fig.width = 4}
 new_sigma2_error <- t(replicate(1000, summary(update(mod_stats, data = simulate_Aliens()))$sigma^2))
 curve(pgamma(x, shape = mod_stats$df.residual/2, scale = 2*summary(mod_stats)$sigma^2/mod_stats$df.residual),
-    from = 0, to = 80, ylab = "pdf", lwd = 3)
+    from = 0, to = 80, ylab = "cdf", lwd = 3)
 plot(ecdf(new_sigma2_error), col = "red", add = TRUE)
 ```
 
@@ -190,14 +190,14 @@ res_sim <- t(coef(lm(as.matrix(newYs) ~ humans_eaten, data = Alien)))
 ```{r plot intercept param boot, fig.align = "center", fig.height = 4, fig.width = 4}
 curve(pnorm(x, mean = coef(mod_stats)[1],
     sd = sqrt(vcov(mod_stats)[[1]])),
-    from = 30, to = 60, ylab = "pdf", lwd = 3)
+    from = 30, to = 60, ylab = "cdf", lwd = 3)
 plot(ecdf(res_sim[, 1]), col = "red", add = TRUE)
 ```
 
 ```{r plot slope param boot, fig.align = "center", fig.height = 4, fig.width = 4}
 curve(pnorm(x, mean = coef(mod_stats)[2],
     sd = sqrt(vcov(mod_stats)[[4]])),
-    from = 0, to = 3, ylab = "pdf", lwd = 3)
+    from = 0, to = 3, ylab = "cdf", lwd = 3)
 plot(ecdf(res_sim[, 2]), col = "red", add = TRUE)
 ```
 
@@ -253,7 +253,7 @@ c(Qt_0.025 = qt(0.025, df = 10), Qt_0.975 = qt(0.975, df = 10))  ## with N-K = 1
 
 
 
-## Computing 95% CI for estimates (assymptotic)
+## Computing 95% CI for estimates
 
 ```{r CI Wald}
 confint(mod_stats)
@@ -263,7 +263,7 @@ cbind(coef(mod_stats) + quantile_min * sqrt(diag(vcov(mod_stats))),
       coef(mod_stats) + quantile_max * sqrt(diag(vcov(mod_stats))))
 ```
 
-## Testing the coverage of the 95% CI  (assymptotic)
+## Testing the coverage of the 95% CI
 
 ```{r coverage CI Wald}
 set.seed(1L)
@@ -441,7 +441,8 @@ points(50, 1.5, col = "green", pch = 4, lwd = 2, cex = 3)
 
 ## Confidence intervals by likelihood profiling
 
-### Benefit: not based on SE, so works well even if error is not gaussian or if SE is badly estimated.
+* Benefit: not based on SE, so works well even if error is not gaussian or if SE is badly estimated.
+* Cost: uses the chi-squared distribution, which is an assymptotic approximation, so it needs a lot of observations.
 
 ```{r CI by profile intercept}
 where.is.limit.inter <- function(intercept, model_ref) {
@@ -496,6 +497,7 @@ mean(replicate(n.replicates, sum(findInterval(CI_slope(lm(size ~ humans_eaten,
     data = simulate_Aliens(N = 500))), 1.5)) == 1))
 ```
 
+
 ## What you need to remember
 
 * that point estimates are random variables with estimated means and variances
@@ -508,7 +510,7 @@ mean(replicate(n.replicates, sum(findInterval(CI_slope(lm(size ~ humans_eaten,
 * what 95% Prediction Intervals are
 * what likelihood profiling is
 * that estimates are not necessarily independent from each others
-* that there are three ways to get 95% CI for LM
+* that there are 3 ways to get 95% CI for LM
 
 # Table of content
 

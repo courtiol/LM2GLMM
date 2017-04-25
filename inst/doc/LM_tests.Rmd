@@ -28,7 +28,7 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_tests/", fig.
 * that parameters are tested using t-tests
 * that you can use LM to do usual Student's t-tests and Pearson correlation tests
 * that variables are tested using F-tests or Likelihood Ratio Tests
-* how to check the statistical coverage precisely
+* how to check the statistical robustness of a test
 * how to do a LRT by parametric bootstrap
 * that type II ANOVA is the way to go for testing variables
 * that doing many tests is dangerous
@@ -82,7 +82,7 @@ summary(lm(extra ~ group, data = sleep))$coef
 new.t.value <- (estimate - 0.8799548)/std.error
 2*pt(abs(new.t.value), df = mod_UK1$df.residual, lower.tail = FALSE)
 library(car)
-## this uses a F-test, but can test several parameter at once
+## this uses a F-test, but similar (see later)
 linearHypothesis(mod_UK1, c("drinkMost days = 0.8799548"))$"Pr(>F)"[2]
 ```
 
@@ -127,25 +127,26 @@ anova(mod_UK1, mod_UK0)  ## same line as the last one from summary(mod_UK1)
 
 ## The F-test step by step
 
-```{r anova null}
+```{r anova null 2}
 anova(mod_UK0, mod_UK1)
-c(df = 11231 - 11225, SS = 443561 - 256402, F = F <- (187158/6) / (256402/11225))
-c(256402/11225, summary(mod_UK1)$sigma^2)  ## estimate of the error variance
+c(df = df <- 11231 - 11225, SS = SS <- 443561 - 256402, F = F <- (SS/df) / (256402/11225))
+SS/df  ## mean square treatment = var between = loss in estimated error variance
 ```
 
 ## The F-test step by step
 
-```{r anova null 2}
+```{r anova null}
 anova(mod_UK0, mod_UK1)
-c(df = 11231 - 11225, SS = 443561 - 256402, F = F <- (187158/6) / (256402/11225))
-187158/6  ## change in estimated error variance
+c(df = df <- 11231 - 11225, SS = SS <- 443561 - 256402, F = F <- (SS/df) / (256402/11225))
+c(256402/11225, summary(mod_UK1)$sigma^2)  ## mean square error = var within = estimate of error variance
 ```
+
 
 ## The F-test step by step
 
 ```{r anova null 3}
 anova(mod_UK0, mod_UK1)
-c(df = 11231 - 11225, SS = 443561 - 256402, F = F <- (187158/6) / (256402/11225))
+c(df = df <- 11231 - 11225, SS = SS <- 443561 - 256402, F = F <- (SS/df) / (256402/11225))
 (p.value <- 1 - pf(F, df1 = 6, df2 = 11225))
 ```
 
@@ -163,13 +164,14 @@ anova(mod_UK0, mod_UK2, test = "F")[2, "Pr(>F)"]  ## for LM F-test and LRT are e
 
 # Comparing two nested models
 
-## t-test and F-test are equivalent for quantitative variables
+## t-test and F-test are equivalent for quantit var
 
 ```{r F test milk}
 mod_UK3 <- lm(height ~ milk + sex*weight, data = UK)
 summary(mod_UK3)$coefficient["milk", ]
 mod_UK3_no_milk <- lm(height ~ sex*weight, data = mod_UK3$model)
 anova(mod_UK3_no_milk, mod_UK3)
+round(summary(mod_UK3)$coefficient["milk", "t value"]^2-anova(mod_UK3_no_milk, mod_UK3)$F[2], 2) ## t^2 = F
 ```
 
 ## Nested model comparison allows for testing the overall effect of several parameters
@@ -212,9 +214,9 @@ Note : test of simple terms consider other simple terms to be there, but not int
 Tip: never use type 3 ANOVA!
 
 
-## Coverage of the F test
+## Robustness of the F test
 
-```{r F test coverage}
+```{r F test robustness}
 set.seed(1L)
 pv.F <- replicate(1000, {
   mod_UK1$model$height_no_alcool <- as.matrix(simulate(mod_UK1_no_alcool))
@@ -225,9 +227,9 @@ pv.F <- replicate(1000, {
 mean(pv.F <= 0.05)
 ```
 
-## Coverage of the F test
+## Robustness of the F test
 
-```{r plot coverage F, fig.align = "center", fig.width = 5, fig.height = 5}
+```{r plot robustness F, fig.align = "center", fig.width = 5, fig.height = 5}
 plot(ecdf(pv.F))
 abline(0, 1, col = "red")  ## uniform reference
 ```
@@ -262,12 +264,23 @@ abline(v = stat.obs, lwd = 2, lty = 2, col = "red")
 
 ## We should not use F-test or LRT
 
-### You may use Akaike Information Criterion (AIC = -2 * (logLik - K))
+### You may use the deviance (smaller is better)
 
-```{r non nested}
+```{r non nested deviance}
 UK_for_both <- na.omit(UK[, c("height", "drink", "sex", "weight", "milk")])
 mod_UK1 <- lm(height ~ drink + sex*weight, data = UK_for_both)
 mod_UK5 <- lm(height ~ milk + sex*weight, data = UK_for_both)
+
+deviance(mod_UK1)
+deviance(mod_UK5)
+```
+
+
+## We should not use F-test or LRT
+
+### You may use the AIC (AIC = -2 * (logLik - K)) (smaller is better)
+
+```{r non nested AIC}
 AIC(mod_UK5)
 AIC(mod_UK1)
 exp((AIC(mod_UK5) - AIC(mod_UK1)) / 2) ## evidence ratio
@@ -279,15 +292,15 @@ likely to minimizes the (estimated) information loss than ```mod_UK1```.
 
 ## We should not use F-test or LRT
 
-### You may use ajusted R-squared
+### You may use ajusted R-squared (higher is better)
 
 
 ```{r}
 summary(mod_UK1)$adj.r.squared
 
-SSF <- sum((fitted(mod_UK1) - mean(fitted(mod_UK1)))^2)
+SST <- sum((fitted(mod_UK1) - mean(fitted(mod_UK1)))^2)
 SSR <- sum((residuals(mod_UK1) - mean(residuals(mod_UK1)))^2)
-(r.squared <- SSF/(SSF + SSR))  ## Note: SSF+SSR = sum((mod_UK1$model$height - mean(mod_UK1$model$height))^2)
+(r.squared <- SST/(SST + SSR))  ## Note: SST+SSR = sum((mod_UK1$model$height - mean(mod_UK1$model$height))^2)
 1 - (1 - r.squared) * ((nrow(mod_UK1$model) - 1)/mod_UK1$df.residual)  ## adjusted r-squared
 
 summary(mod_UK5)$adj.r.squared
@@ -432,7 +445,7 @@ summary(mod_drink2 <- lm(height ~ drink2, data = UK))$coef
 * that parameters are tested using t-tests
 * that you can use LM to do usual Student's t-tests and Pearson correlation tests
 * that variables are tested using F-tests or Likelihood Ratio Tests
-* how to check the statistical coverage precisely
+* how to check the statistical robustness of a test
 * how to do a LRT by parametric bootstrap
 * that type II ANOVA is the way to go for testing variables
 * that doing many tests is dangerous

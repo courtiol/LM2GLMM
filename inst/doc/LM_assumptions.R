@@ -98,6 +98,9 @@ crossprod(model.matrix(mod_US))  ## remember: high values show collinearity
 cor(USArrests$Assault, USArrests$Murder)
 cov2cor(vcov(mod_US))
 
+## ----USA plot-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+pairs(USArrests)
+
 ## ----pca----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 pca <- prcomp(~ Assault + Murder, data = USArrests, scale. = TRUE)
 USArrests$PC1 <- pca$x[, 1]
@@ -126,6 +129,9 @@ summary(fitted.mod, analytic.se = FALSE)$coef  ## use analytic.se = FALSE (uses 
 library(car)
 set.seed(1L)
 durbinWatsonTest(modConv <- lm(fconvict ~ tfr + partic + degrees + mconvict, data = Hartnagel), max.lag = 3)
+
+## ----pacf---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+pacf(modConv$residuals)
 
 ## ----DW 2, message = FALSE----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 library(lmtest)
@@ -225,6 +231,8 @@ head(dfbetas(mod_davis), n = 3) ## same in SE units
 
 ## ----cov----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 head(sort(covratio(mod_davis), decreasing = TRUE))
+det(vcov(update(mod_davis, data = Davis[-19, ]))) / det(vcov(mod_davis))
+
 
 ## ----influence.measures-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 influence.measures(mod_davis)  ## stars are just there to attract your attention, there is no proper tests!

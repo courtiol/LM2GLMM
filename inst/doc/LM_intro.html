@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2017-04-21" />
+  <meta name="date" content="2017-04-26" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,7 +94,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2017-04-21</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2017-04-26</p>
           </hgroup>
   </slide>
 
@@ -538,7 +538,7 @@ head(X)</pre>
 
 </article></slide><slide class=''><hgroup><h2>Understanding factorial design through the design matrix</h2></hgroup><article  id="understanding-factorial-design-through-the-design-matrix-1" class="smaller ">
 
-<pre class = 'prettyprint lang-r'>crossprod(X)  ## compute t(X) %*% X, see later</pre>
+<pre class = 'prettyprint lang-r'>crossprod(X)  ## compute t(X) %*% X, i.e. x_ij = sum(X[, i]*X[, j])</pre>
 
 <pre >##             (Intercept) poison2 poison3 treat2 treat3 treat4
 ## (Intercept)          48      16      16     12     12     12
