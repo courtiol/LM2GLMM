@@ -149,7 +149,7 @@ new_beta_estimates <- t(replicate(1000, coef(update(mod_stats, data = simulate_A
 ```{r plot ecdf intercept, fig.align = "center", fig.height = 4, fig.width = 4}
 curve(pnorm(x, mean = coef(mod_stats)[1],
     sd = sqrt(vcov(mod_stats)[[1]])),
-    from = 30, to = 60, ylab = "pdf", lwd = 3)
+    from = 30, to = 60, ylab = "cdf", lwd = 3)
 plot(ecdf(new_beta_estimates[, 1]), col = "red",
      add = TRUE)
 ```
@@ -157,7 +157,7 @@ plot(ecdf(new_beta_estimates[, 1]), col = "red",
 ```{r plot ecdf slope, fig.align = "center", fig.height = 4, fig.width = 4}
 curve(pnorm(x, mean = coef(mod_stats)[2],
     sd = sqrt(vcov(mod_stats)[[4]])),
-    from = 0, to = 3, ylab = "pdf", lwd = 3)
+    from = 0, to = 3, ylab = "cdf", lwd = 3)
 plot(ecdf(new_beta_estimates[, 2]), col = "red",
      add = TRUE)
 ```
@@ -169,7 +169,7 @@ plot(ecdf(new_beta_estimates[, 2]), col = "red",
 ```{r plot ecdf sigma2, fig.align = "center", fig.height = 4, fig.width = 4}
 new_sigma2_error <- t(replicate(1000, summary(update(mod_stats, data = simulate_Aliens()))$sigma^2))
 curve(pgamma(x, shape = mod_stats$df.residual/2, scale = 2*summary(mod_stats)$sigma^2/mod_stats$df.residual),
-    from = 0, to = 80, ylab = "pdf", lwd = 3)
+    from = 0, to = 80, ylab = "cdf", lwd = 3)
 plot(ecdf(new_sigma2_error), col = "red", add = TRUE)
 ```
 
@@ -190,14 +190,14 @@ res_sim <- t(coef(lm(as.matrix(newYs) ~ humans_eaten, data = Alien)))
 ```{r plot intercept param boot, fig.align = "center", fig.height = 4, fig.width = 4}
 curve(pnorm(x, mean = coef(mod_stats)[1],
     sd = sqrt(vcov(mod_stats)[[1]])),
-    from = 30, to = 60, ylab = "pdf", lwd = 3)
+    from = 30, to = 60, ylab = "cdf", lwd = 3)
 plot(ecdf(res_sim[, 1]), col = "red", add = TRUE)
 ```
 
 ```{r plot slope param boot, fig.align = "center", fig.height = 4, fig.width = 4}
 curve(pnorm(x, mean = coef(mod_stats)[2],
     sd = sqrt(vcov(mod_stats)[[4]])),
-    from = 0, to = 3, ylab = "pdf", lwd = 3)
+    from = 0, to = 3, ylab = "cdf", lwd = 3)
 plot(ecdf(res_sim[, 2]), col = "red", add = TRUE)
 ```
 
