@@ -73,7 +73,7 @@ vcov(mod_stats)
 vcov(mod_spaMM_REML)  ## don't use the ML fit here!
 ```
 
-## The estimates of $\beta$ are gaussian (assymptotically)
+## The estimates of $\beta$ are gaussian
 
 <br>
 
@@ -253,7 +253,7 @@ c(Qt_0.025 = qt(0.025, df = 10), Qt_0.975 = qt(0.975, df = 10))  ## with N-K = 1
 
 
 
-## Computing 95% CI for estimates (assymptotic)
+## Computing 95% CI for estimates
 
 ```{r CI Wald}
 confint(mod_stats)
@@ -263,7 +263,7 @@ cbind(coef(mod_stats) + quantile_min * sqrt(diag(vcov(mod_stats))),
       coef(mod_stats) + quantile_max * sqrt(diag(vcov(mod_stats))))
 ```
 
-## Testing the coverage of the 95% CI  (assymptotic)
+## Testing the coverage of the 95% CI
 
 ```{r coverage CI Wald}
 set.seed(1L)
@@ -441,7 +441,8 @@ points(50, 1.5, col = "green", pch = 4, lwd = 2, cex = 3)
 
 ## Confidence intervals by likelihood profiling
 
-### Benefit: not based on SE, so works well even if error is not gaussian or if SE is badly estimated.
+* Benefit: not based on SE, so works well even if error is not gaussian or if SE is badly estimated.
+* Cost: uses the chi-squared distribution, which is an assymptotic approximation, so it needs a lot of observations. BUT: the parametric boostrap is always a way out!
 
 ```{r CI by profile intercept}
 where.is.limit.inter <- function(intercept, model_ref) {
