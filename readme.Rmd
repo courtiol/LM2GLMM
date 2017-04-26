@@ -24,7 +24,8 @@ To load the package and access to the vignettes:
 
 ```{r, eval = FALSE}
 library("LM2GLMM")
-get_vignettes()
+browseVignettes(package = "LM2GLMM")  ## see in your web browser
+get_vignettes() ## see in your file manager
 ```
 
 Example of installation from behind a proxy:
