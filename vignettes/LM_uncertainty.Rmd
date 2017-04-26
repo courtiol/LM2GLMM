@@ -60,7 +60,7 @@ c(mod_spaMM_ML$fixef, sigma2 = mod_spaMM_REML$phi)  ## fixef are same for REML a
 sigma2_resid <- mod_spaMM_ML$phi ## stored for later (but it is not an estimate!)
 ```
 
-# Assymptotic distributions of point estimates
+# Theoretical distributions of point estimates
 
 ## Covariances of the estimates
 
@@ -114,7 +114,7 @@ curve(dgamma(x, shape = mod_stats$df.residual/2, scale = 2*sigma2_error/mod_stat
 ```
 
 
-# Comparing assymptotic distributions to the reality
+# Comparing theoretical distributions to the reality
 
 ## A simulation function for the generating Aliens
 
@@ -175,7 +175,7 @@ plot(ecdf(new_sigma2_error), col = "red", add = TRUE)
 
 
 
-# Comparing assymptotic distributions to parametric boostrap
+# Comparing theoretical distributions to parametric boostrap
 
 
 ## Comparison with parametric boostrap
@@ -217,7 +217,7 @@ with(candidates, contour(candidate_intercept_u, candidate_slope_u,
 
 <br>
 
-### Compute the distribution of the estimate of the error variance by parametric bootstrap and compare it to the assymptotic result.
+### Compute the distribution of the estimate of the error variance by parametric bootstrap and compare it to the theoretical result.
 
 # Confidence intervals
 
@@ -277,7 +277,7 @@ mean(replicate(5000, sum(findInterval(confint(update(mod_stats, data = simulate_
 confint(mod_stats)  ## asymptotic (for comparison)
 ```
 
-It is still assymptotic but SE are no longer computed analytically:
+It still depends on the t-distribution but SE are no longer computed analytically:
 
 ```{r CI param boot}
 ses <- t(apply(res_sim, 2, sd))  ## compute sd of estimates from parametric bootstrap
