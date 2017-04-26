@@ -236,7 +236,7 @@ t.test(y, mu = 2)$p.value</pre>
 
 <pre >## [1] 0.6052327</pre>
 
-<pre class = 'prettyprint lang-r'>summary(lm(y ~ 1 + offset(rep(2, 10)), data = sleep))$coef</pre>
+<pre class = 'prettyprint lang-r'>summary(lm(y ~ 1 + offset(rep(2, 10))))$coef</pre>
 
 <pre >##              Estimate Std. Error   t value  Pr(&gt;|t|)
 ## (Intercept) 0.1322028   0.246843 0.5355745 0.6052327</pre>
@@ -269,15 +269,15 @@ c(rho = cor(y, x), pv = cor.test(y, x)$p.value)</pre>
 </article></slide><slide class=''><hgroup><h2>Using the function <code>anova()</code></h2></hgroup><article  id="using-the-function-anova" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>mod_UK0 &lt;- lm(height ~ 1, data = mod_UK1$model) ## we use model frame to keep same dataset
-anova(mod_UK1, mod_UK0)  ## same line as the last one from summary(mod_UK1)</pre>
+anova(mod_UK0, mod_UK1)  ## same line as the last one from summary(mod_UK1)</pre>
 
 <pre >## Analysis of Variance Table
 ## 
-## Model 1: height ~ drink + sex * weight
-## Model 2: height ~ 1
+## Model 1: height ~ 1
+## Model 2: height ~ drink + sex * weight
 ##   Res.Df    RSS Df Sum of Sq      F    Pr(&gt;F)    
-## 1  11225 256402                                  
-## 2  11231 443561 -6   -187158 1365.6 &lt; 2.2e-16 ***
+## 1  11231 443561                                  
+## 2  11225 256402  6    187158 1365.6 &lt; 2.2e-16 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</pre>
 
@@ -549,19 +549,19 @@ deviance(mod_UK1)</pre>
 
 <h3>You may use the AIC (AIC = -2 * (logLik - K)) (smaller is better)</h3>
 
-<pre class = 'prettyprint lang-r'>AIC(mod_UK5)</pre>
-
-<pre >## [1] 55329</pre>
-
 <pre class = 'prettyprint lang-r'>AIC(mod_UK1)</pre>
 
 <pre >## [1] 55312.04</pre>
+
+<pre class = 'prettyprint lang-r'>AIC(mod_UK5)</pre>
+
+<pre >## [1] 55329</pre>
 
 <pre class = 'prettyprint lang-r'>exp((AIC(mod_UK5) - AIC(mod_UK1)) / 2) ## evidence ratio</pre>
 
 <pre >## [1] 4811.537</pre>
 
-<p>The model <code>mod_UK5</code> is <code>4811.5</code> times more likely to minimizes the (estimated) information loss than <code>mod_UK1</code>.</p>
+<p>The model <code>mod_UK1</code> is <code>4811.5</code> times more likely to minimizes the (estimated) information loss than <code>mod_UK5</code>.</p>
 
 </article></slide><slide class=''><hgroup><h2>We should not use F-test or LRT</h2></hgroup><article  id="we-should-not-use-f-test-or-lrt-2" class="smaller ">
 
