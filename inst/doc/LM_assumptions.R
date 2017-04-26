@@ -11,10 +11,14 @@ Alien0 <- data.frame(humans_eaten = sample(1:100))
 Alien0$size <- 10 + 50 * Alien0$humans_eaten - 0.02 * (Alien0$humans_eaten^2) + rnorm(100, sd = 5)
 mod0a <- lm(size ~ humans_eaten, data = Alien0)
 coef(mod0a)
-plot(size ~ humans_eaten, data = Alien0)
+
+## ----simple non linear plot---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+plot(size ~ humans_eaten, data = Alien0, pch = 3, col = "red")
+abline(mod0a, col = "blue", lwd = 2)
 
 ## ----simple non linear2-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-plot(rstandard(mod0a) ~ model.matrix(mod0a)[,2])
+plot(rstandard(mod0a) ~ model.matrix(mod0a)[,2])  ## using standardized residuals
+abline(h = 0, col = "red", lty = 2)
 
 ## ----simple non linear3-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 mod0b <- lm(size ~ poly(humans_eaten, 2, raw = TRUE), data = Alien0)
