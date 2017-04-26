@@ -327,7 +327,7 @@ rbind(c(pred$fit[1, "fit"] + quantile_min * pred$se.fit[1],
 ```{r compute predVar2}
 pred$se.fit^2 ## prediction variance
 (X <- cbind(c(1, 1), 4:5))  ## design matrix
-(vcov.means <- X %*% vcov(mod_stats) %*% t(X))  ## covariance of predictions
+(vcov.means <- X %*% vcov(mod_stats) %*% t(X))  ## covariances for predicted values
 diag(vcov.means)
 ```
 
