@@ -1,17 +1,17 @@
 ---
-title: "Exercise: 1. Fungi LM"
+title: "Exercise: Prefect Multicollinearity"
 author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
 output: 
   html_vignette
 vignette: >
-  %\VignetteIndexEntry{Exercise: 1. Fungi LM}
+  %\VignetteIndexEntry{Exercise: Perfect Multicollinearity}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
 ```{r setup, include=FALSE}
 library(LM2GLMM)
-knitr::opts_chunk$set(cache = FALSE, cache.path = "./cache_knitr/Fungi/", fig.path = "./fig_knitr/Fungi/", fig.align = "center", fig.width = 5, fig.height = 5)
+knitr::opts_chunk$set(cache = FALSE, fig.align = "center", fig.width = 5, fig.height = 5)
 ```
 
 ## Preparing the data
@@ -22,9 +22,10 @@ FungiAlive <- subset(Fungi, alive == TRUE)
 
 ## Silly attempt
 
-```{r}
+```{r, error=TRUE}
 XTX <- crossprod(model.matrix(~ species* (T36 + T38 + PT36 + PT38), data = FungiAlive))
 det(XTX)  ## bad --> this model won't work
+solve(XTX)
 coef(lm(growth ~ species* (T36 + T38 + PT36 + PT38), data = FungiAlive))
 ```
 
@@ -56,7 +57,41 @@ table(FungiAlive$T, FungiAlive$species)
 ```
 
 
-## Combining pre-treatment and treatement
+## Fitting the model and predicting the effects: solution 1
+
+```{r}
+X <- model.matrix(~ species * (PT + T), data = FungiAlive)
+(XTX <- crossprod(X))
+det(XTX)
+(invXTX <- solve(XTX))
+max(invXTX[upper.tri(invXTX)])
+max(invXTX[lower.tri(invXTX)])
+
+(m2 <- lm(growth ~ species * (PT + T), data = FungiAlive))
+newdata2 <- data.frame(PT = c("36", "38", "no", "no", "36", "38", "no", "no"),
+                       T = c("36", "38", "36", "38", "36", "38", "36", "38"),
+                       species = c(rep("M_A", 4), rep("M_B", 4)))
+newdata2$pred <- predict(m2, newdata = newdata2)
+newdata2
+```
+
+```{r}
+plot(newdata2[newdata2$species == "M_A", "pred"],
+     type = "b", axes = FALSE, col = "red",
+     ylim = range(newdata2$pred),
+     ylab = "Growth rate", xlab = "Experimental condition")
+points(newdata2[newdata2$species == "M_B", "pred"],
+       type = "b", col = "blue")
+axis(side = 2, las = 1)
+axis(side = 1, at = 1:4,
+     labels = c("36_36", "38_38", "no_36", "no_38"))
+box()
+legend("top", pch = c(1, 1), col = c("blue", "red"), horiz = TRUE,
+       legend = c("M_A", "M_B"), box.lty = 2, title = "Species")
+```
+
+
+## Fitting the model and predicting the effects: solution 2
 
 ```{r}
 FungiAlive$condition <-
@@ -64,8 +99,6 @@ FungiAlive$condition <-
   table(FungiAlive$condition)
 ```
 
-
-## Fitting the model and predicting the effects: solution 1
 
 ```{r}
 X <- model.matrix(~ -1 + condition, data = FungiAlive)
@@ -105,35 +138,3 @@ legend("top", pch = c(1, 1), col = c("blue", "red"), horiz = TRUE,
 ```
 
 
-## Fitting the model and predicting the effects: solution 2
-
-```{r}
-X <- model.matrix(~ species * (PT + T), data = FungiAlive)
-(XTX <- crossprod(X))
-det(XTX)
-(invXTX <- solve(XTX))
-max(invXTX[upper.tri(invXTX)])
-max(invXTX[lower.tri(invXTX)])
-
-(m2 <- lm(growth ~ species * (PT + T), data = FungiAlive))
-newdata2 <- data.frame(PT = c("36", "38", "no", "no", "36", "38", "no", "no"),
-                       T = c("36", "38", "36", "38", "36", "38", "36", "38"),
-                       species = c(rep("M_A", 4), rep("M_B", 4)))
-newdata2$pred <- predict(m2, newdata = newdata2)
-newdata2
-```
-
-```{r}
-plot(newdata2[newdata2$species == "M_A", "pred"],
-     type = "b", axes = FALSE, col = "red",
-     ylim = range(newdata2$pred),
-     ylab = "Growth rate", xlab = "Experimental condition")
-points(newdata2[newdata2$species == "M_B", "pred"],
-       type = "b", col = "blue")
-axis(side = 2, las = 1)
-axis(side = 1, at = 1:4,
-     labels = c("36_36", "38_38", "no_36", "no_38"))
-box()
-legend("top", pch = c(1, 1), col = c("blue", "red"), horiz = TRUE,
-       legend = c("M_A", "M_B"), box.lty = 2, title = "Species")
-```
