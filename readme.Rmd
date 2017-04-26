@@ -4,13 +4,9 @@ This is the repository for the R package LM2GLMM.
 This R package is only aimed at the students and helpers of the course I am giving at the 
 Freie Universität, Berlin. It is not aimed at general users.
 
-# Tips for the students
-
 ## Installation
 
-### Solution 1 (recommended)
-
-1. install the R package ```devtools```:
+1. install the R package ```devtools``` (only if you don't have it):
 
 ```{r, eval = FALSE}
 install.packages("devtools")
@@ -21,18 +17,6 @@ install.packages("devtools")
 ```{r, eval = FALSE}
 devtools::install_github("courtiol/LM2GLMM")
 ```
-
-### Solution 2 (fall back option)
-
-1. Re(install) the dependencies:
-
-```{r, eval = FALSE}
-install.packages(c('car', 'caret', 'spaMM', 'lme4', 'lmtest', 'multcomp', 'mvtnorm', 'nortest', 'fastR', 'rgl', 'sem'))
-```
-
-2. Download the release version on the package, available here:
-https://github.com/courtiol/LM2GLMM/releases
-
 
 ## Other tips
 
