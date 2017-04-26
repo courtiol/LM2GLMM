@@ -37,7 +37,7 @@ set.seed(1L)
 ### Model structure
 
 * linearity
-* lack of multicollinearity (design matrix of full rank)
+* lack of perfect multicollinearity (design matrix of full rank)
 * predictor variables have fixed values
 
 ### Errors
@@ -96,14 +96,21 @@ Alien0 <- data.frame(humans_eaten = sample(1:100))
 Alien0$size <- 10 + 50 * Alien0$humans_eaten - 0.02 * (Alien0$humans_eaten^2) + rnorm(100, sd = 5)
 mod0a <- lm(size ~ humans_eaten, data = Alien0)
 coef(mod0a)
-plot(size ~ humans_eaten, data = Alien0)
+```
+
+## A simple example of non-linearity
+
+```{r simple non linear plot}
+plot(size ~ humans_eaten, data = Alien0, pch = 3, col = "red")
+abline(mod0a, col = "blue", lwd = 2)
 ```
 
 ## A simple example of non-linearity
 
 Solution for continuous design matrix column vectors: plot the residuals against them!
 ```{r simple non linear2}
-plot(rstandard(mod0a) ~ model.matrix(mod0a)[,2])
+plot(rstandard(mod0a) ~ model.matrix(mod0a)[,2])  ## using standardized residuals
+abline(h = 0, col = "red", lty = 2)
 ```
 
 ## A simple example of non-linearity
@@ -185,9 +192,9 @@ summary(mod_poison) ## the original model
 summary(mod_poison2) ## the boxcoxed model
 ```
 
-# Lack of multicollinearity
+# Lack of perfect multicollinearity
 
-## Lack of multicollinearity in brief
+## Lack of perfect multicollinearity in brief
 
 ### Assumption
 
@@ -252,7 +259,7 @@ coef(mod_alien3)
 caret::findLinearCombos(model.matrix(mod_alien3))  ## Tip: help to see what creates the issue
 ```
 
-## Chalenge: analysing the Fungi dataset
+## Challenge: analysing the Fungi dataset
 
 ```{r fungi}
 head(Fungi)
@@ -265,9 +272,9 @@ head(Fungi)
 quantifying the average growth rate of alive fungi for each species,
 in each experimental condition, using a single linear model.
 
-([solution](./Fungi_1.html))
+([solution](./Exercise_Multicollinearity.html))
 
-## Weaker multicollinearity
+## Non-perfect multicollinearity
 
 ### Sometimes assumptions are met, but problems can still occur
 
@@ -280,7 +287,7 @@ summary(mod_US2 <- lm(Rape ~ Murder, data = USArrests))$coef
 
 It is a problem to infer causal inference, not so much for predictions!
 
-## Weaker multicollinearity: why?
+## Non-perfect  multicollinearity: why?
 
 ```{r USA 2}
 crossprod(model.matrix(mod_US))  ## remember: high values show collinearity
@@ -288,12 +295,12 @@ cor(USArrests$Assault, USArrests$Murder)
 cov2cor(vcov(mod_US))
 ```
 
-## Weaker multicollinearity: why?
+## Non-perfect  multicollinearity: why?
 ```{r USA plot}
 pairs(USArrests)
 ```
 
-## Weaker multicollinearity: solution?
+## Non-perfect  multicollinearity: solution?
 
 * drop one variable
 * merge them
