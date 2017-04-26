@@ -574,12 +574,11 @@ predict(mod_UK1, newdata = newdata1)
 
 ## Practice
 
-### Predict and plot the influence of the weight of girls on their height!
-
-<br>
+### Predict and plot the influence of the weight of girls on their height! 
 
 <center> <img src="./Extrapolation.png" alt="xkcd" style="width: 500px;"/> </center>
 
+([solution](./Exercise_Predict.html))
 
 # Fitting LM with ```spaMM```
 
