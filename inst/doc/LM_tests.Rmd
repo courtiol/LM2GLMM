@@ -98,7 +98,7 @@ confint(mod_UK1, parm = "drinkMost days")
 set.seed(1L)
 y <- rnorm(10, mean = 2)
 t.test(y, mu = 2)$p.value
-summary(lm(y ~ 1 + offset(rep(2, 10)), data = sleep))$coef
+summary(lm(y ~ 1 + offset(rep(2, 10))))$coef
 ```
 
 ## Comparison to Pearson's correlation test
@@ -118,7 +118,7 @@ coef(lm(y~x))["x"] * sd(x)/sd(y)  ## because slope = cov(x, y)/var(x)
 
 ```{r null fit}
 mod_UK0 <- lm(height ~ 1, data = mod_UK1$model) ## we use model frame to keep same dataset
-anova(mod_UK1, mod_UK0)  ## same line as the last one from summary(mod_UK1)
+anova(mod_UK0, mod_UK1)  ## same line as the last one from summary(mod_UK1)
 ```
 
 <br>
@@ -281,13 +281,13 @@ deviance(mod_UK5)
 ### You may use the AIC (AIC = -2 * (logLik - K)) (smaller is better)
 
 ```{r non nested AIC}
-AIC(mod_UK5)
 AIC(mod_UK1)
+AIC(mod_UK5)
 exp((AIC(mod_UK5) - AIC(mod_UK1)) / 2) ## evidence ratio
 ```
 
-The model ```mod_UK5``` is ```r round(exp((AIC(mod_UK5) - AIC(mod_UK1)) / 2), 1)``` times more
-likely to minimizes the (estimated) information loss than ```mod_UK1```.
+The model ```mod_UK1``` is ```r round(exp((AIC(mod_UK5) - AIC(mod_UK1)) / 2), 1)``` times more
+likely to minimizes the (estimated) information loss than ```mod_UK5```.
 
 
 ## We should not use F-test or LRT

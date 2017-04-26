@@ -249,7 +249,7 @@ c(Qt_0.025 = qt(0.025, df = 10), Qt_0.975 = qt(0.975, df = 10))  ## with N-K = 1
 
 <font size = 6> 95% CI for $\widehat{\beta} =$ </font>
 
-<font size = 6> $[\widehat{\beta} + \mathrm{Q}0.025_{\mathcal{t}_{N - K}} \times \widehat{\sigma_{\widehat{\beta}}}; \ \widehat{\beta} + \mathrm{Q}0.025_{\mathcal{t}_{N - K}} \times \widehat{\sigma_{\widehat{\beta}}}]$ </font>
+<font size = 6> $[\widehat{\beta} + \mathrm{Q}0.025_{\mathcal{t}_{N - K}} \times \widehat{\sigma_{\widehat{\beta}}}; \ \widehat{\beta} + \mathrm{Q}0.975_{\mathcal{t}_{N - K}} \times \widehat{\sigma_{\widehat{\beta}}}]$ </font>
 
 
 
@@ -327,7 +327,7 @@ rbind(c(pred$fit[1, "fit"] + quantile_min * pred$se.fit[1],
 ```{r compute predVar2}
 pred$se.fit^2 ## prediction variance
 (X <- cbind(c(1, 1), 4:5))  ## design matrix
-(vcov.means <- X %*% vcov(mod_stats) %*% t(X))  ## covariance of predictions
+(vcov.means <- X %*% vcov(mod_stats) %*% t(X))  ## covariances for predicted values
 diag(vcov.means)
 ```
 
@@ -349,9 +349,9 @@ points(lwr ~ humans_eaten, data = pred, lty = 2, lwd = 2, col = "red", type = "l
 ```{r compute respVar}
 pred <- predict(mod_stats, newdata = data.frame(humans_eaten = 4), interval = "prediction", se.fit = TRUE)
 pred$fit
-predVar <- pred$se.fit^2 + pred$residual.scale^2
-pred$fit[, "fit"] + quantile_min * sqrt(predVar)
-pred$fit[, "fit"] + quantile_max * sqrt(predVar)
+se.pred <- sqrt(pred$se.fit^2 + pred$residual.scale^2)
+pred$fit[, "fit"] + quantile_min * se.pred
+pred$fit[, "fit"] + quantile_max * se.pred
 pred$residual.scale^2 == summary(mod_stats)$sigma^2  ## estimate of the error variance
 ```
 
