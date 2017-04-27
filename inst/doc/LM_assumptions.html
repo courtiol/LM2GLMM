@@ -648,10 +648,10 @@ fitted.mod &lt;- sem(eqns, data = Alien4, raw = TRUE, fixed.x = &quot;Intercept&
 summary(fitted.mod, analytic.se = FALSE)$coef  ## use analytic.se = FALSE (uses z as consider variance known)</pre>
 
 <pre >##          Estimate    Std Error   z value     Pr(&gt;|z|)                                       
-## alpha   50.836895   0.93632534 54.294051 0.000000e+00                    size &lt;--- Intercept
+## alpha   50.836895   0.93632533 54.294051 0.000000e+00                    size &lt;--- Intercept
 ## slope    1.481687   0.01609694 92.047763 0.000000e+00                 size &lt;--- humans_eaten
 ## sigma   21.590445   3.05400859  7.069543 1.554448e-12                         size &lt;--&gt; size
-## phi   3547.910575 502.32152441  7.063027 1.629139e-12 humans_eaten_err &lt;--&gt; humans_eaten_err</pre>
+## phi   3547.910575 502.32116667  7.063032 1.629080e-12 humans_eaten_err &lt;--&gt; humans_eaten_err</pre>
 
 </article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>Assumptions about the errors</h2></hgroup><article  id="assumptions-about-the-errors" class="smaller ">
 
