@@ -312,56 +312,18 @@ summary(mod_UK5)$adj.r.squared
 
 ### This is the only general method to get a p-value
 
-We consider one model as the null model of the other (so we could the whole procedure twice if both models are used in turns as a null model)
-
-<br>
+We consider one model as the null model of the other (we choose here the worse model)
 
 ```{r non-nested param boot}
 set.seed(1L)
-LRTobs <- abs(logLik(mod_UK1) - logLik(mod_UK5))
-LRTH0A <- replicate(1000, abs(logLik(update(mod_UK1, simulate(mod_UK5)[, 1] ~. ))[[1]] - logLik(mod_UK5)[[1]]))
-LRTH0B <- replicate(1000, abs(logLik(update(mod_UK5, simulate(mod_UK1)[, 1] ~. ))[[1]] - logLik(mod_UK1)[[1]]))
-(pvalues <- c(mean(LRTH0A >= LRTobs), mean(LRTH0B >= LRTobs)))
+(LRTobs <- logLik(mod_UK1) - logLik(mod_UK5))
+LRTH0 <- replicate(1000, {
+                    UK_for_both$newY <- simulate(mod_UK5)[, 1]
+                    logLik(update(mod_UK1, newY ~. ))[[1]] -
+                      logLik(update(mod_UK5, newY ~. ))[[1]]
+                    })
+c(summary(LRTH0), "p-value" = mean(LRTH0 >= LRTobs))
 ```
-
-The goodness of fit of the two models do not significantly differ!
-
-
-## Comparing two non-nested models using parametric bootstrap
-
-### This is the only general method to get a p-value
-
-The choice of the statistic does not really matter...
-
-<br>
-
-```{r non-nested param boot AIC}
-set.seed(1L)
-diffAICobs <- abs(AIC(mod_UK1) - AIC(mod_UK5))
-diffAICH0A <- replicate(1000, abs(AIC(update(mod_UK1, simulate(mod_UK5)[, 1] ~. ))[[1]] - AIC(mod_UK5)[[1]]))
-diffAICH0B <- replicate(1000, abs(AIC(update(mod_UK5, simulate(mod_UK1)[, 1] ~. ))[[1]] - AIC(mod_UK1)[[1]]))
-(pvalues <- c(mean(diffAICH0A >= diffAICobs), mean(diffAICH0B >= diffAICobs)))
-```
-
-
-## Comparing two non-nested models using parametric bootstrap
-
-### This is the only general method to get a p-value
-
-The choice of the statistic does not really matter...
-
-<br>
-
-```{r non-nested param boot R2}
-R2 <- function(mod) summary(mod)$adj.r.squared
-set.seed(1L)
-diffR2obs <- abs(R2(mod_UK1) - R2(mod_UK5))
-diffR2H0A <- replicate(1000, abs(R2(update(mod_UK1, simulate(mod_UK5)[, 1] ~. ))[[1]] - R2(mod_UK5)[[1]]))
-diffR2H0B <- replicate(1000, abs(R2(update(mod_UK5, simulate(mod_UK1)[, 1] ~. ))[[1]] - R2(mod_UK1)[[1]]))
-(pvalues <- c(mean(diffR2H0A >= diffR2obs), mean(diffR2H0B >= diffR2obs)))
-```
-
-
 
 # Comparing too many things
 
