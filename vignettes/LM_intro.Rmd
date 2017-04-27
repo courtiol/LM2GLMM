@@ -434,5 +434,6 @@ $$
 * 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
 * 2.3 [Tests](./LM_tests.html)
 * 2.4 [Assumptions and Outliers](./LM_assumptions.html)
+* 2.5 [Let's practice more](./LM_practice.html)
 
 
