@@ -297,17 +297,37 @@ summary(mod_US2 <- lm(Rape ~ Murder, data = USArrests))$coef
 It is a problem to infer causal inference, not so much for predictions!
 
 ## Non-perfect  multicollinearity: why?
+```{r USA plot}
+pairs(USArrests)
+```
+
+## Non-perfect  multicollinearity: why?
 
 ```{r USA 2}
 crossprod(model.matrix(mod_US))  ## remember: high values show collinearity
 cor(USArrests$Assault, USArrests$Murder)
+```
+
+## Non-perfect  multicollinearity: why?
+
+```{r USA 3}
+vcov(mod_US)
 cov2cor(vcov(mod_US))
 ```
 
 ## Non-perfect  multicollinearity: why?
-```{r USA plot}
-pairs(USArrests)
+
+### Often diagnosed using the Variance Inflation Factor
+
+```{r USA 4}
+vif(mod_US)
+R2 <- summary(lm(Assault ~ Murder, data = USArrests))$r.squared  ## works too if more variables
+1/(1-R2)
 ```
+
+<br>
+
+The VIF tells you by how much the variance in the uncertainty in parameter estimates increases due to multicollinearity.
 
 ## Non-perfect  multicollinearity: solution?
 
