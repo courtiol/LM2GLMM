@@ -82,7 +82,9 @@ head(stackloss)
 head(Bats)
 ```
 
-### Goal: reproduce the results on body weight from the study by Seltmann et al. (Conservation Physiology, 2017).
+### Goal: reproduce the results on body weight from the study:
+
+[Seltmann et al. (Conservation Physiology, 2017)](https://academic.oup.com/conphys/article/doi/10.1093/conphys/cox020/3103058/Habitat-disturbance-results-in-chronic-stress-and?rss=1).
 
 
 # Table of content
