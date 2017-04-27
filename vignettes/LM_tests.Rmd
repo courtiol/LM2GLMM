@@ -264,11 +264,12 @@ abline(v = stat.obs, lwd = 2, lty = 2, col = "red")
 
 ## We should not use F-test or LRT
 
-### You may use the deviance (smaller is better)
+You may use the deviance (smaller is better) or (log)likelihood  (bigger is better),
+if the number of df is the same
 
 ```{r non nested deviance}
-UK_for_both <- na.omit(UK[, c("height", "drink", "sex", "weight", "milk")])
-mod_UK1 <- lm(height ~ drink + sex*weight, data = UK_for_both)
+UK_for_both <- na.omit(UK[, c("height", "cigarettes", "sex", "weight", "milk")])
+mod_UK1 <- lm(height ~ cigarettes + sex*weight, data = UK_for_both)
 mod_UK5 <- lm(height ~ milk + sex*weight, data = UK_for_both)
 
 deviance(mod_UK1)
@@ -278,9 +279,9 @@ deviance(mod_UK5)
 
 ## We should not use F-test or LRT
 
-### You may use the AIC (AIC = -2 * (logLik - K)) (smaller is better)
+### You may use the AIC (AIC = -2 * (logLik - K)) (smaller is better) even if df differ
 
-```{r non nested AIC}
+```{r non nested AIC, cache = FALSE}
 AIC(mod_UK1)
 AIC(mod_UK5)
 exp((AIC(mod_UK5) - AIC(mod_UK1)) / 2) ## evidence ratio
@@ -292,7 +293,7 @@ likely to minimizes the (estimated) information loss than ```mod_UK5```.
 
 ## We should not use F-test or LRT
 
-### You may use ajusted R-squared (higher is better)
+### You may use ajusted R-squared (higher is better) even if df differ
 
 
 ```{r}
