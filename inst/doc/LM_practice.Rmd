@@ -13,6 +13,7 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
+library(LM2GLMM)
 knitr::opts_chunk$set(cache = FALSE, fig.align = "center", fig.width = 4, fig.height = 4)
 options(width = 200)
 set.seed(1L)
@@ -73,6 +74,15 @@ head(stackloss)
 <br>
 
 ### Goal: find out if the acid concentration influences the loss of ammonia by the plants.
+
+
+## Dataset: Bats (difficulty = 5/5)
+
+```{r Bats}
+head(Bats)
+```
+
+### Goal: reproduce the results on body weight from the study by Seltmann et al. (Conservation Physiology, 2017).
 
 
 # Table of content

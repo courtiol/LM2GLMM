@@ -37,7 +37,7 @@ with(data = subset(mod_UK1$model, sex == "Girl" & drink == levels(drink)[1]),
 with(data = subset(mod_UK1$model, sex == "Girl" & drink == levels(drink)[2]),
      points(height ~ weight, col = "red", cex = 0.1, pch = "."))
 with(data = subset(mod_UK1$model, sex == "Girl" & drink == levels(drink)[3]),
-     points(height ~ weight, col = "green", cex = 0.1, pch = ".")s)
+     points(height ~ weight, col = "green", cex = 0.1, pch = "."))
 with(data = subset(mod_UK1$model, sex == "Girl" & drink == levels(drink)[4]),
      points(height ~ weight, col = "yellow", cex = 0.1, pch = "."))
 

@@ -19,7 +19,7 @@ par(las = 1)
 with(data = subset(mod_UK1$model, sex == "Girl" & drink == levels(drink)[1]),
      plot(height ~ weight, col = "orange", cex = 0.1, pch = ".",
           ylim = range.height.girls.fit, xlim = range.weight.girls.fit,
-          xlab = "Weight (Kg)", ylab = "Height (cm)"))
+          xlab = "Girl's weight (Kg)", ylab = "Girl's height (cm)"))
 with(data = subset(mod_UK1$model, sex == "Girl" & drink == levels(drink)[2]),
      points(height ~ weight, col = "red", cex = 0.1, pch = "."))
 with(data = subset(mod_UK1$model, sex == "Girl" & drink == levels(drink)[3]),

@@ -16,7 +16,7 @@
    \item{growth}{A quantitative measure of the growth rate}
  }}
 \source{
-An excellent bachelor student
+Bachelor thesis of Magdalena Nagel, FU Berlin.
 }
 \usage{
 Fungi
