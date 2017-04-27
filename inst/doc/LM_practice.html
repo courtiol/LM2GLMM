@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>LM: Introduction</title>
+  <title>LM: Let’s practice more!</title>
 
   <meta charset="utf-8">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -21,7 +21,7 @@
     var SLIDE_CONFIG = {
       // Slide settings
       settings: {
-                title: 'LM: Introduction',
+                title: 'LM: Let’s practice more!',
                         useBuilds: true,
         usePrettify: true,
         enableSlideAreas: true,
@@ -98,595 +98,93 @@
           </hgroup>
   </slide>
 
-<slide class=''><hgroup><h2>You will learn in this session</h2></hgroup><article  id="you-will-learn-in-this-session" class="smaller ">
+<slide class=''><hgroup><h2>Dataset: chickwts (difficulty = 0/5)</h2></hgroup><article  id="dataset-chickwts-difficulty-05" class="smaller ">
 
-<ul>
-<li>how to write a linear model (using two notations)</li>
-<li>what a response, a design matrix and model parameters are</li>
-<li>how to get the design matrix</li>
-<li>that the meaning of the parameter depends on the design matrix</li>
-<li>how to simulate the data for a linear model</li>
-</ul>
+<pre class = 'prettyprint lang-r'>head(chickwts)</pre>
 
-</article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>Definition and notations</h2></hgroup><article  id="definition-and-notations" class="smaller ">
+<pre >##   weight      feed
+## 1    179 horsebean
+## 2    160 horsebean
+## 3    136 horsebean
+## 4    227 horsebean
+## 5    217 horsebean
+## 6    168 horsebean</pre>
 
-</article></slide><slide class=''><hgroup><h2>What is a Linear Model (LM)?</h2></hgroup><article  id="what-is-a-linear-model-lm" class="smaller ">
+<pre class = 'prettyprint lang-r'>levels(chickwts$feed)</pre>
 
-<h3>What is a statistical model?</h3>
-
-<h3><strong><em>A statistical model represents, often in considerably idealized form, the data-generating process.</em></strong> <a href='https://en.wikipedia.org/wiki/Statistical_model' title=''>(wikipedia)</a></h3>
+<pre >## [1] &quot;casein&quot;    &quot;horsebean&quot; &quot;linseed&quot;   &quot;meatmeal&quot;  &quot;soybean&quot;   &quot;sunflower&quot;</pre>
 
 <p><br></p>
 
-<h3>What is a linear model?</h3>
+<h3>Goal: compare the effectiveness of various feed supplements on the weights of six weeks old chickens.</h3>
 
-<h3><strong><em>The data-generating process is assumed to be a linear function: it is constructed from a set of terms by multiplying each term by a constant (a model parameter) and adding the results .</em></strong></h3>
+</article></slide><slide class=''><hgroup><h2>Dataset: InsectSprays (difficulty = 2/5)</h2></hgroup><article  id="dataset-insectsprays-difficulty-25" class="smaller ">
 
-</article></slide><slide class=''><hgroup><h2>Mathematical notation of LM: simple notation</h2></hgroup><article  id="mathematical-notation-of-lm-simple-notation" class="smaller ">
+<pre class = 'prettyprint lang-r'>head(InsectSprays)</pre>
 
-<center>
+<pre >##   count spray
+## 1    10     A
+## 2     7     A
+## 3    20     A
+## 4    14     A
+## 5    14     A
+## 6    12     A</pre>
 
-<font size="5"> \(y_i = \beta_0 + \beta_1 \times x_{1,i} + \beta_2 \times x_{2,i} + \dots + \beta_{p} \times x_{p,i} + \epsilon_i\) </font>
+<pre class = 'prettyprint lang-r'>levels(InsectSprays$spray)</pre>
 
-</center>
-
-<p><br></p>
-
-<ul>
-<li>\(y_i\) = the observations to explain / explanatory variable / dependent variable</li>
-<li>\(x_{j,i}\) = constants derived from the predictors / explanatory variables / independent variables</li>
-<li>\(\beta_j\) = the regression coefficients / model parameters</li>
-<li>\(\epsilon_i\) = the errors / residual errors</li>
-</ul>
-
-</article></slide><slide class=''><hgroup><h2>Mathematical notation of LM: matrix notation</h2></hgroup><article  id="mathematical-notation-of-lm-matrix-notation" class="smaller ">
-
-<center>
-
-<font size = 8> \(Y = X \beta + \epsilon\) </font>
-
-</center>
-
-<p>\[
-\begin{bmatrix} y_1 \\ y_2 \\ y_3 \\ \dots \\ y_n \end{bmatrix} =
-\begin{bmatrix}
-1 &amp; x_{1,1} &amp; x_{2,1} &amp; \dots &amp; x_{p,1} \\
-1 &amp; x_{1,2} &amp; x_{2,2} &amp; \dots &amp; x_{p,2} \\
-1 &amp; x_{1,3} &amp; x_{2,3} &amp; \dots &amp; x_{p,3} \\
-\dots &amp; \dots &amp; \dots &amp; \dots &amp; \dots \\
-1 &amp; x_{1,n} &amp; x_{2,n} &amp; \dots &amp; x_{p,n}
-\end{bmatrix}
-\begin{bmatrix}
-\beta_0 \\ \beta_1 \\ \beta_2 \\ \beta_3 \\ \dots \\ \beta_n
-\end{bmatrix} +
-\begin{bmatrix}
-\epsilon_1 \\ \epsilon_2 \\ \epsilon_3 \\ \dots \\ \epsilon_n
-\end{bmatrix}
-\]</p>
+<pre >## [1] &quot;A&quot; &quot;B&quot; &quot;C&quot; &quot;D&quot; &quot;E&quot; &quot;F&quot;</pre>
 
 <p><br></p>
 
-<ul>
-<li>\(Y\) = a vector of observations</li>
-<li>\(X\) = an matrix called the design (or model) matrix</li>
-<li>\(\beta\) = a vector of model parameters</li>
-<li>\(\epsilon\) = a vector of errors</li>
-</ul>
+<h3>Goal: compare the effectiveness of various insecticides on the number of insects in agricultural experimental units. Is the spray C of any use?</h3>
 
-</article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>The response</h2></hgroup><article  id="the-response" class="smaller ">
+</article></slide><slide class=''><hgroup><h2>Dataset: swiss (difficulty = 1/5)</h2></hgroup><article  id="dataset-swiss-difficulty-15" class="smaller ">
 
-</article></slide><slide class=''><hgroup><h2>What kind of responses LM can handle?</h2></hgroup><article  id="what-kind-of-responses-lm-can-handle" class="smaller ">
+<pre class = 'prettyprint lang-r'>head(swiss)</pre>
 
-<ul>
-<li>one dimension: \(n \times 1\)</li>
-<li>continuous</li>
-<li>no other restriction</li>
-</ul>
-
-</article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>The design matrix</h2></hgroup><article  id="the-design-matrix" class="smaller ">
-
-</article></slide><slide class=''><hgroup><h2>The design matrix</h2></hgroup><article  id="the-design-matrix-1" class="smaller ">
-
-<h3>It is the representation of the predictors!</h3>
+<pre >##              Fertility Agriculture Examination Education Catholic Infant.Mortality
+## Courtelary        80.2        17.0          15        12     9.96             22.2
+## Delemont          83.1        45.1           6         9    84.84             22.2
+## Franches-Mnt      92.5        39.7           5         5    93.40             20.2
+## Moutier           85.8        36.5          12         7    33.77             20.3
+## Neuveville        76.9        43.5          17        15     5.16             20.6
+## Porrentruy        76.1        35.3           9         7    90.57             26.6</pre>
 
 <p><br></p>
 
-<ul>
-<li>multi-dimensional: \(n \times p\) with \(n &gt; p\)</li>
-<li>deduced from the predictors</li>
-<li>known and measured without error</li>
-<li>columns should be linearly independent</li>
-</ul>
+<h3>Goal: plot the influence of potential determinant of fertility variation between Swiss provinces.</h3>
 
-</article></slide><slide class=''><hgroup><h2>How to compute the design (or model) matrix?</h2></hgroup><article  id="how-to-compute-the-design-or-model-matrix" class="smaller ">
+</article></slide><slide class=''><hgroup><h2>Dataset: trees (difficulty = 3/5)</h2></hgroup><article  id="dataset-trees-difficulty-35" class="smaller ">
 
-<pre class = 'prettyprint lang-r'>somedata &lt;- data.frame(x1 = 1:6)
-(mm &lt;- model.matrix(object = ~ x1, data = somedata))</pre>
+<pre class = 'prettyprint lang-r'>head(trees)</pre>
 
-<pre >##   (Intercept) x1
-## 1           1  1
-## 2           1  2
-## 3           1  3
-## 4           1  4
-## 5           1  5
-## 6           1  6
-## attr(,&quot;assign&quot;)
-## [1] 0 1</pre>
+<pre >##   Girth Height Volume
+## 1   8.3     70   10.3
+## 2   8.6     65   10.3
+## 3   8.8     63   10.2
+## 4  10.5     72   16.4
+## 5  10.7     81   18.8
+## 6  10.8     83   19.7</pre>
 
 <p><br></p>
 
-<p>The term <code>~ x1</code> is an object of class formula.</p>
+<h3>Goal: compare the approximation of the volume of wood given by \(\text{Volume} = c*\text{Height}*\text{Girth}^2\) (with c to be estimated) to the usual consideration that a tree trunk is a cylinder.</h3>
 
-</article></slide><slide class=''><hgroup><h2>Ploting the design matrix</h2></hgroup><article  id="ploting-the-design-matrix" class="smaller ">
+</article></slide><slide class=''><hgroup><h2>Dataset: stackloss (difficulty = 2/5)</h2></hgroup><article  id="dataset-stackloss-difficulty-25" class="smaller ">
 
-<pre class = 'prettyprint lang-r'>matplot(mm)</pre>
+<pre class = 'prettyprint lang-r'>head(stackloss)</pre>
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA8AAAAPACAIAAAB1tIfMAAAACXBIWXMAAB2HAAAdhwGP5fFlAAAgAElEQVR4nOzdd3xV9d3A8W8IYNgIgigiYFEE9yoo7lpH0TooWsRRtGrVWrEuqD7O+rhaR1utKII4qgUFsT6OonVRqqCCuAEJisgeyhKynj8IFjGgv2vIvSTv9x96cu855vvKEfLJub97kldWVhYAAMB3UyvbAwAAwMZEQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACQQ0AAAkENAAAJBAQAMAQAIBDQAACWpnewAq3yeffDJgwICSkpJsDwIAVH8NGjS48MIL69evn+1Bqo6ArobuuOOOm266KdtTAAA1RceOHY8//vhsT1F1BHQ1VFRUFBFHHnnkvvvum+1ZAIDq7O9///v48eNXrlyZ7UGqlICutg4++OALLrgg21MAANXZO++8M378+GxPUdW8iRAAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEfpEKAEDNMP+DGPd+fDYrVtSNlu2iS9fYqkG2Z9ooCWgAgOqtNN66P86/Ml76ZO1nuvSJW26KfTbLxlQbMUs4AACqsaJ4sFfs2qeCeo6I1wZHt05x96Qqn2rjJqABAKqvcVfEyUPLt/c+O54cH/MWx6fvxohbY5eCiIiYF2cdFqO/yN6IGx9LONKUfTlz4r//83bhrM9LG7Zss/1e++7RrlF+tocCAKhIyfS48Oby7V5DY0jPqLPqg87RunMc+fM4t0vc/UnEtDjvnhh74epn+RauQK+tdMmU5wdfe1b3/XqPmFu25uOL3hx03gFb1Nty10N6nHzGub8+69Tjf9KlfeMmO57wv09N+7Jsnf89AIAsmTUqXimJiCg4PG7rsXYf124VNw6M5hERMWFQFBZV+XwbKwG9ppL5L1/z47bbHnLaFXc/NXrqktKvsrjo44d/sesep//l5dlrH7L03aGXdd9+/989P6+kamcFAPgWU14s3+h2WrSoqPqadon960dERGEULq+qsTZ6lnB8pWzpm7//0YFXvVVezXl1a+flrdpc/tb//vTEBz4u32+L3X7UdedO2zRdVvj2G2P+9dasiFgx7oYjf7blW8+et90m2ZgcAKAic6aVb+zUPvIq3KN2NG8QsSxiRSx3MfC7EtCrFU3+6+nl9dxov4vv+uMFx+3ZMi8iomTGsIuunxgREW1+dsuDf/71/q2+egGkaOYLt/zqpH5PfBZfvtSv7/Cf/aPXFlZEAwA5oSx26x+D+kTUji4dK96leGaMnRsREa1iy4IqnG3jJqDLrfjg/r9OiIios98dbz53Toe6q58onf3c3c+viIi8Pf846qELOtZd86g6Wxx06bCXG/+48zkvr1z29M2PTe/563a+pABALsiLDkdEh/XsUBovXB+rrhK2ODw61auasaoBtbdK2aK3XpgaEdH67D/8osOakbx8ygvvl0XEJof1P3W7uhUcWvcHp/xvn6v3HTA7Jg4ft+jcdptV/ApJBjOVlS1atCiDA7/88stKGgEAqK7KYvxtccy9ERGRH5f3j0ZZHmgjIqBXKVkyZ9XtD9vtvc3Xf/wqWTzri4iIrfbctuE60rhB50M71xowu7Rk1tQFxbFZZd0B5pxzzrnrrrsyPnzUqFEXXHBBJc0CAFQjK2fEbefGpSPLPzzp4Th7fVeqWYuAXqVWg80aRkTE5599XhKbrfFlyW/cqnHEgiheUbzOe9WVlq66YUfxl0WVeD+7bbbZpnnz5qWlpakHLl68uLi4eNmyZZU3CwBQLZQuicdviL7XxfTVj/QeEgN7ugN0ErexW6XWprv+aJuIiHce/Me0r90FsaD9fh3zIuLj0ePnr+PNqYvfeerdsoiIzTtU2uXniLj44ovnzZu3IN3OO+8cEU2bNq28WQCAjV1ZTBoa+7WJHqvruVHXGDopHjgl3EUskYAut8n2J5/ROSJi/KWn3jJ+yX8vJOdvccQ5P9okIv7zv396Y0kFF5hXfDDw0vvnRUTs/vNuzStrATQAQKUpnhM394iOJ8SYVW+vahP9Ho7po6Pntuu4vR3rI6BXq7vtmbf+couIWDmm3+67nnDDk5OWrFo7kb/l8Xfc2K1OxEc3Hd7juudnrnl9esWn//z9sQf89rWSiKj/k98e28aSGAAgxywaEwdvE5eMiIiIenH6HTFzSlz/82ji5rsZEnxfqdXsx3949PLxB/7+jaL4aFj/o4b137TTQYd022mbrbbccvPjz9t34i2jF/7zfw5pM3CfIw/ca6d29RZMfmvsC0+/PnPV0Y2733Hn8Vv6/xAAyClLJ8RhB8TY4oiI9j3jgTuiW4tsz7TRE9BryGuyzzUvvt76zJ7nPTypOCIWvv/CsPdfWGunko/HjBwyZuTXjutw8n1PDTilreX3AEBOWRpX9Siv5/2ujZG/i02tPqgEvohfl9dw51/97b3Zbzx4+Yn7tvv2FfUNOx56zh0vf/be/ads697jAECOmfFY3D41IqJZr3hUPVcaV6ArkN9s997XPtT72iGfT5v45lvvvvveh9NmLVy8ZMnSZStjkwYNGjRs0rLt9jvsuPOeXXdr18iqDQAgJ5XEswNi1Zu3zr88WqrnSiOg16N2k3a7H9Ru94OOzvYgAADJlsVTE8s3h/SOJ9Z70a9u+xj8UHSs6Jcu8w0CGgCgOiqaHR8uKd+eOuHb9p4dS9bxCy/4BhfzAQCqo+KFsSDbM1RTrkADAFRH9faKGRX8Cji+P1egAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAggYAGAIAEAhoAABIIaAAASCCgAQAgQe1sDwAAVFPzP4hx78dns2JF3WjZLrp0ja0aZHsmqAQCGgCoXKXx1v1x/pXx0idrP9OlT9xyU+yzWTamgkpjCQcAUImK4sFesWufCuo5Il4bHN06xd2TqnwqqEyuQKcoXT7z7TGvvvvxrAUrC5q32rrTXnvv3Lq+n0EA4CvjroiTh5Zv7312XHZmdO0QX34S4/4ZV/WPt76MmBdnHRad34p9G2d1UMicgF5lxcwJ4yZ9XhL5zXbae6dm+d94vmjWi3deduk1g8Yu+PrjjXY6/pJrf3/BT7dtkFdFkwJAziqZHhfeXL7da2gM6Rl1Vn3QOVp3jiN/Hud2ibs/iZgW590TYy9c/SxsZFw+jYiI4lnD++x34IEHHrjfb15ZsvaTZV+Mu/Hw7Q/q+416jojFbw/9n2M67nHGI4UrqmRQAMhhs0bFKyUREQWHx2091u7j2q3ixoHRPCIiJgyKwqIqnw8qhyvQ36Z4xtDTDuv3r8/LP2zc4YdddtmhU/vGSz9+/53xY16bsiSi7MN7e/2oYLNxfzqkuR9IAKjBprxYvtHttGhR0ffEpl1i//oxYllEYRQuj+1cgmajJKDXr+yL0Vef/9jCiIjY4ogr7/7Lpd23qffVao2yJR8+du2ZZ9z08qIovKPPNb3fv33vhlkbFQCybc608o2d2kfFaxtrR/MGEcsiVsTykiqbCyqXK6br9/m///y32RERDQ67d8zIq45co54jIq9hx5/d+PSL1+wUEfHpgKufnVeWlSkBIAeUxW79Y9CgGHR/nNGx4l2KZ8bYuRER0Sq2LKjC2aAyCej1Wj756VeXRkRs0/em3u0qfp2p/s6/vv64hhGx4t8Pv7m4KqcDgFySFx2OiD59os/J0blRRTuUxgvXx8SIiGhxeHSqV6XTQeWxhGO9iuYVzo+I2OygIzpssq6d8prscfSOMfzVWDLlwwXFhzaurK/psGHD7r777gwOnDx5ckQsXbq0kgYBgO+vLMbfFsfcGxER+XF5/6iwsWFjIKDXLy8vLyKi8eaNvnlru6/Uqr/ZpnUiimLJ3CUllfc1HTZs2HPPPZfx4YsWLaqkQQDg+1k5I247Ny4dWf7hSQ/H2R2yOhB8LwJ6vTbZatfW8Y+PYuH0BUUR67oGXbL4s7lFERENWzRcT2enGjhw4JlnnpnBgeecc87kyZNbt25debMAQEZKl8TjN0Tf62L66kd6D4mBPd0Bmo2agF6vTX5w9DFbX/vHTxaOemT84gP3q/jFppJZzz/0VkTEZrvv2qISv6CNGzc+5JBDMjiwUSOvigGQdWUxaVj0OSvGrH5FtFHXuPf++Nm267hBB2w0vIlwLa/0PfyInqedf/mNdz7w+PNj35/f9ldX/rhexKwBv7x29KLSb+5ftuz9gWf/5sWiiGh6aO9dGlT5wACQe4rnxM09ouMJq+u5TfR7OKaPjp7qmerAFei1lEx79Zlprz7zzScm3XzIMVu/M+rXHb560al4wTtPDfrD5b8b8nZRRMQOv+3frXHVDQoAOWrRmPjpofHKqvey14vT/xC//2W0qpvlqaDyCOiIiKjVZI9Tz+211buTJk+ePHnGFxVcaY6IFe9OmL0yVgd06cwHf7JTn9fKn8vf/YrBF+zghpYA1HRLJ8RhB8TY4oiI9j3jgTuiW4tszwSVTEBHREStpl37/qVr31UflH45f/pHkydPmjx51T8mTZo8efLkmYvX/iUpZasf2OLw64Y+1G+vhl6UAqCGWxpX9Siv5/2ujZG/i00tFqUaEtDfVKugedsdmrfdoevX3sBXsmz+nKUN6v/3gdrNdvzxsXvud1TPU3sdsHWBeAaAGY/F7VMjIpr1ikfVM9WWgP6u8us332KNfI5aLY6+959HZ20cAMg1JfHsgCiKiIjzL4+W6plqS0ADAJViWTw1sXxzSO94Yr2/GqFu+xj8UHT0zkI2SgIaAKgMRbPjwyXl21MnfNves2NJyQYeCDYUL68AAJWheGEsyPYMUCVcgQYAKkO9vWLG2nesgmrJFWgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAASCGgAAEggoAEAIIGABgCABAIaAAAS1M72AABQSeZ/EOPej89mxYq60bJddOkaWzXI9kxANSSgAdjYlcZb98f5V8ZLn6z9TJc+cctNsc9m2ZgKqLYs4QBgo1YUD/aKXftUUM8R8drg6NYp7p5U5VMB1ZmABmBjNu6KOHlo+fbe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AABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEtTO9gDktvkfxLj3Y0bhZ6+/O6XONludc/422zfM9kxElH7+9pMjX/+8WZdjundulJftaXBGcozTkWuckVzjjHxvApoKlcZb98f5V8ZLn6z6eMuILSPiz5dHlz5xy02xz2ZZHa+mK539j/OOO/Wlkh1unnxY50Z1sj0OzkhucTpyjTOSa5yR788SDr6pKB7sFbv2+aqev+a1wdGtU9w9qcqn4itFhUNvfakk21PwX85ITnE6co0zkmuckUogoPmGcVfEyUPLt/c+u+jOS0+qF00j9o1W72xfEBER8+Ksw2L0F9kbsSYrW/7egF/97s1sj8FXnJGc4nTkGmck1zgjlcMSDr6uZHpcePOqzaL9z/7TFmOvO+eNhRER8e9o/szjY3e8Zd+4+5OIaXHePTH2wvDKT9UoW7no00nvTBg76uE7//xw+Rkhm5yRnOJ05BpnJNc4I5VNQPN1s0bFK+Wv6/R++a/D1no2v1XcODAeOzTmR0wYFIW/ie0U9IZXMmPw/m1OG1OW7TlYzRnJKU5HrnFGco0zsgFYwsHXTXlx1b+LI16ocIemXWL/+hERURiFy6toqpqurGiF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AABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACCBgAYAgAQCGgAAEghoAABIIKABACDB/wNo4B1km0moNAAAAABJRU5ErkJggg==" width="480" style="display: block; margin: auto;" /></p>
-
-</article></slide><slide class=''><hgroup><h2>A design matrix without intercept</h2></hgroup><article  id="a-design-matrix-without-intercept" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>model.matrix(object = ~ 0 + x1, data = somedata)</pre>
-
-<pre >##   x1
-## 1  1
-## 2  2
-## 3  3
-## 4  4
-## 5  5
-## 6  6
-## attr(,&quot;assign&quot;)
-## [1] 1</pre>
-
-<pre class = 'prettyprint lang-r'>model.matrix(object = ~ -1 + x1, data = somedata)</pre>
-
-<pre >##   x1
-## 1  1
-## 2  2
-## 3  3
-## 4  4
-## 5  5
-## 6  6
-## attr(,&quot;assign&quot;)
-## [1] 1</pre>
-
-</article></slide><slide class=''><hgroup><h2>A design matrix with functions</h2></hgroup><article  id="a-design-matrix-with-functions" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>model.matrix(object = ~ log(x1) + poly(x1, 2, raw = TRUE), data = somedata)</pre>
-
-<pre >##   (Intercept)   log(x1) poly(x1, 2, raw = TRUE)1 poly(x1, 2, raw = TRUE)2
-## 1           1 0.0000000                        1                        1
-## 2           1 0.6931472                        2                        4
-## 3           1 1.0986123                        3                        9
-## 4           1 1.3862944                        4                       16
-## 5           1 1.6094379                        5                       25
-## 6           1 1.7917595                        6                       36
-## attr(,&quot;assign&quot;)
-## [1] 0 1 2 2</pre>
-
-</article></slide><slide class=''><hgroup><h2>An alternative parametrization for polynomials</h2></hgroup><article  id="an-alternative-parametrization-for-polynomials" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>model.matrix(object = ~ log(x1) + poly(x1, 2), data = somedata)</pre>
-
-<pre >##   (Intercept)   log(x1) poly(x1, 2)1 poly(x1, 2)2
-## 1           1 0.0000000   -0.5976143    0.5455447
-## 2           1 0.6931472   -0.3585686   -0.1091089
-## 3           1 1.0986123   -0.1195229   -0.4364358
-## 4           1 1.3862944    0.1195229   -0.4364358
-## 5           1 1.6094379    0.3585686   -0.1091089
-## 6           1 1.7917595    0.5976143    0.5455447
-## attr(,&quot;assign&quot;)
-## [1] 0 1 2 2</pre>
+<pre >##   Air.Flow Water.Temp Acid.Conc. stack.loss
+## 1       80         27         89         42
+## 2       80         27         88         37
+## 3       75         25         90         37
+## 4       62         24         87         28
+## 5       62         22         87         18
+## 6       62         23         87         18</pre>
 
 <p><br></p>
 
-<p>Looking at the design matrix shows whether some transformation are happening behind the scene. This is important as when it happens model parameters should be interpreted accordingly.</p>
-
-</article></slide><slide class=''><hgroup><h2>A design matrix with a factor</h2></hgroup><article  id="a-design-matrix-with-a-factor" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>somedata$x2 &lt;- c(10, 11, 12, 13, 14, 15)
-somedata$x3 &lt;- factor(c(&quot;b&quot;, &quot;b&quot;, &quot;a&quot;, &quot;a&quot;, &quot;c&quot;, &quot;c&quot;))
-(MA &lt;- model.matrix(object = ~ x1 + x2 + x3, data = somedata))</pre>
-
-<pre >##   (Intercept) x1 x2 x3b x3c
-## 1           1  1 10   1   0
-## 2           1  2 11   1   0
-## 3           1  3 12   0   0
-## 4           1  4 13   0   0
-## 5           1  5 14   0   1
-## 6           1  6 15   0   1
-## attr(,&quot;assign&quot;)
-## [1] 0 1 2 3 3
-## attr(,&quot;contrasts&quot;)
-## attr(,&quot;contrasts&quot;)$x3
-## [1] &quot;contr.treatment&quot;</pre>
-
-<p><br></p>
-
-<p>This traditional parameterization of <code>x3</code> is called the &quot;treatement contrast&quot;. It is the easiest one to interpret.</p>
-
-</article></slide><slide class=''><hgroup><h2>An alternative parametrization for the factor</h2></hgroup><article  id="an-alternative-parametrization-for-the-factor" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>(MB &lt;- model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = &quot;contr.helmert&quot;)))</pre>
-
-<pre >##   (Intercept) x1 x2 x31 x32
-## 1           1  1 10   1  -1
-## 2           1  2 11   1  -1
-## 3           1  3 12  -1  -1
-## 4           1  4 13  -1  -1
-## 5           1  5 14   0   2
-## 6           1  6 15   0   2
-## attr(,&quot;assign&quot;)
-## [1] 0 1 2 3 3
-## attr(,&quot;contrasts&quot;)
-## attr(,&quot;contrasts&quot;)$x3
-## [1] &quot;contr.helmert&quot;</pre>
-
-<p><br></p>
-
-<p>Alternative parameterizations can ease convergence in GLM(M) (for continuous variable) or can allow for testing specific hypotheses (for qualitative variables).</p>
-
-</article></slide><slide class=''><hgroup><h2>A design matrix with interactions</h2></hgroup><article  id="a-design-matrix-with-interactions" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>model.matrix(object = ~ x1 * x2 + x1 * x3, data = somedata)</pre>
-
-<pre >##   (Intercept) x1 x2 x3b x3c x1:x2 x1:x3b x1:x3c
-## 1           1  1 10   1   0    10      1      0
-## 2           1  2 11   1   0    22      2      0
-## 3           1  3 12   0   0    36      0      0
-## 4           1  4 13   0   0    52      0      0
-## 5           1  5 14   0   1    70      0      5
-## 6           1  6 15   0   1    90      0      6
-## attr(,&quot;assign&quot;)
-## [1] 0 1 2 3 3 4 5 5
-## attr(,&quot;contrasts&quot;)
-## attr(,&quot;contrasts&quot;)$x3
-## [1] &quot;contr.treatment&quot;</pre>
-
-<p><br></p>
-
-<p>Interactions allow to consider that the effect of one predictor depends on the value take by other(s). If interaction are not considered, then effects are assumed to be independent.</p>
-
-</article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>The model parameters</h2></hgroup><article  id="the-model-parameters" class="smaller ">
-
-</article></slide><slide class=''><hgroup><h2>Model parameters:</h2></hgroup><article  id="model-parameters" class="smaller ">
-
-<ul>
-<li>one dimension: \(p \times 1\) vector</li>
-<li>fixed non-observable quantities</li>
-</ul>
-
-<p><br></p>
-
-<h3>They are used to convert each column from the design matrix into units of the response variable.</h3>
-
-<p><br></p>
-
-<h3>The meaning of the parameters always depends on the model matrix!!!</h3>
-
-</article></slide><slide class=''><hgroup><h2>Alternative parameterizations of equivalent design matrices</h2></hgroup><article  id="alternative-parameterizations-of-equivalent-design-matrices" class="smaller ">
-
-<p>Alternative parameterization of equivalent design matrices lead to the same predictions!</p>
-
-<p>This function converts parameters between equivalent design matrices:</p>
-
-<pre class = 'prettyprint lang-r'>conv_betaXA_to_betaXB &lt;- function(XA, XB, betaXA) {
-  ## Test that inputs are OK:
-  if (!any(dim(XA) == dim(XB)))   stop(&quot;design matrices differ in size&quot;)
-  if (ncol(XA) != length(betaXA)) stop(&quot;betaXA of wrong length&quot;)
-  ## Identify parameters that need to be converted
-  id_col_keep &lt;- which(apply(XA != XB, 2, sum) != 0) ## index columns to keep
-  if (all(XA[, 1] == 1)) id_col_keep &lt;- c(1, id_col_keep) ## add intercept
-  id_col_drop &lt;- setdiff(1:ncol(XA), id_col_keep) ## index columns to discard
-  ## Conversion per se:
-  betaXB_temp &lt;- solve(coef(lm.fit(XA[, id_col_keep], XB[, id_col_keep])), betaXA[id_col_keep])
-  ## Put back non converted parameters into output
-  betaXB &lt;- numeric(length(betaXA))
-  betaXB[id_col_keep] &lt;- betaXB_temp
-  betaXB[id_col_drop] &lt;- betaXA[id_col_drop]
-  ## Output
-  return(betaXB)
-}
-## homemade: this function may break in some legitimate cases...</pre>
-
-</article></slide><slide class=''><hgroup><h2>The case of polynomials: raw</h2></hgroup><article  id="the-case-of-polynomials-raw" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>(M2a &lt;- model.matrix(object = ~ poly(x1, 2, raw = TRUE), data = somedata))</pre>
-
-<pre >##   (Intercept) poly(x1, 2, raw = TRUE)1 poly(x1, 2, raw = TRUE)2
-## 1           1                        1                        1
-## 2           1                        2                        4
-## 3           1                        3                        9
-## 4           1                        4                       16
-## 5           1                        5                       25
-## 6           1                        6                       36
-## attr(,&quot;assign&quot;)
-## [1] 0 1 1</pre>
-
-<pre class = 'prettyprint lang-r'>M2a %*% c(1, 2, -2)  ## predictions using matrix multiplication</pre>
-
-<pre >##   [,1]
-## 1    1
-## 2   -3
-## 3  -11
-## 4  -23
-## 5  -39
-## 6  -59</pre>
-
-</article></slide><slide class=''><hgroup><h2>The case of polynomials: orthogonal</h2></hgroup><article  id="the-case-of-polynomials-orthogonal" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>(M2b &lt;- model.matrix(object = ~ poly(x1, 2), data = somedata))</pre>
-
-<pre >##   (Intercept) poly(x1, 2)1 poly(x1, 2)2
-## 1           1   -0.5976143    0.5455447
-## 2           1   -0.3585686   -0.1091089
-## 3           1   -0.1195229   -0.4364358
-## 4           1    0.1195229   -0.4364358
-## 5           1    0.3585686   -0.1091089
-## 6           1    0.5976143    0.5455447
-## attr(,&quot;assign&quot;)
-## [1] 0 1 1</pre>
-
-<pre class = 'prettyprint lang-r'>round(M2b %*% c(-22.33333, -50.19960, -12.22020), 3)  ## predictions</pre>
-
-<pre >##   [,1]
-## 1    1
-## 2   -3
-## 3  -11
-## 4  -23
-## 5  -39
-## 6  -59</pre>
-
-</article></slide><slide class=''><hgroup><h2>The case of polynomials: why making things more complex?</h2></hgroup><article  id="the-case-of-polynomials-why-making-things-more-complex" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>t(M2a) %*% M2a  ## high values mean that predictors are colinear -&gt; will be hard to fit</pre>
-
-<pre >##                          (Intercept) poly(x1, 2, raw = TRUE)1
-## (Intercept)                        6                       21
-## poly(x1, 2, raw = TRUE)1          21                       91
-## poly(x1, 2, raw = TRUE)2          91                      441
-##                          poly(x1, 2, raw = TRUE)2
-## (Intercept)                                    91
-## poly(x1, 2, raw = TRUE)1                      441
-## poly(x1, 2, raw = TRUE)2                     2275</pre>
-
-<pre class = 'prettyprint lang-r'>zapsmall(t(M2b) %*% M2b)  ## 0 means that predictors are orthogonal -&gt; will be easy to fit</pre>
-
-<pre >##              (Intercept) poly(x1, 2)1 poly(x1, 2)2
-## (Intercept)            6            0            0
-## poly(x1, 2)1           0            1            0
-## poly(x1, 2)2           0            0            1</pre>
-
-</article></slide><slide class=''><hgroup><h2>The case of polynomials: conversion</h2></hgroup><article  id="the-case-of-polynomials-conversion" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>p1 &lt;- model.matrix(~ poly(somedata$x1, 2, raw = TRUE))
-p2 &lt;- model.matrix(~ poly(somedata$x1, 2))
-conv_betaXA_to_betaXB(XA = p1, XB = p2, betaXA = c(1, 2, -2))</pre>
-
-<pre >## [1] -22.33333 -50.19960 -12.22020</pre>
-
-</article></slide><slide class=''><hgroup><h2>The case of contrasts: treatment vs Helmert</h2></hgroup><article  id="the-case-of-contrasts-treatment-vs-helmert" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>BetaA &lt;- matrix(c(50, 1.5, 20, 2, 3))
-(BetaB &lt;- conv_betaXA_to_betaXB(XA = MA, XB = MB, betaXA = BetaA))</pre>
-
-<pre >## [1] 51.6666667  1.5000000 20.0000000  1.0000000  0.6666667</pre>
-
-<div class="columns-2">
-<pre class = 'prettyprint lang-r'>MA %*% BetaA ## predictions</pre>
-
-<pre >##    [,1]
-## 1 253.5
-## 2 275.0
-## 3 294.5
-## 4 316.0
-## 5 340.5
-## 6 362.0</pre>
-
-<p><br></p>
-
-<pre class = 'prettyprint lang-r'>MB %*% BetaB ## predictions</pre>
-
-<pre >##    [,1]
-## 1 253.5
-## 2 275.0
-## 3 294.5
-## 4 316.0
-## 5 340.5
-## 6 362.0</pre></div>
-
-</article></slide><slide class=''><hgroup><h2>Practice</h2></hgroup><article  id="practice" class="smaller ">
-
-<p>Explore the differences in the design matrix stemming from coding the gender as:</p>
-
-<ul>
-<li><code>&quot;boy&quot;</code> vs <code>&quot;girl&quot;</code></li>
-<li><code>&quot;male&quot;</code> vs <code>&quot;female&quot;</code></li>
-<li><code>0</code> vs <code>1</code></li>
-<li><code>1</code> vs <code>2</code></li>
-<li><code>TRUE</code> vs <code>FALSE</code></li>
-</ul>
-
-<p>Are these different representations equivalent?</p>
-
-<p>Create all corresponding design matrices to explore the differences!</p>
-
-<p><br></p>
-
-<p>Same question with:</p>
-
-<ul>
-<li><code>baby</code> vs <code>child</code> vs <code>adult</code></li>
-<li><code>0</code> vs <code>1</code> vs <code>2</code></li>
-<li><code>1</code> vs <code>2</code> vs <code>3</code></li>
-</ul>
-
-</article></slide><slide class=''><hgroup><h2>Understanding factorial design through the design matrix</h2></hgroup><article  id="understanding-factorial-design-through-the-design-matrix" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>data(poison, package = &quot;fastR&quot;)  ##  ?fastR::poison for description
-poison$treat &lt;- factor(poison$Treatment)
-poison$poison &lt;- factor(poison$Poison)
-X &lt;- model.matrix( ~ poison + treat, data = poison)
-head(X)</pre>
-
-<pre >##   (Intercept) poison2 poison3 treat2 treat3 treat4
-## 1           1       0       0      0      0      0
-## 2           1       0       0      0      0      0
-## 3           1       0       0      0      0      0
-## 4           1       0       0      0      0      0
-## 5           1       0       0      1      0      0
-## 6           1       0       0      1      0      0</pre>
-
-</article></slide><slide class=''><hgroup><h2>Understanding factorial design through the design matrix</h2></hgroup><article  id="understanding-factorial-design-through-the-design-matrix-1" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>crossprod(X)  ## compute t(X) %*% X, i.e. x_ij = sum(X[, i]*X[, j])</pre>
-
-<pre >##             (Intercept) poison2 poison3 treat2 treat3 treat4
-## (Intercept)          48      16      16     12     12     12
-## poison2              16      16       0      4      4      4
-## poison3              16       0      16      4      4      4
-## treat2               12       4       4     12      0      0
-## treat3               12       4       4      0     12      0
-## treat4               12       4       4      0      0     12</pre>
-
-<pre class = 'prettyprint lang-r'>with(poison, table(treat, poison))</pre>
-
-<pre >##      poison
-## treat 1 2 3
-##     1 4 4 4
-##     2 4 4 4
-##     3 4 4 4
-##     4 4 4 4</pre>
-
-</article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>The errors</h2></hgroup><article  id="the-errors" class="smaller ">
-
-</article></slide><slide class=''><hgroup><h2>The errors</h2></hgroup><article  id="the-errors-1" class="smaller ">
-
-<ul>
-<li>one dimension: \(n \times 1\) vector</li>
-<li>equal observation - model approximation (\(Y - X\beta\))</li>
-<li>random variable</li>
-<li>we assume it Gaussian (normally distributed), independent (no autocorrelation) and identically distributed (homoscedasticity)</li>
-</ul>
-
-<center>
-
-<font size="8"> \(\epsilon \sim \mathcal{N}(0, \sigma^2 I)\)</font>
-
-</center>
-
-<p><br></p>
-
-<p>With the covariance matrix \(\sigma^2 I\) being the following \(n \times n\) matrix:</p>
-
-<p>\[
-\begin{bmatrix}
-\sigma^2 &amp; 0 &amp; \dots &amp; 0 \\
-0 &amp; \sigma^2 &amp; \dots &amp; 0 \\
-\vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
-0 &amp; 0 &amp; \dots &amp; \sigma^2 \\
-\end{bmatrix}
-\]</p>
-
-</article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>Illustration with the Alien dataset</h2></hgroup><article  id="illustration-with-the-alien-dataset" class="smaller ">
-
-</article></slide><slide class=''><hgroup><h2>Imagine an ideal (unrealistic) situation</h2></hgroup><article  id="imagine-an-ideal-unrealistic-situation" class="smaller ">
-
-<p>We know that the process generating the height of aliens can be approximated by the following linear model:</p>
-
-<ul>
-<li>\(\texttt{height}_i = 50 + 1.5 \times \texttt{humans_eaten}_{i} + \epsilon_i\)</li>
-<li>\(\epsilon_i \sim \mathcal{N}(0, \sigma^2 = 25)\)</li>
-</ul>
-
-<p><br></p>
-
-<p>We can thus generate the data corresponding to 6 aliens that have eaten between 1 and 6 humans.</p>
-
-<pre class = 'prettyprint lang-r'>set.seed(123L)
-Alien &lt;- data.frame(humans_eaten = sample(1:6))
-Alien$error &lt;- rnorm(n = 6, mean = 0, sd = sqrt(25))
-Alien$size &lt;- 50 + 1.5*Alien$humans_eaten + Alien$error</pre>
-
-<p>We could also write the last 2 lines as the following line, but we want to keep the error distinct here.</p>
-
-<pre class = 'prettyprint lang-r'>Alien$size &lt;- rnorm(n = 6, mean = 50 + 1.5*Alien$humans_eaten, sd = sqrt(25))</pre>
-
-</article></slide><slide class=''><hgroup><h2>Why simulating Aliens?</h2></hgroup><article  id="why-simulating-aliens" class="smaller ">
-
-<ul>
-<li>it clarifies the meaning of the model parameters</li>
-<li>it allows for the study of the power and robustness of LM</li>
-</ul>
-
-</article></slide><slide class=''><hgroup><h2>Computing the response with both notations</h2></hgroup><article  id="computing-the-response-with-both-notations" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>Alien</pre>
-
-<pre >##   humans_eaten      error     size
-## 1            2  0.3525420 53.35254
-## 2            4  0.6464387 56.64644
-## 3            6  8.5753249 67.57532
-## 4            3  2.3045810 56.80458
-## 5            5 -6.3253062 51.17469
-## 6            1 -3.4342643 48.06574</pre>
-
-<div class="columns-2">
-<h3>Simple notation</h3>
-
-<ul>
-<li>\(y_1 = 50 + 1.5 \times 2 + 0.352542\)</li>
-<li>\(y_2 = 50 + 1.5 \times 4 + 0.6464387\)</li>
-<li>\(y_3 = 50 + 1.5 \times 6 + 8.5753249\)</li>
-<li>\(y_4 = 50 + 1.5 \times 3 + 2.304581\)</li>
-<li>\(y_5 = 50 + 1.5 \times 5 + -6.3253062\)</li>
-<li>\(y_6 = 50 + 1.5 \times 1 + -3.4342643\)</li>
-</ul>
-
-<h3>Matrix notation</h3>
-
-<p>\[
-Y = \begin{bmatrix}
-1 &amp; 2 \\
-1 &amp; 4 \\
-1 &amp; 6 \\
-1 &amp; 3 \\
-1 &amp; 5 \\
-1 &amp; 1
-\end{bmatrix}
-\begin{bmatrix}
-50 \\
-1.5
-\end{bmatrix}
-+
-\begin{bmatrix}
-0.352542\\
-0.6464387\\
-8.5753249\\
-2.304581\\
--6.3253062\\
--3.4342643
-\end{bmatrix}
-\]</p></div>
-
-</article></slide><slide class=''><hgroup><h2>Practice</h2></hgroup><article  id="practice-1" class="smaller ">
-
-<p><br></p>
-
-<h3>Compute the response in R.</h3>
-
-<h3>Constraint: use a single line of code maximum for each notation.</h3>
-
-</article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>Summary</h2></hgroup><article  id="summary" class="smaller ">
-
-</article></slide><slide class=''><hgroup><h2>What you need to remember</h2></hgroup><article  id="what-you-need-to-remember" class="smaller ">
-
-<ul>
-<li>how to write a linear model (using two notations)</li>
-<li>what a response, a design matrix and model parameters are</li>
-<li>how to get the design matrix</li>
-<li>that the meaning of the parameter depends on the design matrix</li>
-<li>how to simulate the data for a linear model</li>
-</ul>
+<h3>Goal: find out if the acid concentration influences the loss of ammonia by the plants.</h3>
 
 </article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>Table of content</h2></hgroup><article  id="table-of-content" class="smaller ">
 

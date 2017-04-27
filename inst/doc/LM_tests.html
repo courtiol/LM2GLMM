@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2017-04-26" />
+  <meta name="date" content="2017-04-27" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,7 +94,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2017-04-26</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2017-04-27</p>
           </hgroup>
   </slide>
 
@@ -529,43 +529,45 @@ abline(v = stat.obs, lwd = 2, lty = 2, col = &quot;red&quot;)</pre>
 
 </article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>Comparing two non-nested models</h2></hgroup><article  id="comparing-two-non-nested-models" class="smaller ">
 
-</article></slide><slide class=''><hgroup><h2>We should not use F-test or LRT</h2></hgroup><article  id="we-should-not-use-f-test-or-lrt" class="smaller ">
+</article></slide><slide class=''><hgroup><h2>Comparing two non-nested models using deviance</h2></hgroup><article  id="comparing-two-non-nested-models-using-deviance" class="smaller ">
 
-<h3>You may use the deviance (smaller is better)</h3>
+<p>You may use the deviance (smaller is better) or (log)likelihood (bigger is better), but only if the number of df is the same</p>
 
-<pre class = 'prettyprint lang-r'>UK_for_both &lt;- na.omit(UK[, c(&quot;height&quot;, &quot;drink&quot;, &quot;sex&quot;, &quot;weight&quot;, &quot;milk&quot;)])
-mod_UK1 &lt;- lm(height ~ drink + sex*weight, data = UK_for_both)
+<pre class = 'prettyprint lang-r'>UK_for_both &lt;- na.omit(UK[, c(&quot;height&quot;, &quot;cigarettes&quot;, &quot;sex&quot;, &quot;weight&quot;, &quot;milk&quot;)])
+mod_UK1 &lt;- lm(height ~ cigarettes + sex*weight, data = UK_for_both)
 mod_UK5 &lt;- lm(height ~ milk + sex*weight, data = UK_for_both)
 
 deviance(mod_UK1)</pre>
 
-<pre >## [1] 208639.7</pre>
+<pre >## [1] 224921.9</pre>
 
 <pre class = 'prettyprint lang-r'>deviance(mod_UK5)</pre>
 
-<pre >## [1] 209110.6</pre>
+<pre >## [1] 227594.9</pre>
 
-</article></slide><slide class=''><hgroup><h2>We should not use F-test or LRT</h2></hgroup><article  id="we-should-not-use-f-test-or-lrt-1" class="smaller ">
+</article></slide><slide class=''><hgroup><h2>Comparing two non-nested models using AIC</h2></hgroup><article  id="comparing-two-non-nested-models-using-aic" class="smaller ">
 
-<h3>You may use the AIC (AIC = -2 * (logLik - K)) (smaller is better)</h3>
+<p>You may use the AIC (AIC = -2 * (logLik - K)) (smaller is better) even if df differ</p>
 
 <pre class = 'prettyprint lang-r'>AIC(mod_UK1)</pre>
 
-<pre >## [1] 55312.04</pre>
+<pre >## [1] 59740.2</pre>
 
 <pre class = 'prettyprint lang-r'>AIC(mod_UK5)</pre>
 
-<pre >## [1] 55329</pre>
+<pre >## [1] 59858.86</pre>
 
 <pre class = 'prettyprint lang-r'>exp((AIC(mod_UK5) - AIC(mod_UK1)) / 2) ## evidence ratio</pre>
 
-<pre >## [1] 4811.537</pre>
+<pre >## [1] 5.846609e+25</pre>
 
-<p>The model <code>mod_UK1</code> is <code>4811.5</code> times more likely to minimizes the (estimated) information loss than <code>mod_UK5</code>.</p>
+<p>The model <code>mod_UK1</code> is <code>5.8466088\times 10^{25}</code> times more likely to minimizes the (estimated) information loss than <code>mod_UK5</code>.</p>
 
-</article></slide><slide class=''><hgroup><h2>We should not use F-test or LRT</h2></hgroup><article  id="we-should-not-use-f-test-or-lrt-2" class="smaller ">
+</article></slide><slide class=''><hgroup><h2>Comparing two non-nested models using adjusted R-squared</h2></hgroup><article  id="comparing-two-non-nested-models-using-adjusted-r-squared" class="smaller ">
 
-<h3>You may use ajusted R-squared (higher is better)</h3>
+<p>You may use ajusted R-squared (higher is better) even if df differ</p>
+
+<p><br></p>
 
 <pre class = 'prettyprint lang-r'>summary(mod_UK1)$adj.r.squared</pre>
 
@@ -584,6 +586,27 @@ SSR &lt;- sum((residuals(mod_UK1) - mean(residuals(mod_UK1)))^2)
 <pre class = 'prettyprint lang-r'>summary(mod_UK5)$adj.r.squared</pre>
 
 <pre >## [1] 0.4226391</pre>
+
+</article></slide><slide class=''><hgroup><h2>Comparing two non-nested models using parametric bootstrap</h2></hgroup><article  id="comparing-two-non-nested-models-using-parametric-bootstrap" class="smaller ">
+
+<h3>This is the only general method to get a p-value</h3>
+
+<p>We consider one model as the null model of the other (we choose here the worse model)</p>
+
+<pre class = 'prettyprint lang-r'>set.seed(1L)
+(LRTobs &lt;- logLik(mod_UK1) - logLik(mod_UK5))</pre>
+
+<pre >## &#39;log Lik.&#39; 59.33049 (df=6)</pre>
+
+<pre class = 'prettyprint lang-r'>LRTH0 &lt;- replicate(1000, {
+                    UK_for_both$newY &lt;- simulate(mod_UK5)[, 1]
+                    logLik(update(mod_UK1, newY ~. ))[[1]] -
+                      logLik(update(mod_UK5, newY ~. ))[[1]]
+                    })
+c(summary(LRTH0), &quot;p-value&quot; = mean(LRTH0 &gt;= LRTobs))</pre>
+
+<pre >##      Min.   1st Qu.    Median      Mean   3rd Qu.      Max.   p-value 
+## -11.19000  -1.50100  -0.46710  -0.77370   0.05763   4.96900   0.00000</pre>
 
 </article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>Comparing too many things</h2></hgroup><article  id="comparing-too-many-things" class="smaller ">
 
@@ -783,6 +806,7 @@ summary(mod_drink2 &lt;- lm(height ~ drink2, data = UK))$coef</pre>
 <li>2.2 <a href='./LM_uncertainty.html' title=''>Uncertainty in point estimates</a></li>
 <li>2.3 <a href='./LM_tests.html' title=''>Tests</a></li>
 <li>2.4 <a href='./LM_assumptions.html' title=''>Assumptions and Outliers</a></li>
+<li>2.5 <a href='./LM_practice.html' title=''>Let&#39;s practice more</a></li>
 </ul></article></slide>
 
 
@@ -795,7 +819,7 @@ summary(mod_drink2 &lt;- lm(height ~ drink2, data = UK))$coef</pre>
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
-    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
 </script>

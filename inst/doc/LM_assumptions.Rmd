@@ -152,16 +152,25 @@ abline(h = 0, col = "red", lty = 2)
 ## The Box-Cox transformation (Box & Cox 1964)
 
 ```{r boxcox}
-library(MASS)
-bc <- boxcox(mod_poison)  ## makes logLik profile!
+library(car)
+boxCox(mod_poison)  ## makes logLik profile!
 ```
 
-We will consider -1 instead of ```r round(bc$x[which.max(bc$y)], 2)``` as it is close enough and easier to interpret!
+## The Box-Cox transformation (Box & Cox 1964)
+
+```{r boxcox 2}
+summary(bc <- powerTransform(mod_poison))
+testTransform(bc, lambda = -1)
+```
+
+<br>
+
+We will consider -1 instead of ```r round(bc$lambda[[1]], 2)``` as it is close enough and easier to interpret!
 
 ## Poison example linearised
 
 ```{r poison bc}
-mod_poison2 <- update(mod_poison, (Time^-1 - 1)/(-1) ~ .)
+mod_poison2 <- update(mod_poison, bcPower(Time, lambda = -1) ~ .)
 plot(residuals(mod_poison2) ~ fitted(mod_poison2), xlab = "fitted values", ylab = "residuals")
 abline(h = 0, col = "red", lty = 2)
 ```
@@ -288,17 +297,37 @@ summary(mod_US2 <- lm(Rape ~ Murder, data = USArrests))$coef
 It is a problem to infer causal inference, not so much for predictions!
 
 ## Non-perfect  multicollinearity: why?
+```{r USA plot}
+pairs(USArrests)
+```
+
+## Non-perfect  multicollinearity: why?
 
 ```{r USA 2}
 crossprod(model.matrix(mod_US))  ## remember: high values show collinearity
 cor(USArrests$Assault, USArrests$Murder)
+```
+
+## Non-perfect  multicollinearity: why?
+
+```{r USA 3}
+vcov(mod_US)
 cov2cor(vcov(mod_US))
 ```
 
 ## Non-perfect  multicollinearity: why?
-```{r USA plot}
-pairs(USArrests)
+
+### Often diagnosed using the Variance Inflation Factor
+
+```{r USA 4}
+vif(mod_US)
+R2 <- summary(lm(Assault ~ Murder, data = USArrests))$r.squared  ## works too if more variables
+1/(1-R2)
 ```
+
+<br>
+
+The VIF tells you by how much the variance in the uncertainty in parameter estimates increases due to multicollinearity.
 
 ## Non-perfect  multicollinearity: solution?
 
@@ -716,3 +745,5 @@ influence.measures(mod_davis)  ## stars are just there to attract your attention
 * 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
 * 2.3 [Tests](./LM_tests.html)
 * 2.4 [Assumptions and Outliers](./LM_assumptions.html)
+* 2.5 [Let's practice more](./LM_practice.html)
+

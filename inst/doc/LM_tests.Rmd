@@ -262,13 +262,14 @@ abline(v = stat.obs, lwd = 2, lty = 2, col = "red")
 
 # Comparing two non-nested models
 
-## We should not use F-test or LRT
+## Comparing two non-nested models using deviance
 
-### You may use the deviance (smaller is better)
+You may use the deviance (smaller is better) or (log)likelihood  (bigger is better),
+but only if the number of df is the same
 
 ```{r non nested deviance}
-UK_for_both <- na.omit(UK[, c("height", "drink", "sex", "weight", "milk")])
-mod_UK1 <- lm(height ~ drink + sex*weight, data = UK_for_both)
+UK_for_both <- na.omit(UK[, c("height", "cigarettes", "sex", "weight", "milk")])
+mod_UK1 <- lm(height ~ cigarettes + sex*weight, data = UK_for_both)
 mod_UK5 <- lm(height ~ milk + sex*weight, data = UK_for_both)
 
 deviance(mod_UK1)
@@ -276,11 +277,11 @@ deviance(mod_UK5)
 ```
 
 
-## We should not use F-test or LRT
+## Comparing two non-nested models using AIC
 
-### You may use the AIC (AIC = -2 * (logLik - K)) (smaller is better)
+You may use the AIC (AIC = -2 * (logLik - K)) (smaller is better) even if df differ
 
-```{r non nested AIC}
+```{r non nested AIC, cache = FALSE}
 AIC(mod_UK1)
 AIC(mod_UK5)
 exp((AIC(mod_UK5) - AIC(mod_UK1)) / 2) ## evidence ratio
@@ -290,10 +291,11 @@ The model ```mod_UK1``` is ```r round(exp((AIC(mod_UK5) - AIC(mod_UK1)) / 2), 1)
 likely to minimizes the (estimated) information loss than ```mod_UK5```.
 
 
-## We should not use F-test or LRT
+## Comparing two non-nested models using adjusted R-squared
 
-### You may use ajusted R-squared (higher is better)
+You may use ajusted R-squared (higher is better) even if df differ
 
+<br>
 
 ```{r}
 summary(mod_UK1)$adj.r.squared
@@ -304,6 +306,23 @@ SSR <- sum((residuals(mod_UK1) - mean(residuals(mod_UK1)))^2)
 1 - (1 - r.squared) * ((nrow(mod_UK1$model) - 1)/mod_UK1$df.residual)  ## adjusted r-squared
 
 summary(mod_UK5)$adj.r.squared
+```
+
+## Comparing two non-nested models using parametric bootstrap
+
+### This is the only general method to get a p-value
+
+We consider one model as the null model of the other (we choose here the worse model)
+
+```{r non-nested param boot}
+set.seed(1L)
+(LRTobs <- logLik(mod_UK1) - logLik(mod_UK5))
+LRTH0 <- replicate(1000, {
+                    UK_for_both$newY <- simulate(mod_UK5)[, 1]
+                    logLik(update(mod_UK1, newY ~. ))[[1]] -
+                      logLik(update(mod_UK5, newY ~. ))[[1]]
+                    })
+c(summary(LRTH0), "p-value" = mean(LRTH0 >= LRTobs))
 ```
 
 # Comparing too many things
@@ -460,4 +479,5 @@ summary(mod_drink2 <- lm(height ~ drink2, data = UK))$coef
 * 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
 * 2.3 [Tests](./LM_tests.html)
 * 2.4 [Assumptions and Outliers](./LM_assumptions.html)
+* 2.5 [Let's practice more](./LM_practice.html)
 

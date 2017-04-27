@@ -1,0 +1,87 @@
+---
+title: "LM: Let's practice more!"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+vignette: >
+  %\VignetteIndexEntry{2.5 Practice}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = FALSE, fig.align = "center", fig.width = 4, fig.height = 4)
+options(width = 200)
+set.seed(1L)
+```
+
+## Dataset: chickwts (difficulty = 0/5)
+
+```{r chickwts}
+head(chickwts)
+levels(chickwts$feed)
+```
+
+<br>
+
+### Goal: compare the effectiveness of various feed supplements on the weights of six weeks old chickens.
+
+
+## Dataset: InsectSprays (difficulty = 2/5)
+
+```{r InsectSprays}
+head(InsectSprays)
+levels(InsectSprays$spray)
+```
+
+<br>
+
+### Goal: compare the effectiveness of various insecticides on the number of insects in agricultural experimental units. Is the spray C of any use?
+
+## Dataset: swiss (difficulty = 1/5)
+
+```{r swiss}
+head(swiss)
+```
+
+<br>
+
+### Goal: plot the influence of potential determinant of fertility variation between Swiss provinces.
+
+
+## Dataset: trees (difficulty = 3/5)
+
+```{r trees}
+head(trees)
+```
+
+<br>
+
+### Goal: compare the approximation of the volume of wood given by $\text{Volume} = c*\text{Height}*\text{Girth}^2$ (with c to be estimated) to the usual consideration that a tree trunk is a cylinder.
+
+
+
+## Dataset: stackloss (difficulty = 2/5)
+
+```{r stackloss}
+head(stackloss)
+```
+
+<br>
+
+### Goal: find out if the acid concentration influences the loss of ammonia by the plants.
+
+
+# Table of content
+
+## The Linear Model: LM
+
+* 2.0 [Introduction](./LM_intro.html)
+* 2.1 [Point estimates](./LM_point_estimates.html)
+* 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
+* 2.3 [Tests](./LM_tests.html)
+* 2.4 [Assumptions and Outliers](./LM_assumptions.html)
+* 2.5 [Let's practice more](./LM_practice.html)
