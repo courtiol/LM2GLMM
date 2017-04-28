@@ -483,6 +483,7 @@ Heteros(c/k)edasticity can emerge when there is a mean - variance relationship, 
 
 ### Solution
 
+* transformation (see linearity)
 * post-hoc correction of the SE (not so great)
 
 ### Alternative
@@ -538,7 +539,7 @@ The distribution of residuals can be skewed, this is often caused by the presenc
 
 ### Solution
 
-* transformation
+* transformation (see linearity)
 * taking outliers out (mindfully!)
 
 ### Alternative
