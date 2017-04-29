@@ -223,7 +223,7 @@ car::boxCox(mod_insect_bis)
 summary(bc <- car::powerTransform(mod_insect_bis))
 ```
 
-The estimated value for lambda is close to 1/3 which corresponds to a cube root exponent to the observation but this is not particularly meaningfull so we will stick to the best estimate for lambda which is ```r bc$lambda``` and stored in the object bc$lambda.
+The estimated value for lambda is close to 1/3 which corresponds to a cube root exponent to the observation but this is not particularly meaningful so we will stick to the best estimate for lambda which is ```r bc$lambda``` and stored in the object bc$lambda.
 
 Let's fit the model on the transformed data and display the new diagnostic plots:
 
@@ -240,7 +240,7 @@ That looks fantastic! The heteroscedasticity is gone:
 lmtest::bptest(mod_insect_bc)
 ```
 
-The lack of dependence should not be an issue (although the original paper where these data have been published showed that the experiemental design was not as simple as the dataset here suggests), but let's check anyhow:
+The lack of dependence should not be an issue (although the original paper where these data have been published showed that the experimental design was not as simple as the dataset here suggests), but let's check anyhow:
 
 ```{r}
 lmtest::dwtest(mod_insect_bc)
@@ -276,5 +276,142 @@ This corresponds to the number of insects + 1 on the Box Cox scale. Thus we need
 (meanC <- ((meanC_BC * bc$lambda) + 1)^(1/bc$lambda) - 1)
 ```
 We thus expect to find on average (95%CI) ```r  round(meanC[1, "fit"], 2)``` (```r round(meanC[1, "lwr"], 2)``` -- ```r round(meanC[1, "upr"], 2)```) insects on agricultural experimental units treated with the insecticide C.
+
+We clean the session for the next exercise:
+
+```{r}
+rm(list = ls())
+```
+
+# Dataset: swiss (difficulty = 1/5)
+
+## Goal
+*  plot the influence of potential determinant of fertility variation between Swiss provinces
+
+## Exploring the data
+
+```{r}
+str(swiss)
+summary(swiss)
+pairs(swiss)
+any(is.na(swiss))
+```
+
+## Fitting the model
+
+```{r}
+mod_swiss <- lm(Fertility ~ ., data = swiss)
+```
+
+## Checking the assumptions
+
+
+### Linearity
+
+Let's examine the linearity assumption by plotting the residuals against each column of the design matrix (but the intercept):
+
+```{r}
+for (col in 2:ncol(model.matrix(mod_swiss))) {
+  plot(rstandard(mod_swiss) ~ model.matrix(mod_swiss)[, col])
+  title(main = colnames(model.matrix(mod_swiss))[col])
+}
+```
+
+No evident non linear pattern emerges.
+
+### Multicollinearity
+
+We can look at the correlation between parameter estimates:
+
+```{r}
+cov2cor(vcov(mod_swiss))
+```
+
+There are some noticeable correlations between parameter estimates (the very strong correlation between slopes and the intercept are to be expected, as well as the one between a variable and itself). Let's double check the extent to which multicollinearity could be an issue by looking at the variance inflation factors:
+
+```{r}
+vif(mod_swiss)
+```
+
+The situation is not ideal but nothing looks catastrophic. Let's see if the situation gets better once the variable ```Examination``` is omitted:
+
+```{r}
+mod_swiss_bis <- update(mod_swiss, . ~ . - Examination)
+vif(mod_swiss_bis)
+```
+
+The situation is much better so we will preform the prediction of the model with examination and on the model without for the sake of comparison.
+
+### Fixed values for predictor
+
+Because we do not know on how many individuals the percentages have been based, we will assume that they did so on large sample and that this assumption is fulfilled.
+
+### Errors
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod_swiss)
+plot(mod_swiss_bis)
+```
+
+Both models look alright.
+
+## Comparison to a model null
+
+Because the model involves several predictors, before anything else we need to make sure that the overall model offers a higher goodness of fit than the null model:
+
+```{r}
+mod_swiss_H0 <- update(mod_swiss, . ~ 1)
+anova(mod_swiss, mod_swiss_H0)
+anova(mod_swiss_bis, mod_swiss_H0)
+```
+
+Both of our models are fit the data clearly better than the null model.
+
+## Plotting the effect of the potential determinant of fertility
+
+Because this is a simple LM, we can try to use the function ```allEffects``` from the package ```effects``` to do that:
+
+```{r, fig.height = 8, fig.width = 8}
+plot(effects::allEffects(mod_swiss))
+plot(effects::allEffects(mod_swiss_bis))
+```
+
+Both models predict the same overall trends. To illustrate the difference in predicted values between the two models, one would have to do the plot manually instead of using the package ```effects```. Let's do that to illustrate how the prediction for the mean effect of education differ between models:
+
+```{r}
+data.for.pred <- expand.grid("Agriculture" = mean(swiss$Agriculture), 
+                       "Examination" = mean(swiss$Examination),
+                       "Education" = seq(min(swiss$Education), max(swiss$Education), length = 30),
+                       "Catholic" = mean(swiss$Catholic),
+                       "Infant.Mortality" = mean(swiss$Infant.Mortality)
+                       )
+pred1 <- predict(mod_swiss, newdata = data.for.pred, interval = "confidence")
+pred2 <- predict(mod_swiss_bis, newdata = data.for.pred, interval = "confidence")
+plot(pred1[, "fit"] ~ data.for.pred$Education, col = "blue", lwd = 2, type = "l",
+     ylab = "Predicted Standardized Fertility (+/- 95% CI)", xlab = "Education (%)")
+points(pred1[, "lwr"] ~ data.for.pred$Education,
+       col = "blue", lwd = 2, lty = 2, type = "l")
+points(pred1[, "upr"] ~ data.for.pred$Education,
+       col = "blue", lwd = 2, lty = 2, type = "l")
+points(pred2[, "fit"] ~ data.for.pred$Education,
+       col = "orange", lwd = 2, type = "l")
+points(pred2[, "lwr"] ~ data.for.pred$Education,
+       col = "orange", lwd = 2, lty = 2, type = "l")
+points(pred2[, "upr"] ~ data.for.pred$Education,
+       col = "orange", lwd = 2, lty = 2, type = "l")
+legend("topright", fill = c("blue", "orange"),
+       legend = c("mod_swiss", "mod_swiss_bis"), title = "Model:", bty = "n")
+```
+
+Note that while predicting the effect of ```Education``` we set all other covariates to their mean.
+
+We clean the session for the next exercise:
+
+```{r}
+rm(list = ls())
+```
+
+
 
 
