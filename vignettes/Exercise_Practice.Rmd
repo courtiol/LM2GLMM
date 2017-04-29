@@ -1,0 +1,162 @@
+---
+title: "Solutions for the exercises with LM"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output: 
+  html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Exercise LM: Let's practice more}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+```{r setup, include=FALSE}
+library(LM2GLMM)
+knitr::opts_chunk$set(cache = FALSE, fig.align = "center", fig.width = 6, fig.height = 6)
+```
+
+## Disclamer
+
+In this vignette I illustrate the key steps required to solve the exercises. By no means I am trying to provide a detailed report of the analysis of each dataset. Any such report would need additional analyses and results would have to be written in good English, not in telegraphic style or lines of codes.
+
+
+# Dataset: chickwts (difficulty = 0/5)
+
+## Goal
+
+* compare the effectiveness of various feed supplements on the weights of six weeks old chickens.
+* predict the proportion of chicken over 300 grams for each feed supplements
+
+## Exploring the data
+
+We always start by looking at the data we have:
+
+```{r, fig.width = 8}
+str(chickwts)
+plot(weight ~ feed, data = chickwts)
+```
+
+I don't know much about chicken but the values seem alright.
+
+
+We can also check the structure of the experimental design using the cross product of the design matrix we are planing to use for the fitting procedure:
+
+```{r}
+crossprod(model.matrix( ~ feed, data = chickwts))
+```
+
+Here, because there is only one factor involved, we could also have directly used the following:
+
+```{r}
+table(chickwts$feed)
+```
+
+We check if there is any missing data:
+
+```{r}
+any(is.na(chickwts))
+```
+
+Great there is no missing data.
+
+## Fitting the model
+
+We fit the model:
+
+```{r}
+(mod_chick <- lm(weight ~ feed, data = chickwts))
+```
+
+## Checking the assumptions
+
+* linearity cannot be an issue here as we only have one qualitative predictor.
+* multicollinearity is not an issue either has each chick has received a different feeding treatment (see cross-product above).
+* fixed values for the predictor: unless the diet have not been recorded correctly, there should not been any problem.
+
+Let's have a look at the residuals of the model:
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod_chick)
+```
+
+Everything looks very good. The errors should thus be independent, homoscedastic and normally distributed.
+
+
+## Testing the effect of diet
+
+```{r}
+anova(mod_chick)
+```
+
+The diet seems to influence significantly the growth of chicken (F = ```r round(anova(mod_chick)$F[1], 2)```, df1 = ```r anova(mod_chick)$Df[1]```, df2 = ```r anova(mod_chick)$Df[2]```, p-value < 0.001).
+
+## Predicting the mean effect of each diet
+
+```{r}
+pred <- predict(mod_chick, newdata = data.frame(feed = levels(chickwts$feed)),
+        interval = "confidence")
+rownames(pred) <- levels(chickwts$feed)
+pred
+```
+
+Let's plot this:
+
+```{r, results="hide"}
+plot(pred[, "fit"] ~ I(1:nrow(pred) + 0.05), axes = FALSE, pch = 20,
+     ylim = range(mod_chick$model$weight),
+     ylab = "Chicken weight (gr)", xlab = "Diet")
+axis(1, 1:nrow(pred), labels = rownames(pred))
+axis(2)
+box()
+for (row in 1:nrow(pred)) {
+  arrows(x0 = row + 0.05, y0 = pred[row, "lwr"], x1 = row + 0.05, y1 = pred[row, "upr"],
+         code = 3, angle = 90, length = 0.1)
+  diet <- levels(chickwts$feed)[row]
+  weights.to.plot <- chickwts$weight[chickwts$feed == diet]
+  points(rep(row, length(weights.to.plot)) - 0.05, weights.to.plot, col = "grey")
+  }
+```
+
+The plot shows the predicted mean weight of chicken for each diet (black) with associated 95% confidence intervals. The observed weights of the chicken included in the analysis are represented by grey dots.
+
+To make the plot even better we could have sorted the diet by increasing order of their effects.
+
+## Testing which diet differs from each others
+
+```{r, message = FALSE, fig.width = 8}
+library(multcomp)
+summary(posthoc <- glht(mod_chick, linfct = mcp(feed = "Tukey")))
+par(oma = c(0, 8, 0, 0))
+plot(posthoc)
+```
+
+
+## Predicting the proportion of chiken heavier than 300 grams
+
+```{r}
+pred2 <- predict(mod_chick,
+                newdata = data.frame(feed = levels(chickwts$feed)),
+                interval = "prediction",
+                se.fit = TRUE)
+
+se.pred <- sqrt(pred2$se.fit^2 + pred2$residual.scale^2)
+
+freq_more300 <- pnorm(rep(300, 6),
+                      mean = pred2$fit[, "fit"],
+                      sd = se.pred, lower.tail = FALSE)
+
+output <- cbind(pred2$fit, "%>300gr" = round(freq_more300, 2))
+
+rownames(output) <- levels(chickwts$feed)
+
+output
+```
+
+We can plot this: 
+
+```{r, fig.width = 8}
+barplot(sort(output[, "%>300gr"]), ylim = c(0, 1), ylab = "Predicted proportion of chicken larger than 300 gr")
+```
+
+
