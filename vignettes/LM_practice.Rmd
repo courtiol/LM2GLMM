@@ -40,7 +40,7 @@ levels(InsectSprays$spray)
 
 <br>
 
-### Goal: compare the effectiveness of various insecticides on the number of insects in agricultural experimental units. Is the spray C of any use?
+### Goal: compare the effectiveness of various insecticides on the number of insects in agricultural experimental units. What is the efficiency of spray C?
 
 ## Dataset: swiss (difficulty = 1/5)
 
