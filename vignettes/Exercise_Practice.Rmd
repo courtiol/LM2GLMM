@@ -18,7 +18,7 @@ knitr::opts_chunk$set(cache = FALSE, fig.align = "center", fig.width = 6, fig.he
 
 ## Disclamer
 
-In this vignette I illustrate the key steps required to solve the exercises. By no means I am trying to provide a detailed report of the analysis of each dataset. Any such report would need additional analyses and results would have to be written in good English, not in telegraphic style or lines of codes.
+In this vignette I illustrate the key steps required to solve the exercises. By no means I am trying to provide a detailed report of the analysis of each dataset. Any such report would need additional analyses and results would have to be written in good English, not in telegraphic style or lines of codes. I have also written this vignette very quickly, so double check I did not mess anything up...
 
 
 # Dataset: chickwts (difficulty = 0/5)
@@ -475,7 +475,7 @@ exp(confint(mod_trees))
 
 ## Comparison to the approximation of a tree trunk by a cylinder
 
-The volume of a cylinder is the height times the surface of a circle, so $h \pi r^2$ with $r$ the radius or  $h \pi (d/2)^2  $ with $d$ the diameter. In this formula, the diameter (or girth if it is a tree) and the height are in the same measuring unit but in the dataset the girth is given in inches, the height in feet and the volume in cubic feet. This thus lead to the volume of the tree as a cylinder being approximated by $\text{Height} \times \pi \times \left( \text{conv}_\text{in_to_ft} \text{Girth}/2 \right)^2$. Since one foot is 12 inches, $\text{conv}_\text{in_to_ft} = 1/12$, leading to $\text{Volume} = \text{Height} \times \pi \times \left(\frac{\text{Girth}}{24}\right)^2$ or $\text{log(Volume)} = \text{log(Height)} + log(\pi) + 2 \times \left(\text{log(Girth)} - \text{log}(24) \right)$. We this arrive to the following linear model:
+The volume of a cylinder is the height times the surface of a circle, so $h \pi r^2$ with $r$ the radius or  $h\pi(d/2)^2$ with $d$ the diameter. In this formula, the diameter (or girth if it is a tree) and the height are in the same measuring unit but in the dataset the girth is given in inches, the height in feet and the volume in cubic feet. This thus lead to the volume of the tree as a cylinder being approximated by $\text{Height} \times \pi \times \left( \text{conv}_\text{in_to_ft} \text{Girth}/2 \right)^2$. Since one foot is 12 inches, $\text{conv}_\text{in_to_ft} = 1/12$, leading to $\text{Volume} = \text{Height} \times \pi \times \left(\frac{\text{Girth}}{24}\right)^2$ or $\text{log(Volume)} = \text{log(Height)} + log(\pi) + 2 \times \left(\text{log(Girth)} - \text{log}(24) \right)$. We this arrive to the following linear model:
 
 $$\text{log(Volume)} = k' + 1 \times \text{log(Height)} + 2 \times \text{log(Girth)} + \epsilon$$
 
@@ -517,7 +517,7 @@ for (girth_class in 1:length(unique(girth.for.pred))) {
 }
 ```
 
-The plot shows the influence of height on the mean volume for 4 specific girths (```r round(girth.for.pred, 2)```). Thicker lines represent trees with larger girth. The black lines depict the predictions from the model ```mod_trees``` and the red ones are for the model ```mod_trees_cylinder```. The raw data are represented by the brown and yellow dots. The diameter of these dots is proportional to the actual measured girth.
+The plot shows the influence of height on the mean volume for 4 specific girths (```r round(girth.for.pred, 2)``` inches). Thicker lines represent trees with larger girth. The black lines depict the predictions from the model ```mod_trees``` and the red ones are for the model ```mod_trees_cylinder```. The raw data are represented by the brown and yellow dots. The diameter of these dots is proportional to the actual measured girth.
 
 That the approximation of the volume of trees as cylinders over-estimate the actual volume may be due to the fact that the diameter of trees goes down as you climb up the tree...
 
@@ -528,7 +528,7 @@ We clean the session for the next exercise:
 rm(list = ls())
 ```
 
-# Dataset: stackloss (difficulty = 2/5)
+# Dataset: stackloss (difficulty = 1/5)
 
 ## Goal
 * find out if the acid concentration influences the loss of ammonia by the plants
@@ -630,3 +630,4 @@ vif(mod_stack_int)
 ```
 The goodness of fit is not significantly better and there are huge multicollinearity issues, so let's not go there.
 
+That is all for now!
