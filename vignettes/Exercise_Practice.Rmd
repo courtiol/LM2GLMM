@@ -1,12 +1,12 @@
 ---
-title: "Solutions for the exercises with LM"
+title: "Answers to Exercises: Let's practice more LM"
 author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
 output: 
   html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{Exercise LM: Let's practice more}
+  %\VignetteIndexEntry{2.X Answers to Exercises: Let's practice more LM}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---

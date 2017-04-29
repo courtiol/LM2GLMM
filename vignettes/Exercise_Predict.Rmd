@@ -1,11 +1,11 @@
 ---
-title: "Exercise: Predictions with LM"
+title: "Answers to Exercises: Predictions in LM"
 author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
 output:
   html_vignette
 vignette: >
-  %\VignetteIndexEntry{Exercise: Predictions with LM}
+  %\VignetteIndexEntry{2.X Answers to Exercises: Predictions in LM}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
