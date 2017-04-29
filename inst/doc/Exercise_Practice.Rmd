@@ -1,0 +1,633 @@
+---
+title: "Answers to Exercises: Let's practice more LM"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output: 
+  html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{2.X Answers to Exercises: Let's practice more LM}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+```{r setup, include=FALSE}
+library(LM2GLMM)
+library(car)
+knitr::opts_chunk$set(cache = FALSE, fig.align = "center", fig.width = 6, fig.height = 6)
+```
+
+## Disclamer
+
+In this vignette I illustrate the key steps required to solve the exercises. By no means I am trying to provide a detailed report of the analysis of each dataset. Any such report would need additional analyses and results would have to be written in good English, not in telegraphic style or lines of codes. I have also written this vignette very quickly, so double check I did not mess anything up...
+
+
+# Dataset: chickwts (difficulty = 0/5)
+
+## Goal
+
+* compare the effectiveness of various feed supplements on the weights of six weeks old chickens
+* predict the proportion of chicken over 300 grams for each feed supplements
+
+## Exploring the data
+
+We always start by looking at the data we have:
+
+```{r, fig.width = 8}
+str(chickwts)
+plot(weight ~ feed, data = chickwts)
+```
+
+I don't know much about chicken but the values seem alright.
+
+
+We can also check the structure of the experimental design using the cross product of the design matrix we are planing to use for the fitting procedure:
+
+```{r}
+crossprod(model.matrix( ~ feed, data = chickwts))
+```
+
+Here, because there is only one factor involved, we could also have directly used the following:
+
+```{r}
+table(chickwts$feed)
+```
+
+We check if there is any missing data:
+
+```{r}
+any(is.na(chickwts))
+```
+
+Great there is no missing data.
+
+## Fitting the model
+
+We fit the model:
+
+```{r}
+(mod_chick <- lm(weight ~ feed, data = chickwts))
+```
+
+## Checking the assumptions
+
+* linearity cannot be an issue here as we only have one qualitative predictor.
+* multicollinearity is not an issue either has each chick has received a different feeding treatment (see cross-product above).
+* fixed values for the predictor: unless the diet have not been recorded correctly, there should not been any problem.
+
+Let's have a look at the residuals of the model:
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod_chick)
+```
+
+Everything looks very good. The errors should thus be independent, homoscedastic and normally distributed.
+
+
+## Testing the effect of diet
+
+```{r}
+anova(mod_chick)
+```
+
+The diet seems to influence significantly the growth of chicken (F = ```r round(anova(mod_chick)$F[1], 2)```, df1 = ```r anova(mod_chick)$Df[1]```, df2 = ```r anova(mod_chick)$Df[2]```, p-value < 0.001).
+
+## Predicting the mean effect of each diet
+
+```{r}
+pred <- predict(mod_chick, newdata = data.frame(feed = levels(chickwts$feed)),
+        interval = "confidence")
+rownames(pred) <- levels(chickwts$feed)
+pred
+```
+
+Let's plot this:
+
+```{r, results="hide"}
+plot(pred[, "fit"] ~ I(1:nrow(pred) + 0.05), axes = FALSE, pch = 20,
+     ylim = range(mod_chick$model$weight),
+     ylab = "Chicken weight (gr)", xlab = "Diet")
+axis(1, 1:nrow(pred), labels = rownames(pred))
+axis(2)
+box()
+for (row in 1:nrow(pred)) {
+  arrows(x0 = row + 0.05, y0 = pred[row, "lwr"], x1 = row + 0.05, y1 = pred[row, "upr"],
+         code = 3, angle = 90, length = 0.1)
+  diet <- levels(chickwts$feed)[row]
+  weights.to.plot <- chickwts$weight[chickwts$feed == diet]
+  points(rep(row, length(weights.to.plot)) - 0.05, weights.to.plot, col = "grey")
+  }
+```
+
+The plot shows the predicted mean weight of chicken for each diet (black) with associated 95% confidence intervals. The observed weights of the chicken included in the analysis are represented by grey dots.
+
+To make the plot even better we could have sorted the diet by increasing order of their effects.
+
+## Testing which diet differs from each others
+
+```{r, message = FALSE, fig.width = 8}
+summary(posthoc <- multcomp::glht(mod_chick, linfct = multcomp::mcp(feed = "Tukey")))
+par(oma = c(0, 8, 0, 0))
+plot(posthoc)
+```
+
+
+## Predicting the proportion of chiken heavier than 300 grams
+
+```{r}
+pred2 <- predict(mod_chick,
+                newdata = data.frame(feed = levels(chickwts$feed)),
+                interval = "prediction",
+                se.fit = TRUE)
+
+se.pred <- sqrt(pred2$se.fit^2 + pred2$residual.scale^2)
+
+freq_more300 <- pnorm(rep(300, 6),
+                      mean = pred2$fit[, "fit"],
+                      sd = se.pred, lower.tail = FALSE)
+
+output <- cbind(pred2$fit, "%>300gr" = round(freq_more300, 2))
+
+rownames(output) <- levels(chickwts$feed)
+
+output
+```
+
+We can plot this: 
+
+```{r, fig.width = 8}
+barplot(sort(output[, "%>300gr"]), ylim = c(0, 1), ylab = "Predicted proportion of chicken larger than 300 gr")
+```
+
+We clean the session for the next exercise:
+
+```{r}
+rm(list = ls())
+```
+
+
+# Dataset: InsectSprays (difficulty = 2/5)
+
+## Goal
+
+* compare the effectiveness of various insecticides on the number of insects in agricultural experimental units
+* what is the efficiency of spray C?
+
+## Exploring the data
+
+```{r}
+str(InsectSprays)
+range(InsectSprays$count)
+table(InsectSprays$spray)
+boxplot(count ~ spray, data = InsectSprays)
+any(is.na(InsectSprays))
+```
+
+
+## Fitting the model
+
+```{r}
+(mod_insect <- lm(count ~ spray, data = InsectSprays))
+```
+
+## Checking the assumptions
+
+As for the dataset ```chickwts```, because we only study the effect of one qualitative predictor, we expect linearity and multicollinearity, and that the values for the predictor are fixed as assumed. We can thus directly turn to the analysis of the prediction error.
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod_insect)
+```
+
+That does not look so good. There seem to be some heteroscedasticity in the data. Let's test this possibility:
+
+```{r}
+lmtest::bptest(mod_insect)
+```
+
+The Breusch-Pagan test shows that we can reject the assumption of homoscedasticity. One option would be to try to use GLM but we have not yet seen this, so let's try to reduce the problems and apply a LM fit anyhow. The first thing top try to solve the problems is to use a power transformation of the response variable.
+
+## Box Cox
+
+For the Box Cox transformation to work, we need all the values to be strictly positive, but we saw that the minimum value is zero, so let's start by adding one to every count and let's refit the model.
+
+```{r}
+InsectSprays$count_bis <- InsectSprays$count + 1
+mod_insect_bis <- update(mod_insect, count_bis ~ .)
+```
+
+We can now start the Box Cox analysis:
+
+```{r}
+car::boxCox(mod_insect_bis)
+summary(bc <- car::powerTransform(mod_insect_bis))
+```
+
+The estimated value for lambda is close to 1/3 which corresponds to a cube root exponent to the observation but this is not particularly meaningful so we will stick to the best estimate for lambda which is ```r bc$lambda``` and stored in the object bc$lambda.
+
+Let's fit the model on the transformed data and display the new diagnostic plots:
+
+```{r}
+InsectSprays$count_bc <- car::bcPower(InsectSprays$count_bis, bc$lambda)
+mod_insect_bc <- update(mod_insect_bis, count_bc ~ .)
+par(mfrow = c(2, 2))
+plot(mod_insect_bc)
+```
+
+That looks fantastic! The heteroscedasticity is gone:
+
+```{r}
+lmtest::bptest(mod_insect_bc)
+```
+
+The lack of dependence should not be an issue (although the original paper where these data have been published showed that the experimental design was not as simple as the dataset here suggests), but let's check anyhow:
+
+```{r}
+lmtest::dwtest(mod_insect_bc)
+car::durbinWatsonTest(mod_insect_bc)
+```
+
+Although surprising differences between the two implementation of this test, independence is not rejected.
+
+The normality looked good on the plots but we could also test it:
+
+```{r}
+nortest::lillie.test(mod_insect_bc$residuals)
+shapiro.test(mod_insect_bc$residuals)
+```
+Again, no issue here.
+
+## Testing the effect of insecticides
+
+```{r}
+anova(mod_insect_bc)
+```
+
+The type of insecticide seems to influence significantly the number of insects counted (F = ```r round(anova(mod_insect_bc)$F[1], 2)```, df1 = ```r anova(mod_insect_bc)$Df[1]```, df2 = ```r anova(mod_insect_bc)$Df[2]```, p-value < 0.001).
+
+## Predicting the effect of spray C
+
+```{r}
+(meanC_BC <- predict(mod_insect_bc, newdata = data.frame(spray = "C"), interval = "confidence"))
+```
+This corresponds to the number of insects + 1 on the Box Cox scale. Thus we need to transform this result back on the original scale:
+
+```{r}
+(meanC <- ((meanC_BC * bc$lambda) + 1)^(1/bc$lambda) - 1)
+```
+We thus expect to find on average (95%CI) ```r  round(meanC[1, "fit"], 2)``` (```r round(meanC[1, "lwr"], 2)``` -- ```r round(meanC[1, "upr"], 2)```) insects on agricultural experimental units treated with the insecticide C.
+
+We clean the session for the next exercise:
+
+```{r}
+rm(list = ls())
+```
+
+# Dataset: swiss (difficulty = 1/5)
+
+## Goal
+*  plot the influence of potential determinant of fertility variation between Swiss provinces
+
+## Exploring the data
+
+```{r}
+str(swiss)
+summary(swiss)
+pairs(swiss)
+any(is.na(swiss))
+```
+
+## Fitting the model
+
+```{r}
+mod_swiss <- lm(Fertility ~ ., data = swiss)
+```
+
+## Checking the assumptions
+
+
+### Linearity
+
+Let's examine the linearity assumption by plotting the residuals against each column of the design matrix (but the intercept):
+
+```{r}
+for (col in 2:ncol(model.matrix(mod_swiss))) {
+  plot(rstandard(mod_swiss) ~ model.matrix(mod_swiss)[, col])
+  title(main = colnames(model.matrix(mod_swiss))[col])
+}
+```
+
+No evident non linear pattern emerges.
+
+### Multicollinearity
+
+We can look at the correlation between parameter estimates:
+
+```{r}
+cov2cor(vcov(mod_swiss))
+```
+
+There are some noticeable correlations between parameter estimates (the very strong correlation between slopes and the intercept are to be expected, as well as the one between a variable and itself). Let's double check the extent to which multicollinearity could be an issue by looking at the variance inflation factors:
+
+```{r}
+vif(mod_swiss)
+```
+
+The situation is not ideal but nothing looks catastrophic. Let's see if the situation gets better once the variable ```Examination``` is omitted:
+
+```{r}
+mod_swiss_bis <- update(mod_swiss, . ~ . - Examination)
+vif(mod_swiss_bis)
+```
+
+The situation is much better so we will preform the prediction of the model with examination and on the model without for the sake of comparison.
+
+### Fixed values for predictor
+
+Because we do not know on how many individuals the percentages have been based, we will assume that they did so on large sample and that this assumption is fulfilled.
+
+### Errors
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod_swiss)
+plot(mod_swiss_bis)
+```
+
+Both models look alright.
+
+## Comparison to the null model
+
+Because the model involves several predictors, before anything else we need to make sure that the overall model offers a higher goodness of fit than the null model:
+
+```{r}
+mod_swiss_H0 <- update(mod_swiss, . ~ 1)
+anova(mod_swiss_H0, mod_swiss)
+anova(mod_swiss_H0, mod_swiss_bis)
+```
+
+Both of our models are fit the data clearly better than the null model.
+
+## Plotting the effect of the potential determinant of fertility
+
+Because this is a simple LM, we can try to use the function ```allEffects``` from the package ```effects``` to do that:
+
+```{r, fig.height = 8, fig.width = 8}
+plot(effects::allEffects(mod_swiss))
+plot(effects::allEffects(mod_swiss_bis))
+```
+
+Both models predict the same overall trends. To illustrate the difference in predicted values between the two models, one would have to do the plot manually instead of using the package ```effects```. Let's do that to illustrate how the prediction for the mean effect of education differ between models:
+
+```{r}
+data.for.pred <- expand.grid("Agriculture" = mean(swiss$Agriculture), 
+                       "Examination" = mean(swiss$Examination),
+                       "Education" = seq(min(swiss$Education), max(swiss$Education), length = 30),
+                       "Catholic" = mean(swiss$Catholic),
+                       "Infant.Mortality" = mean(swiss$Infant.Mortality)
+                       )
+pred1 <- predict(mod_swiss, newdata = data.for.pred, interval = "confidence")
+pred2 <- predict(mod_swiss_bis, newdata = data.for.pred, interval = "confidence")
+plot(pred1[, "fit"] ~ data.for.pred$Education, col = "blue", lwd = 2, type = "l",
+     ylab = "Predicted Standardized Fertility (+/- 95% CI)", xlab = "Education (%)")
+points(pred1[, "lwr"] ~ data.for.pred$Education,
+       col = "blue", lwd = 2, lty = 2, type = "l")
+points(pred1[, "upr"] ~ data.for.pred$Education,
+       col = "blue", lwd = 2, lty = 2, type = "l")
+points(pred2[, "fit"] ~ data.for.pred$Education,
+       col = "orange", lwd = 2, type = "l")
+points(pred2[, "lwr"] ~ data.for.pred$Education,
+       col = "orange", lwd = 2, lty = 2, type = "l")
+points(pred2[, "upr"] ~ data.for.pred$Education,
+       col = "orange", lwd = 2, lty = 2, type = "l")
+legend("topright", fill = c("blue", "orange"),
+       legend = c("mod_swiss", "mod_swiss_bis"), title = "Model:", bty = "n")
+```
+
+Note that while predicting the effect of ```Education``` we set all other covariates to their mean.
+
+We clean the session for the next exercise:
+
+```{r}
+rm(list = ls())
+```
+
+# Dataset: trees (difficulty = 3/5)
+
+## Goal
+* compare the approximation of the volume of wood given by $\text{Volume} = c*\text{Height}*\text{Girth}^2$ (with c to be estimated) to the usual consideration that a tree trunk is a cylinder
+
+## Exploring the data
+
+```{r trees}
+str(trees)
+summary(trees)
+pairs(trees)
+any(is.na(trees))
+```
+
+
+## Fitting the model
+
+$\text{Volume} = c \times \text{Height} \times \text{Girth}^2$ is not linear but we can turn it into a linear expression by using logs: 
+
+$$\text{log(Volume)} = \text{log}(c) + \text{log(Height)} + 2 \times \text{log(Girth)}$$
+
+We will thus substitute variables by their logs and try to fit the following model:
+
+$$ \text{log_Volume} = k + 1 \times \text{log_Height} + 2 \times \text{log_Girth} + \epsilon$$
+
+with $k = \text{log}(c)$. In this LM only $k$ must be estimated and the other slopes are considered as fixed. We thus fit the model as follow:
+
+```{r}
+trees$log_Volume <- log(trees$Volume)
+trees$log_Height <- log(trees$Height)
+trees$log_Girth <- log(trees$Girth)
+mod_trees <- lm(log_Volume ~ 1 + offset(log_Height + 2 * log_Girth), data = trees)
+```
+
+## Checking the assumptions
+
+There is no need to check our first 3 assumptions as the model structure is constrained, but we should check the assumptions concerning the errors.
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod_trees)
+```
+
+It looks alright, let's no forget that we only have ```r nrow(trees)``` rows in the datasets.
+
+## Estimation of the parameter $c$
+
+The estimation with confidence interval of $k$ are:
+
+```{r}
+coef(mod_trees)
+confint(mod_trees)
+```
+
+Because $k$ is correspond to the log of $c$, we must raise the obtained value to the exponential to obtain the estimation of $c$:
+
+```{r}
+exp(coef(mod_trees))
+exp(confint(mod_trees))
+```
+
+## Comparison to the approximation of a tree trunk by a cylinder
+
+The volume of a cylinder is the height times the surface of a circle, so $h \pi r^2$ with $r$ the radius or  $h\pi(d/2)^2$ with $d$ the diameter. In this formula, the diameter (or girth if it is a tree) and the height are in the same measuring unit but in the dataset the girth is given in inches, the height in feet and the volume in cubic feet. This thus lead to the volume of the tree as a cylinder being approximated by $\text{Height} \times \pi \times \left( \text{conv}_\text{in_to_ft} \text{Girth}/2 \right)^2$. Since one foot is 12 inches, $\text{conv}_\text{in_to_ft} = 1/12$, leading to $\text{Volume} = \text{Height} \times \pi \times \left(\frac{\text{Girth}}{24}\right)^2$ or $\text{log(Volume)} = \text{log(Height)} + log(\pi) + 2 \times \left(\text{log(Girth)} - \text{log}(24) \right)$. We this arrive to the following linear model:
+
+$$\text{log(Volume)} = k' + 1 \times \text{log(Height)} + 2 \times \text{log(Girth)} + \epsilon$$
+
+with $k' = \text{log}(\pi)-2 \times \text{log}(24) =$ ```r round(log(pi) - 2*log(24), 2)```. The exponential of this value is:
+
+```{r}
+new_k <- log(pi) - 2*log(24)
+exp(new_k)
+```
+
+As this value does not fall within the confidence interval for $c$, the cylinder approximation does not seem to fit the data very well. We can compare both models explicitly:
+
+```{r}
+mod_trees_cylinder <- lm(log_Volume ~ 0 + offset(new_k + log_Height + 2 * log_Girth), data = trees)
+anova(mod_trees_cylinder, mod_trees)
+```
+
+Let us plot the differences in prediction between models:
+
+```{r}
+girth.for.pred <- seq(min(trees$Girth), max(trees$Girth), length = 4)
+height.for.pred <- seq(min(trees$Height), max(trees$Height), length = 10)
+data.for.pred <- expand.grid(log_Girth = log(girth.for.pred), log_Height = log(height.for.pred))
+
+pred1 <- predict(mod_trees, newdata = data.for.pred, interval = "confidence")
+pred2 <- predict(mod_trees_cylinder, newdata = data.for.pred)  ## no confidence as nothing estimated!
+
+data.for.plot <- as.data.frame(cbind(data.for.pred, pred1, fit2 = pred2))
+
+plot(Volume ~ Height, data = trees, cex = 5*trees$Girth/max(trees$Girth), pch = 21, log = "xy",
+     ylim = range(exp(data.for.plot$fit), exp(data.for.plot$fit2), trees$Volume),
+     ylab = "Volume (cubic feet)", xlab = "Height (meters)", col = "brown", bg = "yellow", lwd = 3)
+
+for (girth_class in 1:length(unique(girth.for.pred))) {
+  with(subset(data.for.plot, data.for.plot$log_Girth == log(unique(girth.for.pred)[girth_class])), {
+    points(exp(fit) ~ exp(log_Height), type = "l", lwd = girth_class)
+    points(exp(fit2) ~ exp(log_Height), type = "l", lwd = girth_class, col = "red")
+  })
+}
+```
+
+The plot shows the influence of height on the mean volume for 4 specific girths (```r round(girth.for.pred, 2)``` inches). Thicker lines represent trees with larger girth. The black lines depict the predictions from the model ```mod_trees``` and the red ones are for the model ```mod_trees_cylinder```. The raw data are represented by the brown and yellow dots. The diameter of these dots is proportional to the actual measured girth.
+
+That the approximation of the volume of trees as cylinders over-estimate the actual volume may be due to the fact that the diameter of trees goes down as you climb up the tree...
+
+
+We clean the session for the next exercise:
+
+```{r}
+rm(list = ls())
+```
+
+# Dataset: stackloss (difficulty = 1/5)
+
+## Goal
+* find out if the acid concentration influences the loss of ammonia by the plants
+
+## Exploring the data
+
+```{r}
+str(stackloss)
+summary(stackloss)
+pairs(stackloss)
+any(is.na(stackloss))
+```
+
+
+## Fitting the model
+
+```{r}
+mod_stack <- lm(stack.loss ~ ., data = stackloss)
+```
+
+
+## Checking the assumptions
+
+### Linearity
+
+Let’s examine the linearity assumption by plotting the residuals against each column of the design matrix (but the intercept):
+
+```{r}
+for (col in 2:ncol(model.matrix(mod_stack))) {
+  plot(rstandard(mod_stack) ~ model.matrix(mod_stack)[, col])
+  title(main = colnames(model.matrix(mod_stack))[col])
+}
+```
+
+It looks messy but there is no obvious pattern suggesting a particular transformation of the predictors.
+
+### Multicollinearity
+
+```{r}
+cov2cor(vcov(mod_stack))
+vif(mod_stack)
+```
+
+There are some multicollinearity problems but it does not seem to impact much the effect of acidity which is our focus.
+
+### Other assumptions
+
+We will assume that no there is no measurement error and will focus on the analysis of the prediction error of the model:
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod_stack)
+```
+
+
+That is not fantastic but it is not specifically worse than what we may get under the assumption of LM with so few data. We can check this by simulating data under the assumption of LM and comparing the plots we get:
+
+```{r}
+par(mfrow = c(2, 2))
+plot(update(mod_stack, as.matrix(simulate(mod_stack)) ~ .))  ## simulation 1
+plot(update(mod_stack, as.matrix(simulate(mod_stack)) ~ .))  ## simulation 2
+```
+
+It does not look particularly better, so we will consider the assumptions fulfilled.
+
+## Comparison to the null model
+
+Because the model involves several predictors, before anything else we need to make sure that the overall model offers a higher goodness of fit than the null model:
+
+```{r}
+mod_stack_H0 <- update(mod_stack, . ~ 1)
+anova(mod_stack_H0, mod_stack)
+```
+
+All good, the model predicts the data significantly better than the null model.
+
+## Testing the effect of the acid concentration
+
+```{r}
+summary(mod_stack)$coef["Acid.Conc.", ]
+```
+
+The acid seems to have no significant influence on the loss of ammonia (t = ```r round(summary(mod_stack)$coef["Acid.Conc.", 3], 2)```, df = ```r mod_stack$df.residual```, p-value = ```r round( summary(mod_stack)$coef["Acid.Conc.", 4], 2)```).
+
+Let's plot the effect using ```effects```.
+
+```{r}
+plot(effects::effect("Acid.Conc.", mod = mod_stack))
+```
+
+## Considering interactions?
+
+Because we are specifically interested in the effect of the acid and that this effect may depend on the other predictors, we could check if considering interaction between the acidity and other predictors would improve the goodness of fit of the model:
+
+```{r}
+mod_stack_int <- lm(stack.loss ~ Acid.Conc. * (Air.Flow + Water.Temp), data = stackloss)
+anova(mod_stack, mod_stack_int)
+vif(mod_stack_int)
+```
+The goodness of fit is not significantly better and there are huge multicollinearity issues, so let's not go there.
+
+That is all for now!

@@ -1,11 +1,11 @@
 ---
-title: "Exercise: Prefect Multicollinearity"
+title: "Answers to Exercises: Prefect Multicollinearity in LM"
 author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
 output: 
   html_vignette
 vignette: >
-  %\VignetteIndexEntry{Exercise: Perfect Multicollinearity}
+  %\VignetteIndexEntry{2.X Answers to Exercises: Prefect Multicollinearity in LM}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---

@@ -91,6 +91,17 @@ head(Bats)
 [Seltmann et al. (Conservation Physiology, 2017)](https://academic.oup.com/conphys/article/doi/10.1093/conphys/cox020/3103058/Habitat-disturbance-results-in-chronic-stress-and?rss=1).
 
 
+# Solutions
+
+## Answers to Exercises
+
+<br>
+
+You can find the solution to all problems but the bat one 
+[here](./Exercise.Practice.html).
+
+Give it a good try before checking how I did it!
+
 # Table of content
 
 ## The Linear Model: LM
