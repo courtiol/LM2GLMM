@@ -412,6 +412,123 @@ We clean the session for the next exercise:
 rm(list = ls())
 ```
 
+# Dataset: trees (difficulty = 3/5)
+
+## Goal
+* compare the approximation of the volume of wood given by $\text{Volume} = c*\text{Height}*\text{Girth}^2$ (with c to be estimated) to the usual consideration that a tree trunk is a cylinder
+
+## Exploring the data
+
+```{r trees}
+str(trees)
+summary(trees)
+pairs(trees)
+any(is.na(trees))
+```
 
 
+## Fitting the model
 
+$\text{Volume} = c \times \text{Height} \times \text{Girth}^2$ is not linear but we can turn it into a linear expression by using logs: 
+
+$$\text{log(Volume)} = \text{log}(c) + \text{log(Height)} + 2 \times \text{log(Girth)}$$
+
+We will thus substitute variables by their logs and try to fit the following model:
+
+$$ \text{log_Volume} = k + 1 \times \text{log_Height} + 2 \times \text{log_Girth} + \epsilon$$
+
+with $k = \text{log}(c)$. In this LM only $k$ must be estimated and the other slopes are considered as fixed. We thus fit the model as follow:
+
+```{r}
+trees$log_Volume <- log(trees$Volume)
+trees$log_Height <- log(trees$Height)
+trees$log_Girth <- log(trees$Girth)
+mod_trees <- lm(log_Volume ~ 1 + offset(log_Height + 2 * log_Girth), data = trees)
+```
+
+## Checking the assumptions
+
+There is no need to check our first 3 assumptions as the model structure is constrained, but we should check the assumptions concerning the errors.
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod_trees)
+```
+
+It looks alright, let's no forget that we only have ```r nrow(trees)``` rows in the datasets.
+
+## Estimation of the parameter $c$
+
+The estimation with confidence interval of $k$ are:
+
+```{r}
+coef(mod_trees)
+confint(mod_trees)
+```
+
+Because $k$ is correspond to the log of $c$, we must raise the obtained value to the exponential to obtain the estimation of $c$:
+
+```{r}
+exp(coef(mod_trees))
+exp(confint(mod_trees))
+```
+
+## Comparison to the approximation of a tree trunk by a cylinder
+
+The volume of a cylinder is the height times the surface of a circle, so $h \pi r^2$ with $r$ the radius or  $h \pi (d/2)^2  $ with $d$ the diameter. In this formula, the diameter (or girth if it is a tree) and the height are in the same measuring unit but in the dataset the girth is given in inches, the height in feet and the volume in cubic feet. This thus lead to the volume of the tree as a cylinder being approximated by $\text{Height} \times \pi \times \left( \text{conv}_\text{in_to_ft} \text{Girth}/2 \right)^2$. Since one foot is 12 inches, $\text{conv}_\text{in_to_ft} = 1/12$, leading to $\text{Volume} = \text{Height} \times \pi \times \left(\frac{\text{Girth}}{24}\right)^2$ or $\text{log(Volume)} = \text{log(Height)} + log(\pi) + 2 \times \left(\text{log(Girth)} - \text{log}(24) \right)$. We this arrive to the following linear model:
+
+$$\text{log(Volume)} = k' + 1 \times \text{log(Height)} + 2 \times \text{log(Girth)} + \epsilon$$
+
+with $k' = \text{log}(\pi)-2 \times \text{log}(24) =$ ```r round(log(pi) - 2*log(24), 2)```. The exponential of this value is:
+
+```{r}
+new_k <- log(pi) - 2*log(24)
+exp(new_k)
+```
+
+As this value does not fall within the confidence interval for $c$, the cylinder approximation does not seem to fit the data very well. We can compare both models explicitly:
+
+```{r}
+mod_trees_cylinder <- lm(log_Volume ~ 0 + offset(new_k + log_Height + 2 * log_Girth), data = trees)
+anova(mod_trees_cylinder, mod_trees)
+```
+
+Let us plot the differences in prediction between models:
+
+```{r}
+girth.for.pred <- seq(min(trees$Girth), max(trees$Girth), length = 4)
+height.for.pred <- seq(min(trees$Height), max(trees$Height), length = 10)
+data.for.pred <- expand.grid(log_Girth = log(girth.for.pred), log_Height = log(height.for.pred))
+
+pred1 <- predict(mod_trees, newdata = data.for.pred, interval = "confidence")
+pred2 <- predict(mod_trees_cylinder, newdata = data.for.pred)  ## no confidence as nothing estimated!
+
+data.for.plot <- as.data.frame(cbind(data.for.pred, pred1, fit2 = pred2))
+
+plot(Volume ~ Height, data = trees, cex = 5*trees$Girth/max(trees$Girth), pch = 21, log = "xy",
+     ylim = range(exp(data.for.plot$fit), exp(data.for.plot$fit2), trees$Volume),
+     ylab = "Volume (cubic feet)", xlab = "Height (meters)", col = "brown", bg = "yellow", lwd = 3)
+
+for (girth_class in 1:length(unique(girth.for.pred))) {
+  with(subset(data.for.plot, data.for.plot$log_Girth == log(unique(girth.for.pred)[girth_class])), {
+    points(exp(fit) ~ exp(log_Height), type = "l", lwd = girth_class)
+    points(exp(fit2) ~ exp(log_Height), type = "l", lwd = girth_class, col = "red")
+  })
+}
+```
+
+The plot shows the influence of height on the mean volume for 4 specific girths (```r round(girth.for.pred, 2)```). Thicker lines represent trees with larger girth. The black lines depict the predictions from the model ```mod_trees``` and the red ones are for the model ```mod_trees_cylinder```. The raw data are represented by the brown and yellow dots. The diameter of these dots is proportional to the actual measured girth.
+
+That the approximation of the volume of trees as cylinders over-estimate the actual volume may be due to the fact that the diameter of trees goes down as you climb up the tree...
+
+# Dataset: stackloss (difficulty = 2/5)
+
+## Goal
+* find out if the acid concentration influences the loss of ammonia by the plants
+
+## Exploring the data
+
+```{r}
+str(stackloss)
+summary(stackloss)
+```
