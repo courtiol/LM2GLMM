@@ -356,14 +356,14 @@ plot(mod_swiss_bis)
 
 Both models look alright.
 
-## Comparison to a model null
+## Comparison to the null model
 
 Because the model involves several predictors, before anything else we need to make sure that the overall model offers a higher goodness of fit than the null model:
 
 ```{r}
 mod_swiss_H0 <- update(mod_swiss, . ~ 1)
-anova(mod_swiss, mod_swiss_H0)
-anova(mod_swiss_bis, mod_swiss_H0)
+anova(mod_swiss_H0, mod_swiss)
+anova(mod_swiss_H0, mod_swiss_bis)
 ```
 
 Both of our models are fit the data clearly better than the null model.
@@ -521,6 +521,13 @@ The plot shows the influence of height on the mean volume for 4 specific girths 
 
 That the approximation of the volume of trees as cylinders over-estimate the actual volume may be due to the fact that the diameter of trees goes down as you climb up the tree...
 
+
+We clean the session for the next exercise:
+
+```{r}
+rm(list = ls())
+```
+
 # Dataset: stackloss (difficulty = 2/5)
 
 ## Goal
@@ -531,4 +538,95 @@ That the approximation of the volume of trees as cylinders over-estimate the act
 ```{r}
 str(stackloss)
 summary(stackloss)
+pairs(stackloss)
+any(is.na(stackloss))
 ```
+
+
+## Fitting the model
+
+```{r}
+mod_stack <- lm(stack.loss ~ ., data = stackloss)
+```
+
+
+## Checking the assumptions
+
+### Linearity
+
+Let’s examine the linearity assumption by plotting the residuals against each column of the design matrix (but the intercept):
+
+```{r}
+for (col in 2:ncol(model.matrix(mod_stack))) {
+  plot(rstandard(mod_stack) ~ model.matrix(mod_stack)[, col])
+  title(main = colnames(model.matrix(mod_stack))[col])
+}
+```
+
+It looks messy but there is no obvious pattern suggesting a particular transformation of the predictors.
+
+### Multicollinearity
+
+```{r}
+cov2cor(vcov(mod_stack))
+vif(mod_stack)
+```
+
+There are some multicollinearity problems but it does not seem to impact much the effect of acidity which is our focus.
+
+### Other assumptions
+
+We will assume that no there is no measurement error and will focus on the analysis of the prediction error of the model:
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod_stack)
+```
+
+
+That is not fantastic but it is not specifically worse than what we may get under the assumption of LM with so few data. We can check this by simulating data under the assumption of LM and comparing the plots we get:
+
+```{r}
+par(mfrow = c(2, 2))
+plot(update(mod_stack, as.matrix(simulate(mod_stack)) ~ .))  ## simulation 1
+plot(update(mod_stack, as.matrix(simulate(mod_stack)) ~ .))  ## simulation 2
+```
+
+It does not look particularly better, so we will consider the assumptions fulfilled.
+
+## Comparison to the null model
+
+Because the model involves several predictors, before anything else we need to make sure that the overall model offers a higher goodness of fit than the null model:
+
+```{r}
+mod_stack_H0 <- update(mod_stack, . ~ 1)
+anova(mod_stack_H0, mod_stack)
+```
+
+All good, the model predicts the data significantly better than the null model.
+
+## Testing the effect of the acid concentration
+
+```{r}
+summary(mod_stack)$coef["Acid.Conc.", ]
+```
+
+The acid seems to have no significant influence on the loss of ammonia (t = ```r round(summary(mod_stack)$coef["Acid.Conc.", 3], 2)```, df = ```r mod_stack$df.residual```, p-value = ```r round( summary(mod_stack)$coef["Acid.Conc.", 4], 2)```).
+
+Let's plot the effect using ```effects```.
+
+```{r}
+plot(effects::effect("Acid.Conc.", mod = mod_stack))
+```
+
+## Considering interactions?
+
+Because we are specifically interested in the effect of the acid and that this effect may depend on the other predictors, we could check if considering interaction between the acidity and other predictors would improve the goodness of fit of the model:
+
+```{r}
+mod_stack_int <- lm(stack.loss ~ Acid.Conc. * (Air.Flow + Water.Temp), data = stackloss)
+anova(mod_stack, mod_stack_int)
+vif(mod_stack_int)
+```
+The goodness of fit is not significantly better and there are huge multicollinearity issues, so let's not go there.
+
