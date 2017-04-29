@@ -65,7 +65,7 @@ head(trees)
 
 
 
-## Dataset: stackloss (difficulty = 2/5)
+## Dataset: stackloss (difficulty = 1/5)
 
 ```{r stackloss}
 head(stackloss)
