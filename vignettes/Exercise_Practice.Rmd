@@ -321,13 +321,19 @@ No evident non linear pattern emerges.
 
 ### Multicollinearity
 
-We can look at the correlation between parameter estimates:
+We can look at the correlation between the column vectors of the model matrix:
+
+```{r}
+cor(model.matrix(mod_swiss)[, -1])  ## we discard the intercept for that
+```
+
+We can also look at the correlation between parameter estimates:
 
 ```{r}
 cov2cor(vcov(mod_swiss))
 ```
 
-There are some noticeable correlations between parameter estimates (the very strong correlation between slopes and the intercept are to be expected, as well as the one between a variable and itself). Let's double check the extent to which multicollinearity could be an issue by looking at the variance inflation factors:
+There are some noticeable correlations between predictors and between parameter estimates (the very strong correlation between slopes and the intercept are to be expected, as well as the one between a variable and itself). Let's double check the extent to which multicollinearity could be an issue by looking at the variance inflation factors:
 
 ```{r}
 vif(mod_swiss)
@@ -568,6 +574,7 @@ It looks messy but there is no obvious pattern suggesting a particular transform
 ### Multicollinearity
 
 ```{r}
+cor(model.matrix(mod_stack)[ , -1])
 cov2cor(vcov(mod_stack))
 vif(mod_stack)
 ```
