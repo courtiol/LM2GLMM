@@ -1,0 +1,114 @@
+---
+title: "GLM: Introduction"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+vignette: >
+  %\VignetteIndexEntry{3.0 Generalized Linear Models}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+```{r setup, include=FALSE}
+library(LM2GLMM)
+options(width = 120)
+```
+
+## You will learn in this session
+
+# Definition and notations
+
+## Mathematical notations of GLM
+
+<font size="5"> $\eta_i = \beta_0 + \beta_1 \times x_{1,i} + \beta_2 \times x_{2,i} + \dots + \beta_{p} \times x_{p,i}$ </font> or in matrix notation <font size="5"> $\eta = \text{X}\beta$ </font>,
+
+with:
+
+* $\text{E}(\text{Y}) = \mu = g^{-1}(\eta)$
+* $\text{Var}(\text{Y}) = \phi\text{V}(\mu)$ 
+
+<br>
+
+We call:
+
+* $\eta$ the linear predictor
+* $g$ the link function ($g^{-1}$ is sometimes called the mean function)
+* $\text{V}$ the variance function
+* $\phi$ is the dispersion parameter
+
+Similarly to LM, a GLM fit leads to <font size="5"> $\widehat{\eta} = \text{X}\widehat{\beta}$ </font>
+
+## LM are a particular case of GLM!
+
+<font size="5"> $\eta_i = \beta_0 + \beta_1 \times x_{1,i} + \beta_2 \times x_{2,i} + \dots + \beta_{p} \times x_{p,i}$ </font> or in matrix notation <font size="5"> $\eta = \text{X}\beta$ </font>,
+
+with:
+
+* $\text{E}(\text{Y}) = \mu = g^{-1}(\eta)$
+* $\text{Var}(\text{Y}) = \phi\text{V}(\mu)$ 
+
+<br>
+
+This is identical to the LM if:
+
+* $\mu = g^{-1}(\eta) = \eta$, thus if $g$ is the identity function
+* $\phi = \sigma^2$, thus if the dispersion parameter equals the error variance
+* $\text{V}(\mu) = 1$, thus if the variance function is constant
+
+<br>
+
+So in GLM, the probability distribution of $\text{Y}$ can be gaussian.
+
+## What kind of responses GLM can handle?
+
+* one dimension: $n \times 1$
+* continuous or categorical
+* member of the univariate linear exponential family:
+
+<br>
+
+<center><font size="4"> $f(y; \theta; \phi) = \text{exp}\left( \frac{y\theta-b(\theta)}{\phi} + c(y; \phi)\right)$ </font></center>
+
+<br>
+
+This includes:
+
+* the normal distribution (for many continuous outcomes)
+* the binomial distribution (for binomial or binary outcomes)
+* the Poisson distribution (for counts)
+* the gamma distribution (for continuus positive outcomes such as survival times)
+* the inverse Gaussian (for continuus positive outcomes as well; the name is misleading)
+* other less main steam distributions
+
+
+## What do we need to fit a GLM?
+
+* data = response variable + design matrix, as for LM
+* the probability distribution (e.g. gaussian, Poisson...) which sets the variance function
+* the link function
+
+<br>
+
+The probability distribution and the link function are provided in R as a ```family``` object:
+
+```{r family, eval = FALSE}
+gaussian(link = "identity")
+binomial(link = "logit")
+poisson(link = "log")
+Gamma(link = "inverse")
+inverse.gaussian(link = "1/mu^2")
+```
+
+<br>
+
+The ```family``` objects also contain other usefull information needed for the fitting procedure.
+Try for example:
+
+```{r family2, eval = FALSE}
+print.AsIs(gaussian(link = "identity"))  ## Tip: print.AsIS display the 'true' content of an object
+```
+
+# Fitting procedure
+

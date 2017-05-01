@@ -1,0 +1,677 @@
+---
+title: "GLM: Introduction"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+vignette: >
+  %\VignetteIndexEntry{3.0 Generalized Linear Models}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+```{r setup, include=FALSE}
+library(LM2GLMM)
+options(width = 120)
+knitr::opts_chunk$set(cache = FALSE, fig.width = 5, fig.height = 5, fig.align = "center")
+```
+
+## The Generalized Linear Model: GLM
+
+* 3.0 [Introduction](./GLM_intro.html)
+* 3.1 [Residuals & Assumptions](./GLM_assumptions.html)
+* 3.2 [Uncertainty & Tests](./GLM_uncertainty.html)
+* 3.3 [Overdispersion & Zero-inflation](./GLM_overdispersion.html)
+* 3.4 [Let's practice more](./GLM_practice.html)
+
+
+## You will learn in this session
+
+# Definition and notations
+
+## Mathematical notations of GLM
+
+<font size="5"> $\eta_i = \beta_0 + \beta_1 \times x_{1,i} + \beta_2 \times x_{2,i} + \dots + \beta_{p} \times x_{p,i}$ </font> or in matrix notation <font size="5"> $\eta = \text{X}\beta$ </font>,
+
+with:
+
+* $\text{E}(\text{Y}) = \mu = g^{-1}(\eta)$
+* $\text{Var}(\text{Y}) = \phi\text{V}(\mu)$ 
+
+<br>
+
+We call:
+
+* $\eta$ the linear predictor
+* $g$ the link function ($g^{-1}$ is sometimes called the mean function)
+* $\text{V}$ the variance function
+* $\phi$ is the dispersion parameter
+
+Similarly to LM, a GLM fit leads to <font size="5"> $\widehat{\eta} = \text{X}\widehat{\beta}$ </font>
+
+## LM is a particular case of GLM!
+
+<font size="5"> $\eta_i = \beta_0 + \beta_1 \times x_{1,i} + \beta_2 \times x_{2,i} + \dots + \beta_{p} \times x_{p,i}$ </font> or in matrix notation <font size="5"> $\eta = \text{X}\beta$ </font>,
+
+with:
+
+* $\text{E}(\text{Y}) = \mu = g^{-1}(\eta)$
+* $\text{Var}(\text{Y}) = \phi\text{V}(\mu)$ 
+
+<br>
+
+This is identical to the LM if:
+
+* $\mu = g^{-1}(\eta) = \eta$, thus if $g$ is the identity function
+* $\phi = \sigma^2$, thus if the dispersion parameter equals the error variance
+* $\text{V}(\mu) = 1$, thus if the variance function is constant
+
+<br>
+
+So in GLM, the probability distribution of $\text{Y}$ can be Gaussian.
+
+## GLM can do more than LM!
+
+### The response
+
+* one dimension: $n \times 1$
+* continuous or categorical
+* member of the univariate linear exponential family: $f(y; \theta; \phi) = \text{exp}\left( \frac{y\theta-b(\theta)}{a(\phi)} + c(y; \phi)\right)$
+
+This includes:
+
+* the normal distribution (for many continuous outcomes)
+* the binomial distribution (for binary or binomial outcomes)
+* the Poisson distribution (for counts)
+* the gamma distribution (for continuous positive outcomes such as survival times)
+* the inverse Gaussian (for continuous positive outcomes as well; the name is misleading)
+* other less main steam distributions
+
+
+## What do we need to fit a GLM?
+
+* data = response variable + design matrix, as for LM
+* the probability distribution (e.g. Gaussian, Poisson...) which sets the variance function
+* the link function
+
+<br>
+
+The probability distribution and the link function are obtained in R by calling the ```family``` functions:
+
+```{r family, eval = FALSE}
+gaussian(link = "identity")
+binomial(link = "logit")
+poisson(link = "log")
+Gamma(link = "inverse")
+inverse.gaussian(link = "1/mu^2")
+```
+
+<br>
+
+The objects of class ```family``` created by these functions also contain other useful information needed for the fitting procedure.
+
+# Examples
+
+## Aliens in the GLM world
+
+```{r}
+set.seed(1L)
+Aliens <- data.frame(humans_eaten = round(runif(n = 100, min = 0, max = 15)))
+Aliens$size  <- rnorm( n = 100, mean = 50 + 1.5 * Aliens$humans_eaten, sd = 5)
+Aliens$eggs  <- rpois( n = 100, lambda = exp(-1 + 0.1 * Aliens$humans_eaten))
+Aliens$happy <- rbinom(n = 100, size = 1, prob = plogis(-3 + 0.3 * Aliens$humans_eaten))
+Aliens$all_eyes  <- round(runif(nrow(Aliens), min = 1, max = 12))
+Aliens$blue_eyes <- rbinom(n = nrow(Aliens), size = Aliens$all_eyes, prob = plogis(-2 + 0.5 * Aliens$humans_eaten))
+Aliens$pink_eyes <- Aliens$all_eyes - Aliens$blue_eyes
+head(Aliens)
+```
+
+## Fitting the GLM
+
+```{r}
+mod_gauss <- glm(size  ~ humans_eaten, family = gaussian(), data = Aliens)
+mod_poiss <- glm(eggs  ~ humans_eaten, family = poisson(),  data = Aliens)
+mod_binar <- glm(happy ~ humans_eaten, family = binomial(), data = Aliens)
+mod_binom <- glm(cbind(blue_eyes, pink_eyes) ~ humans_eaten, family = binomial(), data = Aliens)
+
+## Example of output:
+mod_binom
+```
+
+
+# The GLM object
+
+## Components stored in GLM objects
+
+```{r}
+names(mod_gauss)
+names(mod_binom)
+```
+
+The components are the same no matter the family. We will only detail the interesting ones that differ from LM.
+
+## Coefficients (```coefficients```)
+
+```{r}
+mod_gauss$coefficients
+mod_poiss$coefficients
+mod_binom$coefficients
+```
+
+Same idea as for LM, but here they are expressed in the scale of the linear predictor!!!
+
+## The residuals (```residuals```)
+
+As we shall see later, those are the working residuals:
+
+```{r}
+rbind(mod_poiss$residuals[1:2], residuals(mod_poiss, type = "working")[1:2])
+rbind(mod_binom$residuals[1:2], residuals(mod_binom, type = "working")[1:2])
+```
+
+<br>
+
+Although useful during the fitting procedure, these residuals are not useful to us.
+
+We will see that we can extract other types of residuals that are more useful with ```residuals()```.
+
+
+## Linear predictors (```linear.predictors```)
+
+This contains the predicted values for the observations at the scale of the linear predictor.
+
+```{r}
+rbind(summary(mod_gauss$linear.predictors),
+      summary(mod_poiss$linear.predictors),
+      summary(mod_binar$linear.predictors),
+      summary(mod_binom$linear.predictors)
+      )
+```
+
+
+## Linear predictors (```linear.predictors```)
+
+They are computed as in LM:
+
+```{r}
+rbind(mod_gauss$linear.predictors[1:2], (model.matrix(mod_gauss) %*% mod_gauss$coefficients)[1:2])
+rbind(mod_poiss$linear.predictors[1:2], (model.matrix(mod_poiss) %*% mod_poiss$coefficients)[1:2])
+rbind(mod_binom$linear.predictors[1:2], (model.matrix(mod_binom) %*% mod_binom$coefficients)[1:2])
+```
+
+
+## Fitted values (```fitted.values```)
+
+This contains the predicted values for the observations at the original scale:
+
+```{r}
+rbind(summary(mod_gauss$fitted.values),
+      summary(mod_poiss$fitted.values),
+      summary(mod_binom$fitted.values)
+      )
+```
+
+<br>
+
+For binary variables, the fitted values remains a probability. It is not a binary outcome:
+
+```{r}
+summary(mod_binar$fitted.values)
+```
+
+
+## Fitted values (```fitted.values```)
+
+The fitted values are obtained from the linear predictors:
+
+```{r}
+rbind(mod_gauss$fitted.values[1:2], gaussian()$linkinv(mod_gauss$linear.predictors[1:2]))
+rbind(mod_poiss$fitted.values[1:2], poisson()$linkinv(mod_poiss$linear.predictors[1:2]))
+rbind(mod_binom$fitted.values[1:2], binomial()$linkinv(mod_binom$linear.predictors[1:2]))
+```
+
+
+## Deviances (```deviance``` & ```null.deviance```)
+
+The GLM object contains:
+
+* the scaled residual deviance of the model fit (deviance between the fit and the fit of a saturated model)
+* the scaled null deviance (deviance between the null fit and the fit of a saturated model)
+
+```{r}
+mod_poiss_sat <- update(mod_poiss, . ~ as.factor(mod_poiss$y))
+c(mod_poiss$deviance, -2*(logLik(mod_poiss) - logLik(mod_poiss_sat)))
+mod_poiss_null <- update(mod_poiss, . ~ 1)
+c(mod_poiss$null.deviance, mod_poiss_null$deviance)
+```
+
+## Deviances (```deviance``` & ```null.deviance```)
+
+The GLM object contains:
+
+* the scaled residual deviance of the model fit (deviance between the fit and the fit of a saturated model)
+* the scaled null deviance (deviance between the null fit and the fit of a saturated model)
+
+```{r}
+mod_binom_sat <- update(mod_binom, . ~ as.factor(mod_binom$y))
+c(mod_binom$deviance, -2*(logLik(mod_binom) - logLik(mod_binom_sat)))
+mod_binom_null <- update(mod_binom, . ~ 1)
+c(mod_binom$null.deviance, mod_binom_null$deviance)
+```
+
+## Akaike Information Criterion (```aic```)
+
+Contrary to ```family()$aic``` here we directly have the correct AIC and not just part of it:
+
+<br>
+
+```{r}
+c(mod_gauss$aic, -2*logLik(mod_gauss) + 2*(mod_gauss$rank + 1))  ## + 1 for the estimate of the variance
+c(mod_poiss$aic, -2*logLik(mod_poiss) + 2*(mod_poiss$rank))
+c(mod_binom$aic, -2*logLik(mod_binom) + 2*(mod_binom$rank))
+```
+
+
+## Prior weights (```prior.weights```)
+
+The prior weights are weights for the variance function often imputed by the user:
+
+```{r}
+logLik(mod_poiss)
+mod_poiss_double <- glm(eggs  ~ humans_eaten, family = poisson(), weights = rep(2, nrow(Aliens)), data = Aliens)
+
+Aliens_double <- Aliens[rep(1:nrow(Aliens), each = 2), ]
+mod_poiss_double_bis <- glm(eggs  ~ humans_eaten, family = poisson(),  data = Aliens_double)
+c(logLik(mod_poiss_double), logLik(mod_poiss_double_bis))
+
+mod_poiss_double$prior.weights[1:4]
+```
+
+Don't get confused: the prior weights must be specify via the argument ```weights``` in ```lm()``` and ```glm()```.
+
+
+## Prior weights (```prior.weights```)
+
+The prior weights are especially useful for binomial models with more than one trial.
+
+They are computed implicitly when you use the syntax ```cbind(sucess, failure)```:
+
+```{r}
+mod_binom$prior.weights[1:6]
+```
+
+but they can also be set manually to directly use the probability of success as the response variable:
+
+```{r}
+Aliens$prop_blue <- Aliens$blue_eyes / Aliens$all_eyes
+mod_binom_bis  <- glm(prop_blue ~ humans_eaten, weights = all_eyes, data = Aliens, family = binomial())
+c(logLik(mod_binom), logLik(mod_binom_bis))
+```
+
+<br>
+
+If you use ```cbind``` AND prior weights, the prior weights considered in the model will be the product of both priors!
+
+# Family
+
+## What does the family object contains?
+
+```{r}
+as.data.frame(
+  cbind("gaussian" = c(names(gaussian()), NA), "poisson" = names(poisson()), "binomial" = names(binomial()))
+  )
+```
+
+Try:
+
+```{r, eval = FALSE}
+print.AsIs(gaussian())  ## Tip: print.AsIS display the 'true' content of an object
+print.AsIs(poisson())
+```
+
+## The link function (```link``` & ```linkfun```)
+
+The link function converts the values from the original scale to the scale of the linear predictor.
+
+Each family has a default link function presenting nice mathematical properties, called the canonical link function.
+
+```{r}
+c(gaussian()$link, poisson()$link, binomial()$link)
+c(poisson()$linkfun(12), log(12))
+c(binomial()$linkfun(0.9), log(0.9/(1 - 0.9)))
+```
+
+## The link function (```link``` & ```linkfun```)
+
+The link function converts the values from the original scale to the scale of the linear predictor.
+
+Non-canonical link functions can also be used:
+
+```{r, eval = FALSE}
+c(gaussian(link = "identity")$linkfun(12), 12)
+c(gaussian(link = "log")$linkfun(12), log(12))
+c(gaussian(link = "inverse")$linkfun(12), 1/12)
+
+c(poisson (link = "log")$linkfun(12), log(12))
+c(poisson (link = "identity")$linkfun(12), 12)
+c(poisson (link = "sqrt")$linkfun(12), sqrt(12))
+
+c(binomial(link = "logit")$linkfun(0.9), log(0.9/(1 - 0.9)))
+c(binomial(link = "probit")$linkfun(0.9), qnorm(0.9))
+c(binomial(link = "cauchit")$linkfun(0.9), qcauchy(0.9))
+c(binomial(link = "log")$linkfun(0.9), log(0.9))
+c(binomial(link = "cloglog")$linkfun(0.9), log(-log(1 - 0.9)))
+```
+
+
+## The inverse link function (```linkinv```)
+
+The inverse link function converts the values of the linear predictor back into the original scale.
+
+<br>
+
+```{r}
+gaussian()$linkinv(12)
+c(poisson()$linkinv(2.484907), exp(2.484907))
+c(binomial()$linkinv(2.197225), plogis(2.197225), 1/(1 + exp(-2.197225)))
+```
+
+## The variance function (```variance```)
+
+This function gives the value for $\text{V}(\mu)$ for any $\mu$:
+
+<br>
+
+```{r}
+gaussian()$variance(1:10)  ## = constant
+poisson()$variance(1:10) ## = lambda
+binomial()$variance(seq(0, 1, 0.1))  ## = p x q
+```
+
+
+## Deviance residuals (```dev.resids```)
+
+This function computes the squared (scaled) deviance residuals.
+
+Example for the Gaussian family:
+
+```{r}
+with(mod_gauss, gaussian()$dev.resids(y = y, mu = fitted.values, wt = prior.weights))[1:2]
+
+sigma2_error <- sum(summary(mod_gauss)$deviance.resid^2) / mod_gauss$df.residual
+sigma2_resid <- sigma2_error *  mod_gauss$df.residual / nrow(mod_gauss$model)
+deviance.pt <- -2 * sigma2_resid * (dnorm(x = mod_gauss$y, mean = mod_gauss$fitted.values,
+                                          sd = rep(sqrt(sigma2_resid), length(mod_gauss$y)), log = TRUE) - 
+                                    dnorm(x = mod_gauss$y, mean = mod_gauss$y,
+                                          sd = rep(sqrt(sigma2_resid), length(mod_gauss$y)), log = TRUE))
+(mod_gauss$prior.weight * deviance.pt)[1:2] 
+```
+
+
+## Deviance residuals (```dev.resids```)
+
+This function computes the squared (scaled) deviance residuals.
+
+Example for the Poisson family:
+
+```{r}
+with(mod_poiss, poisson()$dev.resids(y = y, mu = fitted.values, wt = prior.weights))[1:2]
+
+deviance.pt  <- -2 * (dpois(x = mod_poiss$y, lambda = mod_poiss$fitted.values, log = TRUE) - 
+                      dpois(x = mod_poiss$y, lambda = mod_poiss$y, log = TRUE))
+
+(mod_poiss$prior.weight * deviance.pt)[1:2]
+```
+
+
+## Deviance residuals (```dev.resids```)
+
+This function computes the squared (scaled) deviance residuals.
+
+Example for the binomial family (binary case):
+
+```{r}
+with(mod_binar, binomial()$dev.resids(y = y, mu = fitted.values, wt = prior.weights))[1:2]
+
+deviance.pt  <- -2 * (dbinom(x    = mod_binar$y,
+                             size = 1,
+                             prob = mod_binar$fitted.values, log = TRUE) - 
+                      dbinom(x    = mod_binar$y,
+                             size = 1,
+                             prob = mod_binar$y, log = TRUE))
+
+(mod_poiss$prior.weight * deviance.pt)[1:2]
+```
+
+
+## Deviance residuals (```dev.resids```)
+
+This function computes the squared (scaled) deviance residuals.
+
+Example for the binomial family (general case):
+
+```{r}
+with(mod_binom, binomial()$dev.resids(y = y, mu = fitted.values, wt = prior.weights))[1:2]
+
+deviance.pt  <- -2 * (dbinom(x    = mod_binom$y*mod_binom$prior.weights,
+                             size = mod_binom$prior.weights,
+                             prob = mod_binom$fitted.values, log = TRUE) - 
+                      dbinom(x    = mod_binom$y*mod_binom$prior.weights,
+                             size = mod_binom$prior.weights,
+                             prob = mod_binom$y, log = TRUE))
+
+deviance.pt[1:2]  ## here the prior.weights directly considered
+```
+
+
+## Other components from ```family()```
+
+* aic: compute part of the AIC (not the whole thing!)
+* initialize: creates the initial values for mu and recomputes Y and weights if binomial with cbind
+* mu.eta: compute the derivative $\frac{\text{d}\mu}{\text{d}\eta}$ (for the iterative fitting procedure)
+* validmu: test if the values of mu are valid
+* valideta: test if the values of eta are valid
+* simulate: simulation function (for e.g. parametric bootstrap)
+
+
+# Fitting procedure
+
+## How to fit a LM?
+
+### By maximum likelihood
+
+<br>
+
+We want to find the $\widehat{\beta}$ maximizing the likelihood.
+
+This is the same as finding the $\widehat{\beta}$ minimizing the residual deviance.
+
+<br>
+
+Residual deviance = $-2 \times (\text{logLik}_\text{focal fit} - \text{logLik}_\text{staturated fit})$
+
+
+## A simple function to fit simple GLM numerically
+
+```{r}
+my_glm1 <- function(formula, data, family, weights = NULL) {
+
+  useful.data <- model.frame(formula = formula, data = data)  ## keep only useful rows and columns
+  X <- model.matrix(object = formula, data = useful.data)     ## build design matrix
+  y <- model.response(useful.data)                            ## extract response
+  mu.eta <- family$mu.eta  ## extract function to compute d mu/d eta
+  nobs <- NROW(y) ## count the rows of observations (not nrow() as y can be a vector or a matrix)
+  if (is.null(weights)) weights <- rep(1, nobs)  ## set the prior.weights if NULL
+
+  etastart <- start <- mustart <- NULL  ## required for family$initialize
+  eval(family$initialize)               ## recomputes y and prior weights if binomial + cbind
+  
+  get_resid_deviance <- function(coef) {  ## define function computing the scaled residual deviance
+    eta <- as.numeric(X %*% coef)   ## compute the linear predictors
+    mu  <- family$linkinv(eta)      ## express the linear predictor in the scale of the response
+    dev <- sum(family$dev.resids(y, mu, weights))  ## compute the deviance, mind that here it is still the prior weight
+    return(dev)  ## return the scaled residual deviance
+  }
+  
+  fit <- nlminb(rep(0, ncol(X)), get_resid_deviance) ## optimisation; same as optim() but seems to work better
+  if (fit$convergence != 0) warning("the algorithm did not converge")  ## test if convergence has been reached
+  return(fit$par)  ## returns estimates
+}
+```
+
+<br>
+
+It should handle all families but it does not consider offsets, convergence issues and maybe other subtle things.
+
+
+## An analytic solution?
+
+### Problem
+
+unlike LM there is no direct algorithm to obtain the maximum likelihood estimates (MLE)!
+
+### Solution
+
+GLM are fitted using an iterative algorithm based on weighted least squares to update parameter estimates.
+
+The GLM weights (not the prior weights) are inversely proportional to the variance of the response, but the variance depends on the mean which, in turn, depends on the parameters.
+
+The algorithm is thus called IRLS for iteratively reweighted least squares, it is also sometimes called Fisher's scoring as it has been proposed by Fisher (in a context more general than GLM).
+
+The IRLS algorithm fixes the weights, determines the parameter values that minimize the weighted sum of squared residuals, then updates the weights and repeats the process until the weights stabilize (it usually happens in very few iterations).
+
+<br>
+
+(I have paraphrased here *Douglas Bates*)
+
+
+## A toy function using IRLS
+
+```{r}
+my_glm2 <- function(formula, data, family, weights = NULL) {
+  
+  useful.data <- model.frame(formula = formula, data = data)  ## keep only useful rows and columns
+  X <- model.matrix(object = formula, data = useful.data)     ## build design matrix
+  y <- model.response(useful.data)                            ## extract response
+  nobs <- NROW(y) ## count the rows of observations (not nrow() as y can be a vector or a matrix)
+  if (is.null(weights)) weights <- rep(1, nobs)  ## set the prior.weights if NULL
+
+  etastart <- start <- mustart <- NULL  ## required for family$initialize
+  eval(family$initialize)         ## creates mustart -- the initial values for mu -- and 
+                                  ## recomputes y and weights if binomial + cbind
+  eta <- family$linkfun(mustart)  ## compute initial values for eta from mustart
+  
+  for (iter in 1:25L) {
+    mu <- family$linkinv(eta)    ## compute the fitted values
+    deriv <- family$mu.eta(eta)  ## compute the derivative d mu/d eta
+    Z <- eta + (y - mu)/deriv    ## compute the adjusted response
+    W <- weights*deriv^2/family$variance(mu)  ## compute the working weights
+    lm.fit <- lm(Z ~ X - 1, weights = W)  ## lm with weights
+    beta <- lm.fit$coef  ## extract the estimates
+    eta <- X %*% beta    ## compute the linear predictor
+  }
+  return(beta)  ## returns estimates
+}
+```
+
+
+## A toy function approximating ```glm.fit()```
+
+```{r}
+my_glm3 <- function(formula, data, family, weights = NULL) {
+  useful.data <- model.frame(formula = formula, data = data)  ## keep only useful rows and columns
+  X <- model.matrix(object = formula, data = useful.data)     ## build design matrix
+  y <- model.response(useful.data)                            ## extract response
+  nobs <- NROW(y) ## count the rows of observations (not nrow() as y can be a vector or a matrix)
+  if (is.null(weights)) weights <- rep(1, nobs)  ## set the prior.weights if NULL
+  etastart <- start <- mustart <- NULL  ## required for family$initialize
+  eval(family$initialize)         ## creates mustart -- the initial values for mu -- and 
+                                  ## recomputes y and weights if binomial + cbind
+  eta <- family$linkfun(mustart)  ## compute initial values for eta from mustart
+  devold <- Inf  ## set old residual deviance | glm.fit does something more clever here
+  for (iter in 1:25L) {
+    mu <- family$linkinv(eta)    ## compute the fitted values
+    deriv <- family$mu.eta(eta)  ## compute the derivative d mu/d eta
+    Z <- eta + (y - mu)/deriv    ## compute the adjusted response
+    W <- weights*deriv^2/family$variance(mu)  ## compute the working weights
+
+    dev <- sum(family$dev.resids(y, mu, weights))        ## compute residual deviance
+    if (abs(dev - devold)/(0.1 + abs(dev)) < 1e-7) break ## leave loop if it has converged
+    devold <- dev  ## update residual deviance
+    QR <- qr(X*sqrt(W))  ## perform the QR decomposition | glm.fit uses C_Cdqrls directly.
+    beta <- qr.coef(QR, Z*sqrt(W))  ## compute coefficients | glm.fit uses C_Cdqrls directly.
+    eta <- as.numeric(X %*% beta)  ## compute the predicted values on the scale of the linear predictor
+  }
+  if (iter == 25L) warning("the algorithm did not converge after 25 iterations...")
+  return(beta)  ## returns estimates
+}
+```
+
+
+## Testing our toy functions
+
+```{r}
+rbind(mod_gauss$coefficients,
+      my_glm1(size ~ humans_eaten, data = Aliens, family = gaussian()),
+      my_glm2(size ~ humans_eaten, data = Aliens, family = gaussian()),
+      my_glm3(size ~ humans_eaten, data = Aliens, family = gaussian())
+      )
+```
+
+
+## Testing our toy functions
+
+```{r}
+rbind(mod_poiss$coefficients,
+      my_glm1(eggs ~ humans_eaten, data = Aliens, family = poisson()),
+      my_glm2(eggs ~ humans_eaten, data = Aliens, family = poisson()),
+      my_glm3(eggs ~ humans_eaten, data = Aliens, family = poisson())
+      )
+```
+
+
+## Testing our toy functions
+
+```{r}
+rbind(mod_binar$coefficients,
+      my_glm1(happy ~ humans_eaten, data = Aliens, family = binomial()),
+      my_glm2(happy ~ humans_eaten, data = Aliens, family = binomial()),
+      my_glm3(happy ~ humans_eaten, data = Aliens, family = binomial())
+      )
+```
+
+
+## Testing our toy functions
+
+```{r}
+rbind(mod_binom$coefficients,
+      my_glm1(cbind(blue_eyes, pink_eyes) ~ humans_eaten, data = Aliens, family = binomial()),
+      my_glm2(cbind(blue_eyes, pink_eyes) ~ humans_eaten, data = Aliens, family = binomial()),
+      my_glm3(cbind(blue_eyes, pink_eyes) ~ humans_eaten, data = Aliens, family = binomial())
+      )
+```
+
+
+## Testing our toy functions
+
+```{r}
+rbind(mod_binom$coefficients,
+      my_glm1(prop_blue ~ humans_eaten, data = Aliens, family = binomial(), weights = Aliens$all_eyes),
+      my_glm2(prop_blue ~ humans_eaten, data = Aliens, family = binomial(), weights = Aliens$all_eyes),
+      my_glm3(prop_blue ~ humans_eaten, data = Aliens, family = binomial(), weights = Aliens$all_eyes)
+      )
+```
+
+## What you need to remember
+
+# Table of content
+
+## The Generalized Linear Model: GLM
+
+* 3.0 [Introduction](./GLM_intro.html)
+* 3.1 [Residuals & Assumptions](./GLM_assumptions.html)
+* 3.2 [Uncertainty & Tests](./GLM_uncertainty.html)
+* 3.3 [Overdispersion & Zero-inflation](./GLM_overdispersion.html)
+* 3.4 [Let's practice more](./GLM_practice.html)
+
