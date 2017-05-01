@@ -31,7 +31,7 @@ knitr::opts_chunk$set(cache = FALSE, fig.width = 5, fig.height = 5, fig.align = 
 ## The Generalized Linear Model: GLM
 
 * 3.0 [Introduction](./GLM_intro.html)
-* 3.1 [Residuals & Assumptions](./GLM_assumptions.html)
-* 3.2 [Uncertainty & Tests](./GLM_uncertainty.html)
+* 3.1 [Uncertainty & Tests](./GLM_uncertainty.html)
+* 3.2 [Residuals & Assumptions](./GLM_assumptions.html)
 * 3.3 [Overdispersion & Zero-inflation](./GLM_overdispersion.html)
 * 3.4 [Let's practice more](./GLM_practice.html)

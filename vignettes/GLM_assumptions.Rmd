@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{3.1 Residuals & Assumptions}
+  %\VignetteIndexEntry{3.2 Residuals & Assumptions}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
@@ -196,8 +196,8 @@ Note: they can also be computed for LM.
 ## The Generalized Linear Model: GLM
 
 * 3.0 [Introduction](./GLM_intro.html)
-* 3.1 [Residuals & Assumptions](./GLM_assumptions.html)
-* 3.2 [Uncertainty & Tests](./GLM_uncertainty.html)
+* 3.1 [Uncertainty & Tests](./GLM_uncertainty.html)
+* 3.2 [Residuals & Assumptions](./GLM_assumptions.html)
 * 3.3 [Overdispersion & Zero-inflation](./GLM_overdispersion.html)
 * 3.4 [Let's practice more](./GLM_practice.html)
 
