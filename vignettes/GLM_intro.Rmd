@@ -109,7 +109,7 @@ inverse.gaussian(link = "1/mu^2")
 
 <br>
 
-The objects of class ```family``` created by these functions also contain other useful information needed for the fitting procedure.
+The objects of class ```family``` created by these functions also contain other useful information needed for the fitting procedure (we will see that later).
 
 # Examples
 
@@ -149,7 +149,9 @@ names(mod_gauss)
 names(mod_binom)
 ```
 
-The components are the same no matter the family. We will only detail the interesting ones that differ from LM.
+The components are the same no matter the family.
+
+We will only detail the interesting ones that differ from LM.
 
 ## Coefficients (```coefficients```)
 
