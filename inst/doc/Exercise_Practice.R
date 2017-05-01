@@ -146,6 +146,9 @@ for (col in 2:ncol(model.matrix(mod_swiss))) {
 }
 
 ## ------------------------------------------------------------------------
+cor(model.matrix(mod_swiss)[, -1])  ## we discard the intercept for that
+
+## ------------------------------------------------------------------------
 cov2cor(vcov(mod_swiss))
 
 ## ------------------------------------------------------------------------
@@ -268,6 +271,7 @@ for (col in 2:ncol(model.matrix(mod_stack))) {
 }
 
 ## ------------------------------------------------------------------------
+cor(model.matrix(mod_stack)[ , -1])
 cov2cor(vcov(mod_stack))
 vif(mod_stack)
 

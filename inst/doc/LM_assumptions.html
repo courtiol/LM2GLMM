@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2017-04-29" />
+  <meta name="date" content="2017-05-01" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,7 +94,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2017-04-29</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2017-05-01</p>
           </hgroup>
   </slide>
 
@@ -526,19 +526,25 @@ coef(mod_alien3)</pre>
 
 </article></slide><slide class=''><hgroup><h2>Non-perfect multicollinearity: why?</h2></hgroup><article  id="non-perfect-multicollinearity-why-2" class="smaller ">
 
-<pre class = 'prettyprint lang-r'>vcov(mod_US)</pre>
+<pre class = 'prettyprint lang-r'>cor(model.matrix(mod_US))  ## direct measure of correlation in the design matrix</pre>
 
-<pre >##             (Intercept)       Assault       Murder
-## (Intercept)  5.42477864 -0.0214178598 -0.096609995
-## Assault     -0.02141786  0.0004177519 -0.006409535
-## Murder      -0.09660999 -0.0064095354  0.152940711</pre>
+<pre >## Warning in cor(model.matrix(mod_US)): the standard deviation is zero</pre>
 
-<pre class = 'prettyprint lang-r'>cov2cor(vcov(mod_US))</pre>
+<pre >##             (Intercept)   Assault    Murder
+## (Intercept)           1        NA        NA
+## Assault              NA 1.0000000 0.8018733
+## Murder               NA 0.8018733 1.0000000</pre>
+
+<pre class = 'prettyprint lang-r'>cov2cor(vcov(mod_US))  ## direct measure of correlation between parameter estimates</pre>
 
 <pre >##             (Intercept)    Assault     Murder
 ## (Intercept)   1.0000000 -0.4499102 -0.1060644
 ## Assault      -0.4499102  1.0000000 -0.8018733
 ## Murder       -0.1060644 -0.8018733  1.0000000</pre>
+
+<p><br></p>
+
+<p>In more complex models, the numbers do not necessarily match, so it is good practice to check both matrices.</p>
 
 </article></slide><slide class=''><hgroup><h2>Non-perfect multicollinearity: why?</h2></hgroup><article  id="non-perfect-multicollinearity-why-3" class="smaller ">
 

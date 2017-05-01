@@ -109,8 +109,8 @@ crossprod(model.matrix(mod_US))  ## remember: high values show collinearity
 cor(USArrests$Assault, USArrests$Murder)
 
 ## ----USA 3--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-vcov(mod_US)
-cov2cor(vcov(mod_US))
+cor(model.matrix(mod_US))  ## direct measure of correlation in the design matrix
+cov2cor(vcov(mod_US))  ## direct measure of correlation between parameter estimates
 
 ## ----USA 4--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 vif(mod_US)

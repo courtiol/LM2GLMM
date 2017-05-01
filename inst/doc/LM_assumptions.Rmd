@@ -311,9 +311,13 @@ cor(USArrests$Assault, USArrests$Murder)
 ## Non-perfect  multicollinearity: why?
 
 ```{r USA 3}
-vcov(mod_US)
-cov2cor(vcov(mod_US))
+cor(model.matrix(mod_US))  ## direct measure of correlation in the design matrix
+cov2cor(vcov(mod_US))  ## direct measure of correlation between parameter estimates
 ```
+
+<br>
+
+In more complex models, the numbers do not necessarily match, so it is good practice to check both matrices.
 
 ## Non-perfect  multicollinearity: why?
 
