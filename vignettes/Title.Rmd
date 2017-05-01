@@ -17,7 +17,7 @@ vignette: >
 
 1. [Introduction](./Introduction.html)
 2. [The Linear Model](./LM_intro.html)
-3. The Generalized Linear Model (GLM)
+3. [The Generalized Linear Model (GLM)](./GLM_intro.html)
 4. The Linear Mixed-effects Model (LMM)
 5. The Generalized Linear Mixed-effects Model (GLMM)
 
