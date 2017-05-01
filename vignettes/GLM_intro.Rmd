@@ -665,6 +665,138 @@ rbind(mod_binom$coefficients,
       )
 ```
 
+# GLM vs LM with transformation
+
+## The example of the GLM Poisson
+
+Fits will be more difficult:
+
+```{r, error = TRUE}
+mod_lm <- lm(log(eggs) ~ humans_eaten, data = Aliens)
+```
+
+<br>
+
+Parameter estimates can differ substantially:
+
+```{r}
+mod_lm <- lm(log(eggs+1) ~ humans_eaten, data = Aliens)
+rbind(mod_poiss$coefficients,
+      mod_lm$coefficients)
+```
+
+
+## The example of the GLM Poisson
+
+The assumptions for LM will often not be met:
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod_lm)
+```
+
+
+## The example of the GLM Poisson
+
+The LM should fit more poorly the data:
+
+```{r}
+sum((Aliens$eggs - (exp(predict(mod_lm)) - 1))^2)
+sum((Aliens$eggs - predict(mod_poiss, type = "response"))^2)
+```
+<br>
+
+Note: we compare the sum of squares (paying attention to do so on the same scale) as the models have been fitted on different responses which prevents the use of usual functions.
+
+
+## The example of the GLM Binomial
+
+<br>
+
+<center> Try for yourself! </center>
+
+
+## The counter-example of the GLM Gaussian
+
+```{r}
+set.seed(1L)
+
+simu <- replicate(1000, {
+  x <- rnorm(100)
+  y <- exp(rnorm(n = length(x), mean = -2 + 0.01 * x, sd = 0.5))
+  mod_lm   <- lm(log(y) ~ x)
+  mod_glm1 <- glm(log(y) ~ x, family = gaussian(link = "identity"))
+  mod_glm2 <- glm(y ~ x, family = gaussian(link = "log"))
+  c(mod_lm$coefficients, mod_glm1$coefficients, mod_glm2$coefficients)
+})
+
+rbind(c(mean(simu[1, ]), mean(simu[2, ])),
+      c(mean(simu[3, ]), mean(simu[4, ])),  ## GLM1 is similar to LM
+      c(mean(simu[5, ]), mean(simu[6, ])))  ## GLM2 is here not as good!
+```
+
+The GLM2 log transforms the expected values, not the observations!
+
+If SD small the methods converge!
+
+
+# Interpreting parameter estimates
+
+## Estimates and the Gaussian family
+
+<br>
+
+<center> Same as LM (when link = identity)! </center>
+
+
+## Estimates and the Poisson family
+
+### Predictions for $\eta$ and $\mu$ differ!
+
+```{r}
+mod_poiss$coefficients
+predict(mod_poiss, newdata = data.frame(humans_eaten = 10))
+mod_poiss$coefficients[1] + 10 * mod_poiss$coefficients[2]
+```
+
+Because we used the link function ```log```, this is a log number of eggs!
+
+
+## Estimates and the Poisson family
+
+### Predictions for $\eta$ and $\mu$ differ!
+
+```{r}
+exp(predict(mod_poiss, newdata = data.frame(humans_eaten = 10)))
+exp(mod_poiss$coefficients[1] + 10 * mod_poiss$coefficients[2])
+predict(mod_poiss, newdata = data.frame(humans_eaten = 10), type = "response")
+```
+
+This is the average number of eggs predicted for aliens eating 10 humans.
+
+
+## Estimates and the Poisson family
+
+### The regression parameters are linear for $\eta$, not $\mu$!
+
+Ex: what happens when different aliens eat one additional human?
+
+```{r}
+p.eta <- predict(mod_poiss, newdata = data.frame(humans_eaten = 1:10))
+p.eta[-10] - p.eta[-1]
+p.mu <- predict(mod_poiss, newdata = data.frame(humans_eaten = 1:10), type = "response")
+p.mu[-10] - p.mu[-1]
+```
+
+<br>
+
+The effect is no longer constant!
+
+
+## Estimates and the Binomial family
+
+
+
 ## What you need to remember
 
 # Table of content
