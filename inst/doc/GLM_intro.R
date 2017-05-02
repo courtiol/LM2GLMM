@@ -385,6 +385,18 @@ round(rbind(
 
 
 ## ---------------------------------------------------------------------------------------------------------------------
+set.seed(1L)
+x <- seq(1, 2, length = 100)
+y <- exp(2 + 1 * x) + rnorm(n = length(x), mean = 0, sd = 5)
+
+mod_glm  <- glm(y ~ x, family = gaussian(link = "log"))
+mod_lm   <- lm(log(y) ~ x)
+
+rbind("deviance glm"          = deviance(mod_glm), ## OK same as mod_glm$deviance
+      "raw deviance lm"       = deviance(mod_lm),  ## not comparable as response = log(y)
+      "corrected deviance lm" = sum((y - exp(predict(mod_lm)))^2))  ## comparable deviance for lm
+
+## ---------------------------------------------------------------------------------------------------------------------
 mod_poiss$coefficients
 predict(mod_poiss, newdata = data.frame(humans_eaten = 10))
 mod_poiss$coefficients[1] + 10 * mod_poiss$coefficients[2]

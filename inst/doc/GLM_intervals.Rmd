@@ -15,7 +15,7 @@ vignette: >
 ```{r setup, include=FALSE}
 library(LM2GLMM)
 options(width = 120)
-knitr::opts_chunk$set(cache = FALSE, fig.width = 5, fig.height = 5, fig.align = "center")
+knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/GLM_uncertainty/", fig.path = "./fig_knitr/GLM_uncertainty/", fig.width = 4, fig.height = 4, fig.align = "center")
 ```
 
 ## You will learn in this session
@@ -40,9 +40,9 @@ mod_binom <- glm(cbind(blue_eyes, pink_eyes) ~ humans_eaten, family = binomial()
 ```
 
 
-# Uncertainty in parameter estimates
+# Uncertainty in estimates
 
-## Uncertainty in parameter estimates
+## Covariances between parameter estimates
 
 Poisson family:
 
@@ -56,7 +56,7 @@ t(X) %*% W %*% X
 (XTWX <- crossprod(mod_poiss$R))
 ```
 
-## Uncertainty in parameter estimates
+## Covariances between parameter estimates
 
 Poisson family:
 
@@ -68,7 +68,7 @@ phi <- 1
 phi*solve(XTWX)
 ```
 
-## Uncertainty in parameter estimates
+## Covariances between parameter estimates
 
 Gaussian family:
 
@@ -81,7 +81,7 @@ phi <- mod_gauss$deviance / mod_gauss$df.residual
 phi*solve(XTWX)
 ```
 
-## Uncertainty in parameter estimates
+## Covariances between parameter estimates
 
 Binomial family (binary case):
 
@@ -94,7 +94,7 @@ phi <- 1
 phi*solve(XTWX)
 ```
 
-## Uncertainty in parameter estimates
+## Covariances between parameter estimates
 
 Binomial family (general case):
 
@@ -106,6 +106,59 @@ XTWX <- crossprod(mod_binom$R)
 phi <- 1
 phi*solve(XTWX)
 ```
+
+
+## Distribution of parameter estimates
+
+As for LM the parameter estimates are normally distributed.
+
+```{r}
+new_betas <- t(replicate(1000, {Aliens$new.y <- as.matrix(poisson()$simulate(mod_poiss, 1))
+  coef(update(mod_poiss, new.y ~ .))}))
+curve(pnorm(x, mean = coef(mod_poiss)[1], sd = sqrt(vcov(mod_poiss)[[1]])), from = min(new_betas[, 1]),
+      to = max(new_betas[, 1]), ylab = "cdf", lwd = 3, xlab = "Intercept in mod_poiss")
+plot(ecdf(new_betas[, 1]), col = "red", lwd = 2, add = TRUE)
+```
+
+
+## Distribution of parameter estimates
+
+As for LM the parameter estimates are normally distributed.
+
+```{r}
+curve(pnorm(x, mean = coef(mod_poiss)[2], sd = sqrt(vcov(mod_poiss)[[4]])), from = min(new_betas[, 2]),
+      to = max(new_betas[, 2]), ylab = "cdf", lwd = 3, xlab = "Slope in mod_poiss")
+plot(ecdf(new_betas[, 2]), col = "red", lwd = 2, add = TRUE)
+```
+
+
+## Distribution of parameter estimates
+
+As for LM the parameter estimates are normally distributed.
+
+```{r}
+new_betas <- t(replicate(1000, {Aliens$new.y <- as.matrix(binomial()$simulate(mod_binar, 1))
+coef(update(mod_binar, new.y ~ .))}))
+curve(pnorm(x, mean = coef(mod_binar)[1], sd = sqrt(vcov(mod_binar)[[1]])), from = min(new_betas[, 1]),
+      to = max(new_betas[, 1]), ylab = "cdf", lwd = 3, xlab = "Intercept in mod_binar")
+plot(ecdf(new_betas[, 1]), col = "red", lwd = 2, add = TRUE)
+```
+
+
+## Distribution of parameter estimates
+
+As for LM the parameter estimates are normally distributed.
+
+```{r}
+curve(pnorm(x, mean = coef(mod_binar)[2], sd = sqrt(vcov(mod_binar)[[4]])), from = min(new_betas[, 2]),
+      to = max(new_betas[, 2]), ylab = "cdf", lwd = 3, xlab = "Slope in mod_binar")
+plot(ecdf(new_betas[, 2]), col = "red", lwd = 2, add = TRUE)
+```
+
+
+
+
+# Goodness of fit (work in progress)
 
 ## Goodness of fit?
 

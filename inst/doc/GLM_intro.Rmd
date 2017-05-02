@@ -549,7 +549,7 @@ unlike LM there is no direct algorithm to obtain the maximum likelihood estimate
 
 ### Solution
 
-```glm.fit()``` fits GLM using an iterative algorithm based on weighted least squares to update parameter estimates.
+The function ```glm.fit()``` fits GLM using an iterative algorithm based on weighted least squares to update parameter estimates.
 
 The GLM weights (not the prior weights) are inversely proportional to the variance of the response, but the variance depends on the mean which, in turn, depends on the parameters.
 
@@ -754,7 +754,7 @@ mod_lm <- lm(log(eggs) ~ humans_eaten, data = Aliens)
 
 <br>
 
-...parameter estimates can differ substantially:
+...parameter estimates can be substantially biased:
 
 ```{r}
 mod_lm <- lm(log(eggs+1) ~ humans_eaten, data = Aliens)
@@ -787,7 +787,7 @@ sum((Aliens$eggs - exp(predict(mod_poiss)))^2)
 ```
 <br>
 
-Note: we compare the sum of squares (paying attention to do so on the same scale) as the models have been fitted on different responses which prevents the use of usual functions.
+Note: we compare the sum of squares (paying attention to do so on the same scale) as the models have been fitted on different responses, which prevents the use of any comparison based on the likelihood.
 
 
 ## The example of the GLM Binomial
@@ -842,6 +842,30 @@ round(rbind(
 ```
 
 Here the GLM2 corresponds the simulation model so estimates produced are better than the alternatives.
+
+
+## How to compare LM and GLM?
+
+We can compare deviances but not directly:
+
+```{r}
+set.seed(1L)
+x <- seq(1, 2, length = 100)
+y <- exp(2 + 1 * x) + rnorm(n = length(x), mean = 0, sd = 5)
+
+mod_glm  <- glm(y ~ x, family = gaussian(link = "log"))
+mod_lm   <- lm(log(y) ~ x)
+
+rbind("deviance glm"          = deviance(mod_glm), ## OK same as mod_glm$deviance
+      "raw deviance lm"       = deviance(mod_lm),  ## not comparable as response = log(y)
+      "corrected deviance lm" = sum((y - exp(predict(mod_lm)))^2))  ## comparable deviance for lm
+```
+
+<br>
+
+You cannot use AIC in this case as the responses differ.
+
+To do a formal test, you can use the parametric bootstrap as we will see later!
 
 
 # Interpreting parameter estimates
