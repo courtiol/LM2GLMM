@@ -669,7 +669,9 @@ rbind(mod_binom$coefficients,
 
 ## The example of the GLM Poisson
 
-Fits will be more difficult:
+###If the process generating the data is not Gaussian...
+
+...fits will be more difficult:
 
 ```{r, error = TRUE}
 mod_lm <- lm(log(eggs) ~ humans_eaten, data = Aliens)
@@ -677,7 +679,7 @@ mod_lm <- lm(log(eggs) ~ humans_eaten, data = Aliens)
 
 <br>
 
-Parameter estimates can differ substantially:
+...parameter estimates can differ substantially:
 
 ```{r}
 mod_lm <- lm(log(eggs+1) ~ humans_eaten, data = Aliens)
@@ -688,17 +690,21 @@ rbind(mod_poiss$coefficients,
 
 ## The example of the GLM Poisson
 
-The assumptions for LM will often not be met:
+###If the process generating the data is not Gaussian...
 
-```{r}
-par(mfrow = c(2, 2))
+...the assumptions for LM will often not be met:
+
+```{r, fig.width = 10, fig.height = 3}
+par(mfrow = c(1, 4))
 plot(mod_lm)
 ```
 
 
 ## The example of the GLM Poisson
 
-The LM should fit more poorly the data:
+###If the process generating the data is not Gaussian...
+
+...the LM should fit more poorly the data:
 
 ```{r}
 sum((Aliens$eggs - (exp(predict(mod_lm)) - 1))^2)
@@ -716,7 +722,8 @@ Note: we compare the sum of squares (paying attention to do so on the same scale
 <center> Try for yourself! </center>
 
 
-## The counter-example of the GLM Gaussian
+## But, if the process is Gaussian...
+
 
 ```{r}
 set.seed(1L)
