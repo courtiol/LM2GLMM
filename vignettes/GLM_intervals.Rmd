@@ -107,6 +107,38 @@ phi <- 1
 phi*solve(XTWX)
 ```
 
+## Goodness of fit?
+
+```{r}
+set.seed(1L)
+x <- seq(1, 2, length = 100)
+y <- exp(rnorm(n = length(x), mean = 2 + 1 * x, sd = 0.5))
+
+mod_lm   <- lm(log(y) ~ x)
+mod_glm  <- glm(y ~ x, family = gaussian(link = "log"))
+logLikH0 <- replicate(1000, {
+  new.y <- exp(as.matrix(simulate(mod_lm)))
+  logLik(lm(log(new.y) ~ x)) - logLik(glm(new.y ~ x, family = gaussian(link = "log")))
+  })
+mean(logLikH0 > (logLik(mod_lm)-logLik(mod_glm)))
+```
+
+## Goodness of fit?
+
+
+```{r}
+set.seed(1L)
+x <- seq(1, 2, length = 100)
+y <- exp(2 + 1 * x) + rnorm(n = length(x), mean = 0, sd = 5)
+
+mod_lm   <- lm(log(y) ~ x)
+mod_glm  <- glm(y ~ x, family = gaussian(link = "log"))
+logLikH0 <- replicate(1000, {
+  new.y <- as.matrix(simulate(mod_glm))
+  logLik(glm(new.y ~ x, family = gaussian(link = "log"))) - logLik(lm(log(new.y) ~ x))
+  })
+mean(logLikH0 > (logLik(mod_glm)-logLik(mod_lm)))
+```
 
 ## What you need to remember
 
