@@ -20,8 +20,8 @@ knitr::opts_chunk$set(cache = FALSE, fig.width = 5, fig.height = 5, fig.align = 
 ## The Generalized Linear Model: GLM
 
 * 3.0 [Introduction](./GLM_intro.html)
-* 3.1 [Residuals & Assumptions](./GLM_assumptions.html)
-* 3.2 [Uncertainty & Tests](./GLM_uncertainty.html)
+* 3.1 [Uncertainty & Tests](./GLM_uncertainty.html)
+* 3.2 [Residuals & Assumptions](./GLM_assumptions.html)
 * 3.3 [Overdispersion & Zero-inflation](./GLM_overdispersion.html)
 * 3.4 [Let's practice more](./GLM_practice.html)
 
@@ -109,7 +109,7 @@ inverse.gaussian(link = "1/mu^2")
 
 <br>
 
-The objects of class ```family``` created by these functions also contain other useful information needed for the fitting procedure.
+The objects of class ```family``` created by these functions also contain other useful information needed for the fitting procedure (we will see that later).
 
 # Examples
 
@@ -149,7 +149,9 @@ names(mod_gauss)
 names(mod_binom)
 ```
 
-The components are the same no matter the family. We will only detail the interesting ones that differ from LM.
+The components are the same no matter the family.
+
+We will only detail the interesting ones that differ from LM.
 
 ## Coefficients (```coefficients```)
 
@@ -663,6 +665,206 @@ rbind(mod_binom$coefficients,
       )
 ```
 
+# GLM vs LM with transformation
+
+## The example of the GLM Poisson
+
+###If the process generating the data is not Gaussian...
+
+...fits will be more difficult:
+
+```{r, error = TRUE}
+mod_lm <- lm(log(eggs) ~ humans_eaten, data = Aliens)
+```
+
+<br>
+
+...parameter estimates can differ substantially:
+
+```{r}
+mod_lm <- lm(log(eggs+1) ~ humans_eaten, data = Aliens)
+rbind(mod_poiss$coefficients,
+      mod_lm$coefficients)
+```
+
+
+## The example of the GLM Poisson
+
+###If the process generating the data is not Gaussian...
+
+...the assumptions for LM will often not be met:
+
+```{r, fig.width = 10, fig.height = 3}
+par(mfrow = c(1, 4))
+plot(mod_lm)
+```
+
+
+## The example of the GLM Poisson
+
+###If the process generating the data is not Gaussian...
+
+...the LM should fit more poorly the data:
+
+```{r}
+sum((Aliens$eggs - (exp(predict(mod_lm)) - 1))^2)
+sum((Aliens$eggs - predict(mod_poiss, type = "response"))^2)
+```
+<br>
+
+Note: we compare the sum of squares (paying attention to do so on the same scale) as the models have been fitted on different responses which prevents the use of usual functions.
+
+
+## The example of the GLM Binomial
+
+<br>
+
+<center> Try for yourself! </center>
+
+
+## But, if the process is Gaussian...
+
+```{r}
+set.seed(1L)
+
+simu <- replicate(1000, {
+  x <- rnorm(100)
+  y <- exp(rnorm(n = length(x), mean = -2 + 0.01 * x, sd = 0.5))
+  mod_lm   <- lm(log(y) ~ x)
+  mod_glm1 <- glm(log(y) ~ x, family = gaussian(link = "identity"))
+  mod_glm2 <- glm(y ~ x, family = gaussian(link = "log"))
+  c(mod_lm$coefficients, mod_glm1$coefficients, mod_glm2$coefficients)
+})
+
+rbind(c(mean(simu[1, ]), mean(simu[2, ])),
+      c(mean(simu[3, ]), mean(simu[4, ])),  ## GLM1 is similar to LM
+      c(mean(simu[5, ]), mean(simu[6, ])))  ## GLM2 is here not as good!
+```
+
+The GLM2 log transforms the expected values, not the observations!
+
+If SD small the methods converge!
+
+
+# Interpreting parameter estimates
+
+## Estimates with the Gaussian family
+
+<br>
+
+<center> Same as LM (when link = identity)! </center>
+
+
+## Estimates with the Poisson family with log link
+
+### Predictions for $\eta$ and $\mu$ differ!
+
+```{r}
+mod_poiss$coefficients
+predict(mod_poiss, newdata = data.frame(humans_eaten = 10))
+mod_poiss$coefficients[1] + 10 * mod_poiss$coefficients[2]
+```
+
+Because we used the link function ```log```, this is a log number of eggs!
+
+
+## Estimates with the Poisson family with log link
+
+### Predictions for $\eta$ and $\mu$ differ!
+
+```{r}
+exp(predict(mod_poiss, newdata = data.frame(humans_eaten = 10)))
+exp(mod_poiss$coefficients[1] + 10 * mod_poiss$coefficients[2])
+predict(mod_poiss, newdata = data.frame(humans_eaten = 10), type = "response")
+```
+
+This is the average number of eggs predicted for aliens eating 10 humans.
+
+
+## Estimates with the Poisson family with log link
+
+### The regression parameters are linear for $\eta$, not $\mu$!
+
+Ex: what happens when different aliens eat one additional human?
+
+```{r}
+(p.eta <- predict(mod_poiss, newdata = data.frame(humans_eaten = 1:5)))
+(p.mu <- predict(mod_poiss, newdata = data.frame(humans_eaten = 1:5), type = "response"))
+```
+
+<br>
+
+The effect is no longer constant!
+
+
+## Estimates with the Poisson family with log link
+
+Ratios are the way out:
+
+```{r}
+p.mu[-1] / p.mu[-5]
+exp(mod_poiss$coefficients[2])
+```
+
+Eating one additional human increases the average number of eggs produced by aliens by ```r exp(mod_poiss$coefficients[2])``` times or ```r 100*exp(mod_poiss$coefficients[2])-100```%.
+
+
+## Estimates and the Binomial with logit link
+
+```{r}
+(p.eta <- predict(mod_binom, newdata = data.frame(humans_eaten = 1:5)))
+(p.mu <- predict(mod_binom, newdata = data.frame(humans_eaten = 1:5), type = "response"))
+```
+
+<br>
+
+The effect is also not constant...
+
+
+## Estimates and the Binomial with logit link
+
+Odds ratios are the way out:
+
+```{r}
+odd <- p.mu / (1 - p.mu)
+odd[-1] / odd[-5]
+```
+
+The effect is constant on the scale of the odds ratios!
+
+<br>
+
+And the odds ratios can be directly deduced from the parameter estimates:
+
+```{r}
+exp(mod_binom$coefficients[2])
+```
+
+Eating one additional human increases the **odd** of aliens having blue eyes by ```r exp(mod_binom$coefficients[2])``` times.
+
+
+## Estimates and the Binomial with logit link
+
+What happens when different aliens eat 10 additional humans?
+
+```{r}
+p.mu <- predict(mod_binom, newdata = data.frame(humans_eaten = c(0, 10, 20, 30, 40)), type = "response")
+odd <- p.mu / (1 - p.mu)
+odd[-1] / odd[-5]
+```
+
+<br>
+
+It is also constant and predicted from:
+
+```{r}
+exp(mod_binom$coefficients[2] * 10)
+```
+
+<br>
+
+Note: as odds-ratios are ratios, a value of 0.1 means a 10 (=1/0.1) fold reduction in odds ratios.
+
 ## What you need to remember
 
 # Table of content
@@ -670,8 +872,8 @@ rbind(mod_binom$coefficients,
 ## The Generalized Linear Model: GLM
 
 * 3.0 [Introduction](./GLM_intro.html)
-* 3.1 [Residuals & Assumptions](./GLM_assumptions.html)
-* 3.2 [Uncertainty & Tests](./GLM_uncertainty.html)
+* 3.1 [Uncertainty & Tests](./GLM_uncertainty.html)
+* 3.2 [Residuals & Assumptions](./GLM_assumptions.html)
 * 3.3 [Overdispersion & Zero-inflation](./GLM_overdispersion.html)
 * 3.4 [Let's practice more](./GLM_practice.html)
 

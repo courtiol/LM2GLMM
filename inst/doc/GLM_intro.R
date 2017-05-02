@@ -301,3 +301,72 @@ rbind(mod_binom$coefficients,
       my_glm3(prop_blue ~ humans_eaten, data = Aliens, family = binomial(), weights = Aliens$all_eyes)
       )
 
+## ---- error = TRUE----------------------------------------------------------------------------------------------------
+mod_lm <- lm(log(eggs) ~ humans_eaten, data = Aliens)
+
+## ---------------------------------------------------------------------------------------------------------------------
+mod_lm <- lm(log(eggs+1) ~ humans_eaten, data = Aliens)
+rbind(mod_poiss$coefficients,
+      mod_lm$coefficients)
+
+## ---- fig.width = 10, fig.height = 3----------------------------------------------------------------------------------
+par(mfrow = c(1, 4))
+plot(mod_lm)
+
+## ---------------------------------------------------------------------------------------------------------------------
+sum((Aliens$eggs - (exp(predict(mod_lm)) - 1))^2)
+sum((Aliens$eggs - predict(mod_poiss, type = "response"))^2)
+
+## ---------------------------------------------------------------------------------------------------------------------
+set.seed(1L)
+
+simu <- replicate(1000, {
+  x <- rnorm(100)
+  y <- exp(rnorm(n = length(x), mean = -2 + 0.01 * x, sd = 0.5))
+  mod_lm   <- lm(log(y) ~ x)
+  mod_glm1 <- glm(log(y) ~ x, family = gaussian(link = "identity"))
+  mod_glm2 <- glm(y ~ x, family = gaussian(link = "log"))
+  c(mod_lm$coefficients, mod_glm1$coefficients, mod_glm2$coefficients)
+})
+
+rbind(c(mean(simu[1, ]), mean(simu[2, ])),
+      c(mean(simu[3, ]), mean(simu[4, ])),  ## GLM1 is similar to LM
+      c(mean(simu[5, ]), mean(simu[6, ])))  ## GLM2 is here not as good!
+
+## ---------------------------------------------------------------------------------------------------------------------
+mod_poiss$coefficients
+predict(mod_poiss, newdata = data.frame(humans_eaten = 10))
+mod_poiss$coefficients[1] + 10 * mod_poiss$coefficients[2]
+
+## ---------------------------------------------------------------------------------------------------------------------
+exp(predict(mod_poiss, newdata = data.frame(humans_eaten = 10)))
+exp(mod_poiss$coefficients[1] + 10 * mod_poiss$coefficients[2])
+predict(mod_poiss, newdata = data.frame(humans_eaten = 10), type = "response")
+
+## ---------------------------------------------------------------------------------------------------------------------
+(p.eta <- predict(mod_poiss, newdata = data.frame(humans_eaten = 1:5)))
+(p.mu <- predict(mod_poiss, newdata = data.frame(humans_eaten = 1:5), type = "response"))
+
+## ---------------------------------------------------------------------------------------------------------------------
+p.mu[-1] / p.mu[-5]
+exp(mod_poiss$coefficients[2])
+
+## ---------------------------------------------------------------------------------------------------------------------
+(p.eta <- predict(mod_binom, newdata = data.frame(humans_eaten = 1:5)))
+(p.mu <- predict(mod_binom, newdata = data.frame(humans_eaten = 1:5), type = "response"))
+
+## ---------------------------------------------------------------------------------------------------------------------
+odd <- p.mu / (1 - p.mu)
+odd[-1] / odd[-5]
+
+## ---------------------------------------------------------------------------------------------------------------------
+exp(mod_binom$coefficients[2])
+
+## ---------------------------------------------------------------------------------------------------------------------
+p.mu <- predict(mod_binom, newdata = data.frame(humans_eaten = c(0, 10, 20, 30, 40)), type = "response")
+odd <- p.mu / (1 - p.mu)
+odd[-1] / odd[-5]
+
+## ---------------------------------------------------------------------------------------------------------------------
+exp(mod_binom$coefficients[2] * 10)
+
