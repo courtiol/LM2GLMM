@@ -17,7 +17,8 @@ Aliens$size  <- rnorm( n = 100, mean = 50 + 1.5 * Aliens$humans_eaten, sd = 5)
 Aliens$eggs  <- rpois( n = 100, lambda = exp(-1 + 0.1 * Aliens$humans_eaten))
 Aliens$happy <- rbinom(n = 100, size = 1, prob = plogis(-3 + 0.3 * Aliens$humans_eaten))
 Aliens$all_eyes  <- round(runif(nrow(Aliens), min = 1, max = 12))
-Aliens$blue_eyes <- rbinom(n = nrow(Aliens), size = Aliens$all_eyes, prob = plogis(-2 + 0.5 * Aliens$humans_eaten))
+Aliens$blue_eyes <- rbinom(n = nrow(Aliens), size = Aliens$all_eyes,
+                           prob = plogis(-2 + 0.5 * Aliens$humans_eaten))
 Aliens$pink_eyes <- Aliens$all_eyes - Aliens$blue_eyes
 head(Aliens)
 
@@ -302,6 +303,37 @@ rbind(mod_binom$coefficients,
       )
 
 ## ---- error = TRUE----------------------------------------------------------------------------------------------------
+test <- data.frame(x = c(8.752, 20.27, 24.71, 32.88, 27.27, 19.09),
+                   y = c(5254, 35.92, 84.14, 641.8, 1.21, 47.2))
+glm(y ~ x, data = test, family = Gamma(link = "log")) 
+
+## ---------------------------------------------------------------------------------------------------------------------
+glm(y ~ x, data = test, family = Gamma(link = "log"), start = c(10, -0.1), control = list(epsilon = 1e-3))
+
+## ---- error = TRUE----------------------------------------------------------------------------------------------------
+test <- data.frame(x = c(8.752, 20.27, 24.71, 32.88, 27.27, 19.09),
+                   y = c(5254, 35.92, 84.14, 641.8, 1.21, 47.2))
+glm(y ~ x, data = test, family = Gamma(link = "log")) 
+
+## ---- error = TRUE, message = FALSE-----------------------------------------------------------------------------------
+library(spaMM)
+glm(y ~ x, data = test, family = Gamma(link = "log"), method="spaMM_glm.fit")
+
+## ---- error = TRUE----------------------------------------------------------------------------------------------------
+test <- data.frame(x = c(8.752, 20.27, 24.71, 32.88, 27.27, 19.09),
+                   y = c(5254, 35.92, 84.14, 641.8, 1.21, 47.2))
+glm(y ~ x, data = test, family = Gamma(link = "log")) 
+
+## ---- error = TRUE, message = FALSE, warning = FALSE------------------------------------------------------------------
+library(glm2)   ## seems less robust than spaMM in at least some other cases, so try both in case of troubles
+glm(y ~ x, data = test, family = Gamma(link = "log"), method="glm.fit2")
+
+## ---- error = TRUE----------------------------------------------------------------------------------------------------
+my_glm1(y ~ x, data = test, family = Gamma(link = "log"))  ## Yay! It works
+my_glm2(y ~ x, data = test, family = Gamma(link = "log"))  ## Silly results
+my_glm3(y ~ x, data = test, family = Gamma(link = "log"))  ## Crash
+
+## ---- error = TRUE----------------------------------------------------------------------------------------------------
 mod_lm <- lm(log(eggs) ~ humans_eaten, data = Aliens)
 
 ## ---------------------------------------------------------------------------------------------------------------------
@@ -315,23 +347,42 @@ plot(mod_lm)
 
 ## ---------------------------------------------------------------------------------------------------------------------
 sum((Aliens$eggs - (exp(predict(mod_lm)) - 1))^2)
-sum((Aliens$eggs - predict(mod_poiss, type = "response"))^2)
+sum((Aliens$eggs - exp(predict(mod_poiss)))^2)
 
-## ---------------------------------------------------------------------------------------------------------------------
+## ---- warning = FALSE-------------------------------------------------------------------------------------------------
 set.seed(1L)
-
-simu <- replicate(1000, {
-  x <- rnorm(100)
-  y <- exp(rnorm(n = length(x), mean = -2 + 0.01 * x, sd = 0.5))
+x <- seq(1, 2, length = 100)
+simu <- replicate(100, {
+  y <- exp(rnorm(n = length(x), mean = 2 + 1 * x, sd = 0.5))
   mod_lm   <- lm(log(y) ~ x)
   mod_glm1 <- glm(log(y) ~ x, family = gaussian(link = "identity"))
   mod_glm2 <- glm(y ~ x, family = gaussian(link = "log"))
   c(mod_lm$coefficients, mod_glm1$coefficients, mod_glm2$coefficients)
 })
 
-rbind(c(mean(simu[1, ]), mean(simu[2, ])),
-      c(mean(simu[3, ]), mean(simu[4, ])),  ## GLM1 is similar to LM
-      c(mean(simu[5, ]), mean(simu[6, ])))  ## GLM2 is here not as good!
+round(rbind(
+  mod_lm = c("mean int" = mean(simu[1, ]), "sd int" = sd(simu[1, ]),
+             "mean slope" = mean(simu[2, ]), "sd slope" = sd(simu[2, ])),
+  mod_glm1 = c(mean(simu[3, ]), sd(simu[3, ]), mean(simu[4, ]), sd(simu[4, ])),
+  mod_glm2 = c(mean(simu[5, ]), sd(simu[5, ]), mean(simu[6, ]), sd(simu[6, ]))), 3)
+
+## ---------------------------------------------------------------------------------------------------------------------
+set.seed(1L)
+x <- seq(1, 2, length = 100)
+simu <- replicate(100, {
+  y <- exp(2 + 1 * x) + rnorm(n = length(x), mean = 0, sd = 5)
+  mod_lm   <- lm(log(y) ~ x)
+  mod_glm1 <- glm(log(y) ~ x, family = gaussian(link = "identity"))
+  mod_glm2 <- glm(y ~ x, family = gaussian(link = "log"))
+  c(mod_lm$coefficients, mod_glm1$coefficients, mod_glm2$coefficients)
+})
+
+round(rbind(
+  mod_lm = c("mean int" = mean(simu[1, ]), "sd int" = sd(simu[1, ]),
+             "mean slope" = mean(simu[2, ]), "sd slope" = sd(simu[2, ])),
+  mod_glm1 = c(mean(simu[3, ]), sd(simu[3, ]), mean(simu[4, ]), sd(simu[4, ])),
+  mod_glm2 = c(mean(simu[5, ]), sd(simu[5, ]), mean(simu[6, ]), sd(simu[6, ]))), 3)
+
 
 ## ---------------------------------------------------------------------------------------------------------------------
 mod_poiss$coefficients

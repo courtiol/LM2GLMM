@@ -291,6 +291,53 @@ residuals(mod_UK, type = &quot;partial&quot;)</pre>
 
 <p>Note: they can also be computed for LM.</p>
 
+</article></slide><slide class=''><hgroup><h2>The problem of (quasi-)separation in Binomial</h2></hgroup><article  id="the-problem-of-quasi-separation-in-binomial" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>n &lt;- 5
+test &lt;- data.frame(eggs = rbinom(2*n, p=c(rep(0, n), rep(0.25, n)), size = 100), 
+                   sp = c(rep(&quot;sp1&quot;, n), rep(&quot;sp2&quot;, n)))
+mod &lt;- glm(cbind(eggs, 100 - eggs) ~ sp, data = test, family = binomial())
+summary(mod)</pre>
+
+<pre >## 
+## Call:
+## glm(formula = cbind(eggs, 100 - eggs) ~ sp, family = binomial(), 
+##     data = test)
+## 
+## Deviance Residuals: 
+##      Min        1Q    Median        3Q       Max  
+## -0.40006  -0.13288  -0.00003  -0.00003   0.48231  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)
+## (Intercept)   -26.31   14020.49  -0.002    0.999
+## spsp2          25.41   14020.49   0.002    0.999
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 224.78298  on 9  degrees of freedom
+## Residual deviance:   0.81672  on 8  degrees of freedom
+## AIC: 29.13
+## 
+## Number of Fisher Scoring iterations: 21</pre>
+
+<pre class = 'prettyprint lang-r'>anova(mod, test = &quot;LR&quot;)</pre>
+
+<pre >## Analysis of Deviance Table
+## 
+## Model: binomial, link: logit
+## 
+## Response: cbind(eggs, 100 - eggs)
+## 
+## Terms added sequentially (first to last)
+## 
+## 
+##      Df Deviance Resid. Df Resid. Dev  Pr(&gt;Chi)    
+## NULL                     9    224.783              
+## sp    1   223.97         8      0.817 &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</pre>
+
 </article></slide><slide class=''><hgroup><h2>What you need to remember</h2></hgroup><article  id="what-you-need-to-remember" class="smaller ">
 
 </article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>Table of content</h2></hgroup><article  id="table-of-content" class="smaller ">
@@ -299,7 +346,7 @@ residuals(mod_UK, type = &quot;partial&quot;)</pre>
 
 <ul>
 <li>3.0 <a href='./GLM_intro.html' title=''>Introduction</a></li>
-<li>3.1 <a href='./GLM_uncertainty.html' title=''>Uncertainty &amp; Tests</a></li>
+<li>3.1 <a href='./GLM_intervals.html' title=''>Intervals &amp; Tests</a></li>
 <li>3.2 <a href='./GLM_assumptions.html' title=''>Residuals &amp; Assumptions</a></li>
 <li>3.3 <a href='./GLM_overdispersion.html' title=''>Overdispersion &amp; Zero-inflation</a></li>
 <li>3.4 <a href='./GLM_practice.html' title=''>Let&#39;s practice more</a></li>

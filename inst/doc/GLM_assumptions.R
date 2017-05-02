@@ -86,3 +86,11 @@ rbind(mod_binom$residuals[1:2],
 mod_UK <- glm(milk ~ drink + sex + cigarettes, data = UK[1:10, ], family = poisson())
 residuals(mod_UK, type = "partial")
 
+## ---------------------------------------------------------------------------------------------------------------------
+n <- 5
+test <- data.frame(eggs = rbinom(2*n, p=c(rep(0, n), rep(0.25, n)), size = 100), 
+                   sp = c(rep("sp1", n), rep("sp2", n)))
+mod <- glm(cbind(eggs, 100 - eggs) ~ sp, data = test, family = binomial())
+summary(mod)
+anova(mod, test = "LR")
+
