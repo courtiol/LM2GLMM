@@ -724,7 +724,6 @@ Note: we compare the sum of squares (paying attention to do so on the same scale
 
 ## But, if the process is Gaussian...
 
-
 ```{r}
 set.seed(1L)
 
@@ -749,14 +748,14 @@ If SD small the methods converge!
 
 # Interpreting parameter estimates
 
-## Estimates and the Gaussian family
+## Estimates with the Gaussian family
 
 <br>
 
 <center> Same as LM (when link = identity)! </center>
 
 
-## Estimates and the Poisson family
+## Estimates with the Poisson family with log link
 
 ### Predictions for $\eta$ and $\mu$ differ!
 
@@ -769,7 +768,7 @@ mod_poiss$coefficients[1] + 10 * mod_poiss$coefficients[2]
 Because we used the link function ```log```, this is a log number of eggs!
 
 
-## Estimates and the Poisson family
+## Estimates with the Poisson family with log link
 
 ### Predictions for $\eta$ and $\mu$ differ!
 
@@ -782,17 +781,15 @@ predict(mod_poiss, newdata = data.frame(humans_eaten = 10), type = "response")
 This is the average number of eggs predicted for aliens eating 10 humans.
 
 
-## Estimates and the Poisson family
+## Estimates with the Poisson family with log link
 
 ### The regression parameters are linear for $\eta$, not $\mu$!
 
 Ex: what happens when different aliens eat one additional human?
 
 ```{r}
-p.eta <- predict(mod_poiss, newdata = data.frame(humans_eaten = 1:10))
-p.eta[-10] - p.eta[-1]
-p.mu <- predict(mod_poiss, newdata = data.frame(humans_eaten = 1:10), type = "response")
-p.mu[-10] - p.mu[-1]
+(p.eta <- predict(mod_poiss, newdata = data.frame(humans_eaten = 1:5)))
+(p.mu <- predict(mod_poiss, newdata = data.frame(humans_eaten = 1:5), type = "response"))
 ```
 
 <br>
@@ -800,9 +797,73 @@ p.mu[-10] - p.mu[-1]
 The effect is no longer constant!
 
 
-## Estimates and the Binomial family
+## Estimates with the Poisson family with log link
+
+Ratios are the way out:
+
+```{r}
+p.mu[-1] / p.mu[-5]
+exp(mod_poiss$coefficients[2])
+```
+
+Eating one additional human increases the average number of eggs produced by aliens by ```r exp(mod_poiss$coefficients[2])``` times or ```r 100*exp(mod_poiss$coefficients[2])-100```%.
 
 
+## Estimates and the Binomial with logit link
+
+```{r}
+(p.eta <- predict(mod_binom, newdata = data.frame(humans_eaten = 1:5)))
+(p.mu <- predict(mod_binom, newdata = data.frame(humans_eaten = 1:5), type = "response"))
+```
+
+<br>
+
+The effect is also not constant...
+
+
+## Estimates and the Binomial with logit link
+
+Odds ratios are the way out:
+
+```{r}
+odd <- p.mu / (1 - p.mu)
+odd[-1] / odd[-5]
+```
+
+The effect is constant on the scale of the odds ratios!
+
+<br>
+
+And the odds ratios can be directly deduced from the parameter estimates:
+
+```{r}
+exp(mod_binom$coefficients[2])
+```
+
+Eating one additional human increases the **odd** of aliens having blue eyes by ```r exp(mod_binom$coefficients[2])``` times.
+
+
+## Estimates and the Binomial with logit link
+
+What happens when different aliens eat 10 additional humans?
+
+```{r}
+p.mu <- predict(mod_binom, newdata = data.frame(humans_eaten = c(0, 10, 20, 30, 40)), type = "response")
+odd <- p.mu / (1 - p.mu)
+odd[-1] / odd[-5]
+```
+
+<br>
+
+It is also constant and predicted from:
+
+```{r}
+exp(mod_binom$coefficients[2] * 10)
+```
+
+<br>
+
+Note: as odds-ratios are ratios, a value of 0.1 means a 10 (=1/0.1) fold reduction in odds ratios.
 
 ## What you need to remember
 
