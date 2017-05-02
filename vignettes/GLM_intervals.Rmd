@@ -120,7 +120,7 @@ logLikH0 <- replicate(1000, {
   new.y <- exp(as.matrix(simulate(mod_lm)))
   logLik(lm(log(new.y) ~ x)) - logLik(glm(new.y ~ x, family = gaussian(link = "log")))
   })
-mean(logLikH0 > (logLik(mod_lm)-logLik(mod_glm)))
+mean(logLikH0 < (logLik(mod_lm)-logLik(mod_glm)))
 ```
 
 ## Goodness of fit?
@@ -133,11 +133,33 @@ y <- exp(2 + 1 * x) + rnorm(n = length(x), mean = 0, sd = 5)
 
 mod_lm   <- lm(log(y) ~ x)
 mod_glm  <- glm(y ~ x, family = gaussian(link = "log"))
-logLikH0 <- replicate(1000, {
+difflogLikH0 <- replicate(1000, {
   new.y <- as.matrix(simulate(mod_glm))
   logLik(glm(new.y ~ x, family = gaussian(link = "log"))) - logLik(lm(log(new.y) ~ x))
   })
-mean(logLikH0 > (logLik(mod_glm)-logLik(mod_lm)))
+hist(difflogLikH0)
+abline(v = logLik(mod_glm)-logLik(mod_lm), col = 2, lwd = 2)
+mean((logLik(mod_glm)-logLik(mod_lm)) > logLikH0)
+
+
+c(mean(logLikH0), mean(logLik(mod_glm)-logLik(mod_lm)))
+```
+
+## Goodness of fit?
+
+
+```{r}
+set.seed(1L)
+x <- seq(1, 2, length = 100)
+y <- exp(2 + 1 * x) + rnorm(n = length(x), mean = 0, sd = 5)
+mod_glm  <- glm(y ~ x, family = gaussian(link = "log"))
+logLikBoot <- replicate(1000, {
+  new.y <- as.matrix(simulate(mod_glm))
+  logLik(glm(new.y ~ x, family = gaussian(link = "log")))
+  })
+hist(logLikBoot, xlim = range(logLikBoot, logLik(mod_glm)))
+abline(v = logLik(mod_glm), col = 2, lwd = 2)
+mean(logLik(mod_glm) > logLikBoot)
 ```
 
 ## What you need to remember
