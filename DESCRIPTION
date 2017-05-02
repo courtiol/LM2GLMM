@@ -17,6 +17,7 @@ Imports:
     effects,
     spaMM (>= 2.0.0),
     stats,
+    glm2,
     lattice,
     lme4,
     lmtest,
@@ -29,5 +30,6 @@ Imports:
     sem
 Suggests:
     knitr,
-    rmarkdown
+    rmarkdown,
+    rcdd
 VignetteBuilder: knitr
