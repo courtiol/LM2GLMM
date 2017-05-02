@@ -28,6 +28,17 @@ knitr::opts_chunk$set(cache = FALSE, fig.width = 5, fig.height = 5, fig.align = 
 
 ## You will learn in this session
 
+* how to write a GLM
+* that GLM can be fitted on different type of responses
+* what a link function, a variance function and a linear predictor are
+* how to simulate the data for a GLM
+* how to use the R family objects
+* how to convert values between the response and linear predictor scales
+* that GLM estimates are fitted by maximum likelihood
+* that GLM can be fitted analytically only using an iterative approach
+* how to interpret parameter estimates from GLM Poisson and Binomial
+
+
 # Definition and notations
 
 ## Mathematical notations of GLM
@@ -113,7 +124,7 @@ The objects of class ```family``` created by these functions also contain other 
 
 # Examples
 
-## Aliens in the GLM world
+## Simulating data for GLM
 
 ```{r}
 set.seed(1L)
@@ -205,7 +216,7 @@ rbind(mod_binom$linear.predictors[1:2], (model.matrix(mod_binom) %*% mod_binom$c
 
 ## Fitted values (```fitted.values```)
 
-This contains the predicted values for the observations at the original scale:
+This contains the predicted values for the observations at the scale of the response:
 
 ```{r}
 rbind(summary(mod_gauss$fitted.values),
@@ -334,7 +345,7 @@ print.AsIs(poisson())
 
 ## The link function (```link``` & ```linkfun```)
 
-The link function converts the values from the original scale to the scale of the linear predictor.
+The link function converts the values from the scale of the response to the one of the linear predictor.
 
 Each family has a default link function presenting nice mathematical properties, called the canonical link function.
 
@@ -346,7 +357,7 @@ c(binomial()$linkfun(0.9), log(0.9/(1 - 0.9)))
 
 ## The link function (```link``` & ```linkfun```)
 
-The link function converts the values from the original scale to the scale of the linear predictor.
+The link function converts the values from the scale of the response to the one of the linear predictor.
 
 Non-canonical link functions can also be used:
 
@@ -369,7 +380,7 @@ c(binomial(link = "cloglog")$linkfun(0.9), log(-log(1 - 0.9)))
 
 ## The inverse link function (```linkinv```)
 
-The inverse link function converts the values of the linear predictor back into the original scale.
+The inverse link function converts the values of the linear predictor back into the scale of the response.
 
 <br>
 
@@ -665,6 +676,67 @@ rbind(mod_binom$coefficients,
       )
 ```
 
+
+# Fitting troubles
+
+## The iterative algorithm can sometimes fail
+
+```{r, error = TRUE}
+test <- data.frame(x = c(8.752, 20.27, 24.71, 32.88, 27.27, 19.09),
+                   y = c(5254, 35.92, 84.14, 641.8, 1.21, 47.2))
+glm(y ~ x, data = test, family = Gamma(link = "log")) 
+```
+
+In such cases, you may try to play with parameters of the iterative algorithm (difficult):
+
+```{r}
+glm(y ~ x, data = test, family = Gamma(link = "log"), start = c(10, -0.1), control = list(epsilon = 1e-3))
+```
+
+
+## The iterative algorithm can sometimes fail
+
+```{r, error = TRUE}
+test <- data.frame(x = c(8.752, 20.27, 24.71, 32.88, 27.27, 19.09),
+                   y = c(5254, 35.92, 84.14, 641.8, 1.21, 47.2))
+glm(y ~ x, data = test, family = Gamma(link = "log")) 
+```
+
+In such cases, you may also try other methods (much easier):
+
+```{r, error = TRUE, message = FALSE}
+library(spaMM)
+glm(y ~ x, data = test, family = Gamma(link = "log"), method="spaMM_glm.fit")
+```
+
+
+## The iterative algorithm can sometimes fail
+
+```{r, error = TRUE}
+test <- data.frame(x = c(8.752, 20.27, 24.71, 32.88, 27.27, 19.09),
+                   y = c(5254, 35.92, 84.14, 641.8, 1.21, 47.2))
+glm(y ~ x, data = test, family = Gamma(link = "log")) 
+```
+
+In such cases, you may also try other methods (much easier):
+
+```{r, error = TRUE, message = FALSE, warning = FALSE}
+library(glm2)   ## seems less robust than spaMM in at least some other cases, so try both in case of troubles
+glm(y ~ x, data = test, family = Gamma(link = "log"), method="glm.fit2")
+```
+
+
+## The iterative algorithm can sometimes fail
+
+Just for fun let's try our toy functions too:
+
+```{r, error = TRUE}
+my_glm1(y ~ x, data = test, family = Gamma(link = "log"))  ## Yay! It works
+my_glm2(y ~ x, data = test, family = Gamma(link = "log"))  ## Silly results
+my_glm3(y ~ x, data = test, family = Gamma(link = "log"))  ## Crash
+```
+
+
 # GLM vs LM with transformation
 
 ## The example of the GLM Poisson
@@ -708,7 +780,7 @@ plot(mod_lm)
 
 ```{r}
 sum((Aliens$eggs - (exp(predict(mod_lm)) - 1))^2)
-sum((Aliens$eggs - predict(mod_poiss, type = "response"))^2)
+sum((Aliens$eggs - exp(predict(mod_poiss)))^2)
 ```
 <br>
 
@@ -724,26 +796,49 @@ Note: we compare the sum of squares (paying attention to do so on the same scale
 
 ## But, if the process is Gaussian...
 
-```{r}
+```{r, warning = FALSE}
 set.seed(1L)
-
-simu <- replicate(1000, {
-  x <- rnorm(100)
-  y <- exp(rnorm(n = length(x), mean = -2 + 0.01 * x, sd = 0.5))
+x <- seq(1, 2, length = 100)
+simu <- replicate(100, {
+  y <- exp(rnorm(n = length(x), mean = 2 + 1 * x, sd = 0.5))
   mod_lm   <- lm(log(y) ~ x)
   mod_glm1 <- glm(log(y) ~ x, family = gaussian(link = "identity"))
   mod_glm2 <- glm(y ~ x, family = gaussian(link = "log"))
   c(mod_lm$coefficients, mod_glm1$coefficients, mod_glm2$coefficients)
 })
 
-rbind(c(mean(simu[1, ]), mean(simu[2, ])),
-      c(mean(simu[3, ]), mean(simu[4, ])),  ## GLM1 is similar to LM
-      c(mean(simu[5, ]), mean(simu[6, ])))  ## GLM2 is here not as good!
+round(rbind(
+  mod_lm = c("mean int" = mean(simu[1, ]), "sd int" = sd(simu[1, ]),
+             "mean slope" = mean(simu[2, ]), "sd slope" = sd(simu[2, ])),
+  mod_glm1 = c(mean(simu[3, ]), sd(simu[3, ]), mean(simu[4, ]), sd(simu[4, ])),
+  mod_glm2 = c(mean(simu[5, ]), sd(simu[5, ]), mean(simu[6, ]), sd(simu[6, ]))), 3)
 ```
 
-The GLM2 log transforms the expected values, not the observations!
+The GLM2 log transforms the expected values, not the observations! So the estimates produced by this fit are biased.
 
-If SD small the methods converge!
+
+## But, if the process is Gaussian...
+
+```{r}
+set.seed(1L)
+x <- seq(1, 2, length = 100)
+simu <- replicate(100, {
+  y <- exp(2 + 1 * x) + rnorm(n = length(x), mean = 0, sd = 5)
+  mod_lm   <- lm(log(y) ~ x)
+  mod_glm1 <- glm(log(y) ~ x, family = gaussian(link = "identity"))
+  mod_glm2 <- glm(y ~ x, family = gaussian(link = "log"))
+  c(mod_lm$coefficients, mod_glm1$coefficients, mod_glm2$coefficients)
+})
+
+round(rbind(
+  mod_lm = c("mean int" = mean(simu[1, ]), "sd int" = sd(simu[1, ]),
+             "mean slope" = mean(simu[2, ]), "sd slope" = sd(simu[2, ])),
+  mod_glm1 = c(mean(simu[3, ]), sd(simu[3, ]), mean(simu[4, ]), sd(simu[4, ])),
+  mod_glm2 = c(mean(simu[5, ]), sd(simu[5, ]), mean(simu[6, ]), sd(simu[6, ]))), 3)
+
+```
+
+Here the GLM2 corresponds the simulation model so estimates produced are better than the alternatives.
 
 
 # Interpreting parameter estimates
@@ -866,6 +961,15 @@ exp(mod_binom$coefficients[2] * 10)
 Note: as odds-ratios are ratios, a value of 0.1 means a 10 (=1/0.1) fold reduction in odds ratios.
 
 ## What you need to remember
+
+* how to write a GLM
+* that GLM can be fitted on different type of responses
+* what a link function, a variance function and a linear predictor are
+* how to simulate the data for a GLM
+* how to convert values between the response and linear predictor scales
+* that GLM estimates are fitted by maximum likelihood
+* how to interpret parameter estimates from GLM Poisson and Binomial
+
 
 # Table of content
 
