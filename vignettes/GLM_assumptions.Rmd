@@ -187,6 +187,17 @@ They are useful to check for departure from linearity.
 Note: they can also be computed for LM.
 
 
+## The problem of (quasi-)separation in Binomial
+
+```{r}
+n <- 5
+test <- data.frame(eggs = rbinom(2*n, p=c(rep(0, n), rep(0.25, n)), size = 100), 
+                   sp = c(rep("sp1", n), rep("sp2", n)))
+mod <- glm(cbind(eggs, 100 - eggs) ~ sp, data = test, family = binomial())
+summary(mod)
+anova(mod, test = "LR")
+```
+
 ## What you need to remember
 
 
