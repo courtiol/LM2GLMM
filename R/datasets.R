@@ -1,6 +1,6 @@
 #' Sample from the Ten-Year Follow-up (1980) of the 1970 British Cohort Study
 #'
-#' This dataset is a sample of few variables taken fron the Ten-Year Follow-up
+#' This dataset is a sample of few variables taken from the Ten-Year Follow-up
 #' (1980) of the 1970 British Cohort Study (BSC70).
 #'
 #' The BCS70 began in 1970 when data were collected about the 17,198 babies born
@@ -40,6 +40,24 @@
 #' @source Study number 3723 from the BCS70: \url{https://discover.ukdataservice.ac.uk/series/?sn=200001}
 "UK"
 
+#' Sample from the Health Survey for England Cardiovascular Disease’98
+#'
+#' This dataset is a sample of few variables taken from the Health Survey for
+#' England Cardiovascular Disease’98. This dataset is restricted to females.
+#'
+#' @format A data frame with 4 variables:
+#' \describe{
+#'   \item{period}{Whether still having periods}
+#'   \item{age}{Age last birthday}
+#'   \item{smoked}{Whether ever smoked cigarettes}
+#'   \item{drunkLast3M}{Whether slightly (or very) drunk in the last three months}
+#'   \item{drinkPb}{Number of drinking problems experienced}
+#'   \item{education}{Age finished education}
+#'   \item{bmi}{Valid BMI}
+#' }
+#'
+#' @source UK Data Archive Study Number 4150
+"HSE98women"
 
 #' The Fungi dataset
 #'
