@@ -750,7 +750,7 @@ deviance.pt[1:2]  ## here the prior.weights directly considered</pre>
   get_resid_deviance &lt;- function(coef) {  ## define function computing the scaled residual deviance
     eta &lt;- as.numeric(X %*% coef)   ## compute the linear predictors
     mu  &lt;- family$linkinv(eta)      ## express the linear predictor in the scale of the response
-    dev &lt;- sum(family$dev.resids(y, mu, weights))  ## compute the deviance, mind that here it is still the prior weight
+    dev &lt;- sum(family$dev.resids(y, mu, weights))  ## compute the deviance. Here: prior weights are used!
     return(dev)  ## return the scaled residual deviance
   }
   
@@ -759,9 +759,7 @@ deviance.pt[1:2]  ## here the prior.weights directly considered</pre>
   return(fit$par)  ## returns estimates
 }</pre>
 
-<p><br></p>
-
-<p>It should handle all families but it does not consider offsets, convergence issues and maybe other subtle things.</p>
+<p>It should handle all families but it does not consider offsets, convergence issues and maybe other sources of complexity.</p>
 
 </article></slide><slide class=''><hgroup><h2>An analytic solution?</h2></hgroup><article  id="an-analytic-solution" class="smaller ">
 
@@ -773,20 +771,15 @@ deviance.pt[1:2]  ## here the prior.weights directly considered</pre>
 
 <p>The function <code>glm.fit()</code> fits GLM using an iterative algorithm based on weighted least squares to update parameter estimates.</p>
 
-<p>The GLM weights (not the prior weights) are inversely proportional to the variance of the response, but the variance depends on the mean which, in turn, depends on the parameters.</p>
+<p>The working weights (not the prior weights) are inversely proportional to the variance of the response, but the variance depends on the mean which, in turn, depends on the parameters.</p>
 
-<p>The algorithm fixes the weights, determines the parameter values that minimize the weighted sum of squared residuals, then updates the weights and repeats the process until the weights stabilize (it usually happens in very few iterations).</p>
+<p>The algorithm fixes these weights, determines the parameter values that minimize the weighted sum of squared residuals, then updates the weights and repeats the process until the weights stabilize (it usually happens in very few iterations).</p>
 
 <p>This algorithm is thus called IRLS for iteratively reweighted least squares, it is also sometimes called Fisher&#39;s scoring as it has been proposed by Fisher (in a context more general than GLM).</p>
-
-<p><br></p>
-
-<p>(I have paraphrased here <em>Douglas Bates</em>)</p>
 
 </article></slide><slide class=''><hgroup><h2>A toy function using IRLS</h2></hgroup><article  id="a-toy-function-using-irls" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>my_glm2 &lt;- function(formula, data, family, weights = NULL) {
-  
   useful.data &lt;- model.frame(formula = formula, data = data)  ## keep only useful rows and columns
   X &lt;- model.matrix(object = formula, data = useful.data)     ## build design matrix
   y &lt;- model.response(useful.data)                            ## extract response
@@ -801,7 +794,8 @@ deviance.pt[1:2]  ## here the prior.weights directly considered</pre>
   for (iter in 1:25L) {
     mu &lt;- family$linkinv(eta)    ## compute the fitted values
     deriv &lt;- family$mu.eta(eta)  ## compute the derivative d mu/d eta
-    Z &lt;- eta + (y - mu)/deriv    ## compute the adjusted response
+    w &lt;- (y - mu)/deriv          ## compute the working residuals
+    Z &lt;- eta + w                 ## compute the adjusted response
     W &lt;- weights*deriv^2/family$variance(mu)  ## compute the working weights
     lm.fit &lt;- lm(Z ~ X - 1, weights = W)  ## lm with weights
     beta &lt;- lm.fit$coef  ## extract the estimates
@@ -826,9 +820,9 @@ deviance.pt[1:2]  ## here the prior.weights directly considered</pre>
   for (iter in 1:25L) {
     mu &lt;- family$linkinv(eta)    ## compute the fitted values
     deriv &lt;- family$mu.eta(eta)  ## compute the derivative d mu/d eta
-    Z &lt;- eta + (y - mu)/deriv    ## compute the adjusted response
+    w &lt;- (y - mu)/deriv          ## compute the working residuals
+    Z &lt;- eta + w                 ## compute the adjusted response
     W &lt;- weights*deriv^2/family$variance(mu)  ## compute the working weights
-
     dev &lt;- sum(family$dev.resids(y, mu, weights))        ## compute residual deviance
     if (abs(dev - devold)/(0.1 + abs(dev)) &lt; 1e-7) break ## leave loop if it has converged
     devold &lt;- dev  ## update residual deviance

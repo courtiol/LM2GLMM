@@ -203,7 +203,7 @@ my_glm1 <- function(formula, data, family, weights = NULL) {
   get_resid_deviance <- function(coef) {  ## define function computing the scaled residual deviance
     eta <- as.numeric(X %*% coef)   ## compute the linear predictors
     mu  <- family$linkinv(eta)      ## express the linear predictor in the scale of the response
-    dev <- sum(family$dev.resids(y, mu, weights))  ## compute the deviance, mind that here it is still the prior weight
+    dev <- sum(family$dev.resids(y, mu, weights))  ## compute the deviance. Here: prior weights are used!
     return(dev)  ## return the scaled residual deviance
   }
   
@@ -214,7 +214,6 @@ my_glm1 <- function(formula, data, family, weights = NULL) {
 
 ## ---------------------------------------------------------------------------------------------------------------------
 my_glm2 <- function(formula, data, family, weights = NULL) {
-  
   useful.data <- model.frame(formula = formula, data = data)  ## keep only useful rows and columns
   X <- model.matrix(object = formula, data = useful.data)     ## build design matrix
   y <- model.response(useful.data)                            ## extract response
@@ -229,7 +228,8 @@ my_glm2 <- function(formula, data, family, weights = NULL) {
   for (iter in 1:25L) {
     mu <- family$linkinv(eta)    ## compute the fitted values
     deriv <- family$mu.eta(eta)  ## compute the derivative d mu/d eta
-    Z <- eta + (y - mu)/deriv    ## compute the adjusted response
+    w <- (y - mu)/deriv          ## compute the working residuals
+    Z <- eta + w                 ## compute the adjusted response
     W <- weights*deriv^2/family$variance(mu)  ## compute the working weights
     lm.fit <- lm(Z ~ X - 1, weights = W)  ## lm with weights
     beta <- lm.fit$coef  ## extract the estimates
@@ -253,9 +253,9 @@ my_glm3 <- function(formula, data, family, weights = NULL) {
   for (iter in 1:25L) {
     mu <- family$linkinv(eta)    ## compute the fitted values
     deriv <- family$mu.eta(eta)  ## compute the derivative d mu/d eta
-    Z <- eta + (y - mu)/deriv    ## compute the adjusted response
+    w <- (y - mu)/deriv          ## compute the working residuals
+    Z <- eta + w                 ## compute the adjusted response
     W <- weights*deriv^2/family$variance(mu)  ## compute the working weights
-
     dev <- sum(family$dev.resids(y, mu, weights))        ## compute residual deviance
     if (abs(dev - devold)/(0.1 + abs(dev)) < 1e-7) break ## leave loop if it has converged
     devold <- dev  ## update residual deviance
