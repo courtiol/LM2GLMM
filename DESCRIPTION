@@ -18,6 +18,7 @@ Imports:
     spaMM (>= 2.0.0),
     stats,
     glm2,
+    gtools,
     lattice,
     lme4,
     lmtest,
