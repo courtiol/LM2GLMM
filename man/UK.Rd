@@ -21,7 +21,7 @@ Study number 3723 from the BCS70: \url{https://discover.ukdataservice.ac.uk/seri
 UK
 }
 \description{
-This dataset is a sample of few variables taken fron the Ten-Year Follow-up
+This dataset is a sample of few variables taken from the Ten-Year Follow-up
 (1980) of the 1970 British Cohort Study (BSC70).
 }
 \details{

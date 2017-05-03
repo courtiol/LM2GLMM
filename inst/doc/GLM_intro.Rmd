@@ -14,7 +14,7 @@ vignette: >
 ```{r setup, include=FALSE}
 library(LM2GLMM)
 options(width = 120)
-knitr::opts_chunk$set(cache = FALSE, fig.width = 5, fig.height = 5, fig.align = "center")
+knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/GLM_intro/", fig.path = "./fig_knitr/GLM_intro/", fig.width = 5, fig.height = 5, fig.align = "center")
 ```
 
 ## The Generalized Linear Model: GLM
@@ -408,7 +408,7 @@ binomial()$variance(seq(0, 1, 0.1))  ## = p x q
 
 ## Deviance residuals (```dev.resids```)
 
-This function computes the squared (scaled) deviance residuals.
+This function computes the squared deviance residuals.
 
 Example for the Gaussian family:
 
@@ -427,7 +427,7 @@ deviance.pt <- -2 * sigma2_resid * (dnorm(x = mod_gauss$y, mean = mod_gauss$fitt
 
 ## Deviance residuals (```dev.resids```)
 
-This function computes the squared (scaled) deviance residuals.
+This function computes the squared deviance residuals.
 
 Example for the Poisson family:
 
@@ -443,7 +443,7 @@ deviance.pt  <- -2 * (dpois(x = mod_poiss$y, lambda = mod_poiss$fitted.values, l
 
 ## Deviance residuals (```dev.resids```)
 
-This function computes the squared (scaled) deviance residuals.
+This function computes the squared deviance residuals.
 
 Example for the binomial family (binary case):
 
@@ -463,7 +463,7 @@ deviance.pt  <- -2 * (dbinom(x    = mod_binar$y,
 
 ## Deviance residuals (```dev.resids```)
 
-This function computes the squared (scaled) deviance residuals.
+This function computes the squared deviance residuals.
 
 Example for the binomial family (general case):
 
@@ -516,7 +516,6 @@ my_glm1 <- function(formula, data, family, weights = NULL) {
   useful.data <- model.frame(formula = formula, data = data)  ## keep only useful rows and columns
   X <- model.matrix(object = formula, data = useful.data)     ## build design matrix
   y <- model.response(useful.data)                            ## extract response
-  mu.eta <- family$mu.eta  ## extract function to compute d mu/d eta
   nobs <- NROW(y) ## count the rows of observations (not nrow() as y can be a vector or a matrix)
   if (is.null(weights)) weights <- rep(1, nobs)  ## set the prior.weights if NULL
 
