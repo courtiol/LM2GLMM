@@ -23,6 +23,7 @@ Imports:
     lme4,
     lmtest,
     MASS,
+    mgcv,
     multcomp,
     mvtnorm,
     nortest,
