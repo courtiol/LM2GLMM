@@ -39,7 +39,35 @@ simulate_predictors_1C1G <- function(n, k){
 #' simulate_Aliens()
 #'
 simulate_Aliens <- function(N = 12, intercept = 50, slope = 1.5, sigma2 = 25) {
-  Alien <- data.frame(humans_eaten = sample(1:N))
-  Alien$size <- stats::rnorm(n = N, mean = intercept + slope*Alien$humans_eaten, sd = sqrt(sigma2))
-  return(Alien)
+  Aliens <- data.frame(humans_eaten = sample(1:N))
+  Aliens$size <- stats::rnorm(n = N, mean = intercept + slope*Aliens$humans_eaten, sd = sqrt(sigma2))
+  return(Aliens)
+}
+
+#' Function simulating the Alien datasets for GLM
+#'
+#' This function creates different response variables to be used for GLM.
+#'
+#' @param N the number of Aliens (default = 12)
+#'
+#' @return a \var{data.frame} containing the simulated data
+#' @export
+#'
+#' @examples
+#' simulate_Aliens_GLM()
+#'
+simulate_Aliens_GLM <- function(N = 100) {
+  Aliens <- data.frame(humans_eaten = round(runif(n = N, min = 0, max = 15)))
+  Aliens$size  <- rnorm( n = N, mean = 50 + 1.5 * Aliens$humans_eaten, sd = 5)
+  Aliens$eggs  <- rpois( n = N, lambda = exp(-1 + 0.1 * Aliens$humans_eaten))
+  Aliens$happy <- rbinom(n = N, size = 1, prob = plogis(-3 + 0.3 * Aliens$humans_eaten))
+  Aliens$all_eyes  <- round(runif(nrow(Aliens), min = 1, max = 12))
+  Aliens$blue_eyes <- rbinom(n = nrow(Aliens), size = Aliens$all_eyes, prob = plogis(-2 + 0.5 * Aliens$humans_eaten))
+  Aliens$pink_eyes <- Aliens$all_eyes - Aliens$blue_eyes
+  Aliens$all_eyes <- NULL
+  attr(Aliens, "param.eta") <- list("size" = c(intercept = 50, slope = 1.5),
+                                "eggs" = c(intercept = -1, slope = 0.1),
+                                "happy" = c(intercept = -3, slope = 0.3),
+                                "blue_eyes" = c(intercept = -2, slope = 0.5))
+  return(Aliens)
 }
