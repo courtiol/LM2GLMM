@@ -2,4 +2,5 @@
 
 export(get_vignettes)
 export(simulate_Aliens)
+export(simulate_Aliens_GLM)
 export(simulate_predictors_1C1G)
