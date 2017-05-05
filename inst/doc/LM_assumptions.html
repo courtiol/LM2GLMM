@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2017-05-03" />
+  <meta name="date" content="2017-05-05" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,7 +94,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2017-05-03</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2017-05-05</p>
           </hgroup>
   </slide>
 
@@ -826,6 +826,25 @@ cbind(estimates, std.errors, t.values, p.values)</pre>
 <pre >##              estimates std.errors  t.values     p.values
 ## (Intercept)  4.0151515 1.12074669  3.582568 5.318817e-04
 ## humans_eaten 0.9490069 0.02557202 37.111144 1.643187e-59</pre>
+
+</article></slide><slide class=''><hgroup><h2>Post-hoc correction (not optimal)</h2></hgroup><article  id="post-hoc-correction-not-optimal-1" class="smaller ">
+
+<p>Same using <code>Anova</code>:</p>
+
+<pre class = 'prettyprint lang-r'>Anova(mod_alien5, white.adjust = TRUE)  ## vcov = hccm</pre>
+
+<pre >## Analysis of Deviance Table (Type II tests)
+## 
+## Response: eggs
+##              Df      F    Pr(&gt;F)    
+## humans_eaten  1 1377.2 &lt; 2.2e-16 ***
+## Residuals    98                     
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</pre>
+
+<pre class = 'prettyprint lang-r'>37.111144^2  ## t^2 from previous slide</pre>
+
+<pre >## [1] 1377.237</pre>
 
 </article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>Normality</h2></hgroup><article  id="normality" class="smaller ">
 

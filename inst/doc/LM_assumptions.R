@@ -181,6 +181,10 @@ t.values <- estimates/std.errors
 p.values <- 2*pt(abs(t.values), df = mod_alien5$df.residual, lower.tail = FALSE)
 cbind(estimates, std.errors, t.values, p.values)
 
+## -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Anova(mod_alien5, white.adjust = TRUE)  ## vcov = hccm
+37.111144^2  ## t^2 from previous slide
+
 ## ----norm test----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 library(nortest)
 lillie.test(mod_poison$residuals)   ## stat = 0 when normal

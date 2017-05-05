@@ -198,6 +198,26 @@ summary(mod)
 anova(mod, test = "LR")
 ```
 
+
+##
+
+```{r}
+library(car)
+scatterplot(drunkLast3M ~ age, data = HSE98women)
+```
+
+## GAM
+
+```{r, message = FALSE, fig.width = 4, fig.height = 4}
+library(mgcv)
+mod_gam <- gam(drunkLast3M ~ s(age), data = HSE98women, family = binomial())
+#glm(drunkLast3M ~ poly(I((age-25) * (age > 25)), 2) + poly(age, 2), data = HSE98women, family = binomial())
+age.for.pred <- min(mod_gam$model$age):max(mod_gam$model$age)
+pred_gam <- predict(mod_gam, newdata = data.frame(age = age.for.pred), type = "response")
+plot(pred_gam ~ age.for.pred, type = "l", lwd = 2, las = 1,
+     ylab = "Prob (drunk during the last 3 months)", xlab = "age")
+```
+
 ## What you need to remember
 
 
