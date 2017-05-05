@@ -571,48 +571,6 @@ rbind(poiss = apply(test_poiss, 1, mean),
 This is very good and our best result so far!
 
 
-## 95% CI using parametric bootstrap
-
-### Coverage N = 15
-```{r  coverage boot 2 15, message = FALSE, warning = FALSE}
-set.seed(1L)
-test_poiss <- replicate(1000, {
-  new.data <- simulate_Aliens_GLM(N = 15)
-  mod <- update(mod_poiss, data = new.data)
-  confint.myboot2(mod)
-  })
-
-test_binar <- replicate(1000, {
-  new.data <- simulate_Aliens_GLM(N = 15)
-  mod <- update(mod_binar, data = new.data)
-  confint.myboot2(mod)
-  })
-
-test_binom <- replicate(1000, {
-  new.data <- simulate_Aliens_GLM(N = 15)
-  mod <- update(mod_binom, data = new.data)
-  confint.myboot2(mod)
-  })
-
-test_gauss <- replicate(1000, {
-  new.data <- simulate_Aliens_GLM(N = 15)
-  mod <- update(mod_gauss, data = new.data)
-  confint.myboot2(mod)
-  })
-```
-
-
-## 95% CI using parametric bootstrap
-
-### Coverage N = 15
-```{r}
-rbind(poiss = apply(test_poiss, 1, mean),
-      binar = apply(test_binar, 1, mean),
-      binom = apply(test_binom, 1, mean),
-      gauss = apply(test_gauss, 1, mean))
-```
-
-
 # Confidence intervals on the fitted values
 
 ## 95% CI on fitted values: Gaussian
@@ -761,6 +719,11 @@ mod_lm2    <- lm(size  ~ humans_eaten, data = Aliens2)
 mod_gauss2 <- glm(size  ~ humans_eaten, family = gaussian(), data = Aliens2)
 mod_poiss2 <- glm(eggs  ~ humans_eaten, family = poisson(),  data = Aliens2)
 mod_binar2 <- glm(happy ~ humans_eaten, family = binomial(), data = Aliens2)
+mod_gauss2_spaMM  <- fitme(size  ~ humans_eaten, family = gaussian(), data = Aliens2) ## not REML!
+mod_gauss2_spaMM0 <- fitme(size  ~ 1, family = gaussian(), data = Aliens2)
+mod_poiss2_spaMM  <- fitme(eggs  ~ humans_eaten, family = poisson(),  data = Aliens2)
+mod_poiss2_spaMM0 <- fitme(eggs  ~ 1, family = poisson(),  data = Aliens2)
+#mod_binar2_spaMM <- fitme(happy ~ humans_eaten, family = binomial(), data = Aliens2)
 ```
 
 
@@ -821,9 +784,12 @@ Anova(mod_gauss2, test = "F")
 
 ```{r}
 Anova(mod_gauss2, test = "LR")
+anova(mod_gauss2_spaMM, mod_gauss2_spaMM0)  ## "same" with spaMM
+c(-2 * (logLik(update(mod_gauss2, . ~ 1)) - logLik(mod_gauss2)), 
+  (deviance(update(mod_gauss2, . ~ 1)) - deviance(mod_gauss2)) / summary(mod_gauss2)$dispersion)
 ```
 
-Note: here, in this implementation, the deviance difference is divided by the dispersion (not LRT sensu stricto)...
+Note: the computation will differ between methods when dispersion is not equals to 1...
 
 
 ## Anova: Gaussian
@@ -869,17 +835,6 @@ Anova(mod_poiss2, test = "LR")
 LR <- -2 * (logLik(update(mod_poiss2, . ~ 1)) - logLik(mod_poiss2))
 pvalue <- 1 - pchisq(LR, 1)
 cbind(LR, pvalue)
-```
-
-
-## Anova: parametric bootstrap with ```spaMM```
-
-```{r}
-mod_gauss2_spaMM  <- fitme(size  ~ humans_eaten, family = gaussian(), data = Aliens2) ## not REML!
-mod_gauss2_spaMM0 <- fitme(size  ~ 1, family = gaussian(), data = Aliens2)
-mod_poiss2_spaMM  <- fitme(eggs  ~ humans_eaten, family = poisson(),  data = Aliens2)
-mod_poiss2_spaMM0 <- fitme(eggs  ~ 1, family = poisson(),  data = Aliens2)
-#mod_binar2_spaMM <- fitme(happy ~ humans_eaten, family = binomial(), data = Aliens2)
 ```
 
 
