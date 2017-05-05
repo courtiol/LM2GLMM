@@ -23,6 +23,16 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/GLM_uncertainty/
 
 ## You will learn in this session
 
+* that estimates are still roughly normally distributed (but only roughly)
+* how to compute intervals for GLM
+* that intervals based on likelihood are best for family with known dispersion
+* that established methods don't always work well, so you should always run tests
+* that parametric bootstrap can outperform other methods when done properly
+* that intervals on scale other than $\eta$ must be done by hand or using ```spaMM```
+* that tests from summary tables are only reliable for the gaussian family
+* that LR tests are best for family with known dispersion
+* that LR tests by parametric bootstrap are best in all situations and easy to do with ```spaMM```
+
 
 ## Our data
 
@@ -489,7 +499,7 @@ rbind(poiss = apply(test_poiss, 1, mean),
       gauss = apply(test_gauss, 1, mean))
 ```
 
-Ok this is not very good either...
+This is not good...
 
 
 ## 95% CI using parametric bootstrap
@@ -559,6 +569,48 @@ rbind(poiss = apply(test_poiss, 1, mean),
 ```
 
 This is very good and our best result so far!
+
+
+## 95% CI using parametric bootstrap
+
+### Coverage N = 15
+```{r  coverage boot 2 15, message = FALSE, warning = FALSE}
+set.seed(1L)
+test_poiss <- replicate(1000, {
+  new.data <- simulate_Aliens_GLM(N = 15)
+  mod <- update(mod_poiss, data = new.data)
+  confint.myboot2(mod)
+  })
+
+test_binar <- replicate(1000, {
+  new.data <- simulate_Aliens_GLM(N = 15)
+  mod <- update(mod_binar, data = new.data)
+  confint.myboot2(mod)
+  })
+
+test_binom <- replicate(1000, {
+  new.data <- simulate_Aliens_GLM(N = 15)
+  mod <- update(mod_binom, data = new.data)
+  confint.myboot2(mod)
+  })
+
+test_gauss <- replicate(1000, {
+  new.data <- simulate_Aliens_GLM(N = 15)
+  mod <- update(mod_gauss, data = new.data)
+  confint.myboot2(mod)
+  })
+```
+
+
+## 95% CI using parametric bootstrap
+
+### Coverage N = 15
+```{r}
+rbind(poiss = apply(test_poiss, 1, mean),
+      binar = apply(test_binar, 1, mean),
+      binom = apply(test_binom, 1, mean),
+      gauss = apply(test_gauss, 1, mean))
+```
 
 
 # Confidence intervals on the fitted values
@@ -704,7 +756,7 @@ Plot the predictions and prediction intervals for ```mod_binar``` and ```mod_bin
 Let us refit models with less data to see differences in p-values more easily
 ```{r}
 set.seed(1L)
-Aliens2 <- simulate_Aliens_GLM(N = 10)
+Aliens2 <- simulate_Aliens_GLM(N = 20)
 mod_lm2    <- lm(size  ~ humans_eaten, data = Aliens2)
 mod_gauss2 <- glm(size  ~ humans_eaten, family = gaussian(), data = Aliens2)
 mod_poiss2 <- glm(eggs  ~ humans_eaten, family = poisson(),  data = Aliens2)
@@ -767,19 +819,19 @@ Anova(mod_gauss2, test = "F")
 
 ## Anova: Gaussian
 
-The 3 tests (F, Wald and Likelihood ration test) give here the same statistics despite different p-values
 ```{r}
-Anova(mod_gauss2, test = "Wald")
 Anova(mod_gauss2, test = "LR")
 ```
 
+Note: here, in this implementation, the deviance difference is divided by the dispersion (not LRT sensu stricto)...
+
+
 ## Anova: Gaussian
 
-### The tests also don't differ with the summary results
 ```{r}
 summary(mod_gauss2)$coef["humans_eaten", "t value"]
 summary(mod_gauss2)$coef["humans_eaten", "t value"]^2
-Anova(mod_gauss2, test = "Wald")
+Anova(mod_gauss2, test = "F")
 ```
 
 
@@ -808,7 +860,9 @@ plot(ecdf(rchisq(10000, df = 1)), add = TRUE, col = "green", lwd = 1)
 
 ## Anova: Poisson and Binomial
 
-### For poisson() and binomial(), use the likelihood ratio test!
+### For poisson() and binomial(), use the likelihood ratio test
+
+### Don't use F test, don't use summary!!
 
 ```{r}
 Anova(mod_poiss2, test = "LR")
@@ -818,7 +872,7 @@ cbind(LR, pvalue)
 ```
 
 
-## Anova: parametric bootstrap
+## Anova: parametric bootstrap with ```spaMM```
 
 ```{r}
 mod_gauss2_spaMM  <- fitme(size  ~ humans_eaten, family = gaussian(), data = Aliens2) ## not REML!
@@ -826,16 +880,61 @@ mod_gauss2_spaMM0 <- fitme(size  ~ 1, family = gaussian(), data = Aliens2)
 mod_poiss2_spaMM  <- fitme(eggs  ~ humans_eaten, family = poisson(),  data = Aliens2)
 mod_poiss2_spaMM0 <- fitme(eggs  ~ 1, family = poisson(),  data = Aliens2)
 #mod_binar2_spaMM <- fitme(happy ~ humans_eaten, family = binomial(), data = Aliens2)
-LRT(mod_gauss2_spaMM, mod_gauss2_spaMM0)  ## the value makes more sense than Anova
-LRT(mod_poiss2_spaMM, mod_poiss2_spaMM0)
-Anova(mod_gauss2_spaMM, mod_gauss2_spaMM0, boot.repl = 100)
 ```
 
 
-# Goodness of fit (work in progress)
+## Anova: parametric bootstrap with ```spaMM```
 
-## Goodness of fit?
+### It works for all!
+```{r lrt boot 1, message=FALSE}
+anova(mod_gauss2_spaMM, mod_gauss2_spaMM0, boot.repl = 200)
+```
 
+
+## Anova: parametric bootstrap with ```spaMM```
+
+### It works for all!
+```{r lrt boot 2, message=FALSE}
+anova(mod_poiss2_spaMM, mod_poiss2_spaMM0, boot.repl = 200)
+```
+
+# Non-nested model comparison
+
+## Comparing different links within the same family
+
+Since the number of estimates do not change, you can use:
+
+* likelihood (larger = better)
+* deviance (smaller = better)
+* AIC (smaller = better)
+* parametric bootstrap
+
+
+## Comparing different families
+
+Since the response variable does not change, you can use:
+
+* AIC
+* deviance if the number of parameters is the same (dispersion counts!)
+* LRT if the number of parameters varies (but don't use ```anova()``` to do it)
+* parametric bootstrap
+
+
+## Comparing different families
+
+```{r, error = TRUE}
+mod_gauss3 <- glm(eggs  ~ humans_eaten, family = gaussian(),  data = Aliens2)
+LR <- -2 * (logLik(mod_gauss3)[[1]] - logLik(mod_poiss2)[[1]])
+(pvalue <- 1 - pchisq(LR, 1))
+anova(mod_gauss3, mod_poiss2, test = "LR")  ## does not count df well
+mod_gauss3_spaMM  <- fitme(eggs  ~ humans_eaten, family = gaussian(),  data = Aliens2)
+anova(mod_gauss3_spaMM, mod_poiss2_spaMM)  ## does not see the difference in model structure
+```
+
+
+## Comparing LM vs GLM
+
+### Responses differ, so only parametric bootstrap is possible
 ```{r}
 set.seed(1L)
 x <- seq(1, 2, length = 100)
@@ -847,50 +946,24 @@ logLikH0 <- replicate(1000, {
   new.y <- exp(as.matrix(simulate(mod_lm)))
   logLik(lm(log(new.y) ~ x)) - logLik(glm(new.y ~ x, family = gaussian(link = "log")))
   })
-mean(logLikH0 < (logLik(mod_lm)-logLik(mod_glm)))
+mean(logLikH0 < (logLik(mod_lm) - logLik(mod_glm)))
 ```
 
-## Goodness of fit?
+Here we used the GLM as the null model so we simulate the data using the LM.
 
-
-```{r}
-set.seed(1L)
-x <- seq(1, 2, length = 100)
-y <- exp(2 + 1 * x) + rnorm(n = length(x), mean = 0, sd = 5)
-
-mod_lm   <- lm(log(y) ~ x)
-mod_glm  <- glm(y ~ x, family = gaussian(link = "log"))
-difflogLikH0 <- replicate(1000, {
-  new.y <- as.matrix(simulate(mod_glm))
-  logLik(glm(new.y ~ x, family = gaussian(link = "log"))) - logLik(lm(log(new.y) ~ x))
-  })
-hist(difflogLikH0)
-abline(v = logLik(mod_glm)-logLik(mod_lm), col = 2, lwd = 2)
-mean((logLik(mod_glm)-logLik(mod_lm)) > logLikH0)
-
-
-c(mean(logLikH0), mean(logLik(mod_glm)-logLik(mod_lm)))
-```
-
-## Goodness of fit?
-
-
-```{r}
-set.seed(1L)
-x <- seq(1, 2, length = 100)
-y <- exp(2 + 1 * x) + rnorm(n = length(x), mean = 0, sd = 5)
-mod_glm  <- glm(y ~ x, family = gaussian(link = "log"))
-logLikBoot <- replicate(1000, {
-  new.y <- as.matrix(simulate(mod_glm))
-  logLik(glm(new.y ~ x, family = gaussian(link = "log")))
-  })
-hist(logLikBoot, xlim = range(logLikBoot, logLik(mod_glm)))
-abline(v = logLik(mod_glm), col = 2, lwd = 2)
-mean(logLik(mod_glm) > logLikBoot)
-```
+In principle, we could have do the opposite, but in practice the function ```simulate()``` bugs for GLM with gaussian(link != "identity").
 
 ## What you need to remember
 
+* that estimates are still roughly normally distributed (but only roughly)
+* how to compute intervals for GLM
+* that intervals based on likelihood are best for family with known dispersion
+* that established methods don't always work well, so you should always run tests
+* that parametric bootstrap can outperform other methods when done properly
+* that intervals on scale other than $\eta$ must be done by hand or using ```spaMM```
+* that tests from summary tables are only reliable for the gaussian family
+* that LR tests are best for family with known dispersion
+* that LR tests by parametric bootstrap are best in all situations and easy to do with ```spaMM```
 
 
 # Table of content
