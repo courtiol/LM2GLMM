@@ -15,6 +15,7 @@ Imports:
     boot,
     car,
     caret,
+    DHARMa,
     effects,
     spaMM (>= 2.0.0),
     stats,
