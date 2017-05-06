@@ -855,36 +855,15 @@ anova(mod_poiss2_spaMM, mod_poiss2_spaMM0, boot.repl = 200)
 
 # Non-nested model comparison
 
-## Comparing different links within the same family
+## Comparing different links or different families
 
-Since the number of estimates do not change, you can use:
+Since the response variable does not change but models are not nested, you can use:
 
 * likelihood (larger = better)
 * deviance (smaller = better)
 * AIC (smaller = better)
-* parametric bootstrap
 
-
-## Comparing different families
-
-Since the response variable does not change, you can use:
-
-* AIC
-* deviance if the number of parameters is the same (dispersion counts!)
-* LRT if the number of parameters varies (but don't use ```anova()``` to do it)
-* parametric bootstrap
-
-
-## Comparing different families
-
-```{r, error = TRUE}
-mod_gauss3 <- glm(eggs  ~ humans_eaten, family = gaussian(),  data = Aliens2)
-LR <- -2 * (logLik(mod_gauss3)[[1]] - logLik(mod_poiss2)[[1]])
-(pvalue <- 1 - pchisq(LR, 1))
-anova(mod_gauss3, mod_poiss2, test = "LR")  ## does not count df well
-mod_gauss3_spaMM  <- fitme(eggs  ~ humans_eaten, family = gaussian(),  data = Aliens2)
-anova(mod_gauss3_spaMM, mod_poiss2_spaMM)  ## does not see the difference in model structure
-```
+For true test, the only method available is the parametric bootstrap!
 
 
 ## Comparing LM vs GLM
