@@ -30,7 +30,8 @@ Imports:
     nortest,
     fastR,
     rgl,
-    sem
+    sem,
+    visreg
 Suggests:
     knitr,
     rmarkdown,
