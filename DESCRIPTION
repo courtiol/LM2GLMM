@@ -32,6 +32,7 @@ Imports:
     nortest,
     fastR,
     rgl,
+    safeBinaryRegression,
     sem,
     visreg
 Suggests:
