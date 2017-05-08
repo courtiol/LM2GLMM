@@ -22,8 +22,7 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/GLM_intro/", fig
 * 3.0 [Introduction](./GLM_intro.html)
 * 3.1 [Intervals & Tests](./GLM_intervals.html)
 * 3.2 [Residuals & Assumptions](./GLM_assumptions.html)
-* 3.3 [Overdispersion & Zero-inflation](./GLM_overdispersion.html)
-* 3.4 [Let's practice more](./GLM_practice.html)
+* 3.3 [Let's practice more](./GLM_practice.html)
 
 
 ## You will learn in this session
@@ -998,6 +997,5 @@ Note: as odds-ratios are ratios, a value of 0.1 means a 10 (=1/0.1) fold reducti
 * 3.0 [Introduction](./GLM_intro.html)
 * 3.1 [Intervals & Tests](./GLM_intervals.html)
 * 3.2 [Residuals & Assumptions](./GLM_assumptions.html)
-* 3.3 [Overdispersion & Zero-inflation](./GLM_overdispersion.html)
-* 3.4 [Let's practice more](./GLM_practice.html)
+* 3.3 [Let's practice more](./GLM_practice.html)
 

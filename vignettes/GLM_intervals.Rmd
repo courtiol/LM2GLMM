@@ -907,6 +907,5 @@ In principle, we could have do the opposite, but in practice the function ```sim
 * 3.0 [Introduction](./GLM_intro.html)
 * 3.1 [Intervals & Tests](./GLM_intervals.html)
 * 3.2 [Residuals & Assumptions](./GLM_assumptions.html)
-* 3.3 [Overdispersion & Zero-inflation](./GLM_overdispersion.html)
-* 3.4 [Let's practice more](./GLM_practice.html)
+* 3.3 [Let's practice more](./GLM_practice.html)
 
