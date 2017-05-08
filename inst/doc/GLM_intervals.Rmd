@@ -723,7 +723,7 @@ mod_gauss2_spaMM  <- fitme(size  ~ humans_eaten, family = gaussian(), data = Ali
 mod_gauss2_spaMM0 <- fitme(size  ~ 1, family = gaussian(), data = Aliens2)
 mod_poiss2_spaMM  <- fitme(eggs  ~ humans_eaten, family = poisson(),  data = Aliens2)
 mod_poiss2_spaMM0 <- fitme(eggs  ~ 1, family = poisson(),  data = Aliens2)
-#mod_binar2_spaMM <- fitme(happy ~ humans_eaten, family = binomial(), data = Aliens2)
+mod_binar2_spaMM <- fitme(happy ~ humans_eaten, family = binomial(), data = Aliens2)
 ```
 
 
@@ -761,7 +761,7 @@ cbind(z, pvalues)
 
 ## Summary: Binomial
 
-```{r}
+```{r, cache = FALSE}
 summary(mod_binar2)$coef
 z <- (mod_binar2$coef - 0) / sqrt(diag(vcov(mod_binar2)))
 pvalues <- 2 * (1 - pnorm(abs(z)))
@@ -907,6 +907,5 @@ In principle, we could have do the opposite, but in practice the function ```sim
 * 3.0 [Introduction](./GLM_intro.html)
 * 3.1 [Intervals & Tests](./GLM_intervals.html)
 * 3.2 [Residuals & Assumptions](./GLM_assumptions.html)
-* 3.3 [Overdispersion & Zero-inflation](./GLM_overdispersion.html)
-* 3.4 [Let's practice more](./GLM_practice.html)
+* 3.3 [Let's practice more](./GLM_practice.html)
 

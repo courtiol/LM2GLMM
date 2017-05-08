@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{3.4 Practice}
+  %\VignetteIndexEntry{3.3 Practice}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
@@ -32,5 +32,4 @@ knitr::opts_chunk$set(cache = FALSE, fig.width = 5, fig.height = 5, fig.align = 
 * 3.0 [Introduction](./GLM_intro.html)
 * 3.1 [Intervals & Tests](./GLM_intervals.html)
 * 3.2 [Residuals & Assumptions](./GLM_assumptions.html)
-* 3.3 [Overdispersion & Zero-inflation](./GLM_overdispersion.html)
-* 3.4 [Let's practice more](./GLM_practice.html)
+* 3.3 [Let's practice more](./GLM_practice.html)
