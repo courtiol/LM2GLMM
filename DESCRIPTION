@@ -30,6 +30,7 @@ Imports:
     multcomp,
     mvtnorm,
     nortest,
+    pscl,
     fastR,
     rgl,
     safeBinaryRegression,
