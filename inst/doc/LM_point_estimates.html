@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2017-05-08" />
+  <meta name="date" content="2017-05-09" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,7 +94,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2017-05-08</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2017-05-09</p>
           </hgroup>
   </slide>
 
@@ -524,9 +524,9 @@ round(rbind(c(coef(mod_test_lm), time1[1]), c(mod_test_alexML$par, time2[1]), c(
 ## [2,]      113.18   0.82    2.22      -0.03          -0.17           -0.62                    -0.14          -0.09
 ## [3,]      113.18   0.82    2.22      -0.03          -0.17           -0.62                    -0.14          -0.09
 ##      user.self
-## [1,]      0.01
-## [2,]      3.44
-## [3,]      1.02</pre>
+## [1,]      0.02
+## [2,]      7.22
+## [3,]      2.65</pre>
 
 </article></slide><slide class=''><hgroup><h2>Recovering the estimates analytically</h2></hgroup><article  id="recovering-the-estimates-analytically" class="smaller ">
 
@@ -629,13 +629,20 @@ c     suggest improvements to this code.</pre>
 
 <pre class = 'prettyprint lang-r'>head(UK)</pre>
 
-<pre >##    sex height cigarettes milk mother_weight weight               drink
-## 1 Girl  134.5          0    0            51   29.4 Once a week or less
-## 2  Boy  141.0         20    1            51   31.6          Not at all
-## 3  Boy  143.0         20    3            50   34.9 Once a week or less
-## 4 Girl  139.7          0    0            63   30.2 Once a week or less
-## 5 Girl     NA          0    0            NA     NA                &lt;NA&gt;
-## 6  Boy  128.0         15    3            50   24.6          Not at all</pre>
+<pre >##    sex  age weight height glasses cigarettes_mum cigarettes_dad cigarettes cigarettes_kid cigarettes_friends bronchitis
+## 1 Girl 3660   29.4  134.5      No              0              0          0          Never       None of them          0
+## 2  Boy 3841   31.6  141.0      No             20              0         20          Never       None of them          0
+## 3  Boy 3675   34.9  143.0    &lt;NA&gt;             20              0         20          Never       None of them          0
+## 4 Girl 3694   30.2  139.7      No              0              0          0          Never       None of them          0
+## 5 Girl 3742     NA     NA    &lt;NA&gt;              0              0          0          Never       None of them          0
+## 6  Boy 3671   24.6  128.0      No             15              0         15     Tried once       None of them          0
+##                 drink milk coca backward mother_height father_height mother_weight father_weight
+## 1 Once a week or less    0    0       20           157           168            51            79
+## 2          Not at all    1    1       16           157            NA            51            NA
+## 3 Once a week or less    3    1        4           155           175            50            72
+## 4 Once a week or less    0    0       12           160            NA            63            NA
+## 5                &lt;NA&gt;    0    0       NA            NA            NA            NA            NA
+## 6          Not at all    3    0       14           155           173            50            76</pre>
 
 <pre class = 'prettyprint lang-r'>mod_UK1 &lt;- lm(height ~ drink + sex*weight, data = UK)</pre>
 

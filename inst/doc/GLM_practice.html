@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2017-05-08" />
+  <meta name="date" content="2017-05-09" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,13 +94,88 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2017-05-08</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2017-05-09</p>
           </hgroup>
   </slide>
 
-<slide class=''><hgroup><h2>You will learn in this session</h2></hgroup><article  id="you-will-learn-in-this-session" class="smaller ">
+<slide class=''><hgroup><h2>Dataset: esoph</h2></hgroup><article  id="dataset-esoph" class="smaller ">
 
-</article></slide><slide class=''><hgroup><h2>What you need to remember</h2></hgroup><article  id="what-you-need-to-remember" class="smaller ">
+<pre class = 'prettyprint lang-r'>head(esoph)</pre>
+
+<pre >##   agegp     alcgp    tobgp ncases ncontrols
+## 1 25-34 0-39g/day 0-9g/day      0        40
+## 2 25-34 0-39g/day    10-19      0        10
+## 3 25-34 0-39g/day    20-29      0         6
+## 4 25-34 0-39g/day      30+      0         5
+## 5 25-34     40-79 0-9g/day      0        27
+## 6 25-34     40-79    10-19      0         7</pre>
+
+<h3>Goal</h3>
+
+<ul>
+<li>Find out whether you should rather limit alcohol consumption or tabacco consumption in order to avoid developing an oesophageal cancer? Does it depends on your age?</li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Dataset: effects::TitanicSurvival</h2></hgroup><article  id="dataset-effectstitanicsurvival" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>data(TitanicSurvival, package = &quot;effects&quot;)
+head(TitanicSurvival)</pre>
+
+<pre >##                                 survived    sex     age passengerClass
+## Allen, Miss. Elisabeth Walton        yes female 29.0000            1st
+## Allison, Master. Hudson Trevor       yes   male  0.9167            1st
+## Allison, Miss. Helen Loraine          no female  2.0000            1st
+## Allison, Mr. Hudson Joshua Crei       no   male 30.0000            1st
+## Allison, Mrs. Hudson J C (Bessi       no female 25.0000            1st
+## Anderson, Mr. Harry                  yes   male 48.0000            1st</pre>
+
+<h3>Goal</h3>
+
+<ul>
+<li>Find out who mostly survived and who mostly died during the Titanic disaster of 1912.</li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Dataset: LM2GLMM::UK</h2></hgroup><article  id="dataset-lm2glmmuk" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>UK[1:2, ]</pre>
+
+<pre >##    sex  age weight height glasses cigarettes_mum cigarettes_dad cigarettes cigarettes_kid
+## 1 Girl 3660   29.4  134.5      No              0              0          0          Never
+## 2  Boy 3841   31.6  141.0      No             20              0         20          Never
+##   cigarettes_friends bronchitis               drink milk coca backward mother_height father_height
+## 1       None of them          0 Once a week or less    0    0       20           157           168
+## 2       None of them          0          Not at all    1    1       16           157            NA
+##   mother_weight father_weight
+## 1            51            79
+## 2            51            NA</pre>
+
+<h3>Goal</h3>
+
+<ul>
+<li>Try to identify the determinant of the smoking behaviour of children.</li>
+<li>Try to identify the determinant of bronchitis in children.</li>
+<li>Try to identify the determinant of the variable <code>backward</code>.</li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Dataset: LM2GLMM::HSE98women</h2></hgroup><article  id="dataset-lm2glmmhse98women" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>head(HSE98women)</pre>
+
+<pre >##   period age smoked drunkLast3M drinkPb education      bmi
+## 1  FALSE  51   TRUE       FALSE       0        16 22.05262
+## 2  FALSE  67  FALSE       FALSE       0        18       NA
+## 3  FALSE  77  FALSE       FALSE      NA        17       NA
+## 4   TRUE  33  FALSE        TRUE       0        17 27.10573
+## 5     NA   8     NA       FALSE      NA      &lt;NA&gt; 21.76781
+## 6   TRUE  47   TRUE       FALSE       0         8 18.87167</pre>
+
+<h3>Goal</h3>
+
+<ul>
+<li>How does the probability of not having periods changes with age, smoking status and BMI?</li>
+<li>How does the probability of having been drunk recently changes with age?</li>
+<li>Does the number of drinking problems experienced during life depends on education?</li>
+</ul>
 
 </article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>Table of content</h2></hgroup><article  id="table-of-content" class="smaller ">
 
