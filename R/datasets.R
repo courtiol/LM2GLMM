@@ -27,15 +27,27 @@
 #' but in 1991 the whole 1970 Cohort Study was renamed the British Cohort Study
 #' 1970 (BCS70) and the ten-year sweep became known as BCS70 Ten-year Follow-up.
 #'
-#' @format A data frame with 7 variables:
+#' @format A data frame with 14875 rows and 19 variables:
 #' \describe{
 #'   \item{sex}{Child's sex}
-#'   \item{height}{Child's height in cm}
-#'   \item{cigarettes}{No. of cigarettes parents smoke daily}
-#'   \item{milk}{Glasses of milk per day}
-#'   \item{mother_weight}{Mother's weight in Kg}
+#'   \item{age}{Child's age in days}
 #'   \item{weight}{Child's weight in Kg}
+#'   \item{height}{Child's height in cm}
+#'   \item{glasses}{Whether the child is wearing glasses}
+#'   \item{cigarettes_mum}{No. of cigarettes mum smokes daily}
+#'   \item{cigarettes_dad}{No. of cigarettes dad smokes daily}
+#'   \item{cigarettes_mum}{No. of cigarettes parents smoke daily}
+#'   \item{cigarettes_kid}{Information of the child smoking habits}
+#'   \item{cigarettes_friends}{Information on child's friends who smoke}
+#'   \item{bronchitis}{Whether the child ever had bronchitis}
 #'   \item{drink}{Did mother drink during pregnancy, early}
+#'   \item{milk}{Glasses of milk drank per day}
+#'   \item{coca}{Glasses of coca-cola or pepsi drank per day}
+#'   \item{backward}{Number of steps the child makes before making an error when asked to walk backwards for 20 steps}
+#'   \item{mother_height}{Mother's height in cm}
+#'   \item{father_height}{Father's height in cm}
+#'   \item{mother_weight}{Mother's weight in Kg}
+#'   \item{father_weight}{Father's weight in Kg}
 #' }
 #' @source Study number 3723 from the BCS70: \url{https://discover.ukdataservice.ac.uk/series/?sn=200001}
 "UK"
