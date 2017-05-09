@@ -14,15 +14,57 @@ vignette: >
 
 ```{r setup, include=FALSE}
 library(LM2GLMM)
-options(width = 120)
+options(width = 100)
 knitr::opts_chunk$set(cache = FALSE, fig.width = 5, fig.height = 5, fig.align = "center")
 ```
 
-## You will learn in this session
+## Dataset: esoph
+
+```{r}
+head(esoph)
+```
+
+### Goal
+
+* Find out whether you should rather limit alcohol consumption or tabacco consumption in order to avoid developing an oesophageal cancer? Does it depends on your age?
 
 
+## Dataset: effects::TitanicSurvival
 
-## What you need to remember
+```{r}
+data(TitanicSurvival, package = "effects")
+head(TitanicSurvival)
+```
+
+### Goal
+
+* Find out who mostly survived and who mostly died during the Titanic disaster of 1912.
+
+
+## Dataset: LM2GLMM::UK
+
+```{r}
+UK[1:2, ]
+```
+
+### Goal
+
+* Try to identify the determinant of the smoking behaviour of children.
+* Try to identify the determinant of bronchitis in children.
+* Try to identify the determinant of the variable ```backward```.
+
+
+## Dataset: LM2GLMM::HSE98women
+
+```{r}
+head(HSE98women)
+```
+
+### Goal
+
+* How does the probability of not having periods changes with age, smoking status and BMI?
+* How does the probability of having been drunk recently changes with age?
+* Does the number of drinking problems experienced during life depends on education?
 
 
 # Table of content
