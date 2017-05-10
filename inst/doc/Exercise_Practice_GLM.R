@@ -188,25 +188,25 @@ cbind(logit = AIC(mod_menop_logit),
 ## ------------------------------------------------------------------------
 mod_menop_logit_gam_no_int <- gam(menopause ~ s(age) + s(bmi) + smoked, data = HSE98women, family = binomial())
 LR <- -2 * (logLik(mod_menop_logit_gam_no_int)[[1]] - logLik(mod_menop_logit_gam)[[1]])
-DF <- (mod_menop_cauchit_gam$df.null - mod_menop_cauchit_gam$df.residual) - (mod_menop_logit_gam_no_int$df.null - mod_menop_logit_gam_no_int$df.residual)
+DF <- (mod_menop_logit_gam$df.null - mod_menop_logit_gam$df.residual) - (mod_menop_logit_gam_no_int$df.null - mod_menop_logit_gam_no_int$df.residual)
 (PV <- 1 - pchisq(LR, DF))
 
 ## ------------------------------------------------------------------------
 mod_menop_logit_gam_no_bmi <- gam(menopause ~ s(age) + smoked, data = HSE98women, family = binomial())
 LR <- -2 * (logLik(mod_menop_logit_gam_no_bmi)[[1]] - logLik(mod_menop_logit_gam)[[1]])
-DF <- (mod_menop_cauchit_gam$df.null - mod_menop_cauchit_gam$df.residual) - (mod_menop_logit_gam_no_bmi$df.null - mod_menop_logit_gam_no_bmi$df.residual)
+DF <- (mod_menop_logit_gam$df.null - mod_menop_logit_gam$df.residual) - (mod_menop_logit_gam_no_bmi$df.null - mod_menop_logit_gam_no_bmi$df.residual)
 (PV <- 1 - pchisq(LR, DF))
 
 ## ------------------------------------------------------------------------
 mod_menop_logit_gam_no_age <- gam(menopause ~ s(bmi) + smoked, data = HSE98women, family = binomial())
 LR <- -2 * (logLik(mod_menop_logit_gam_no_age)[[1]] - logLik(mod_menop_logit_gam)[[1]])
-DF <- (mod_menop_cauchit_gam$df.null - mod_menop_cauchit_gam$df.residual) - (mod_menop_logit_gam_no_age$df.null - mod_menop_logit_gam_no_age$df.residual)
+DF <- (mod_menop_logit_gam$df.null - mod_menop_logit_gam$df.residual) - (mod_menop_logit_gam_no_age$df.null - mod_menop_logit_gam_no_age$df.residual)
 (PV <- 1 - pchisq(LR, DF))
 
 ## ------------------------------------------------------------------------
 mod_menop_logit_gam_never_smoked <- gam(menopause ~ s(age, bmi), data = HSE98women, family = binomial())
 LR <- -2 * (logLik(mod_menop_logit_gam_never_smoked)[[1]] - logLik(mod_menop_logit_gam)[[1]])
-DF <- (mod_menop_cauchit_gam$df.null - mod_menop_cauchit_gam$df.residual) - (mod_menop_logit_gam_never_smoked$df.null - mod_menop_logit_gam_never_smoked$df.residual)
+DF <- (mod_menop_logit_gam$df.null - mod_menop_logit_gam$df.residual) - (mod_menop_logit_gam_never_smoked$df.null - mod_menop_logit_gam_never_smoked$df.residual)
 (PV <- 1 - pchisq(LR, DF))
 
 ## ------------------------------------------------------------------------
@@ -322,7 +322,7 @@ pred_cauchit <- predict(mod_menop_cauchit, newdata = subset(data.for.pred, bmi =
 tab <- cbind(
   logit_GAM = plogis(pred_GAM$fit),
   logit_GLM = plogis(pred_logit$fit),
-  cauchit_GLM = binomial(link = "cauchit")$linkinv(pred_logit$fit)
+  cauchit_GLM = binomial(link = "cauchit")$linkinv(pred_cauchit$fit)
 )
 rownames(tab) <- c(40, 45, 50, 55, 60)
 round(tab, 2)
@@ -351,4 +351,27 @@ tab <- with(HSE98women,
 )
 rownames(tab) <- c(40, 45, 50, 55, 60)
 round(tab, 2)
+
+## ------------------------------------------------------------------------
+data.for.pred.nosmoke <- expand.grid(
+  age = age.for.pred,
+  bmi = median(mod_menop_cauchit_gam$model$bmi),
+  smoked = FALSE
+  )
+
+gam.p.nosmoke <- predict(mod_menop_logit_gam, newdata = data.for.pred.nosmoke, se.fit = TRUE)
+gam.upr.nosmoke <- binomial(link = "logit")$linkinv(gam.p.nosmoke$fit + qnorm(0.975) * gam.p.nosmoke$se.fit)
+gam.lwr.nosmoke <- binomial(link = "logit")$linkinv(gam.p.nosmoke$fit + qnorm(0.025) * gam.p.nosmoke$se.fit)
+gam.fit.nosmoke <- binomial(link = "logit")$linkinv(gam.p.nosmoke$fit)
+
+
+plot(gam.fit ~ age.for.pred, type = "l", las = 1, ylab = "Probability of being menopaused", xlab = "Age (yrs)", ylim = c(0, 1), col = "red")
+points(gam.upr ~ age.for.pred, type = "l", lty = 2, col = "red")
+points(gam.lwr ~ age.for.pred, type = "l", lty = 2, col = "red")
+
+points(gam.fit.nosmoke ~ age.for.pred, type = "l", col = "green")
+points(gam.upr.nosmoke ~ age.for.pred, type = "l", lty = 2, col = "green")
+points(gam.lwr.nosmoke ~ age.for.pred, type = "l", lty = 2, col = "green")
+
+legend("topleft", fill = c("green", "red"), legend = c("non-smoker", "smoker"), bty = "n")
 
