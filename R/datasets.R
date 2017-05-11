@@ -171,7 +171,40 @@
 #'     \item{price}{the price coverted in US$}
 #'     \item{hapiness}{the continuous scale used to record the children's emotional response}
 #'   }
-#'   @source Justin Matejka, George Fitzmaurice, Toronto Ontario Canada. DOI: http://dx.doi.org/10.1145/3025453.3025912
+#'
+#' @source Justin Matejka, George Fitzmaurice, Toronto Ontario Canada. DOI: http://dx.doi.org/10.1145/3025453.3025912
 "Surprise"
 
 
+#' The Challenger Space Shuttle O-Ring Dataset
+#'
+#' Edited from (Draper, 1993): The motivation for collecting this database was
+#' the explosion of the USA Space Shuttle Challenger on 28 January, 1986. An
+#' investigation ensued into the reliability of the shuttle's propulsion system.
+#' The explosion was eventually traced to the failure of one of the three field
+#' joints on one of the two solid booster rockets. Each of these six field
+#' joints includes two O-rings, designated as primary and secondary, which fail
+#' when phenomena called erosion and blowby both occur. The night before the
+#' launch a decision had to be made regarding launch safety. The discussion
+#' among engineers and managers leading to this decision included concern that
+#' the probability of failure of the O-rings depended on the temperature t at
+#' launch, which was forecase to be 31 degrees F. There are strong engineering
+#' reasons based on the composition of O-rings to support the judgment that
+#' failure probability may rise monotonically as temperature drops. One other
+#' variable, the pressure s at which safety testing for field join leaks was
+#' performed, was available, but its relevance to the failure process was
+#' unclear.
+#'
+#' @format A dataframe with 5 variables:
+#'   \describe{
+#'     \item{oring_tot}{The number of O-rings at risk on a given flight}
+#'     \item{oring_dt}{The number experiencing thermal distress}
+#'     \item{temp}{The launch temperature (degrees F)}
+#'     \item{psi}{The leak-check pressure (psi)}
+#'     \item{flight}{The temporal order of flight}
+#'    }
+#'
+#' @source \url{https://archive.ics.uci.edu/ml/datasets/Challenger+USA+Space+Shuttle+O-Ring}
+#'
+#' Original dataset from: Draper,D. (1993). Assessment and propagation of model uncertainty. In Proceedings of the Fourth International Workshop on Artificial Intelligence and Statistics (pp. 497--509). Ft. Lauderdale, FL: Unpublished.
+"Challenger"
