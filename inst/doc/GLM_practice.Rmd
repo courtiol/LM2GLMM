@@ -41,6 +41,17 @@ head(TitanicSurvival)
 * Find out who mostly survived and who mostly died during the Titanic disaster of 1912.
 
 
+## Dataset: LM2GLMM::Challenger
+
+```{r}
+head(Challenger)
+```
+
+### Goal
+
+* What was the probability of O-ring failure when the space shuttle Challenger took off on the 28th of January 1986 by 31 degrees F?
+
+
 ## Dataset: LM2GLMM::UK
 
 ```{r}
@@ -65,6 +76,32 @@ head(HSE98women)
 * How does the probability of not having periods changes with age, smoking status and BMI?
 * How does the probability of having been drunk recently changes with age?
 * Does the number of drinking problems experienced during life depends on education?
+
+
+## Dataset: MASS::mammals
+
+```{r}
+data(mammals, package = "MASS")
+head(mammals)
+```
+
+### Goal
+
+* What is the allometric exponent for the growth of brain size with body mass?
+* Does this exponent agree with the usual expectation of 2/3?
+* How large do we expect a 1kg animal to be?
+* Rank organisms by relative brain size (i.e. controlled for body size)
+* Repeat the analysis with the dataset ```MASS::Animals```
+
+## Dataset: LM2GLMM::Surprise
+
+```{r}
+head(Surprise)
+```
+
+### Goal
+
+* Do children value more the type of the present, the cost of the present, or both?
 
 
 # Table of content

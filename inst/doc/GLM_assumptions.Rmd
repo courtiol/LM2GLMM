@@ -759,15 +759,6 @@ logLik(mod_poissMixQ)
 ```{r}
 mod_poissMix <- glm(eggs ~ humans_eaten, family = poisson(), data = AliensMix)
 sum(residuals(mod_poissMix, type = "pearson")^2) / mod_poissMix$df.residual
-mod_poissMix$coefficients
-```
-
-
-## Poisson
-
-```{r}
-mod_poissMix <- glm(eggs ~ humans_eaten, family = poisson(), data = AliensMix)
-sum(residuals(mod_poissMix, type = "pearson")^2) / mod_poissMix$df.residual
 summary(mod_poissMix)$coefficients
 ```
 

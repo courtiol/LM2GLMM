@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2017-05-10" />
+  <meta name="date" content="2017-05-12" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,7 +94,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2017-05-10</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2017-05-12</p>
           </hgroup>
   </slide>
 
@@ -133,6 +133,24 @@ head(TitanicSurvival)</pre>
 
 <ul>
 <li>Find out who mostly survived and who mostly died during the Titanic disaster of 1912.</li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Dataset: LM2GLMM::Challenger</h2></hgroup><article  id="dataset-lm2glmmchallenger" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>head(Challenger)</pre>
+
+<pre >##   oring_tot oring_dt temp psi flight
+## 1         6        0   66  50      1
+## 2         6        1   70  50      2
+## 3         6        0   69  50      3
+## 4         6        0   68  50      4
+## 5         6        0   67  50      5
+## 6         6        0   72  50      6</pre>
+
+<h3>Goal</h3>
+
+<ul>
+<li>What was the probability of O-ring failure when the space shuttle Challenger took off on the 28th of January 1986 by 31 degrees F?</li>
 </ul>
 
 </article></slide><slide class=''><hgroup><h2>Dataset: LM2GLMM::UK</h2></hgroup><article  id="dataset-lm2glmmuk" class="smaller ">
@@ -175,6 +193,47 @@ head(TitanicSurvival)</pre>
 <li>How does the probability of not having periods changes with age, smoking status and BMI?</li>
 <li>How does the probability of having been drunk recently changes with age?</li>
 <li>Does the number of drinking problems experienced during life depends on education?</li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Dataset: MASS::mammals</h2></hgroup><article  id="dataset-massmammals" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>data(mammals, package = &quot;MASS&quot;)
+head(mammals)</pre>
+
+<pre >##                    body brain
+## Arctic fox        3.385  44.5
+## Owl monkey        0.480  15.5
+## Mountain beaver   1.350   8.1
+## Cow             465.000 423.0
+## Grey wolf        36.330 119.5
+## Goat             27.660 115.0</pre>
+
+<h3>Goal</h3>
+
+<ul>
+<li>What is the allometric exponent for the growth of brain size with body mass?</li>
+<li>Does this exponent agree with the usual expectation of 2/3?</li>
+<li>How large do we expect a 1kg animal to be?</li>
+<li>Rank organisms by relative brain size (i.e. controlled for body size)</li>
+<li>Repeat the analysis with the dataset <code>MASS::Animals</code></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Dataset: LM2GLMM::Surprise</h2></hgroup><article  id="dataset-lm2glmmsurprise" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>head(Surprise)</pre>
+
+<pre >##       type   price happiness
+## 1 dinosaur 55.3846   97.1795
+## 2 dinosaur 51.5385   96.0256
+## 3 dinosaur 46.1538   94.4872
+## 4 dinosaur 42.8205   91.4103
+## 5 dinosaur 40.7692   88.3333
+## 6 dinosaur 38.7179   84.8718</pre>
+
+<h3>Goal</h3>
+
+<ul>
+<li>Do children value more the type of the present, the cost of the present, or both?</li>
 </ul>
 
 </article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>Table of content</h2></hgroup><article  id="table-of-content" class="smaller ">

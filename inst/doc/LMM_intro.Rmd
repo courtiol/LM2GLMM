@@ -14,8 +14,11 @@ vignette: >
 
 ```{r setup, include=FALSE}
 library(LM2GLMM)
+library(spaMM)
+library(lme4)
+library(car)
 options(width = 100)
-knitr::opts_chunk$set(cache = FALSE, cache.path = "./cache_knitr/LMM_intro/", fig.path = "./fig_knitr/LMM_intro/", fig.width = 5, fig.height = 5, fig.align = "center")
+knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LMM_intro/", fig.path = "./fig_knitr/LMM_intro/", fig.width = 5, fig.height = 5, fig.align = "center")
 ```
 
 ## You will learn in this session
@@ -24,24 +27,59 @@ knitr::opts_chunk$set(cache = FALSE, cache.path = "./cache_knitr/LMM_intro/", fi
 ## Why Linear Mixed-effects Models?
 
 
+## Fixed and ramdom effects
+
+### Fixed effects
+
+* the parameters are associated with an entire population or with certain repeatable levels of experimental factors
+* they represent fixed changes in fitted values caused by changes in $x$ (unless intercept)
+* they aim at capturing the effect of observed covariates
+
+<br>
+
+### Random effects
+
+* the effects are associated with individual experimental units drawn at random from a population
+* they represent the covariance structure induced by non-independence between observations
+* they aim at capturing the effect of unobserved covariates
+
+
+## Rules of thumb
+
+The choice between declaring an effect as fixed or random is sometimes difficult. In such cases, the decision depends on a trade-off between the pros and cons of both approaches.
+
+### Factor modeled as fixed effects
+
+* I am only interested in the levels I have
+* The uncertainty of the variance estimate for a random effect is huge
+* I expect the effect of my levels on the response not to follow a traditional probability distribution
+* I have very few levels
+* I want simple R function to do everything for me and I don't care much about statistics
+
+<br>
+
+### Factor modeled as random effects
+
+* I want to predict the response for levels I did not sample
+* I have only one or few repetitions within each level of the factor
+* I have so many levels that I would get a degenerated desing matrix for the fixed effects
+
+
+
 ## Studying variation using LMM
 
 ### Dataset
 
 ```{r}
-var.error <- 2
-var.between.group <- 10
-
+var.between.group <- 2; var.error <- 0.5
 set.seed(1L)
 group.effect <- rnorm(10, mean = 0, sd = sqrt(var.between.group))
-Aliens <- data.frame(
-  group.speed = rep(group.effect, each = 10),  ## 10 individuals for each 10 group
-  group.id = factor(paste0("id_", rep(1:10, each = 10))),
-  individual.effect = rnorm(100, mean = 0, sd = sqrt(var.error))
-  )
+Aliens <- data.frame(group.speed = rep(group.effect, each = 10),  ## 10 individuals for each 10 group
+                     group.id = factor(paste0("id_", rep(1:10, each = 10))),
+                     individual.effect = rnorm(100, mean = 0, sd = sqrt(var.error)))
 Aliens$individual.speed <- Aliens$group.speed + Aliens$individual.effect
-
 rbind(Aliens[1:2, ], Aliens[11:12, ], Aliens[21:22, ])
+c(var(group.effect), var(Aliens$individual.effect))
 ```
 
 
@@ -51,9 +89,8 @@ rbind(Aliens[1:2, ], Aliens[11:12, ], Aliens[21:22, ])
 
 ```{r, message = FALSE}
 library(lme4)
-mod <- lmer(individual.speed ~ 0 + (1|group.id), data = Aliens)
-as.numeric(VarCorr(mod)[[1]])  ## variance between groups
-sigma(mod)^2  ## residual variance
+(mod <- lmer(individual.speed ~ 0 + (1|group.id), data = Aliens))
+confint(mod)^2
 ```
 
 
@@ -63,11 +100,145 @@ sigma(mod)^2  ## residual variance
 
 ```{r, message = FALSE}
 library(spaMM)
-mod2 <- fitme(individual.speed ~ 0 + (1|group.id), data = Aliens, method = "REML")
-as.numeric(mod2$lambda[[1]])
-mod2$phi  ## residual variance
+(mod2 <- fitme(individual.speed ~ 0 + (1|group.id), data = Aliens, method = "REML"))
 ```
 
+
+## Studying variation using LMM
+
+### Model fit with ```fitme```
+
+```{r}
+mod2_H0 <- fitme(individual.speed ~ 0 + (1|group.id), data = Aliens, method = "REML",
+                  fixed = list(lambda = 2, phi = 0.5))
+
+1 - pchisq(2*(logLik(mod2) - logLik(mod2_H0)), df = 2)
+```
+
+
+
+# Application: estimating heritability with ```spaMM```
+
+## The animal model
+
+### Nothing but a simple LMM:
+
+$$ y_i = \mu + a_i + e_i$$
+
+with:
+
+* $\mu$ the population mean
+* $a_i$ the breeding value (i.e. the effects of the $i$'s genotype relative to $\mu$)
+* $e_i$ a residual term.
+
+The variance of the breeding values is the additive genetic variance $V_\text{A}$.
+
+The additive genetic covariance between two individuals = $\text{A}V_\text{A}$, where $\text{A}$ is the additive genetic relationship matrix (pairwise values of relatedness).
+
+
+## The additive genetic relationship matrix
+
+<center>
+<img src="./relatedness_matrix.png" alt="relatedness" style="width: 750px;"/>
+</center>
+
+
+## The Gryphon dataset
+
+<center>
+<img src="./AnimalModel.png" alt="Gryphon" style="width: 750px;"/>
+
+<img src="./Gryphon.jpg" alt="Gryphon" style="width: 500px;"/>
+</center>
+
+## Building the matrix A
+
+```{r}
+tail(Gryphon$pedigree)
+library(nadiv)
+A <- as(makeA(Gryphon$pedigree), "matrix")
+colnames(A) <- rownames(A) <- Gryphon$pedigree$ID
+A[1305:1309, 1296:1309]
+```
+
+## Fiting a simple Animal Model
+
+```{r animal model}
+library(spaMM)
+system.time(mod1 <- fitme(BWT ~ 1 + corrMatrix(1|ID), corrMatrix = A, data = Gryphon$data, method = "REML"))
+(h2 <- as.numeric(mod1$lambda / (mod1$lambda + mod1$phi)))
+```
+
+
+## Fiting a more complex Animal Model
+
+```{r animal model 2}
+Gryphon$data$sex    <- factor(Gryphon$data$SEX)
+Gryphon$data$year   <- factor(Gryphon$data$BYEAR)
+Gryphon$data$mother <- factor(Gryphon$data$MOTHER)
+
+system.time(
+  mod2 <- fitme(BWT ~ sex + (1|year) + (1|mother) + corrMatrix(1|ID), corrMatrix = A,
+                          data = Gryphon$data, method = "REML")
+  )
+
+h2 <- as.numeric(mod2$lambda["ID"]     / (sum(mod2$lambda) + mod2$phi))
+m2 <- as.numeric(mod2$lambda["mother"] / (sum(mod2$lambda) + mod2$phi))
+
+round(rbind("heritability" = h2, "maternal effect size" = m2), 3)
+```
+
+
+## Predicting the breeding values ($a_i$)
+
+```{r, fig.height=3.5, fig.width=4}
+curve(dnorm(x, sd = sqrt(as.numeric(mod2$lambda["ID"]))), from = - 3, to = 3, las = 1,
+      ylab = "pdf", xlab = "predicted breeding value")
+BLUP <- ranef(mod2)$"corrMatrix(1 | ID)"
+points(dnorm(BLUP, sd = sqrt(as.numeric(mod2$lambda["ID"]))) ~ BLUP, col = "blue", type = "h", lwd = 0.1)
+```
+
+Never do statistics on BLUPs! Neglecting the uncertainty associated to these predictions is wrong.
+
+## Predicting the breeding values ($a_i$)
+
+```{r}
+plot(BLUP ~ mod2$data$BWT, ylab = "Predicted breeding values", xlab = "Phenotypic value", las = 1)
+```
+
+
+
+# Modeling the heteroscedasticity
+
+## Comparing variances using LMM
+
+```{r}
+set.seed(1L)
+
+var.groupA <- 5
+var.groupB <- 10
+
+d <- data.frame(y = c(rnorm(50, mean = 0, sd = sqrt(var.groupA)),
+                      rnorm(50, mean = 0, sd = sqrt(var.groupB))),
+                group = factor(c(rep("A", 50), rep("B", 50))))
+
+bartlett.test(d$y, g = d$group)
+var.test(y ~ group, data = d)
+
+library(car)
+leveneTest(d$y, group = d$group)
+```
+
+
+## Comparing variances using LMM
+
+```{r}
+m    <- fitme(y ~ 0, resid.model = ~ group, data = d, method = "REML")
+unique(m$phi)  ## variance estimate for each group
+m_H0 <- fitme(y ~ 0, data = d, method = "REML")
+(LR <- logLik(m) - logLik(m_H0))
+1 - pchisq(2*LR, df = 1)  ## LRT
+```
 
 
 ## What you need to remember
