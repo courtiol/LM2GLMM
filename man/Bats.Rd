@@ -17,7 +17,10 @@
    \item{Season}{A factor indicating the season of sampling}
  }}
 \source{
-Anne Seltmann, Gábor Á. Czirják, Alexandre Courtiol, Henry Bernard, Matthew J. Struebig, Christian C. Voigt; Habitat disturbance results in chronic stress and impaired health status in forest-dwelling paleotropical bats. Conserv Physiol 2017; 5 (1): cox020. doi: 10.1093/conphys/cox020
+Anne Seltmann, Gábor Á. Czirják, Alexandre Courtiol, Henry Bernard,
+  Matthew J. Struebig, Christian C. Voigt; Habitat disturbance results in
+  chronic stress and impaired health status in forest-dwelling paleotropical
+  bats. Conserv Physiol 2017; 5 (1): cox020. doi: 10.1093/conphys/cox020
 }
 \usage{
 Bats
