@@ -67,6 +67,17 @@ head(HSE98women)
 * Does the number of drinking problems experienced during life depends on education?
 
 
+## Dataset: LM2GLMM::Surprise
+
+```{r}
+head(Surprise)
+```
+
+### Goal
+
+* Do children value more the type of the present, the cost of the present, or both?
+
+
 # Table of content
 
 ## The Generalized Linear Model: GLM
