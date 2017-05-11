@@ -26,6 +26,7 @@ Imports:
     lme4,
     lmtest,
     MASS,
+    mcsm,
     mgcv,
     multcomp,
     mvtnorm,
