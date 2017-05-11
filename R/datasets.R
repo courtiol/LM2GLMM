@@ -52,6 +52,7 @@
 #' @source Study number 3723 from the BCS70: \url{https://discover.ukdataservice.ac.uk/series/?sn=200001}
 "UK"
 
+
 #' Sample from the Health Survey for England Cardiovascular Disease’98
 #'
 #' This dataset is a sample of few variables taken from the Health Survey for
@@ -70,6 +71,7 @@
 #'
 #' @source UK Data Archive Study Number 4150
 "HSE98women"
+
 
 #' The Fungi dataset
 #'
@@ -106,6 +108,7 @@
 #' @source Bachelor thesis of Magdalena Nagel, FU Berlin.
 "Fungi"
 
+
 #' The Bats dataset
 #'
 #' This dataset has been collected during field studies with the goal of studying the impact of disturbance on the health of forest-dwelling paleotropical bats.
@@ -130,6 +133,7 @@
 #'   bats. Conserv Physiol 2017; 5 (1): cox020. doi: 10.1093/conphys/cox020
 "Bats"
 
+
 #' The Gryphon dataset
 #'
 #' This dataset contains a simulated dataset and a simulated pedigree of the
@@ -151,3 +155,23 @@
 #'    Nussey; An ecologist's guide to the animal model. Journal of Animal
 #'    Ecology 2010; 79, 13--26. doi: 10.1111/j.1365-2656.2009.01639.x
 "Gryphon"
+
+
+#' The Surprise dataset
+#'
+#' This dataset is the result of a controlled study in which 852 parents from one
+#' canadian school were divided into six groups of equal size and given gifts of
+#' different types (1 type per group) and of different costs (between ca 15 to 100
+#' dollars). After delivering the gifts to their children the parents reported
+#' the perceived joy of their children on a continuous scale between 0 and 100.
+#'
+#' @format A dataframe with 3 variables:
+#'   \describe{
+#'     \item{type}{the type of gift}
+#'     \item{price}{the price coverted in US$}
+#'     \item{hapiness}{the continuous scale used to record the children's emotional response}
+#'   }
+#'   @source Justin Matejka, George Fitzmaurice, Toronto Ontario Canada. DOI: http://dx.doi.org/10.1145/3025453.3025912
+"Surprise"
+
+
