@@ -191,7 +191,7 @@
 #' launch, which was forecase to be 31 degrees F. There are strong engineering
 #' reasons based on the composition of O-rings to support the judgment that
 #' failure probability may rise monotonically as temperature drops. One other
-#' variable, the pressure s at which safety testing for field join leaks was
+#' variable, the pressure at which safety testing for field join leaks was
 #' performed, was available, but its relevance to the failure process was
 #' unclear.
 #'
