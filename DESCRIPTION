@@ -12,6 +12,7 @@ RoxygenNote: 6.0.1
 Depends:
     R (>= 3.3.0)
 Imports:
+    ade4,
     boot,
     brglm,
     car,
