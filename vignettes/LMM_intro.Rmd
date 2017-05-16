@@ -214,9 +214,9 @@ $$
 
 ```{r}
 SimulateMix <- function(intercept, slope, n, group_nb, var.rand, var.error){
-  data <- data.frame(intercept = intercept, slope = slope, x=runif(n)) 
+  data <- data.frame(intercept = intercept, slope = slope, x = runif(n)) 
   group_compo <- rmultinom(n = 1, size = n, prob = c(rep(1/group_nb, group_nb)))
-  data$group <- factor(rep(paste("group", 1:group_nb, sep="_"), group_compo))
+  data$group <- factor(rep(paste("group", 1:group_nb, sep = "_"), group_compo))
   data$b <- rep(rnorm(group_nb, mean = 0, sd = sqrt(var.rand)), group_compo)
   data$error <- rnorm(n, mean = 0, sd = sqrt(var.error))
   data$y <- data$intercept + data$slope*data$x + data$b + data$error
@@ -240,7 +240,8 @@ Aliens
 ```{r, cache = FALSE}
 library(lme4)
 (mod_lme4 <- lmer(y ~ x + (1|group), data = Aliens, REML = FALSE))
-c(var.group = as.numeric(attr(VarCorr(mod_lme4)$group, "stddev")^2), var.error = as.numeric(attr(VarCorr(mod_lme4), "sc")^2))
+c(var.group = as.numeric(attr(VarCorr(mod_lme4)$group, "stddev")^2),
+  var.error = as.numeric(attr(VarCorr(mod_lme4), "sc")^2))  ## note: those are biased estimates (ML not REML)
 ```
 
 
@@ -259,12 +260,14 @@ lik_b <- function(b.vec, level, intercept, slope, var.rand, var.error, data, sca
   lik <- sapply(b.vec, function(b){
     sub_data <- data[which(data$group == level), ]
     sub_data$pred <- intercept + slope*sub_data$x + b
-    sub_data$conditional.density <- dnorm(sub_data$y, mean=sub_data$pred, sd=sqrt(var.error))
-    return(dnorm(b, mean=0, sd=sqrt(var.rand)) * prod(sub_data$conditional.density))
+    sub_data$conditional.density <- dnorm(sub_data$y, mean = sub_data$pred, sd = sqrt(var.error))
+    return(dnorm(b, mean = 0, sd = sqrt(var.rand)) * prod(sub_data$conditional.density))
   })
   return(scale * lik)
 }
 ```
+
+<br>
 
 ```{r}
 log_lik_b_prod <- function(param, data, scale = 1){
@@ -278,6 +281,8 @@ log_lik_b_prod <- function(param, data, scale = 1){
 
 ## Testing the functions
 
+
+Let's test the function under fixed parameter values:
 ```{r}
 log_lik_b_prod(param = c(50, 1.5, 2, 0.5), data = Aliens) ## test functions above
 mod_constr <- fitme(y ~ 0 + (1|group) + offset(50 + 1.5*x), data = Aliens, fixed = list(lambda = 2, phi = 0.5))
@@ -1315,7 +1320,7 @@ get_meta_metrics <- function(model, vi) {
   return(c(I2 = I2, H2 = H2, QE = QE, vi.avg = vi.avg))
 }
 
-get_meta_metrics(mod_spaMM, dat.bcg$sampling.var) ## add vi.avg: mean within study sampling variance
+get_meta_metrics(mod_spaMM, dat.bcg$sampling.var) ## add vi.avg: weighted mean within study sampling variance
 ```
 
 
