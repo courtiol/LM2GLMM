@@ -283,7 +283,8 @@ rbind(poiss = apply(test_poiss, 1, mean, na.rm = TRUE),
 ## 95% CI using Gaussian approximation
 
 ### Coverage N = 1000
-```{r coverage1c}
+```{r coverage1c, error = TRUE}
+set.seed(1L)
 test_poiss <- replicate(1000, confint.approx(update(mod_poiss, data = simulate_Aliens_GLM(N = 1000))))
 test_binar <- replicate(1000, confint.approx(update(mod_binar, data = simulate_Aliens_GLM(N = 1000))))
 test_binom <- replicate(1000, confint.approx(update(mod_binom, data = simulate_Aliens_GLM(N = 1000))))
