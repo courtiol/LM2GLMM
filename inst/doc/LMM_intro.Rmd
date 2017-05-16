@@ -239,8 +239,8 @@ Aliens
 
 ```{r, cache = FALSE}
 library(lme4)
-(mod <- lmer(y ~ x + (1|group), data = Aliens, REML = FALSE))
-c(var.group = as.numeric(attr(VarCorr(mod)$group, "stddev")^2), var.error = as.numeric(attr(VarCorr(mod), "sc")^2))
+(mod_lme4 <- lmer(y ~ x + (1|group), data = Aliens, REML = FALSE))
+c(var.group = as.numeric(attr(VarCorr(mod_lme4)$group, "stddev")^2), var.error = as.numeric(attr(VarCorr(mod_lme4), "sc")^2))
 ```
 
 
@@ -248,7 +248,7 @@ c(var.group = as.numeric(attr(VarCorr(mod)$group, "stddev")^2), var.error = as.n
 
 ```{r, cache = FALSE}
 library(spaMM)
-(mod <- fitme(y ~ x + (1|group), data = Aliens, method = "ML"))
+(mod_spaMM <- fitme(y ~ x + (1|group), data = Aliens, method = "ML"))
 ```
 
 
@@ -280,8 +280,8 @@ log_lik_b_prod <- function(param, data, scale = 1){
 
 ```{r}
 log_lik_b_prod(param = c(50, 1.5, 2, 0.5), data = Aliens) ## test functions above
-mod <- fitme(y ~ 0 + (1|group) + offset(50 + 1.5*x), data = Aliens, fixed = list(lambda = 2, phi = 0.5))
-logLik(mod)
+mod_constr <- fitme(y ~ 0 + (1|group) + offset(50 + 1.5*x), data = Aliens, fixed = list(lambda = 2, phi = 0.5))
+logLik(mod_constr)
 ```
 
 
@@ -317,10 +317,12 @@ my.ranef <- sapply(levels(Aliens$group), function(group) {
                  lb = -4*sqrt(opt$solution[3]), ub = 4*sqrt(opt$solution[3]),
                  opts = list(algorithm = "NLOPT_LN_BOBYQA", xtol_rel = 1.0e-4, maxeval = -1))$solution})
 
-rbind(my.ranef, sapMM_ranef = ranef(mod)[[1]])
+rbind(my.ranef, ranef_lme4 = as.numeric(t(ranef(mod_lme4)[[1]])))
 ```
 
-These numbers are often called the Best Linear Unbiased Predictions (BLUPs) of the random effects.
+* These numbers are often called the Best Linear Unbiased Predictions (BLUPs) of the random effects.
+* Even if BLUPs can be estimated, they are not parameters of the statistical model!!!
+* BLUPs should perhaps be computed after a REML and not ML fit... but as BLUPs are often combined with predicted responses which should be fitted using ML I am not so sure.
 
 
 # A simple example of LMM
@@ -850,10 +852,10 @@ abline(mod3$fixef + ranef(mod3)$`( log_body | Family )`["Viverridae", ], col = "
 
 <br>
 
-Perform the predictions using the function predict instead, both using ```spaMM``` and ```lme4```.
+Perform the predictions of all slopes using the function predict instead, both using ```spaMM``` and ```lme4```.
 
 
-## Testing if slopes differ between fanilies
+## Testing if slopes differ between families
 
 ```{r}
 mod4 <- lmer(log_brain ~ log_body + (log_body|Family) + (1|Genus), data = carnivora, REML = FALSE)
@@ -868,7 +870,7 @@ anova(mod5, mod5noIS)
 ```
 
 
-## Testing if slopes differ between fanilies
+## Testing if slopes differ between families
 
 ```{r}
 mod4 <- lmer(log_brain ~ log_body + (log_body|Family) + (1|Genus), data = carnivora, REML = FALSE)
@@ -892,6 +894,20 @@ anova(mod6, mod6noIS)
 set.seed(1)
 Aliens <- SimulateMix(intercept = 50, slope = 1.5, n = 30, group_nb = 10, var.rand = 2, var.error = 0.5)
 ```
+
+
+## Estimating a variance
+
+* ### Estimating variance components (and perhaps estimating BLUPS) is the only situation in which parameters must be fitted to the data by REstricted (or residual) Maximum Likelihood instead of Maximum Likelihood.
+* ### A ML fit would lead to underestimate the variances.
+* ### Do not use REML to study fixed effects!
+
+<br>
+
+Note:
+
+* different packages and different functions within the same package may have ML or REML as a default fitting method, so always double check!
+* unlike ML, REML is sensitive to changes in contrasts.
 
 
 ## Estimating a variance
@@ -1043,14 +1059,18 @@ round(confint(mod_lmer, method = "boot", nsim = 1000)[1, ]^2, 2)
 
 ## Estimating the variances of two subgroups
 
-### Two between genus variances among families: 
+### Two variances between genus: 
 
 ```{r}
-carnivora$Canidae <- as.numeric(carnivora$Family == "Canidae")
+carnivora$Canidae  <- as.numeric(carnivora$Family == "Canidae")
 carnivora$Others   <- as.numeric(carnivora$Family != "Canidae")
 
 mod2 <- fitme(log_brain ~ log_body + (0 + Canidae|Genus) + (0 + Others|Genus), data = carnivora)
 ```
+
+<br>
+
+Note: it does not seem to work with more than 2 variances, which I don't understand...
 
 
 ## The ``` carnivora``` dataset
@@ -1065,6 +1085,8 @@ mod2
 ```{r, cache = FALSE}
 as.data.frame(ranef(mod2))
 ```
+
+# A showcase of some useful advanced applications of LMM
 
 # Studying genetic variation using LMM
 
@@ -1151,10 +1173,12 @@ points(dnorm(BLUPs, sd = sqrt(as.numeric(mod2$lambda["ID"]))) ~ BLUPs, col = "bl
 
 Never do statistics on BLUPs! Neglecting the uncertainty associated to these predictions is wrong.
 
+Here we predicted BLUPs but won't add them to fixed effects, so the REML fit is the proper way to do it!
+
 ## Predicting the breeding values ($a_i$)
 
 ```{r}
-plot(BLUPs ~ mod2$data$BWT, ylab = "Predicted breeding values", xlab = "Phenotypic value", las = 1)
+plot(BLUPs ~ scale(mod2$data$BWT), ylab = "Predicted breeding values", xlab = "Scaled phenotypic values", las = 1)
 ```
 
 
@@ -1202,7 +1226,7 @@ anova(mod_carni, mod_carni_no_range)
 ```
 
 
-## Comparaison with ```gls```
+## Comparison with the traditional ```gls``` fit
 
 ```{r, message = FALSE}
 library(nlme)
@@ -1210,11 +1234,71 @@ rownames(carni70$tab) <- rownames(corrM)
 (mod_carni2 <- gls(size ~ range, correlation = corBrownian(1, tree), method = "ML", data = carni70$tab))
 ```
 
+A benefit of using a proper (G)LMM instead of the Generalized Least Squares is that we could also consider other random effects and model a non gaussian response (GLMM). for example, the function ```fitme()``` does that, but ```gls()``` cannot.
 
-## Comparaison with ```gls```
+
+## Comparison with the traditional ```gls``` fit
+
 ```{r}
 mod_carni2_no_range <- gls(size ~ 1, correlation = corBrownian(1, tree), method = "ML", data = carni70$tab)
 anova(mod_carni2, mod_carni2_no_range)
+```
+
+
+# Meta-analyses
+
+## Example: The ```metafor::dat.bcg``` dataset
+
+### Studies on the effectiveness of the BCG vaccine against Tuberculosis
+
+```{r, message = FALSE}
+library(metafor)
+dat.bcg
+```
+
+
+## We compute an effect size
+
+### Let's compute the log odds-ration and associated sampling variances:
+```{r}
+dat.bcg$RR  <- with(dat.bcg, log((tpos/(tpos+tneg)) / (cpos/(cpos+cneg))))
+dat.bcg$sampling.var <- with(dat.bcg, 1/tpos -1/tneg + 1/cpos - 1/cneg)
+dat.bcg
+```
+
+
+## We fit the model with ```metafor```
+
+```{r}
+(mod <- rma(yi = RR ~ factor(alloc) + year + ablat, vi = sampling.var, data=dat.bcg, method="REML"))
+```
+
+
+## We fit the model with ```spaMM```
+
+```{r}
+dat.bcg$study <- factor(dat.bcg$trial)
+(mod_spaMM <- fitme(RR ~ factor(alloc) + year + ablat + (1|study), data = dat.bcg, method ="REML",
+                    fixed = list(phi = dat.bcg$sampling.var)))
+```
+
+
+## Comparing outputs
+
+```{r}
+round(c(tau2_metafor = mod$tau2, lambda_spaMM = mod_spaMM$lambda[[1]]), 4)  ## heterogeneity between studies
+mod_spaMMRE <- fitme(RR ~ 1 + (1|study), data = dat.bcg, method ="REML",
+                    fixed = list(phi = dat.bcg$sampling.var))
+
+R2_spaMM <- 100 * (mod_spaMMRE$lambda[[1]] - mod_spaMM$lambda[[1]]) / mod_spaMMRE$lambda[[1]]
+round(c(R2_metafor = mod$R2, R2_spaMM = R2_spaMM), 4)  ## amount of heterogeneity accounted for by fixed effects
+```
+
+
+## Nice plots with ```metafor```
+
+```{r, fig.width = 6, fig.height = 5.5}
+plot(mod)
 ```
 
 

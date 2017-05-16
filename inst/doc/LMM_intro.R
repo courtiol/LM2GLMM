@@ -11,12 +11,12 @@ Aliens
 
 ## ---- cache = FALSE-------------------------------------------------------------------------------
 library(lme4)
-(mod <- lmer(y ~ x + (1|group), data = Aliens, REML = FALSE))
-c(var.group = as.numeric(attr(VarCorr(mod)$group, "stddev")^2), var.error = as.numeric(attr(VarCorr(mod), "sc")^2))
+(mod_lme4 <- lmer(y ~ x + (1|group), data = Aliens, REML = FALSE))
+c(var.group = as.numeric(attr(VarCorr(mod_lme4)$group, "stddev")^2), var.error = as.numeric(attr(VarCorr(mod_lme4), "sc")^2))
 
 ## ---- cache = FALSE-------------------------------------------------------------------------------
 library(spaMM)
-(mod <- fitme(y ~ x + (1|group), data = Aliens, method = "ML"))
+(mod_spaMM <- fitme(y ~ x + (1|group), data = Aliens, method = "ML"))
 
 ## ---- cache = FALSE-------------------------------------------------------------------------------
 plot(ecdf(test))
