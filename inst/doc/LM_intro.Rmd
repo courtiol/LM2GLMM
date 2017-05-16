@@ -55,14 +55,14 @@ library(LM2GLMM)
 $$
 \begin{bmatrix} y_1 \\ y_2 \\ y_3 \\ \dots \\ y_n \end{bmatrix} =
 \begin{bmatrix}
-1 & x_{1,1} & x_{2,1} & \dots & x_{p,1} \\
-1 & x_{1,2} & x_{2,2} & \dots & x_{p,2} \\
-1 & x_{1,3} & x_{2,3} & \dots & x_{p,3} \\
+1 & x_{1,1} & x_{1,2} & \dots & x_{1,p} \\
+1 & x_{2,1} & x_{2,2} & \dots & x_{2,p} \\
+1 & x_{3,1} & x_{3,2} & \dots & x_{3,p} \\
 \dots & \dots & \dots & \dots & \dots \\
-1 & x_{1,n} & x_{2,n} & \dots & x_{p,n}
+1 & x_{n,1} & x_{n,2} & \dots & x_{n,p}
 \end{bmatrix}
 \begin{bmatrix}
-\beta_0 \\ \beta_1 \\ \beta_2 \\ \beta_3 \\ \dots \\ \beta_n
+\beta_0 \\ \beta_1 \\ \beta_2 \\ \dots \\ \beta_p
 \end{bmatrix} +
 \begin{bmatrix}
 \epsilon_1 \\ \epsilon_2 \\ \epsilon_3 \\ \dots \\ \epsilon_n

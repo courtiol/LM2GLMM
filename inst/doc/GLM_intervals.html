@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2017-05-12" />
+  <meta name="date" content="2017-05-16" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,7 +94,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2017-05-12</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2017-05-16</p>
           </hgroup>
   </slide>
 
@@ -405,7 +405,8 @@ rbind(poiss = apply(test_poiss, 1, mean, na.rm = TRUE),
 
 <h3>Coverage N = 1000</h3>
 
-<pre class = 'prettyprint lang-r'>test_poiss &lt;- replicate(1000, confint.approx(update(mod_poiss, data = simulate_Aliens_GLM(N = 1000))))
+<pre class = 'prettyprint lang-r'>set.seed(1L)
+test_poiss &lt;- replicate(1000, confint.approx(update(mod_poiss, data = simulate_Aliens_GLM(N = 1000))))
 test_binar &lt;- replicate(1000, confint.approx(update(mod_binar, data = simulate_Aliens_GLM(N = 1000))))
 test_binom &lt;- replicate(1000, confint.approx(update(mod_binom, data = simulate_Aliens_GLM(N = 1000))))
 test_gauss &lt;- replicate(1000, confint.approx(update(mod_gauss, data = simulate_Aliens_GLM(N = 1000))))
@@ -415,10 +416,10 @@ rbind(poiss = apply(test_poiss, 1, mean),
       gauss = apply(test_gauss, 1, mean))</pre>
 
 <pre >##       intercept slope
-## poiss     0.940 0.947
-## binar     0.943 0.944
-## binom     0.943 0.943
-## gauss     0.951 0.952</pre>
+## poiss     0.957 0.954
+## binar     0.942 0.952
+## binom     0.967 0.960
+## gauss     0.953 0.942</pre>
 
 </article></slide><slide class=''><hgroup><h2>95% CI using Gaussian approximation</h2></hgroup><article  id="ci-using-gaussian-approximation-6" class="smaller ">
 

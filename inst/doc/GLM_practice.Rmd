@@ -39,6 +39,7 @@ head(TitanicSurvival)
 ### Goal
 
 * Find out who mostly survived and who mostly died during the Titanic disaster of 1912.
+* Compute the odds-ratio for survival between the two most contrasting groups of individuals. 
 
 
 ## Dataset: LM2GLMM::Challenger

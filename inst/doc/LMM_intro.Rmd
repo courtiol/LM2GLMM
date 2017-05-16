@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{4.0 Introduction}
+  %\VignetteIndexEntry{4.0 Linear Mixed-effects Models}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
@@ -24,100 +24,1049 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LMM_intro/", fig
 ## You will learn in this session
 
 
+# Introduction
+
 ## Why Linear Mixed-effects Models?
 
+To study, or to account for, unobservable sources of heterogeneity between observations.
 
-## Fixed and ramdom effects
+<br>
+
+Mixed-effects models allow for:
+
+* the study of other questions than LM (e.g. heritability)
+* the fixing of assumption violations in LM (lack of dependence)
+* the reduction of the uncertainty in estimates and predictions in cases where many parameters would have to be estimated, at the cost of an additional hypothesis (the distribution of the random effects)
+
+<br>
+
+The main sources of heterogeneity considered by mixed-effects models are:
+
+* origin (in its widest sense)
+* time
+* space
+
+
+## The linear mixed-effects model
+
+<br>
+
+### Definition
+
+* a LMM is a specific linear model for which, given the design matrix $\mathbf{X}$, the responses ($\mathbf{Y}$) are no longer independent, but where the correlations can be described in terms of a random effect, i.e. a random variable that is not included in the predictor variables
+
+
+## Mathematical notation of LM
+
+LM, which we have seen before:
+
+<center><font size = 6> $\mathbf{Y} = \mathbf{X} \beta + \epsilon$ </font></center>
+
+<center><font size = 4>
+$$
+\begin{bmatrix} y_1 \\ y_2 \\ y_3 \\ \vdots \\ y_n \end{bmatrix} =
+\begin{bmatrix}
+1 & x_{1,1} & x_{1,2} & \dots & x_{1,p} \\
+1 & x_{2,1} & x_{2,2} & \dots & x_{2,p} \\
+1 & x_{3,1} & x_{3,2} & \dots & x_{3,p} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+1 & x_{n,1} & x_{n,2} & \dots & x_{n,p}
+\end{bmatrix}
+\begin{bmatrix}
+\beta_0 \\ \beta_1 \\ \beta_2 \\ \vdots \\ \beta_p
+\end{bmatrix}+
+\begin{bmatrix}
+\epsilon_1 \\ \epsilon_2 \\ \epsilon_3 \\ \vdots \\ \epsilon_n
+\end{bmatrix}
+$$ with, 
+$$
+\epsilon \sim
+\mathcal{N}\left(0,
+\begin{bmatrix}
+\sigma^2 & 0 & 0 & \dots & 0 \\
+0 & \sigma^2 & 0 & \dots & 0 \\
+0 & 0 & \sigma^2 & \dots & 0 \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+0 & 0 & 0 & \dots & \sigma^2
+\end{bmatrix}\right)
+$$
+</font></center>
+
+## Mathematical notation of LMM
+
+LMM with one random factor with $q$ levels:
+
+<center><font size = 6> $\mathbf{Y} = \mathbf{X} \beta + \mathbf{Z}b + \epsilon$ </font></center>
+
+<center><font size = 3>
+$$
+\begin{bmatrix} y_1 \\ y_2 \\ y_3 \\ \vdots \\ y_n \end{bmatrix} =
+\begin{bmatrix}
+1 & x_{1,1} & x_{1,2} & \dots & x_{1,p} \\
+1 & x_{2,1} & x_{2,2} & \dots & x_{2,p} \\
+1 & x_{3,1} & x_{3,2} & \dots & x_{3,p} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+1 & x_{n,1} & x_{n,2} & \dots & x_{n,p}
+\end{bmatrix}
+\begin{bmatrix}
+\beta_0 \\ \beta_1 \\ \beta_2 \\ \vdots \\ \beta_p
+\end{bmatrix}+
+\begin{bmatrix}
+z_{1,1} & z_{1,2} & z_{1,3} & \dots & z_{1,q} \\
+z_{2,1} & z_{2,2} & z_{2,3} & \dots & z_{2,q} \\
+z_{3,1} & z_{3,2} & z_{3,3} & \dots & z_{3,q} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+z_{n,1} & z_{n,2} & z_{n,3} & \dots & z_{n,q} \\
+\end{bmatrix}
+\begin{bmatrix}
+b_1 \\ b_2 \\ b_3 \\ \vdots \\ b_q
+\end{bmatrix}+
+\begin{bmatrix}
+\epsilon_1 \\ \epsilon_2 \\ \epsilon_3 \\ \vdots \\ \epsilon_n
+\end{bmatrix}
+$$ with, 
+$$
+b \sim
+\mathcal{N}\left(0,
+\begin{bmatrix}
+c_{1,1} & c_{1,2} & c_{1,3} & \dots & c_{1,q} \\
+c_{2,1} & c_{2,2} & c_{2,3} & \dots & c_{2,q} \\
+c_{3,1} & c_{3,2} & c_{3,3} & \dots & c_{3,q} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+c_{q,1} & c_{q,2} & c_{q,3} & \dots & c_{q,q} \\
+\end{bmatrix}\right)
+\text{&  }
+\epsilon \sim
+\mathcal{N}\left(0,
+\begin{bmatrix}
+\phi & 0 & 0 & \dots & 0 \\
+0 & \phi & 0 & \dots & 0 \\
+0 & 0 & \phi & \dots & 0 \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+0 & 0 & 0 & \dots & \phi
+\end{bmatrix}\right)
+$$
+</font></center>
+
+with $\text{E}(b) = 0$, $\text{Cov}(b) = \mathbf{C}$, which is symmetrical ($c_{i, j} = c_{j, i}$). Also, $\text{Cov}(b, \epsilon) = 0$.
+
+
+## Mathematical notation of LMM
+
+LMM with one random factor with $q$ levels:
+
+<center><font size = 6> $\mathbf{Y} = \mathbf{X} \beta + \mathbf{Z}b + \epsilon$ </font></center>
+
+<center><font size = 3>
+$$
+\begin{bmatrix} y_1 \\ y_2 \\ y_3 \\ \vdots \\ y_n \end{bmatrix} =
+\begin{bmatrix}
+1 & x_{1,1} & x_{1,2} & \dots & x_{1,p} \\
+1 & x_{2,1} & x_{2,2} & \dots & x_{2,p} \\
+1 & x_{3,1} & x_{3,2} & \dots & x_{3,p} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+1 & x_{n,1} & x_{n,2} & \dots & x_{n,p}
+\end{bmatrix}
+\begin{bmatrix}
+\beta_0 \\ \beta_1 \\ \beta_2 \\ \vdots \\ \beta_p
+\end{bmatrix}+
+\begin{bmatrix}
+z_{1,1} & z_{1,2} & z_{1,3} & \dots & z_{1,q} \\
+z_{2,1} & z_{2,2} & z_{2,3} & \dots & z_{2,q} \\
+z_{3,1} & z_{3,2} & z_{3,3} & \dots & z_{3,q} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+z_{n,1} & z_{n,2} & z_{n,3} & \dots & z_{n,q} \\
+\end{bmatrix}
+\begin{bmatrix}
+b_1 \\ b_2 \\ b_3 \\ \vdots \\ b_q
+\end{bmatrix}+
+\begin{bmatrix}
+\epsilon_1 \\ \epsilon_2 \\ \epsilon_3 \\ \vdots \\ \epsilon_n
+\end{bmatrix}
+$$ and often, 
+$$
+b \sim
+\mathcal{N}\left(0,
+\begin{bmatrix}
+\lambda & 0 & 0 & \dots & 0 \\
+0 & \lambda & 0 & \dots & 0 \\
+0 & 0 & \lambda & \dots & 0 \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+0 & 0 & 0 & \dots & \lambda \\
+\end{bmatrix}\right)
+\text{&  }
+\epsilon \sim
+\mathcal{N}\left(0,
+\begin{bmatrix}
+\phi & 0 & 0 & \dots & 0 \\
+0 & \phi & 0 & \dots & 0 \\
+0 & 0 & \phi & \dots & 0 \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+0 & 0 & 0 & \dots & \phi
+\end{bmatrix}\right)
+$$
+</font></center>
+
+
+# Fitting procedure
+
+## A simple simulation function
+
+```{r}
+SimulateMix <- function(intercept, slope, n, group_nb, var.rand, var.error){
+  data <- data.frame(intercept = intercept, slope = slope, x=runif(n)) 
+  group_compo <- rmultinom(n = 1, size = n, prob = c(rep(1/group_nb, group_nb)))
+  data$group <- factor(rep(paste("group", 1:group_nb, sep="_"), group_compo))
+  data$b <- rep(rnorm(group_nb, mean = 0, sd = sqrt(var.rand)), group_compo)
+  data$error <- rnorm(n, mean = 0, sd = sqrt(var.error))
+  data$y <- data$intercept + data$slope*data$x + data$b + data$error
+  return(data)
+}
+
+set.seed(1)
+Aliens <- SimulateMix(intercept = 50, slope = 1.5, n = 30, group_nb = 10, var.rand = 2, var.error = 0.5)
+```
+
+
+## Our toy dataset
+
+```{r, cache = FALSE}
+Aliens
+```
+
+
+## Fitting the model with ```lme4```
+
+```{r, cache = FALSE}
+library(lme4)
+(mod <- lmer(y ~ x + (1|group), data = Aliens, REML = FALSE))
+c(var.group = as.numeric(attr(VarCorr(mod)$group, "stddev")^2), var.error = as.numeric(attr(VarCorr(mod), "sc")^2))
+```
+
+
+## Fitting the model with ```spaMM```
+
+```{r, cache = FALSE}
+library(spaMM)
+(mod <- fitme(y ~ x + (1|group), data = Aliens, method = "ML"))
+```
+
+
+## Functions for fitting the mixed model numerically
+
+```{r}
+lik_b <- function(b.vec, level, intercept, slope, var.rand, var.error, data, scale = 1){
+  lik <- sapply(b.vec, function(b){
+    sub_data <- data[which(data$group == level), ]
+    sub_data$pred <- intercept + slope*sub_data$x + b
+    sub_data$conditional.density <- dnorm(sub_data$y, mean=sub_data$pred, sd=sqrt(var.error))
+    return(dnorm(b, mean=0, sd=sqrt(var.rand)) * prod(sub_data$conditional.density))
+  })
+  return(scale * lik)
+}
+```
+
+```{r}
+log_lik_b_prod <- function(param, data, scale = 1){
+  log_lik_vec <- sapply(levels(data$group), function(level) {
+    log(integrate(lik_b, -Inf, Inf, level = level, intercept = param[1], slope = param[2],
+                  var.rand = param[3], var.error = param[4], data = data)$value)})
+  return(scale * sum(log_lik_vec))
+}
+```
+
+
+## Testing the functions
+
+```{r}
+log_lik_b_prod(param = c(50, 1.5, 2, 0.5), data = Aliens) ## test functions above
+mod <- fitme(y ~ 0 + (1|group) + offset(50 + 1.5*x), data = Aliens, fixed = list(lambda = 2, phi = 0.5))
+logLik(mod)
+```
+
+
+## Fitting the mixed model numerically
+
+```{r}
+bad_mod <- lm(y ~ x + group, data = Aliens)
+```
+
+```{r}
+(init_values <- c(bad_mod$coefficients[1], bad_mod$coefficients[2],
+                 var(bad_mod$coefficients[-c(1:2)]), var(bad_mod$residuals)))
+```
+
+```{r numerical fit}
+opt <-  nloptr::nloptr(x0 = init_values, eval_f = log_lik_b_prod, data = Aliens, scale = -1,
+                       lb = 0.5*init_values, ub = 2*init_values,
+                       opts = list(algorithm = "NLOPT_LN_BOBYQA", xtol_rel = 1.0e-4, maxeval = -1))
+opt$solution
+-1 * opt$objective
+```
+
+
+## The estimation of random effects
+
+### We estimate the realized values of the random variable:
+
+```{r fit b1}
+my.ranef <- sapply(levels(Aliens$group), function(group) {
+  nloptr::nloptr(x0 = 0, lik_b, level = group, intercept = opt$solution[1],
+                 slope = opt$solution[2], var.rand = opt$solution[3],
+                 var.error = opt$solution[4], data = Aliens, scale = -1,
+                 lb = -4*sqrt(opt$solution[3]), ub = 4*sqrt(opt$solution[3]),
+                 opts = list(algorithm = "NLOPT_LN_BOBYQA", xtol_rel = 1.0e-4, maxeval = -1))$solution})
+
+rbind(my.ranef, sapMM_ranef = ranef(mod)[[1]])
+```
+
+These numbers are often called the Best Linear Unbiased Predictions (BLUPs) of the random effects.
+
+
+# A simple example of LMM
+
+## The ```nlme::Oats``` dataset
+
+```{r}
+data("Oats", package = "nlme")
+Oats2 <- as.data.frame(Oats)
+Oats2$Block <- factor(Oats2$Block, ordered = FALSE, levels = sort(levels(Oats2$Block)))
+head(Oats2)
+str(Oats2)
+```
+
+
+## The ```nlme::Oats``` dataset
+
+```{r}
+coplot(yield ~ nitro | Variety + Block, data = Oats2, type = "b")
+```
+
+
+## Predictions with LM
+
+```{r}
+mod_lm <- lm(yield ~ nitro + Variety + Block, data = Oats2)
+data.for.pred <- expand.grid(nitro = 0.3, Variety = "Victory", Block = levels(Oats2$Block))
+(p <- predict(mod_lm, newdata = data.for.pred, interval = "confidence", se.fit = TRUE))
+```
+
+## Predictions with LM
+
+```{r, fig.width = 4, fig.height = 4}
+plot(Oats2$yield ~ unclass(Oats2$Block), axes = FALSE, ylab = "Yield", xlab = "Block",
+     xlim = c(0.5, length(levels(Oats2$Block)) + 0.5), col = "blue", cex = 0.3)
+points(p$fit[, "fit"] ~ I(1:length(levels(Oats2$Block)))) 
+arrows(x0 = 1:length(levels(Oats2$Block)), y0 = p$fit[, "lwr"], y1 = p$fit[, "upr"],
+       code = 3, angle = 90, length = 0.05)
+axis(1, at = 1:length(levels(Oats2$Block)), labels = levels(Oats2$Block)); axis(2, las = 1); box()
+```
+
+
+## LMM using ```lme4```
+
+```{r}
+(mod_lmm_lme4 <- lmer(yield ~ nitro + Variety + (1|Block), data = Oats2, REML = FALSE))
+```
+
+
+## LMM using ```lme4```
+
+```{r}
+head(mod_lmm_lme4@pp$X)  ## X
+mod_lmm_lme4@beta  ## beta estimates
+c(var.group = as.numeric(attr(VarCorr(mod_lmm_lme4)$Block, "stddev")^2),
+  var.error = as.numeric(attr(VarCorr(mod_lmm_lme4), "sc")^2))  ## lambda and phi estimates
+```
+
+
+## LMM using ```lme4```
+
+```{r}
+head(t(mod_lmm_lme4@pp$Zt))  ## Z
+ranef(mod_lmm_lme4)  ## b estimates
+```
+
+
+## LMM using ```spaMM```
+
+```{r}
+(mod_lmm_spaMM <- fitme(yield ~ nitro + Variety + (1|Block), data = Oats2))
+```
+
+
+## LMM using ```spaMM```
+
+```{r}
+head(mod_lmm_spaMM$X.pv)  ## X
+mod_lmm_spaMM$fixef  ## beta estimates
+as.numeric(c(mod_lmm_spaMM$lambda, mod_lmm_spaMM$phi))  ## lambda and phi estimates
+```
+
+
+## LMM using ```spaMM```
+
+```{r}
+head(mod_lmm_spaMM$ZAlist[[1]])  ## Z
+ranef(mod_lmm_spaMM)  ## b estimates
+```
+
+
+## Predictions using ```lme4```
+
+### Prediction averaged over the random variable:
+```{r}
+data.for.pred <- expand.grid(nitro = 0.3, Variety = "Victory", Block = "new")
+p1 <- predict(mod_lmm_lme4, newdata = data.for.pred, re.form = NA)
+X <- matrix(c(1, 0.3, 0, 1), nrow = 1)
+se.fit <- sqrt(X %*% vcov(mod_lmm_lme4) %*% t(X))
+se.rand <- attr(VarCorr(mod_lmm_lme4)$Block, "stddev")
+(se.predVar <- as.numeric(sqrt(se.fit^2 + se.rand^2)))
+lwr <- as.numeric(p1 + qnorm(0.025) * se.predVar)
+upr <- as.numeric(p1 + qnorm(0.975) * se.predVar)
+c(fit = as.numeric(p1), lwr = lwr, upr = upr)  ## Wald CI for prediction
+```
+
+
+## Predictions using ```spaMM```
+
+### Prediction averaged over the random variable:
+```{r}
+data.for.pred <- expand.grid(nitro = 0.3, Variety = "Victory", Block = "new")
+p2 <- predict(mod_lmm_spaMM, newdata = data.for.pred, intervals = "predVar")
+sqrt(attr(p2, "predVar"))  ## se.predVar
+c(fit = p2, attr(p2, "intervals"))
+```
+
+
+## Predictions using ```spaMM```
+
+### BLUPs of the response:
+```{r}
+data.for.pred <- expand.grid(nitro = 0.3, Variety = "Victory", Block = levels(Oats2$Block))
+p3 <- predict(mod_lmm_spaMM, newdata = data.for.pred, intervals = "predVar")
+sqrt(attr(p3, "predVar"))  ## se.predVar
+cbind(p3, attr(p3, "intervals"))
+```
+
+
+## BLUPs are attracted toward the mean
+
+```{r, fig.width = 4, fig.height = 4}
+plot(Oats2$yield ~ unclass(Oats2$Block), axes = FALSE, ylab = "Yield", xlab = "Block",
+     xlim = c(0.5, length(levels(Oats2$Block)) + 0.5), col = "blue", cex = 0.3)
+points(p$fit[, "fit"] ~ I(1:length(levels(Oats2$Block))-0.1))
+arrows(x0 = (1:length(levels(Oats2$Block))) - 0.1, y0 = p$fit[, "lwr"],
+       y1 = p$fit[, "upr"], code = 3, angle = 90, length = 0.05)
+points(p3 ~ I(1:length(levels(Oats2$Block)) + 0.1), col = "red")
+arrows(x0 = (1:length(levels(Oats2$Block))) + 0.1, y0 = attr(p3, "intervals")[, 1],
+       y1 = attr(p3, "intervals")[, 2], code = 3, angle = 90, length = 0.05, col = "red")
+axis(1, at = 1:length(levels(Oats2$Block)), labels = levels(Oats2$Block)); axis(2, las = 1); box()
+```
+
+
+## Testing the effect of the effect of ```nitro```
+
+### LM
+
+```{r}
+mod_lm_nonitro <- lm(yield ~ Variety + Block, data = Oats2)
+anova(mod_lm, mod_lm_nonitro)
+```
+
+
+## Testing the effect of the effect of ```nitro```
+
+### with ```lme4``` using an asymptotic LRT
+
+```{r}
+mod_lmm_lme4_nonitro <-  lmer(yield ~ Variety + (1|Block), data = Oats2, REML = FALSE)
+anova(mod_lmm_lme4, mod_lmm_lme4_nonitro)
+```
+
+
+## Testing the robustness of the test of the LRT
+
+```{r simu lme4, fig.height = 4, fig.width = 4, warning = FALSE}
+Oats3 <- Oats2
+pvalues <- replicate(1000, {
+  Oats3$yield <- simulate(mod_lmm_lme4_nonitro)[, 1]
+  mod_lmm_lme4_new <- lmer(yield ~ nitro + Variety + (1|Block), data = Oats3, REML = FALSE)
+  mod_lmm_lme4_new_nonitro <-  lmer(yield ~ Variety + (1|Block), data = Oats3, REML = FALSE)
+  anova(mod_lmm_lme4_new, mod_lmm_lme4_new_nonitro)$"Pr(>Chisq)"[2]})
+plot(ecdf(pvalues)); abline(0, 1, col = 2)
+```
+
+
+## Testing the effect of the effect of ```nitro```
+
+### with ```lme4``` using parametric bootstrap
+
+```{r yield lme4 param boot}
+library(pbkrtest)
+system.time(
+  test <- PBmodcomp(mod_lmm_lme4, mod_lmm_lme4_nonitro, nsim = 500)
+)
+test
+```
+
+
+## Testing the effect of the effect of ```nitro```
+
+### with ```spaMM``` using an asymptotic LRT
+
+```{r}
+mod_lmm_spaMM_nonitro <-  fitme(yield ~ Variety + (1|Block), data = Oats2)
+anova(mod_lmm_spaMM, mod_lmm_spaMM_nonitro)
+```
+
+
+## Testing the effect of the effect of ```nitro```
+
+### with ```spaMM``` using parametric bootstrap
+
+```{r yield spaMM param boot, message = FALSE}
+anova(mod_lmm_spaMM, mod_lmm_spaMM_nonitro, boot.repl = 500, nb_cores = 4) ## for 4 CPUs
+```
+
+
+## The ```aov()``` alternative?
+
+```{r}
+mod_aov <- aov(yield ~ nitro + Variety + Error(Block), data = Oats2)
+coef(mod_aov)
+```
+
+The coefficient are the same (except the intercept) because the experimental design is well balanced.
+
+Never use ```aov``` if this is not the case!
+
+
+## The ```aov()``` alternative?
+
+```{r}
+summary(mod_aov)
+```
+
+<br>
+
+This test is "not particularly sensible statistically" (as the authors of ```?aov``` put it)...
+
+
+## Testing the robustness of the test from ```aov()```
+
+```{r simu aov, fig.height = 4, fig.width = 4}
+Oats3 <- Oats2
+pvalues <- replicate(1000, {
+  Oats3$nitro <- runif(1:nrow(Oats3))  ## simulate H0 as there is no simulate method
+  mod_aov_sim <- aov(yield ~ nitro + Variety + Error(Block), data = Oats3)
+  summary(mod_aov_sim)[[2]][[1]][2, "Pr(>F)"]
+})
+plot(ecdf(pvalues))
+abline(0, 1, col = 2)
+```
+
+
+## Information Criteria
+
+```{r}
+AIC(mod_lm)
+AIC(mod_lmm_lme4)
+print(AIC(mod_lmm_spaMM))
+```
+
+* rely on the marginal AIC if you are interested in predictions averaged over the random variable.
+* rely on the conditional AIC if you are interested in BLUPs.
+
+
+## Choosing between fixed and random effects
+
+The choice between considering a predictor has having fixed or random effects can be difficult; it depends on the trade-off between the pros and cons of both approaches.
 
 ### Fixed effects
 
-* the parameters are associated with an entire population or with certain repeatable levels of experimental factors
-* they represent fixed changes in fitted values caused by changes in $x$ (unless intercept)
-* they aim at capturing the effect of observed covariates
-
-<br>
+* no assumption about the distribution of the effects associated with each level of a predictor
+* require many new datapoints for each additional levels to get reliable results
+* allow for the prediction of the effect of observed levels only (for factors)
+* simple to study
 
 ### Random effects
 
-* the effects are associated with individual experimental units drawn at random from a population
-* they represent the covariance structure induced by non-independence between observations
-* they aim at capturing the effect of unobserved covariates
+* the effects associated with each level of a predictor follow a given probability distribution
+* require at least one new datapoint for each additional levels to get reliable results (more is better)
+* allow for the prediction of the effect of both observed and unobserved levels (for factors)
+* more difficult to study
 
 
-## Rules of thumb
+# Assumptions
 
-The choice between declaring an effect as fixed or random is sometimes difficult. In such cases, the decision depends on a trade-off between the pros and cons of both approaches.
+## What are the assumptions in LMM?
 
-### Factor modeled as fixed effects
-
-* I am only interested in the levels I have
-* The uncertainty of the variance estimate for a random effect is huge
-* I expect the effect of my levels on the response not to follow a traditional probability distribution
-* I have very few levels
-* I want simple R function to do everything for me and I don't care much about statistics
+* same as LM (except for independence)
+* given the fixed effects and the realized values of the random effects, the residuals must be independent 
+* the random effects must follow the assumed distribution
+* the levels of the factorial variable for which random effects are estimated must be representative from the whole population
 
 <br>
 
-### Factor modeled as random effects
+Note:
 
-* I want to predict the response for levels I did not sample
-* I have only one or few repetitions within each level of the factor
-* I have so many levels that I would get a degenerated desing matrix for the fixed effects
+* companion packages exist for checking assumptions on ```lme4``` fits: ```HLMdiag``` and ```influence.ME```
+* the package ```DHARMa``` works for ```lme4```!
+* for now ```spaMM``` is quite limited in terms of tools to check assumptions
 
 
-
-## Studying variation using LMM
-
-### Dataset
+## Plotting residuals
 
 ```{r}
-var.between.group <- 2; var.error <- 0.5
-set.seed(1L)
-group.effect <- rnorm(10, mean = 0, sd = sqrt(var.between.group))
-Aliens <- data.frame(group.speed = rep(group.effect, each = 10),  ## 10 individuals for each 10 group
-                     group.id = factor(paste0("id_", rep(1:10, each = 10))),
-                     individual.effect = rnorm(100, mean = 0, sd = sqrt(var.error)))
-Aliens$individual.speed <- Aliens$group.speed + Aliens$individual.effect
-rbind(Aliens[1:2, ], Aliens[11:12, ], Aliens[21:22, ])
-c(var(group.effect), var(Aliens$individual.effect))
+plot(mod_lmm_lme4, type = c("p", "smooth"))  ## see ?lme4:::plot.merMod for details
 ```
 
 
-## Studying variation using LMM
+## Plotting residuals
 
-### Model fit with ```lmer```
+```{r}
+plot(mod_lmm_lme4, resid(., scaled=TRUE) ~ fitted(.) | Block, abline = 0)
+```
+
+
+## Plotting residuals
+
+```{r}
+lattice::qqmath(mod_lmm_lme4, id = 0.05) ## id allows to see outliers
+```
+
+
+## Plotting BLUPs
+
+```{r, fig.width = 4, fig.height = 4}
+lattice::qqmath(ranef(mod_lmm_lme4, condVar = TRUE))
+```
+
+
+## Using simulated residuals
+
+```{r, fig.width = 8, fig.height = 4}
+library(DHARMa)
+r <- simulateResiduals(mod_lmm_lme4, n = 1000)  ## resimulate BLUPs
+plot(r)
+```
+
+
+## Using simulated residuals
+
+### Testing independence
+```{r}
+testTemporalAutocorrelation(r, time = 1:nrow(Oats2), plot = FALSE)
+r2 <- simulateResiduals(mod_lmm_lme4, re.form = NULL, n = 1000)  ## conditional to fitted BLUPs
+testTemporalAutocorrelation(r2, time = 1:nrow(Oats2), plot = FALSE)
+```
+
+
+# Slightly more complex structure for random effects
+
+## The ```lmer::Penicillin``` dataset
+
+```{r}
+str(Penicillin)
+table(Penicillin$sample, Penicillin$plate)
+```
+
+## The ```lmer::Penicillin``` dataset
+
+### The random effects are "crossed"
+
+```{r}
+mod <- fitme(diameter ~ 1 + (1|plate) + (1|sample), data = Penicillin)
+mod$lambda
+```
+<div class="columns-2">
+
+```{r}
+head(mod$ZAlist[[1]])
+```
+
+```{r}
+head(mod$ZAlist[[2]], 10)
+```
+</div>
+
+
+## The ```lmer::cake``` dataset
+
+```{r}
+head(cake)
+str(cake)
+```
+
+
+## The ```lmer::cake``` dataset
+
+```{r}
+table(cake$recipe, cake$replicate, cake$temperature)
+```
+
+
+## The ```lmer::cake``` dataset
+
+### The random effect is nested within a fixed effect:
+
+```{r}
+mod <- fitme(angle ~ recipe + temperature + (1|recipe:replicate), data = cake)
+mod$lambda
+```
+
+
+## The ```lmer::cake``` dataset
+
+### The random effect is nested within a fixed effect (alternative): 
+
+```{r}
+cake$replicate_tot <- factor(paste(cake$recipe, cake$replicate, sep = "_"))
+levels(cake$replicate_tot)
+mod <- fitme(angle ~ recipe + temperature + (1|replicate_tot), data = cake)
+mod$lambda
+```
+
+
+## The ``` carnivora``` dataset
+
+```{r}
+data("carnivora", package = "ape") 
+carnivora$log_brain <- log(carnivora$SB)
+carnivora$log_body <- log(carnivora$SW)
+str(carnivora)
+```
+
+
+## The ``` carnivora``` dataset
+
+```{r}
+tapply(carnivora$Genus, carnivora$Family, function(x) length(unique(x)))
+```
+
+
+## The ``` carnivora``` dataset
+
+```{r}
+coplot(log_brain ~ log_body | Family, data = carnivora)
+```
+
+
+## The ``` carnivora``` dataset
+
+### Two nested random effects: 
+
+```{r}
+mod1 <- fitme(log_brain ~ log_body + (1|Family/Genus), data = carnivora)
+mod1
+```
+
+
+## The ``` carnivora``` dataset
+
+### Two nested random effects: 
+
+```{r}
+mod1bis <- fitme(log_brain ~ log_body + (1|Family) + (1|Family:Genus), data = carnivora)
+mod1bis
+```
+
+
+## The ``` carnivora``` dataset
+
+### Two nested random effects: 
+
+```{r}
+mod1ter <- fitme(log_brain ~ log_body + (1|Family) + (1|Genus), data = carnivora)
+mod1ter
+```
+
+
+## The ``` carnivora``` dataset
+
+### Two nested random effects: 
+
+<br>
+
+* the formula ```(1|Family/Genus)```
+* the formula ```(1|Family) + (1|Family:Genus)``` 
+* the formula ```(1|Family) + (1|Genus)```
+
+are the same as long as genus cannot be recycled between families!
+
+
+## Checking the random structure
+
+### You can check the BLUPs structure to make sure you did it right!
+
+```{r}
+as.data.frame(ranef(mod1))
+```
+
+
+## Checking the random structure
+
+### You can also use the ```model.matrix``` clone from ```lme4```:
+
+```{r}
+lF <- lFormula(log_brain ~ log_body + (1|Family) + (1|Genus), data = carnivora)
+lF$reTrms$flist  ## list of grouping factors used in the random-effects terms; see ?mkReTrms
+```
+
+
+# Random slopes
+
+
+## Fitting a random slope model
+
+```{r}
+mod3 <- HLfit(log_brain ~ log_body + (log_body|Family) + (1|Genus), data = carnivora, HLmethod = "ML")
+mod3
+```
+
+
+## The BLUPs for the slopes
+
+```{r}
+ranef(mod3)$`( log_body | Family )`
+```
+
+
+## Predictions
+
+```{r, fig.width = 4, fig.height = 4}
+plot(log_brain ~ log_body, data = subset(carnivora, Family == "Canidae"), col = "red",
+     ylim = range(carnivora$log_brain))
+points(log_brain ~ log_body, data = subset(carnivora, Family == "Mustelidae"), col = "blue")
+points(log_brain ~ log_body, data = subset(carnivora, Family == "Viverridae"), col = "orange")
+abline(mod3$fixef + ranef(mod3)$`( log_body | Family )`["Canidae", ], col = "red", lwd = 2, lty = 2)
+abline(mod3$fixef + ranef(mod3)$`( log_body | Family )`["Mustelidae", ], col = "blue", lwd = 2, lty = 2)
+abline(mod3$fixef + ranef(mod3)$`( log_body | Family )`["Viverridae", ], col = "orange", lwd = 2, lty = 2)
+```
+
+
+## Practice
+
+<br>
+
+Perform the predictions using the function predict instead, both using ```spaMM``` and ```lme4```.
+
+
+## Testing if slopes differ between fanilies
+
+```{r}
+mod4 <- lmer(log_brain ~ log_body + (log_body|Family) + (1|Genus), data = carnivora, REML = FALSE)
+mod4noRS <- lmer(log_brain ~ log_body + (1|Family) + (1|Genus), data = carnivora, REML = FALSE)
+anova(mod4, mod4noRS)
+```
+
+```{r}
+mod5 <- lm(log_brain ~ log_body * Family, data = carnivora)
+mod5noIS <- lm(log_brain ~ log_body + Family, data = carnivora)
+anova(mod5, mod5noIS)
+```
+
+
+## Testing if slopes differ between fanilies
+
+```{r}
+mod4 <- lmer(log_brain ~ log_body + (log_body|Family) + (1|Genus), data = carnivora, REML = FALSE)
+mod4noRS <- lmer(log_brain ~ log_body + (1|Family) + (1|Genus), data = carnivora, REML = FALSE)
+anova(mod4, mod4noRS)
+```
+
+```{r}
+mod6 <- lm(log_brain ~ log_body * Family + Genus, data = carnivora)
+mod6noIS <- lm(log_brain ~ log_body + Family + Genus, data = carnivora)
+anova(mod6, mod6noIS)
+```
+
+# Studying variation using LMM
+
+## Estimating a variance
+
+### Let's simulate a dataset under the assumptions of LMM
+
+```{r}
+set.seed(1)
+Aliens <- SimulateMix(intercept = 50, slope = 1.5, n = 30, group_nb = 10, var.rand = 2, var.error = 0.5)
+```
+
+
+## Estimating a variance
+
+### Model fit with ```lmer``` (```REML = TRUE``` by default)
 
 ```{r, message = FALSE}
 library(lme4)
-(mod <- lmer(individual.speed ~ 0 + (1|group.id), data = Aliens))
-confint(mod)^2
+(mod <- lmer(y ~ 1 + (1|group), data = Aliens))
 ```
 
 
-## Studying variation using LMM
+## Estimating a variance
 
 ### Model fit with ```fitme```
 
 ```{r, message = FALSE}
 library(spaMM)
-(mod2 <- fitme(individual.speed ~ 0 + (1|group.id), data = Aliens, method = "REML"))
+(mod2 <- fitme(y ~ 1 + (1|group), data = Aliens, method = "REML"))
 ```
 
 
-## Studying variation using LMM
+## Testing the variance
 
 ### Model fit with ```fitme```
 
 ```{r}
-mod2_H0 <- fitme(individual.speed ~ 0 + (1|group.id), data = Aliens, method = "REML",
-                  fixed = list(lambda = 2, phi = 0.5))
+mod2_H0 <- fitme(y ~ 1 + (1|group), data = Aliens, method = "REML", fixed = list(lambda = 2))
+1 - pchisq(2*(logLik(mod2) - logLik(mod2_H0)), df = 1)
+```
 
-1 - pchisq(2*(logLik(mod2) - logLik(mod2_H0)), df = 2)
+<br>
+
+Note: this asymptotic test is poor when the variance is low.
+
+
+## Robustness of the test
+
+```{r test spaMM}
+test <- replicate(1000, {
+  d <-  SimulateMix(intercept = 50, slope = 1.5, n = 30, group_nb = 10, var.rand = 2, var.error = 0.5)
+  mod <- fitme(y ~ 1 + (1|group), data = d, method = "REML")
+  mod0 <- fitme(y ~ 1 + (1|group), data = d, method = "REML",
+                fixed = list(lambda = 2))
+  1 - pchisq(2*(logLik(mod) - logLik(mod0)), df = 1)
+})
 ```
 
 
+## Robustness of the test
 
-# Application: estimating heritability with ```spaMM```
+```{r, cache = FALSE}
+plot(ecdf(test))
+abline(0, 1, col = "red")
+```
+
+
+## Robustness 2 (small variance)
+
+```{r test spaMM 2}
+test2 <- replicate(1000, {
+  d <-  SimulateMix(intercept = 50, slope = 1.5, n = 30, group_nb = 10, var.rand = 0.1, var.error = 0.5)
+  mod <- fitme(y ~ 1 + (1|group), data = d, method = "REML")
+  mod0 <- fitme(y ~ 1 + (1|group), data = d, method = "REML",
+                fixed = list(lambda = 0.1))
+  1 - pchisq(2*(logLik(mod) - logLik(mod0)), df = 1)
+})
+```
+
+
+## Robustness 2 (small variance)
+
+```{r, cache = FALSE}
+plot(ecdf(test2))
+abline(0, 1, col = "red")
+```
+
+Likelihood ratio tests never work well close to parameter boundaries...
+
+
+## Distribution of the variance estimate
+
+```{r distrib lambda large}
+lambdas_large <- replicate(1000, {
+  d <- SimulateMix(intercept = 50, slope = 1.5, n = 30, group_nb = 10, var.rand = 10, var.error = 0.5)
+  mod <- fitme(y ~ 1 + (1|group), data = d, method = "REML")
+  as.numeric(mod$lambda)
+})
+```
+
+```{r distrib lambda}
+lambdas <- replicate(1000, {
+  d <- SimulateMix(intercept = 50, slope = 1.5, n = 30, group_nb = 10, var.rand = 2, var.error = 0.5)
+  mod <- fitme(y ~ 1 + (1|group), data = d, method = "REML")
+  as.numeric(mod$lambda)
+})
+```
+
+```{r distrib lambda small}
+lambdas_small <- replicate(1000, {
+  d <- SimulateMix(intercept = 50, slope = 1.5, n = 30, group_nb = 10, var.rand = 0.1, var.error = 0.5)
+  mod <- fitme(y ~ 1 + (1|group), data = d, method = "REML")
+  as.numeric(mod$lambda)
+})
+```
+
+
+## Distribution of the variance estimate
+
+```{r, fig.width = 4, fig.height = 4}
+var.between.group <- 10
+hist(lambdas_large, nclass = 50, probability = TRUE)
+shape <- (10 - 1)/2 ## with 10 being the number of levels
+scale <- (2*var.between.group)/(10 - 1)
+curve(dgamma(x, shape = shape, scale = scale), from = 0, to = 30, add = TRUE, lwd = 2, col = "red")
+```
+
+
+## Distribution of the variance estimate
+
+```{r, fig.width = 4, fig.height = 4}
+var.between.group <- 2
+hist(lambdas, nclass = 50, probability = TRUE)
+shape <- (10 - 1)/2 ## with 10 being the number of levels
+scale <- (2*var.between.group)/(10 - 1)
+curve(dgamma(x, shape = shape, scale = scale), from = 0, to = 7, add = TRUE, lwd = 2, col = "red")
+```
+
+
+## Distribution of the variance estimate
+
+```{r, fig.width = 4, fig.height = 4}
+var.between.group2 <- 0.1
+hist(lambdas_small, nclass = 50, probability = TRUE)
+shape <- (10 - 1)/2 ## with 10 being the number of levels
+scale <- (2*var.between.group2)/(10 - 1)
+curve(dgamma(x, shape = shape, scale = scale), from = 0, to = 7, add = TRUE, lwd = 2, col = "red")
+```
+
+
+## Confidence interval for the variance with ```lme4```
+
+```{r CI lambda lme4}
+mod_lmer <- lmer(individual.speed ~ 1 + (1|group.id), data = d, REML = TRUE)
+round(confint(mod_lmer, method = "profile")[1, ]^2, 2)
+round(confint(mod_lmer, method = "boot", nsim = 1000)[1, ]^2, 2)
+```
+
+
+## Estimating the variances of two subgroups
+
+### Two between genus variances among families: 
+
+```{r}
+carnivora$Canidae <- as.numeric(carnivora$Family == "Canidae")
+carnivora$Others   <- as.numeric(carnivora$Family != "Canidae")
+
+mod2 <- fitme(log_brain ~ log_body + (0 + Canidae|Genus) + (0 + Others|Genus), data = carnivora)
+```
+
+
+## The ``` carnivora``` dataset
+
+```{r, cache = FALSE}
+mod2
+```
+
+
+## The ``` carnivora``` dataset
+
+```{r, cache = FALSE}
+as.data.frame(ranef(mod2))
+```
+
+# Studying genetic variation using LMM
 
 ## The animal model
 
@@ -131,12 +1080,14 @@ with:
 * $a_i$ the breeding value (i.e. the effects of the $i$'s genotype relative to $\mu$)
 * $e_i$ a residual term.
 
+<br>
+
 The variance of the breeding values is the additive genetic variance $V_\text{A}$.
 
-The additive genetic covariance between two individuals = $\text{A}V_\text{A}$, where $\text{A}$ is the additive genetic relationship matrix (pairwise values of relatedness).
+The additive genetic covariance between two individuals = $\text{A}V_\text{A}$, where $\text{A}$ is the relatedness matrix.
 
 
-## The additive genetic relationship matrix
+## The relatedness matrix
 
 <center>
 <img src="./relatedness_matrix.png" alt="relatedness" style="width: 750px;"/>
@@ -192,10 +1143,10 @@ round(rbind("heritability" = h2, "maternal effect size" = m2), 3)
 ## Predicting the breeding values ($a_i$)
 
 ```{r, fig.height=3.5, fig.width=4}
-curve(dnorm(x, sd = sqrt(as.numeric(mod2$lambda["ID"]))), from = - 3, to = 3, las = 1,
+curve(dnorm(x, sd = sqrt(as.numeric(mod2$lambda["ID"]))), from = -3, to = 3, las = 1,
       ylab = "pdf", xlab = "predicted breeding value")
-BLUP <- ranef(mod2)$"corrMatrix(1 | ID)"
-points(dnorm(BLUP, sd = sqrt(as.numeric(mod2$lambda["ID"]))) ~ BLUP, col = "blue", type = "h", lwd = 0.1)
+BLUPs <- ranef(mod2)$"corrMatrix(1 | ID)"
+points(dnorm(BLUPs, sd = sqrt(as.numeric(mod2$lambda["ID"]))) ~ BLUPs, col = "blue", type = "h", lwd = 0.1)
 ```
 
 Never do statistics on BLUPs! Neglecting the uncertainty associated to these predictions is wrong.
@@ -203,48 +1154,71 @@ Never do statistics on BLUPs! Neglecting the uncertainty associated to these pre
 ## Predicting the breeding values ($a_i$)
 
 ```{r}
-plot(BLUP ~ mod2$data$BWT, ylab = "Predicted breeding values", xlab = "Phenotypic value", las = 1)
+plot(BLUPs ~ mod2$data$BWT, ylab = "Predicted breeding values", xlab = "Phenotypic value", las = 1)
 ```
 
 
+# Phylogenetic regressions
 
-# Modeling the heteroscedasticity
 
-## Comparing variances using LMM
+## The ```ade4::carni70``` dataset
 
 ```{r}
-set.seed(1L)
-
-var.groupA <- 5
-var.groupB <- 10
-
-d <- data.frame(y = c(rnorm(50, mean = 0, sd = sqrt(var.groupA)),
-                      rnorm(50, mean = 0, sd = sqrt(var.groupB))),
-                group = factor(c(rep("A", 50), rep("B", 50))))
-
-bartlett.test(d$y, g = d$group)
-var.test(y ~ group, data = d)
-
-library(car)
-leveneTest(d$y, group = d$group)
+library(ade4)
+data(carni70)
+head(carni70$tab)
 ```
 
 
-## Comparing variances using LMM
+## The phylogeny
 
 ```{r}
-m    <- fitme(y ~ 0, resid.model = ~ group, data = d, method = "REML")
-unique(m$phi)  ## variance estimate for each group
-m_H0 <- fitme(y ~ 0, data = d, method = "REML")
-(LR <- logLik(m) - logLik(m_H0))
-1 - pchisq(2*LR, df = 1)  ## LRT
+library(ape)
+tree <- read.tree(text = carni70$tre)
+plot(tree, cex = 0.3)
+```
+
+
+## Turning a tree into a correlation matrix
+
+```{r}
+(corrM <- vcv(tree, model = "Brownian", corr = TRUE))
+```
+
+
+## Fitting the phylogenetic regression model
+
+```{r}
+carni70$tab$sp <- factor(rownames(corrM))
+(mod_carni <- fitme(size ~ range + corrMatrix(1|sp), corrMatrix = corrM, data = carni70$tab))
+```
+
+
+## Testing the fixed effects
+
+```{r}
+mod_carni_no_range <- fitme(size ~ 1 + corrMatrix(1|sp), corrMatrix = corrM, data = carni70$tab)
+anova(mod_carni, mod_carni_no_range)
+```
+
+
+## Comparaison with ```gls```
+
+```{r, message = FALSE}
+library(nlme)
+rownames(carni70$tab) <- rownames(corrM)
+(mod_carni2 <- gls(size ~ range, correlation = corBrownian(1, tree), method = "ML", data = carni70$tab))
+```
+
+
+## Comparaison with ```gls```
+```{r}
+mod_carni2_no_range <- gls(size ~ 1, correlation = corBrownian(1, tree), method = "ML", data = carni70$tab)
+anova(mod_carni2, mod_carni2_no_range)
 ```
 
 
 ## What you need to remember
-
-
-
 
 
 # Table of content
