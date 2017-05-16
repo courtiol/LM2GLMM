@@ -57,12 +57,12 @@ simulate_Aliens <- function(N = 12, intercept = 50, slope = 1.5, sigma2 = 25) {
 #' simulate_Aliens_GLM()
 #'
 simulate_Aliens_GLM <- function(N = 100) {
-  Aliens <- data.frame(humans_eaten = round(runif(n = N, min = 0, max = 15)))
-  Aliens$size  <- rnorm( n = N, mean = 50 + 1.5 * Aliens$humans_eaten, sd = 5)
-  Aliens$eggs  <- rpois( n = N, lambda = exp(-1 + 0.1 * Aliens$humans_eaten))
-  Aliens$happy <- rbinom(n = N, size = 1, prob = plogis(-3 + 0.3 * Aliens$humans_eaten))
-  Aliens$all_eyes  <- round(runif(nrow(Aliens), min = 1, max = 12))
-  Aliens$blue_eyes <- rbinom(n = nrow(Aliens), size = Aliens$all_eyes, prob = plogis(-2 + 0.5 * Aliens$humans_eaten))
+  Aliens <- data.frame(humans_eaten = round(stats::runif(n = N, min = 0, max = 15)))
+  Aliens$size  <- stats::rnorm( n = N, mean = 50 + 1.5 * Aliens$humans_eaten, sd = 5)
+  Aliens$eggs  <- stats::rpois( n = N, lambda = exp(-1 + 0.1 * Aliens$humans_eaten))
+  Aliens$happy <- stats::rbinom(n = N, size = 1, prob = plogis(-3 + 0.3 * Aliens$humans_eaten))
+  Aliens$all_eyes  <- round(stats::runif(nrow(Aliens), min = 1, max = 12))
+  Aliens$blue_eyes <- rbinom(n = nrow(Aliens), size = Aliens$all_eyes, prob = stats::plogis(-2 + 0.5 * Aliens$humans_eaten))
   Aliens$pink_eyes <- Aliens$all_eyes - Aliens$blue_eyes
   Aliens$all_eyes <- NULL
   attr(Aliens, "param.eta") <- list("size" = c(intercept = 50, slope = 1.5),
