@@ -1401,12 +1401,29 @@ metafor::plot.rma.uni(mod)  ## or just plot(mod)
 
 ## Can we do abstraction of fixed effects?
 
-```{r test for metafor}
+```{r}
 mod_spaMM2    <- fitme(RR ~ factor(alloc) + year + ablat + (1|study), data = dat.bcg,
                        fixed = list(phi = dat.bcg$sampling.var))
 mod_spaMM2_H0 <- fitme(RR ~ 1 + (1|study), data = dat.bcg, fixed = list(phi = dat.bcg$sampling.var))
 anova(mod_spaMM2, mod_spaMM2_H0)
-anova(mod_spaMM2, mod_spaMM2_H0, boot.repl = 1000)
+```
+
+
+## Can we do abstraction of fixed effects?
+```{r}
+anova(mod_spaMM2, mod_spaMM2_H0)
+```
+
+## Can we do abstraction of fixed effects?
+
+```{r test for metafor}
+res.boot <- anova(mod_spaMM2, mod_spaMM2_H0, boot.repl = 1000)
+```
+
+## Can we do abstraction of fixed effects?
+
+```{r}
+res.boot
 ```
 
 
@@ -1423,6 +1440,26 @@ anova(mod_spaMM2, mod_spaMM2_H0, boot.repl = 1000)
 mod_spaMM3    <- fitme(RR ~ 1 + (1|study), data = dat.bcg, fixed = list(phi = dat.bcg$sampling.var))
 mod_spaMM3_H0 <- fitme(RR ~ 0 + (1|study), data = dat.bcg, fixed = list(phi = dat.bcg$sampling.var))
 anova(mod_spaMM3, mod_spaMM3_H0)
+```
+
+
+## Does vaccination work?
+
+```{r test for metafor 2}
+res.boot2 <- anova(mod_spaMM3, mod_spaMM3_H0, boot.repl = 1000)
+```
+
+
+## Does vaccination work?
+
+```{r}
+res.boot2
+```
+
+
+## Does vaccination work?
+
+```{r}
 mod_spaMM3$fixef
 get_intervals(mod_spaMM3, re.form = NA, intervals = "predVar")[1, ]
 ```
@@ -1432,6 +1469,13 @@ get_intervals(mod_spaMM3, re.form = NA, intervals = "predVar")[1, ]
 
 ```{r}
 (mod3 <- rma(yi = RR ~ 1, vi = sampling.var, data = dat.bcg, method = "ML"))
+```
+
+
+## Does vaccination work?
+
+```{r}
+forest(mod3)
 ```
 
 
