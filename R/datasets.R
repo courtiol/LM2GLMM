@@ -125,7 +125,7 @@
 #'    \item{REP}{A factor indicating the reproductions status (NR = non-reproductive, PR = pregnant, L = lactating or M = post-lactating)}
 #'    \item{Year}{A factor indicating the year of sampling}
 #'    \item{Season}{A factor indicating the season of sampling}
-#'    \item{Site.x}A factor indicating the type of forest patch in which individuals have been captured}
+#'    \item{Site.x}{A factor indicating the type of forest patch in which individuals have been captured}
 #'  }
 #'
 #' @source Anne Seltmann, Gábor Á. Czirják, Alexandre Courtiol, Henry Bernard,
