@@ -21,7 +21,21 @@ options(width = 100)
 knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LMM_intro/", fig.path = "./fig_knitr/LMM_intro/", fig.width = 5, fig.height = 5, fig.align = "center")
 ```
 
+
 ## You will learn in this session
+
+* why you may need linear mixed-effects models
+* what mixed models are
+* how to use ```lme4``` and ```spaMM``` to fit mixed models
+* how to fit a simple mixed models by hand in a few lines of code
+* what BLUPs are
+* how to make predictions at two different levels
+* how to test effects using parametric bootstraps
+* how to decide between considering a factor as fixed or random
+* how to check assumptions for a linear mixed-effects model
+* how to study variation using mixed-models, including heritability
+* how to perform phylogenetic regressions as well as meta-analyses using mixed models
+* that mixed modes can do a lot, but that they are a bit tedious
 
 
 # Introduction
@@ -346,7 +360,7 @@ rbind(my.ranef,
 
 * The numbers we obtained with ```ranef``` are BLUPs of the random effects.
 * Even if BLUPs can be estimated, they are not parameters of the statistical model!!!
-* BLUPs should be computed after a REML... but when BLUPs are combined with predicted responses then it is not clear to me wheter ML, REML, or a combination of both should be used...
+* BLUPs should be computed after a REML... but when BLUPs are combined with predicted responses then it is not clear to me whether ML, REML, or a combination of both should be used...
 
 ```{r, fig.height = 3.5, fig.width = 4}
 curve(dnorm(x, mean = 0, sd = sqrt(estimates[1, "var.group"])), -5, 5, ylab = "density", xlab = "b")
@@ -1434,6 +1448,14 @@ res.boot
 ```
 
 
+## Can we do abstraction of fixed effects?
+
+```{r}
+(mod3 <- rma(yi = RR ~ factor(alloc) + year + ablat, vi = sampling.var, data = dat.bcg, method = "ML",
+             test = "knha"))
+```
+
+
 ## Does vaccination work?
 
 ```{r}
@@ -1468,18 +1490,26 @@ get_intervals(mod_spaMM3, re.form = NA, intervals = "predVar")[1, ]
 ## Does vaccination work?
 
 ```{r}
-(mod3 <- rma(yi = RR ~ 1, vi = sampling.var, data = dat.bcg, method = "ML"))
+(mod4 <- rma(yi = RR ~ 1, vi = sampling.var, data = dat.bcg, method = "ML"))
 ```
 
 
 ## Does vaccination work?
 
 ```{r}
-forest(mod3)
+forest(mod4)
 ```
 
 
 ## What you need to remember
 
+* why you may need linear mixed-effects models
+* what mixed models are
+* how to use ```lme4``` and/or ```spaMM``` to fit mixed models
+* what BLUPs are
+* how to make predictions at two different levels
+* how to test effects using parametric bootstraps
+* how to decide between considering a factor as fixed or random
+* how to check assumptions for a linear mixed-effects model
+* that mixed modes can do a lot, but that they are a bit tedious
 
-# Table of content
