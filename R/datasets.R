@@ -209,3 +209,25 @@
 #'
 #' Original dataset from: Draper,D. (1993). Assessment and propagation of model uncertainty. In Proceedings of the Fourth International Workshop on Artificial Intelligence and Statistics (pp. 497--509). Ft. Lauderdale, FL: Unpublished.
 "Challenger"
+
+
+#' Record of household effort in a flatshare (Berlin winter 2016 - spring 2017)
+#'
+#' Ten flatmates recorded their household efforts ias numbers of "half hours per month" for each of the three
+#' following chores: shopping, cleaning and other. Data are anonymous, gender and number of days absent
+#' are noted. Before the observed time period a consensus was reached on trying to keep cleaning
+#' effort balanced across genders.
+#'
+#' @format A data frame with 60 rows and 7 variables:
+#' \describe{
+#'  \item{individual}{identity of flatmate}
+#'  \item{gender}{gender of flatmate}
+#'  \item{month}{November-December 2016 and Januar-April 2017}
+#'  \item{shopping}{number of half hours spent shopping in respective month}
+#'  \item{cleaning}{number of half hours spent cleaning in respective month}
+#'  \item{other}{number of half hours spent on tasks except shopping or cleaning}
+#'  \item{absent}{number of days flatmate is absent in respective month}
+#' }
+#' @source Privately gathered data
+"Flatwork"
+
