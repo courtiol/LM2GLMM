@@ -28,6 +28,7 @@ Imports:
     lme4,
     lmtest,
     MASS,
+    maps,
     metafor,
     mgcv,
     multcomp,
