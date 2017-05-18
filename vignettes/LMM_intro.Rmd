@@ -536,7 +536,7 @@ axis(1, at = 1:length(levels(Oats2$Block)), labels = levels(Oats2$Block)); axis(
 ```
 
 
-## Testing the effect of the effect of ```nitro```
+## Testing the effect of ```nitro```
 
 ### LM
 
@@ -546,7 +546,7 @@ anova(mod_lm, mod_lm_nonitro)
 ```
 
 
-## Testing the effect of the effect of ```nitro```
+## Testing the effect of ```nitro```
 
 ### with ```lme4``` using an asymptotic LRT
 
@@ -575,10 +575,7 @@ plot(ecdf(pvalues)); abline(0, 1, col = 2)
 
 ```{r yield lme4 param boot}
 library(pbkrtest)
-system.time(
-  test <- PBmodcomp(mod_lmm_lme4, mod_lmm_lme4_nonitro, nsim = 500)
-)
-test
+PBmodcomp(mod_lmm_lme4, mod_lmm_lme4_nonitro, nsim = 500)
 ```
 
 
@@ -736,14 +733,14 @@ testTemporalAutocorrelation(r2, time = 1:nrow(Oats2), plot = FALSE)
 
 # Slightly more complex random structures
 
-## The ```lmer::Penicillin``` dataset
+## The ```lme4::Penicillin``` dataset
 
 ```{r}
 str(Penicillin)
 table(Penicillin$sample, Penicillin$plate)
 ```
 
-## The ```lmer::Penicillin``` dataset
+## The ```lme4::Penicillin``` dataset
 
 ### The random effects are "crossed"
 
@@ -763,7 +760,7 @@ head(mod$ZAlist[[2]], 10)
 </div>
 
 
-## The ```lmer::cake``` dataset
+## The ```lme4::cake``` dataset
 
 ```{r}
 head(cake)
@@ -771,14 +768,14 @@ str(cake)
 ```
 
 
-## The ```lmer::cake``` dataset
+## The ```lme4::cake``` dataset
 
 ```{r}
 table(cake$recipe, cake$replicate, cake$temperature)
 ```
 
 
-## The ```lmer::cake``` dataset
+## The ```lme4::cake``` dataset
 
 ### The random effect is nested within a fixed effect:
 
@@ -788,7 +785,7 @@ mod$lambda
 ```
 
 
-## The ```lmer::cake``` dataset
+## The ```lme4::cake``` dataset
 
 ### The random effect is nested within a fixed effect (alternative): 
 
@@ -887,15 +884,6 @@ crossprod(as.matrix(mod1$ZAlist[[2]]))
 
 ## Checking the random structure
 
-### You can also check the BLUPs structure
-
-```{r}
-as.data.frame(ranef(mod1))
-```
-
-
-## Checking the random structure
-
 ### You can also use the ```model.matrix``` clone from ```lme4```:
 
 ```{r}
@@ -903,6 +891,16 @@ lF <- lFormula(log_brain ~ log_body + (1|Family) + (1|Genus), data = carnivora)
 lF$reTrms$flist  ## list of grouping factors used in the random-effects terms; see ?mkReTrms
 ```
 
+
+## Checking the random structure
+
+### You can also check the BLUPs structure
+
+```{r}
+lapply(ranef(mod1), head, n = 20)
+```
+
+Note: there is a little bug with the names of the BLUPs for family...
 
 # Random slopes
 
@@ -1003,7 +1001,7 @@ Note:
 
 ```{r, message = FALSE}
 library(lme4)
-(mod <- lmer(y ~ 1 + (1|group), data = Aliens))
+(mod <- lmer(y ~ x + (1|group), data = Aliens))
 ```
 
 
@@ -1013,7 +1011,7 @@ library(lme4)
 
 ```{r, message = FALSE}
 library(spaMM)
-(mod2 <- fitme(y ~ 1 + (1|group), data = Aliens, method = "REML"))
+(mod2 <- fitme(y ~ x + (1|group), data = Aliens, method = "REML"))
 ```
 
 
@@ -1022,7 +1020,7 @@ library(spaMM)
 ### Model fit with ```fitme```
 
 ```{r}
-mod2_H0 <- fitme(y ~ 1 + (1|group), data = Aliens, method = "REML", fixed = list(lambda = 2))
+mod2_H0 <- fitme(y ~ x + (1|group), data = Aliens, method = "REML", fixed = list(lambda = 2))
 1 - pchisq(2*(logLik(mod2) - logLik(mod2_H0)), df = 1)
 ```
 
@@ -1036,8 +1034,8 @@ Note: this asymptotic test is poor when the variance is low.
 ```{r test spaMM}
 test <- replicate(1000, {
   d <-  SimulateMix(intercept = 50, slope = 1.5, n = 30, group_nb = 10, var.rand = 2, var.error = 0.5)
-  mod <- fitme(y ~ 1 + (1|group), data = d, method = "REML")
-  mod0 <- fitme(y ~ 1 + (1|group), data = d, method = "REML",
+  mod <- fitme(y ~ x + (1|group), data = d, method = "REML")
+  mod0 <- fitme(y ~ x + (1|group), data = d, method = "REML",
                 fixed = list(lambda = 2))
   1 - pchisq(2*(logLik(mod) - logLik(mod0)), df = 1)
 })
@@ -1057,8 +1055,8 @@ abline(0, 1, col = "red")
 ```{r test spaMM 2}
 test2 <- replicate(1000, {
   d <-  SimulateMix(intercept = 50, slope = 1.5, n = 30, group_nb = 10, var.rand = 0.1, var.error = 0.5)
-  mod <- fitme(y ~ 1 + (1|group), data = d, method = "REML")
-  mod0 <- fitme(y ~ 1 + (1|group), data = d, method = "REML",
+  mod <- fitme(y ~ x + (1|group), data = d, method = "REML")
+  mod0 <- fitme(y ~ x + (1|group), data = d, method = "REML",
                 fixed = list(lambda = 0.1))
   1 - pchisq(2*(logLik(mod) - logLik(mod0)), df = 1)
 })
@@ -1080,7 +1078,7 @@ Likelihood ratio tests never work well close to parameter boundaries...
 ```{r distrib lambda large}
 lambdas_large <- replicate(1000, {
   d <- SimulateMix(intercept = 50, slope = 1.5, n = 30, group_nb = 10, var.rand = 10, var.error = 0.5)
-  mod <- fitme(y ~ 1 + (1|group), data = d, method = "REML")
+  mod <- fitme(y ~ x + (1|group), data = d, method = "REML")
   as.numeric(mod$lambda)
 })
 ```
@@ -1088,7 +1086,7 @@ lambdas_large <- replicate(1000, {
 ```{r distrib lambda}
 lambdas <- replicate(1000, {
   d <- SimulateMix(intercept = 50, slope = 1.5, n = 30, group_nb = 10, var.rand = 2, var.error = 0.5)
-  mod <- fitme(y ~ 1 + (1|group), data = d, method = "REML")
+  mod <- fitme(y ~ x + (1|group), data = d, method = "REML")
   as.numeric(mod$lambda)
 })
 ```
@@ -1096,7 +1094,7 @@ lambdas <- replicate(1000, {
 ```{r distrib lambda small}
 lambdas_small <- replicate(1000, {
   d <- SimulateMix(intercept = 50, slope = 1.5, n = 30, group_nb = 10, var.rand = 0.1, var.error = 0.5)
-  mod <- fitme(y ~ 1 + (1|group), data = d, method = "REML")
+  mod <- fitme(y ~ x + (1|group), data = d, method = "REML")
   as.numeric(mod$lambda)
 })
 ```
@@ -1301,15 +1299,15 @@ plot(tree, cex = 0.3)
 
 ```{r}
 carni70$tab$sp <- factor(rownames(corrM))
-(mod_carni <- fitme(size ~ range + corrMatrix(1|sp), corrMatrix = corrM, data = carni70$tab))
+(mod_carni <- fitme(range ~ size + corrMatrix(1|sp), corrMatrix = corrM, data = carni70$tab))
 ```
 
 
 ## Testing the fixed effects
 
 ```{r}
-mod_carni_no_range <- fitme(size ~ 1 + corrMatrix(1|sp), corrMatrix = corrM, data = carni70$tab)
-anova(mod_carni, mod_carni_no_range)
+mod_carni_no_size <- fitme(range ~ 1 + corrMatrix(1|sp), corrMatrix = corrM, data = carni70$tab)
+anova(mod_carni, mod_carni_no_size)
 ```
 
 
@@ -1318,7 +1316,7 @@ anova(mod_carni, mod_carni_no_range)
 ```{r, message = FALSE}
 library(nlme)
 rownames(carni70$tab) <- rownames(corrM)
-(mod_carni2 <- gls(size ~ range, correlation = corBrownian(1, tree), method = "ML", data = carni70$tab))
+(mod_carni2 <- gls(range ~ size, correlation = corBrownian(1, tree), method = "ML", data = carni70$tab))
 ```
 
 A benefit of using a proper (G)LMM instead of the Generalized Least Squares is that we could also consider other random effects and model a non gaussian response (GLMM). for example, the function ```fitme()``` does that, but ```gls()``` cannot.
@@ -1327,8 +1325,8 @@ A benefit of using a proper (G)LMM instead of the Generalized Least Squares is t
 ## Comparison with the traditional ```gls``` fit
 
 ```{r}
-mod_carni2_no_range <- gls(size ~ 1, correlation = corBrownian(1, tree), method = "ML", data = carni70$tab)
-anova(mod_carni2, mod_carni2_no_range)
+mod_carni2_no_size <- gls(range ~ 1, correlation = corBrownian(1, tree), method = "ML", data = carni70$tab)
+anova(mod_carni2, mod_carni2_no_size)
 ```
 
 
@@ -1424,11 +1422,6 @@ anova(mod_spaMM2, mod_spaMM2_H0)
 
 
 ## Can we do abstraction of fixed effects?
-```{r}
-anova(mod_spaMM2, mod_spaMM2_H0)
-```
-
-## Can we do abstraction of fixed effects?
 
 ```{r test for metafor}
 res.boot <- anova(mod_spaMM2, mod_spaMM2_H0, boot.repl = 1000)
@@ -1513,3 +1506,10 @@ forest(mod4)
 * how to check assumptions for a linear mixed-effects model
 * that mixed modes can do a lot, but that they are a bit tedious
 
+
+# Table of content
+
+## Mixed-effects models
+
+* 4.0 [Introduction](./LMM_intro.html)
+* 4.1 [More extensions from simple LMM](./LMM_more.html)
