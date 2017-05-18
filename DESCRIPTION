@@ -33,6 +33,7 @@ Imports:
     multcomp,
     mvtnorm,
     nadiv,
+    nlme,
     nloptr,
     nortest,
     pbkrtest,
