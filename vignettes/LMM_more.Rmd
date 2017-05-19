@@ -948,13 +948,14 @@ plot(x = isoscape2, which = "mean", borders = list(borders = countries),
 
 ## DHGLM
 
-```{r DHGLM, warning=FALSE, message=FALSE}
+```{r DHGLM, warning=FALSE, message=FALSE, eval = FALSE}
 GNIP <- subset(GNIPdata, GNIPdata$lat > 30 & GNIPdata$lat < 70 & GNIPdata$long > -30 & GNIPdata$long < 60)
 dim(GNIP)
 system.time(
   dhglm <- corrHLfit(isoscape.value ~ lat + elev + Matern(1 | long + lat), family = gaussian(), 
-              HLmethod = "REML", data = GNIP,  control.dist = list(dist.method = "Earth"),
+              HLmethod = "REML", data = GNIP, control.dist = list(dist.method = "Earth"),
               resid.model = list(formula = ~ 1 + Matern(1 | long + lat),
+                                 control.dist = list(dist.method = "Earth"),
                                  family = Gamma(log), fixed = list(phi = 2)))
 )
 ```
