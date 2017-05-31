@@ -749,7 +749,7 @@ influence.measures(mod_davis)  ## stars are just there to attract your attention
 * that you will have to learn GLM and (G)LMM to solve some usual problems
 
 
-# Table of content
+# Table of contents
 
 ## The Linear Model: LM
 

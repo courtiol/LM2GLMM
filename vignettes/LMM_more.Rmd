@@ -970,7 +970,7 @@ system.time(
 * how to handle heteroscedasticity
 
 
-# Table of content
+# Table of contents
 
 ## Mixed-effects models
 

@@ -990,7 +990,7 @@ Note: as odds-ratios are ratios, a value of 0.1 means a 10 (=1/0.1) fold reducti
 * how to interpret parameter estimates from GLM Poisson and Binomial
 
 
-# Table of content
+# Table of contents
 
 ## The Generalized Linear Model: GLM
 

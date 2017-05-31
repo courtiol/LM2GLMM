@@ -105,7 +105,7 @@ head(Surprise)
 * Do children value more the type of the present, the cost of the present, or both?
 
 
-# Table of content
+# Table of contents
 
 ## The Generalized Linear Model: GLM
 

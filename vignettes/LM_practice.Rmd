@@ -102,7 +102,7 @@ You can find the solution to all problems but the bat one
 
 Give it a good try before checking how I did it!
 
-# Table of content
+# Table of contents
 
 ## The Linear Model: LM
 

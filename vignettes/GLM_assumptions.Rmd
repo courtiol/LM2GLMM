@@ -1082,7 +1082,7 @@ AIC(mod5)
 * how to diagnose and tackle overdispersion, zero-augmentation and separation
 
 
-# Table of content
+# Table of contents
 
 ## The Generalized Linear Model: GLM
 
