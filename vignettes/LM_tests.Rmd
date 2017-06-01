@@ -470,7 +470,7 @@ summary(mod_drink2 <- lm(height ~ drink2, data = UK))$coef
 * that doing many tests is dangerous
 
 
-# Table of content
+# Table of contents
 
 ## The Linear Model: LM
 

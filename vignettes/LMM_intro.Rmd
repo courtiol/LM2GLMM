@@ -1507,7 +1507,7 @@ forest(mod4)
 * that mixed modes can do a lot, but that they are a bit tedious
 
 
-# Table of content
+# Table of contents
 
 ## Mixed-effects models
 

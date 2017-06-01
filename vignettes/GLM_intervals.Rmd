@@ -901,7 +901,7 @@ In principle, we could have do the opposite, but in practice the function ```sim
 * that LR tests by parametric bootstrap are best in all situations and easy to do with ```spaMM```
 
 
-# Table of content
+# Table of contents
 
 ## The Generalized Linear Model: GLM
 
