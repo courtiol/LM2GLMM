@@ -22,9 +22,8 @@ set.seed(1L)
 
 ###What?
 
-* biological questions for which the answers will require you to build models and analyse data
-* statistical questions (not many) for which the answers will require you to think
-* you will answer by writing text and by creating figures and/or tables 
+* biological questions for which the answers will require you to build liner models
+* you will answer by writing text and R code producing results including figures and/or tables 
 
 ### When?
 
@@ -44,8 +43,8 @@ set.seed(1L)
 
 ###I will grade:
 
-* the correctness of the answers
-* the correctness of the R code (did you get the good answer by plain luck or good thought process?)
+* the correctness and clarity of the R code
+* the correctness and clarity of the answers
 
 ###I will give bonuses for the quality/elegance of:
 
@@ -53,7 +52,7 @@ set.seed(1L)
 * the code
 * the illustrations
 
-###I will give penalty if:
+###You will be penalised if:
 
 * you cheat (looking at internet, colleagues)
 * you ask for my help because you really are stuck
@@ -65,8 +64,8 @@ set.seed(1L)
 * a laptop
 * a computer with internet connection
 * a web browser (up-to-date)
-* R version $\geq$ 3.3
-* RStudio version $\geq$ 1.0 (recommended)
+* R version $\geq$ 3.4
+* RStudio version $\geq$ 1.1 (recommended)
 
 ## How to access the course?
 
@@ -96,7 +95,7 @@ library(package = "LM2GLMM")
  #############################################
 ```
 
-### !!! Always check the version number with me!!!
+### !!! Always check the version number with me because I will update it often !!!
 
 # Refreshing your R skills
 
