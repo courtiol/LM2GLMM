@@ -36,7 +36,7 @@
 #'   \item{glasses}{Whether the child is wearing glasses}
 #'   \item{cigarettes_mum}{No. of cigarettes mum smokes daily}
 #'   \item{cigarettes_dad}{No. of cigarettes dad smokes daily}
-#'   \item{cigarettes_mum}{No. of cigarettes parents smoke daily}
+#'   \item{cigarettes}{No. of cigarettes parents smoke daily}
 #'   \item{cigarettes_kid}{Information of the child smoking habits}
 #'   \item{cigarettes_friends}{Information on child's friends who smoke}
 #'   \item{bronchitis}{Whether the child ever had bronchitis}
