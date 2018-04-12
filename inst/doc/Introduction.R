@@ -61,20 +61,24 @@ foo$x
 foo[, "x"]
 
 ## ----matrix--------------------------------------------------------------
-foo <- matrix(data = 1:9, nrow = 3, ncol = 3) ## Tip: try with byrow = TRUE
-colnames(foo) <- c("a", "b", "c"); rownames(foo) <- c("A", "B", "C")
+foo <- matrix(data = 1:4, nrow = 2, ncol = 2) ## Tip: try with byrow = TRUE
+colnames(foo) <- c("a", "b"); rownames(foo) <- c("A", "B")
 foo
 
 ## ----matrix indexing-----------------------------------------------------
-foo[, 2]  ## indexing similar to dataframes (but you cannot use $)
+foo[, 2]
 foo[2, ]
+
+## ----matrix indexing 2---------------------------------------------------
+foo[1, 2]
 
 ## ----matrix transpose----------------------------------------------------
 foo
-t(foo)  ## matrix transposition
+t(foo)  ## transpose of foo
+solve(foo)  ## inverse of foo
 
 ## ----matrix multiplication-----------------------------------------------
-foo %*% matrix(c(-1, 1, 0))  ## matrix multiplication; same as foo %*% c(0, 1, -1)
+foo %*% matrix(c(-1, 1))  ## matrix multiplication; same as foo %*% c(0, 1, -1)
 t(foo) %*% foo  ## matrix multiplication
 t(foo) * foo  ## NOT MATRIX MULTIPLICATION!
 

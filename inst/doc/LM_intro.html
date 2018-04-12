@@ -411,7 +411,7 @@ model.matrix(object = ~ x1 + x2 + x3, data = somedata)</pre>
 }
 ## homemade: this function may break in some legitimate cases...</pre>
 
-</article></slide><slide class=""><hgroup><h2>The case of polynomials: raw</h2></hgroup><article  id="the-case-of-polynomials-raw" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>The example of polynomials: raw</h2></hgroup><article  id="the-example-of-polynomials-raw" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>(DM_raw &lt;- model.matrix(object = ~ poly(x1, 2, raw = TRUE), data = somedata))</pre>
 
@@ -435,7 +435,7 @@ model.matrix(object = ~ x1 + x2 + x3, data = somedata)</pre>
 ## 5  -39
 ## 6  -59</pre>
 
-</article></slide><slide class=""><hgroup><h2>The case of polynomials: conversion between orthogonal and raw</h2></hgroup><article  id="the-case-of-polynomials-conversion-between-orthogonal-and-raw" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>The example of polynomials: conversion between orthogonal and raw</h2></hgroup><article  id="the-example-of-polynomials-conversion-between-orthogonal-and-raw" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>(DM_ortho &lt;- model.matrix(object = ~ poly(x1, 2), data = somedata))</pre>
 
@@ -453,9 +453,7 @@ model.matrix(object = ~ x1 + x2 + x3, data = somedata)</pre>
 
 <pre >## [1] -22.33333 -50.19960 -12.22020</pre>
 
-</article></slide><slide class=""><hgroup><h2>The case of polynomials: why make things more complex?</h2></hgroup><article  id="the-case-of-polynomials-why-make-things-more-complex" class="smaller ">
-
-</article></slide><slide class=""><hgroup><h2>The case of polynomials: identical predictions</h2></hgroup><article  id="the-case-of-polynomials-identical-predictions" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>The example of polynomials: predictions are identical!</h2></hgroup><article  id="the-example-of-polynomials-predictions-are-identical" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>DM_raw %*% c(1, 2, -2)  ## predictions</pre>
 
@@ -501,7 +499,9 @@ identical(XTX_1, XTX_2) &amp; identical(XTX_1, XTX_3)</pre>
 
 <pre >## [1] TRUE</pre>
 
-</article></slide><slide class=""><hgroup><h2>The case of polynomials: why making things more complex?</h2></hgroup><article  id="the-case-of-polynomials-why-making-things-more-complex" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Why making things more complex?</h2></hgroup><article  id="why-making-things-more-complex" class="smaller ">
+
+<h3>For technical reasons</h3>
 
 <pre class = 'prettyprint lang-r'>crossprod(DM_raw)  ## high values mean that predictors are colinear -&gt; will be hard to fit</pre>
 
@@ -517,7 +517,13 @@ identical(XTX_1, XTX_2) &amp; identical(XTX_1, XTX_3)</pre>
 ## poly(x1, 2)1           0            1            0
 ## poly(x1, 2)2           0            0            1</pre>
 
-</article></slide><slide class=""><hgroup><h2>The case of contrasts: treatment vs Helmert</h2></hgroup><article  id="the-case-of-contrasts-treatment-vs-helmert" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Why making things more complex?</h2></hgroup><article  id="why-making-things-more-complex-1" class="smaller ">
+
+<h3>To ease the interpretation</h3>
+
+<p>TO DO: discuss diff contrasts!</p>
+
+</article></slide><slide class=""><hgroup><h2>treatment contrasts vs Helmert</h2></hgroup><article  id="treatment-contrasts-vs-helmert" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>DM_treat &lt;- model.matrix(object = ~ x1 + x2 + x3, data = somedata)
 DM_Helm &lt;- model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = &quot;contr.helmert&quot;))

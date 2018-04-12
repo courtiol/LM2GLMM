@@ -236,23 +236,21 @@ conv_betaXA_to_betaXB <- function(XA, XB, betaXA) {
 ```
 
 
-## The case of polynomials: raw
+## The example of polynomials: raw
 
 ```{r pred matrix poly a}
 (DM_raw <- model.matrix(object = ~ poly(x1, 2, raw = TRUE), data = somedata))
 DM_raw %*% c(1, 2, -2)  ## predictions using matrix multiplication with c(1, 2, -2) the model parameters
 ```
 
-## The case of polynomials: conversion between orthogonal and raw
+## The example of polynomials: conversion between orthogonal and raw
 
 ```{r convert poly}
 (DM_ortho <- model.matrix(object = ~ poly(x1, 2), data = somedata))
 conv_betaXA_to_betaXB(XA = DM_raw, XB = DM_ortho, betaXA = c(1, 2, -2))
 ```
 
-## The case of polynomials: why make things more complex?
-
-## The case of polynomials: identical predictions
+## The example of polynomials: predictions are identical!
 
 ```{r pred matrix poly b}
 DM_raw %*% c(1, 2, -2)  ## predictions
@@ -279,14 +277,23 @@ identical(XTX_1, XTX_2) & identical(XTX_1, XTX_3)
 ```
 
 
-## The case of polynomials: why making things more complex?
+## Why making things more complex?
+
+### For technical reasons
 
 ```{r XTX}
 crossprod(DM_raw)  ## high values mean that predictors are colinear -> will be hard to fit
 zapsmall(crossprod(DM_ortho))  ## 0 means that predictors are orthogonal -> will be easy to fit
 ```
 
-## The case of contrasts: treatment vs Helmert
+## Why making things more complex?
+
+### To ease the interpretation
+
+TO DO: discuss diff contrasts!
+
+
+## treatment contrasts vs Helmert
 
 ```{r helmert conv}
 DM_treat <- model.matrix(object = ~ x1 + x2 + x3, data = somedata)
