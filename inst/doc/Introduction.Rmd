@@ -22,9 +22,8 @@ set.seed(1L)
 
 ###What?
 
-* biological questions for which the answers will require you to build models and analyse data
-* statistical questions (not many) for which the answers will require you to think
-* you will answer by writing text and by creating figures and/or tables 
+* biological questions for which the answers will require you to build liner models
+* you will answer by writing text and R code producing results including figures and/or tables 
 
 ### When?
 
@@ -44,8 +43,8 @@ set.seed(1L)
 
 ###I will grade:
 
-* the correctness of the answers
-* the correctness of the R code (did you get the good answer by plain luck or good thought process?)
+* the correctness and clarity of the R code
+* the correctness and clarity of the answers
 
 ###I will give bonuses for the quality/elegance of:
 
@@ -53,7 +52,7 @@ set.seed(1L)
 * the code
 * the illustrations
 
-###I will give penalty if:
+###You will be penalised if:
 
 * you cheat (looking at internet, colleagues)
 * you ask for my help because you really are stuck
@@ -65,8 +64,8 @@ set.seed(1L)
 * a laptop
 * a computer with internet connection
 * a web browser (up-to-date)
-* R version $\geq$ 3.3
-* RStudio version $\geq$ 1.0 (recommended)
+* R version $\geq$ 3.4
+* RStudio version $\geq$ 1.1 (recommended)
 
 ## How to access the course?
 
@@ -96,7 +95,7 @@ library(package = "LM2GLMM")
  #############################################
 ```
 
-### !!! Always check the version number with me!!!
+### !!! Always check the version with me because I will update it often !!!
 
 # Refreshing your R skills
 
@@ -182,24 +181,37 @@ foo[, "x"]
 
 ```{r matrix}
 foo <- matrix(data = 1:9, nrow = 3, ncol = 3) ## Tip: try with byrow = TRUE
-colnames(foo) <- c("a", "b", "c")
-rownames(foo) <- c("A", "B", "C")
+colnames(foo) <- c("a", "b", "c"); rownames(foo) <- c("A", "B", "C")
 foo
 ```
 
-The indexing is similar to dataframes (but you cannot use $)!
+```{r matrix indexing}
+foo[, 2]  ## indexing similar to dataframes (but you cannot use $)
+foo[2, ]
+```
+
+## Matrices
+
+```{r matrix transpose}
+foo
+t(foo)  ## matrix transposition
+```
+
+## Matrices
 
 ```{r matrix multiplication}
-foo %*% matrix(c(0, 1, -1))  ## matrix multiplication
+foo %*% matrix(c(-1, 1, 0))  ## matrix multiplication; same as foo %*% c(0, 1, -1)
+t(foo) %*% foo  ## matrix multiplication
+t(foo) * foo  ## NOT MATRIX MULTIPLICATION!
 ```
 
 ## Lists
 
 ```{r lists}
-  foo <- list("foo1" = c(1:10), "foo2" = factor(c("a", "b")))
-  foo
-  foo[["foo2"]]
-  foo$foo2
+foo <- list("foo1" = c(1:10), "foo2" = factor(c("a", "b")))
+foo
+foo[["foo2"]]
+foo$foo2
 ```
 
 ## Functions
@@ -224,7 +236,7 @@ addA_B_bis(2, 3)
 ## Using pseudo-random numbers in R
 
 ```{r rnorm}
-rnorm(5, mean = 2, sd = 0.1)  ## Tip: check ?Distributions for other distribution
+rnorm(5, mean = 2, sd = 0.1)  ## Tip: check ?Distributions for other distributions
 rnorm(5, mean = 2, sd = 0.1)
 set.seed(14353L)
 rnorm(5, mean = 2, sd = 0.1)
