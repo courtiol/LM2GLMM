@@ -4,8 +4,6 @@ vignettes/fig_knitr
 vignettes/*.R
 vignettes/*.html
 sources/
-
-
 # MacOS and Windows generated files #
 #####################################
 .DS_Store
@@ -15,3 +13,4 @@ sources/
 .Trashes
 ehthumbs.db
 Thumbs.db
+Rplots.pdf
