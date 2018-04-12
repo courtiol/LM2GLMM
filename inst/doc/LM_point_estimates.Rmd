@@ -121,7 +121,7 @@ values, that is: $\displaystyle {\mathcal {L}}(\theta \mid x) = P(x \mid \theta)
 
 <br>
 
-### In LM, this is equivalent as performing the estimation by 
+### In LM, this is equivalent to performing the estimation by 
 
 ### ordinary least squares (OLS)
 
@@ -187,7 +187,7 @@ head(cbind("auto" = resid_auto, "simple" = resid_simple, "matrix" = c(resid_matr
 Alien$resid <- resid_auto ## we store the residuals in the dataframe
 ```
 
-## Recovering the min Residual Sum of Squares
+## Recovering the Residual Sum of Squares
 
 ```{r rss alien}
 (rss_lm <- anova(mod_alien_lm)$"Sum Sq"[2])
@@ -357,11 +357,11 @@ Note: the deviance is in LM equal to the residual sum of squares!
 
 ```{r def comput_logLik_Alien}
 compute_logLik <- function(vector.param, formula, data) {
-  usefull.data <- model.frame(formula = formula, data = data)
-  X <- model.matrix(object = formula, data = usefull.data)
+  useful.data <- model.frame(formula = formula, data = data)
+  X <- model.matrix(object = formula, data = useful.data)
   predicts <- X %*% matrix(vector.param)
-  response <- model.response(usefull.data)
-  sigma2_resid <- sum((response - predicts)^2) / nrow(usefull.data)
+  response <- model.response(useful.data)
+  sigma2_resid <- sum((response - predicts)^2) / nrow(useful.data)
   logL <- sum(dnorm(response, mean = predicts, sd = sqrt(sigma2_resid), log = TRUE))
   return(logL)
 }
@@ -372,7 +372,7 @@ compute_logLik(vector.param = theta.lm, formula = size ~ humans_eaten, data = Al
 
 ## Recovering the estimates numerically by Maximum Likelihood (ML)
 
-### We look for the estimates yielding to the maximum likelihood
+### We look for the estimates yielding the maximum likelihood
 ```{r def logLik Alien computation}
 result_opt <- optim(c("intercept" = 0, "slope" = 1), compute_logLik,
                     formula = size ~ humans_eaten, data = Alien,
@@ -386,10 +386,10 @@ result_opt$value
 
 ```{r def compute_rss_Alien}
 compute_rss <- function(vector.param, formula, data) {
-  usefull.data <- model.frame(formula = formula, data = data)
-  X <- model.matrix(object = formula, data = usefull.data)
+  useful.data <- model.frame(formula = formula, data = data)
+  X <- model.matrix(object = formula, data = useful.data)
   predicts <- X %*% matrix(vector.param)
-  response <- model.response(usefull.data)
+  response <- model.response(useful.data)
   rss <- sum((response - predicts)^2)
   return(rss)
 }
@@ -619,7 +619,7 @@ mod_spaMM_REML$APHLs$p_v
 * (how ```lm()``` works)
 * (what the components stored within ```lm()``` objects are)
 
-# Table of content
+# Table of contents
 
 ## The Linear Model: LM
 

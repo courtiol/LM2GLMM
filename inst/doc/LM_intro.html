@@ -298,7 +298,7 @@
 
 <p><br></p>
 
-<p>Looking at the design matrix shows whether some transformation are happening behind the scene. This is important because model parameters should be interpreted accordingly.</p>
+<p>Looking at the design matrix shows whether some transformations are happening behind the scenes. This is important as when it happens model parameters should be interpreted accordingly.</p>
 
 </article></slide><slide class=""><hgroup><h2>A design matrix with a factor</h2></hgroup><article  id="a-design-matrix-with-a-factor" class="smaller ">
 
@@ -367,7 +367,7 @@ model.matrix(object = ~ x1 + x2 + x3, data = somedata)</pre>
 
 <p><br></p>
 
-<p>Interactions allow to consider that the effect of one predictor depends on the value take by other(s). If interaction are not considered, then effects are assumed to be independent.</p>
+<p>Interactions allow consideration of the effect of one predictor dependent on the value taken by other(s). If interactions are not considered, effects are assumed to be independent.</p>
 
 </article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>The model parameters</h2></hgroup><article  id="the-model-parameters" class="smaller ">
 
@@ -452,6 +452,8 @@ model.matrix(object = ~ x1 + x2 + x3, data = somedata)</pre>
 <pre class = 'prettyprint lang-r'>conv_betaXA_to_betaXB(XA = DM_raw, XB = DM_ortho, betaXA = c(1, 2, -2))</pre>
 
 <pre >## [1] -22.33333 -50.19960 -12.22020</pre>
+
+</article></slide><slide class=""><hgroup><h2>The case of polynomials: why make things more complex?</h2></hgroup><article  id="the-case-of-polynomials-why-make-things-more-complex" class="smaller ">
 
 </article></slide><slide class=""><hgroup><h2>The case of polynomials: identical predictions</h2></hgroup><article  id="the-case-of-polynomials-identical-predictions" class="smaller ">
 
@@ -616,7 +618,7 @@ head(X)</pre>
 <li>one dimension: \(n \times 1\) vector</li>
 <li>error = observation - model approximation (\(Y - X\beta\))</li>
 <li>random variable</li>
-<li>we assume it Gaussian (normally distributed), independent (no autocorrelation) and identically distributed (homoscedasticity)</li>
+<li>we assume it Gaussian (normally distributed), independent (no autocorrelation) and identically distributed (homoscedastic)</li>
 </ul>
 
 <center>
@@ -662,7 +664,7 @@ Alien$size &lt;- 50 + 1.5*Alien$humans_eaten + Alien$error</pre>
 
 <pre class = 'prettyprint lang-r'>Alien$size &lt;- rnorm(n = 6, mean = 50 + 1.5*Alien$humans_eaten, sd = sqrt(25))</pre>
 
-</article></slide><slide class=""><hgroup><h2>Why simulating Aliens?</h2></hgroup><article  id="why-simulating-aliens" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Why simulate Aliens?</h2></hgroup><article  id="why-simulate-aliens" class="smaller ">
 
 <ul>
 <li>it clarifies the meaning of the model parameters</li>
@@ -739,7 +741,7 @@ Y = \begin{bmatrix}
 <li>how to simulate the data for a linear model</li>
 </ul>
 
-</article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Table of content</h2></hgroup><article  id="table-of-content" class="smaller ">
+</article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Table of contents</h2></hgroup><article  id="table-of-contents" class="smaller ">
 
 </article></slide><slide class=""><hgroup><h2>The Linear Model: LM</h2></hgroup><article  id="the-linear-model-lm-1" class="smaller ">
 

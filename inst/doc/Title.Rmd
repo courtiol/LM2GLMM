@@ -8,7 +8,7 @@ output:
     smaller: false
     logo: FU.png
 vignette: >
-  %\VignetteIndexEntry{0 Table of content}
+  %\VignetteIndexEntry{0 Table of contents}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

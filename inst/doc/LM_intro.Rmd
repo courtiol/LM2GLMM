@@ -152,8 +152,8 @@ model.matrix(object = ~ log(x1) + poly(x1, 2), data = somedata)
 
 <br>
 
-Looking at the design matrix shows whether some transformation are happening behind the scene.
-This is important because model parameters should be interpreted accordingly.
+Looking at the design matrix shows whether some transformations are happening behind the scenes.
+This is important as when it happens model parameters should be interpreted accordingly.
 
 ## A design matrix with a factor
 
@@ -182,6 +182,7 @@ Alternative parameterizations of the contrasts can ease convergence in GLM(M) (f
 It will not change the predictions, the likelihood, the AIC, etc... only the parameter values and their interpretation.
 
 
+
 ## A design matrix with interactions
 
 ```{r pred matrix 4}
@@ -190,7 +191,7 @@ model.matrix(object = ~ x1 * x2 + x1 * x3, data = somedata)
 
 <br>
 
-Interactions allow to consider that the effect of one predictor depends on the value take by other(s). If interaction are not considered, then effects are assumed to be independent.
+Interactions allow consideration of the effect of one predictor dependent on the value taken by other(s). If interactions are not considered, effects are assumed to be independent.
 
 # The model parameters
 
@@ -249,6 +250,7 @@ DM_raw %*% c(1, 2, -2)  ## predictions using matrix multiplication with c(1, 2, 
 conv_betaXA_to_betaXB(XA = DM_raw, XB = DM_ortho, betaXA = c(1, 2, -2))
 ```
 
+## The case of polynomials: why make things more complex?
 
 ## The case of polynomials: identical predictions
 
@@ -353,7 +355,7 @@ with(poison, table(treat, poison))
 * one dimension: $n \times 1$ vector
 * error = observation - model approximation ($Y - X\beta$)
 * random variable
-* we assume it Gaussian (normally distributed), independent (no autocorrelation) and identically distributed (homoscedasticity)
+* we assume it Gaussian (normally distributed), independent (no autocorrelation) and identically distributed (homoscedastic)
 
 <center><font size="8"> $\epsilon \sim \mathcal{N}(0, \sigma^2 I)$</font></center>
 
@@ -398,7 +400,7 @@ We could also write the last 2 lines as the following line, but we want to keep 
 Alien$size <- rnorm(n = 6, mean = 50 + 1.5*Alien$humans_eaten, sd = sqrt(25))
 ```
 
-## Why simulating Aliens?
+## Why simulate Aliens?
 
 * it clarifies the meaning of the model parameters
 * it allows for the study of the power and robustness of LM
@@ -466,7 +468,7 @@ $$
 * how to simulate the data for a linear model
 
 
-# Table of content
+# Table of contents
 
 ## The Linear Model: LM
 

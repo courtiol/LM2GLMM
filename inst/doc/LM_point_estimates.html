@@ -219,7 +219,7 @@ Inferred relationship
 
 <p><br></p>
 
-<h3>In LM, this is equivalent as performing the estimation by</h3>
+<h3>In LM, this is equivalent to performing the estimation by</h3>
 
 <h3>ordinary least squares (OLS)</h3>
 
@@ -321,7 +321,7 @@ resid_matrix &lt;- matrix(Alien$size) - X_alien %*% coef_lm</pre>
 
 <pre class = 'prettyprint lang-r'>Alien$resid &lt;- resid_auto ## we store the residuals in the dataframe</pre>
 
-</article></slide><slide class=""><hgroup><h2>Recovering the min Residual Sum of Squares</h2></hgroup><article  id="recovering-the-min-residual-sum-of-squares" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Recovering the Residual Sum of Squares</h2></hgroup><article  id="recovering-the-residual-sum-of-squares" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>(rss_lm &lt;- anova(mod_alien_lm)$&quot;Sum Sq&quot;[2])</pre>
 
@@ -457,11 +457,11 @@ Alien[1, ]</pre>
 </article></slide><slide class=""><hgroup><h2>Recovering the estimates numerically by Maximum Likelihood (ML)</h2></hgroup><article  id="recovering-the-estimates-numerically-by-maximum-likelihood-ml" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>compute_logLik &lt;- function(vector.param, formula, data) {
-  usefull.data &lt;- model.frame(formula = formula, data = data)
-  X &lt;- model.matrix(object = formula, data = usefull.data)
+  useful.data &lt;- model.frame(formula = formula, data = data)
+  X &lt;- model.matrix(object = formula, data = useful.data)
   predicts &lt;- X %*% matrix(vector.param)
-  response &lt;- model.response(usefull.data)
-  sigma2_resid &lt;- sum((response - predicts)^2) / nrow(usefull.data)
+  response &lt;- model.response(useful.data)
+  sigma2_resid &lt;- sum((response - predicts)^2) / nrow(useful.data)
   logL &lt;- sum(dnorm(response, mean = predicts, sd = sqrt(sigma2_resid), log = TRUE))
   return(logL)
 }
@@ -477,7 +477,7 @@ Alien[1, ]</pre>
 
 </article></slide><slide class=""><hgroup><h2>Recovering the estimates numerically by Maximum Likelihood (ML)</h2></hgroup><article  id="recovering-the-estimates-numerically-by-maximum-likelihood-ml-1" class="smaller ">
 
-<h3>We look for the estimates yielding to the maximum likelihood</h3>
+<h3>We look for the estimates yielding the maximum likelihood</h3>
 
 <pre class = 'prettyprint lang-r'>result_opt &lt;- optim(c(&quot;intercept&quot; = 0, &quot;slope&quot; = 1), compute_logLik,
                     formula = size ~ humans_eaten, data = Alien,
@@ -494,10 +494,10 @@ result_opt$par</pre>
 </article></slide><slide class=""><hgroup><h2>Recovering the estimates numerically by Ordinary Least Squares (OLS)</h2></hgroup><article  id="recovering-the-estimates-numerically-by-ordinary-least-squares-ols" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>compute_rss &lt;- function(vector.param, formula, data) {
-  usefull.data &lt;- model.frame(formula = formula, data = data)
-  X &lt;- model.matrix(object = formula, data = usefull.data)
+  useful.data &lt;- model.frame(formula = formula, data = data)
+  X &lt;- model.matrix(object = formula, data = useful.data)
   predicts &lt;- X %*% matrix(vector.param)
-  response &lt;- model.response(usefull.data)
+  response &lt;- model.response(useful.data)
   rss &lt;- sum((response - predicts)^2)
   return(rss)
 }
@@ -849,7 +849,7 @@ mod_spaMM_REML$fixef</pre>
 <li>(what the components stored within <code>lm()</code> objects are)</li>
 </ul>
 
-</article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Table of content</h2></hgroup><article  id="table-of-content" class="smaller ">
+</article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Table of contents</h2></hgroup><article  id="table-of-contents" class="smaller ">
 
 </article></slide><slide class=""><hgroup><h2>The Linear Model: LM</h2></hgroup><article  id="the-linear-model-lm" class="smaller ">
 
