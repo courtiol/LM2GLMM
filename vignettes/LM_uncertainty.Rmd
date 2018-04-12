@@ -25,7 +25,7 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_uncertainty/"
 ## You will learn in this session
 
 * that point estimates are random variables with estimated means and variances
-* that the estimates for $\beta$ are gaussian and the estimate of the error variance Gamma distributed
+* that estimates for $\beta$ are Gaussian and the estimate of the error variance is gamma distributed
 * what parametric bootstrap is
 * what 95% Confidence Intervals are
 * that boundaries for 95% CI on $\widehat{\beta}$ are given by the Student distribution
@@ -33,7 +33,7 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_uncertainty/"
 * what the 95% CI on the mean response is
 * what 95% Prediction Intervals are
 * what likelihood profiling is
-* that estimates are not necessarily independent from each others
+* that estimates are not necessarily independent from each other
 * that there are 3 ways to get 95% CI for LM
 
 
@@ -73,7 +73,7 @@ vcov(mod_stats)
 vcov(mod_spaMM_REML)  ## don't use the ML fit here!
 ```
 
-## The estimates of $\beta$ are gaussian
+## The estimates of $\beta$ are Gaussian
 
 <br>
 
@@ -101,7 +101,7 @@ contour(x = candidate_intercept_u, y = candidate_slope_u,
         nlevels = 5, xlab = "intercept", ylab = "slope")
 ```
 
-## The estimate of $\sigma^2$ is Gamma (assymptotically)
+## The estimate of $\sigma^2$ is Gamma (asymptotically)
 
 $\widehat{\sigma}^2$ follows a $\Gamma$ distribution with mean  = $\texttt{error variance}$ and var = $2 ( \texttt{error variance})^2 / (N-K)$.
 
@@ -175,10 +175,10 @@ plot(ecdf(new_sigma2_error), col = "red", add = TRUE)
 
 
 
-# Comparing theoretical distributions to parametric boostrap
+# Comparing theoretical distributions to parametric bootstrap
 
 
-## Comparison with parametric boostrap
+## Comparison with parametric bootstrap
 
 ```{r betas param boot}
 newYs <- simulate(mod_stats, nsim = 5000)  ## generate new values for the response variable
@@ -381,6 +381,7 @@ abline(v = mod_spaMM_ML$phi, col = "blue", lwd = 2)
 ## Likelihood profiling 1 parameter: intercept
 
 ```{r profile for intercept, fig.align = "center", fig.width = 4, fig.height = 4, fig.show = "hold"}
+# candidate_intercept_u was a sequence of values defined back on slide 7 (could be nice for clarity to redefine it here)
 logLik_profile <- sapply(candidate_intercept_u, function(intercept)
   logLik(lm(size ~ 0 + humans_eaten + offset(rep(intercept, nrow(Alien))), data = Alien)))
 plot(logLik_profile ~ candidate_intercept_u, type = "l")
@@ -442,7 +443,7 @@ points(50, 1.5, col = "green", pch = 4, lwd = 2, cex = 3)
 ## Confidence intervals by likelihood profiling
 
 * Benefit: not based on SE, so works well even if error is not gaussian or if SE is badly estimated.
-* Cost: uses the chi-squared distribution, which is an assymptotic approximation, so it needs a lot of observations.
+* Cost: uses the chi-squared distribution, which is an asymptotic approximation, so it needs a lot of observations.
 
 ```{r CI by profile intercept}
 where.is.limit.inter <- function(intercept, model_ref) {
@@ -501,7 +502,7 @@ mean(replicate(n.replicates, sum(findInterval(CI_slope(lm(size ~ humans_eaten,
 ## What you need to remember
 
 * that point estimates are random variables with estimated means and variances
-* that the estimates for $\beta$ are gaussian and the estimate of the error variance Gamma distributed
+* that estimates for $\beta$ are Gaussian and the estimate of the error variance is Gamma distributed
 * what parametric bootstrap is
 * what 95% Confidence Intervals are
 * that boundaries for 95% CI on $\widehat{\beta}$ are given by the Student distribution
@@ -509,10 +510,10 @@ mean(replicate(n.replicates, sum(findInterval(CI_slope(lm(size ~ humans_eaten,
 * what the 95% CI on the mean response is
 * what 95% Prediction Intervals are
 * what likelihood profiling is
-* that estimates are not necessarily independent from each others
+* that estimates are not necessarily independent from each other
 * that there are 3 ways to get 95% CI for LM
 
-# Table of content
+# Table of contents
 
 ## The Linear Model: LM
 
