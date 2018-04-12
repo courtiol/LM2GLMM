@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2017-05-19" />
+  <meta name="date" content="2018-04-12" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,20 +94,19 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2017-05-19</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2018-04-12</p>
           </hgroup>
   </slide>
 
-<slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>The exam</h2></hgroup><article  id="the-exam" class="smaller ">
+<slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>The exam</h2></hgroup><article  id="the-exam" class="smaller ">
 
-</article></slide><slide class=''><hgroup><h2>Procedure</h2></hgroup><article  id="procedure" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Procedure</h2></hgroup><article  id="procedure" class="smaller ">
 
 <h3>What?</h3>
 
 <ul>
-<li>biological questions for which the answers will require you to build models and analyse data</li>
-<li>statistical questions (not many) for which the answers will require you to think</li>
-<li>you will answer by writing text and by creating figures and/or tables</li>
+<li>biological questions for which the answers will require you to build liner models</li>
+<li>you will answer by writing text and R code producing results including figures and/or tables</li>
 </ul>
 
 <h3>When?</h3>
@@ -126,13 +125,13 @@
 <li>you are free to look at your course and R-help files (no internet)</li>
 </ul>
 
-</article></slide><slide class=''><hgroup><h2>Grading</h2></hgroup><article  id="grading" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Grading</h2></hgroup><article  id="grading" class="smaller ">
 
 <h3>I will grade:</h3>
 
 <ul>
-<li>the correctness of the answers</li>
-<li>the correctness of the R code (did you get the good answer by plain luck or good thought process?)</li>
+<li>the correctness and clarity of the R code</li>
+<li>the correctness and clarity of the answers</li>
 </ul>
 
 <h3>I will give bonuses for the quality/elegance of:</h3>
@@ -143,26 +142,26 @@
 <li>the illustrations</li>
 </ul>
 
-<h3>I will give penalty if:</h3>
+<h3>You will be penalised if:</h3>
 
 <ul>
 <li>you cheat (looking at internet, colleagues)</li>
 <li>you ask for my help because you really are stuck</li>
 </ul>
 
-</article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>General information</h2></hgroup><article  id="general-information" class="smaller ">
+</article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>General information</h2></hgroup><article  id="general-information" class="smaller ">
 
-</article></slide><slide class=''><hgroup><h2>What do you need for the course?</h2></hgroup><article  id="what-do-you-need-for-the-course" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>What do you need for the course?</h2></hgroup><article  id="what-do-you-need-for-the-course" class="smaller ">
 
 <ul>
 <li>a laptop</li>
 <li>a computer with internet connection</li>
 <li>a web browser (up-to-date)</li>
-<li>R version \(\geq\) 3.3</li>
-<li>RStudio version \(\geq\) 1.0 (recommended)</li>
+<li>R version \(\geq\) 3.4</li>
+<li>RStudio version \(\geq\) 1.1 (recommended)</li>
 </ul>
 
-</article></slide><slide class=''><hgroup><h2>How to access the course?</h2></hgroup><article  id="how-to-access-the-course" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>How to access the course?</h2></hgroup><article  id="how-to-access-the-course" class="smaller ">
 
 <p>The course is an <strong>R package</strong> called <strong>LM2GLMM</strong>.</p>
 
@@ -186,11 +185,11 @@
  #                                           #
  #############################################</pre>
 
-<h3>!!! Always check the version number with me!!!</h3>
+<h3>!!! Always check the version with me because I will update it often !!!</h3>
 
-</article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>Refreshing your R skills</h2></hgroup><article  id="refreshing-your-r-skills" class="smaller ">
+</article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Refreshing your R skills</h2></hgroup><article  id="refreshing-your-r-skills" class="smaller ">
 
-</article></slide><slide class=''><hgroup><h2>Vectors: basics</h2></hgroup><article  id="vectors-basics" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Vectors: basics</h2></hgroup><article  id="vectors-basics" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>foo &lt;- c(1, 5, 5, 10, 23, NA, NA)
 foo[2]</pre>
@@ -211,7 +210,7 @@ foo2[&quot;b&quot;]</pre>
 <pre >## b 
 ## 5</pre>
 
-</article></slide><slide class=''><hgroup><h2>Vectors: some useful functions</h2></hgroup><article  id="vectors-some-useful-functions" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Vectors: some useful functions</h2></hgroup><article  id="vectors-some-useful-functions" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>length(foo)</pre>
 
@@ -232,7 +231,7 @@ foo2[&quot;b&quot;]</pre>
 ##    1    5   10   23 &lt;NA&gt; 
 ##    1    2    1    1    2</pre>
 
-</article></slide><slide class=''><hgroup><h2>Vectors: classes</h2></hgroup><article  id="vectors-classes" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Vectors: classes</h2></hgroup><article  id="vectors-classes" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>foo1 &lt;- c(1, 5, 5, NA)
 foo2 &lt;- c(a = 1, b = 3)
@@ -266,7 +265,7 @@ class(foo1)</pre>
 </tr>
 </table>
 
-</article></slide><slide class=''><hgroup><h2>Vectors: factors</h2></hgroup><article  id="vectors-factors" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Vectors: factors</h2></hgroup><article  id="vectors-factors" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>foo &lt;-  factor(c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;))
 (foo &lt;- foo[foo != &quot;b&quot;]) ## Tip: the brackets force the display</pre>
@@ -279,7 +278,7 @@ class(foo1)</pre>
 <pre >## [1] a c
 ## Levels: a c</pre>
 
-</article></slide><slide class=''><hgroup><h2>Attributes</h2></hgroup><article  id="attributes" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Attributes</h2></hgroup><article  id="attributes" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>foo &lt;- c(a = 1, b = 5, c = 10, d = 23)
 attributes(foo)</pre>
@@ -300,7 +299,7 @@ attributes(foo)</pre>
 ## $class
 ## [1] &quot;factor&quot;</pre>
 
-</article></slide><slide class=''><hgroup><h2>Dataframes: basics</h2></hgroup><article  id="dataframes-basics" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Dataframes: basics</h2></hgroup><article  id="dataframes-basics" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>foo &lt;- data.frame(
   x = c(1, 3, 5),
@@ -325,7 +324,7 @@ foo</pre>
 ## [[2]]
 ## [1] &quot;x&quot; &quot;z&quot;</pre>
 
-</article></slide><slide class=''><hgroup><h2>Dataframes: indexing</h2></hgroup><article  id="dataframes-indexing" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Dataframes: indexing</h2></hgroup><article  id="dataframes-indexing" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>foo[2, ]</pre>
 
@@ -345,11 +344,10 @@ foo</pre>
 
 <pre >## [1] 1 3 5</pre>
 
-</article></slide><slide class=''><hgroup><h2>Matrices</h2></hgroup><article  id="matrices" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Matrices</h2></hgroup><article  id="matrices" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>foo &lt;- matrix(data = 1:9, nrow = 3, ncol = 3) ## Tip: try with byrow = TRUE
-colnames(foo) &lt;- c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;)
-rownames(foo) &lt;- c(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)
+colnames(foo) &lt;- c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;); rownames(foo) &lt;- c(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)
 foo</pre>
 
 <pre >##   a b c
@@ -357,19 +355,59 @@ foo</pre>
 ## B 2 5 8
 ## C 3 6 9</pre>
 
-<p>The indexing is similar to dataframes (but you cannot use $)!</p>
+<pre class = 'prettyprint lang-r'>foo[, 2]  ## indexing similar to dataframes (but you cannot use $)</pre>
 
-<pre class = 'prettyprint lang-r'>foo %*% matrix(c(0, 1, -1))  ## matrix multiplication</pre>
+<pre >## A B C 
+## 4 5 6</pre>
+
+<pre class = 'prettyprint lang-r'>foo[2, ]</pre>
+
+<pre >## a b c 
+## 2 5 8</pre>
+
+</article></slide><slide class=""><hgroup><h2>Matrices</h2></hgroup><article  id="matrices-1" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>foo</pre>
+
+<pre >##   a b c
+## A 1 4 7
+## B 2 5 8
+## C 3 6 9</pre>
+
+<pre class = 'prettyprint lang-r'>t(foo)  ## matrix transposition</pre>
+
+<pre >##   A B C
+## a 1 2 3
+## b 4 5 6
+## c 7 8 9</pre>
+
+</article></slide><slide class=""><hgroup><h2>Matrices</h2></hgroup><article  id="matrices-2" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>foo %*% matrix(c(-1, 1, 0))  ## matrix multiplication; same as foo %*% c(0, 1, -1)</pre>
 
 <pre >##   [,1]
-## A   -3
-## B   -3
-## C   -3</pre>
+## A    3
+## B    3
+## C    3</pre>
 
-</article></slide><slide class=''><hgroup><h2>Lists</h2></hgroup><article  id="lists" class="smaller ">
+<pre class = 'prettyprint lang-r'>t(foo) %*% foo  ## matrix multiplication</pre>
 
-<pre class = 'prettyprint lang-r'>  foo &lt;- list(&quot;foo1&quot; = c(1:10), &quot;foo2&quot; = factor(c(&quot;a&quot;, &quot;b&quot;)))
-  foo</pre>
+<pre >##    a   b   c
+## a 14  32  50
+## b 32  77 122
+## c 50 122 194</pre>
+
+<pre class = 'prettyprint lang-r'>t(foo) * foo  ## NOT MATRIX MULTIPLICATION!</pre>
+
+<pre >##    A  B  C
+## a  1  8 21
+## b  8 25 48
+## c 21 48 81</pre>
+
+</article></slide><slide class=""><hgroup><h2>Lists</h2></hgroup><article  id="lists" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>foo &lt;- list(&quot;foo1&quot; = c(1:10), &quot;foo2&quot; = factor(c(&quot;a&quot;, &quot;b&quot;)))
+foo</pre>
 
 <pre >## $foo1
 ##  [1]  1  2  3  4  5  6  7  8  9 10
@@ -378,17 +416,17 @@ foo</pre>
 ## [1] a b
 ## Levels: a b</pre>
 
-<pre class = 'prettyprint lang-r'>  foo[[&quot;foo2&quot;]]</pre>
+<pre class = 'prettyprint lang-r'>foo[[&quot;foo2&quot;]]</pre>
 
 <pre >## [1] a b
 ## Levels: a b</pre>
 
-<pre class = 'prettyprint lang-r'>  foo$foo2</pre>
+<pre class = 'prettyprint lang-r'>foo$foo2</pre>
 
 <pre >## [1] a b
 ## Levels: a b</pre>
 
-</article></slide><slide class=''><hgroup><h2>Functions</h2></hgroup><article  id="functions" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Functions</h2></hgroup><article  id="functions" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>addA_B &lt;- function(a = 0, b = 0) {
   c &lt;- a + b
@@ -408,9 +446,9 @@ addA_B_bis(2, 3)</pre>
 
 <pre >## [1] 5</pre>
 
-</article></slide><slide class=''><hgroup><h2>Using pseudo-random numbers in R</h2></hgroup><article  id="using-pseudo-random-numbers-in-r" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Using pseudo-random numbers in R</h2></hgroup><article  id="using-pseudo-random-numbers-in-r" class="smaller ">
 
-<pre class = 'prettyprint lang-r'>rnorm(5, mean = 2, sd = 0.1)  ## Tip: check ?Distributions for other distribution</pre>
+<pre class = 'prettyprint lang-r'>rnorm(5, mean = 2, sd = 0.1)  ## Tip: check ?Distributions for other distributions</pre>
 
 <pre >## [1] 1.937355 2.018364 1.916437 2.159528 2.032951</pre>
 

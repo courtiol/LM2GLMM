@@ -162,6 +162,7 @@ cor.test(mod_menop_logit$model$age, mod_menop_logit$model$bmi)
 
 ## ------------------------------------------------------------------------
 library(car)
+mod_menop_logit$model$smoked <- as.factor(mod_menop_logit$model$smoked) ## patch to solve bug in car 3.0
 scatterplot(menopause ~ age + smoked, data = mod_menop_logit$model)
 scatterplot(menopause ~ bmi + smoked, data = mod_menop_logit$model)
 

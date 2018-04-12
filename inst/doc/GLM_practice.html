@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2017-05-19" />
+  <meta name="date" content="2018-04-12" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,11 +94,11 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2017-05-19</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2018-04-12</p>
           </hgroup>
   </slide>
 
-<slide class=''><hgroup><h2>Dataset: esoph</h2></hgroup><article  id="dataset-esoph" class="smaller ">
+<slide class=""><hgroup><h2>Dataset: esoph</h2></hgroup><article  id="dataset-esoph" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>head(esoph)</pre>
 
@@ -116,10 +116,13 @@
 <li>Find out whether you should rather limit alcohol consumption or tabacco consumption in order to avoid developing an oesophageal cancer? Does it depends on your age?</li>
 </ul>
 
-</article></slide><slide class=''><hgroup><h2>Dataset: effects::TitanicSurvival</h2></hgroup><article  id="dataset-effectstitanicsurvival" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Dataset: effects::TitanicSurvival</h2></hgroup><article  id="dataset-effectstitanicsurvival" class="smaller ">
 
-<pre class = 'prettyprint lang-r'>data(TitanicSurvival, package = &quot;effects&quot;)
-head(TitanicSurvival)</pre>
+<pre class = 'prettyprint lang-r'>data(TitanicSurvival, package = &quot;effects&quot;)</pre>
+
+<pre >## Warning in data(TitanicSurvival, package = &quot;effects&quot;): data set &#39;TitanicSurvival&#39; not found</pre>
+
+<pre class = 'prettyprint lang-r'>head(TitanicSurvival)</pre>
 
 <pre >##                                 survived    sex     age passengerClass
 ## Allen, Miss. Elisabeth Walton        yes female 29.0000            1st
@@ -136,7 +139,7 @@ head(TitanicSurvival)</pre>
 <li>Compute the odds-ratio for survival between the two most contrasting groups of individuals.</li>
 </ul>
 
-</article></slide><slide class=''><hgroup><h2>Dataset: LM2GLMM::Challenger</h2></hgroup><article  id="dataset-lm2glmmchallenger" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Dataset: LM2GLMM::Challenger</h2></hgroup><article  id="dataset-lm2glmmchallenger" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>head(Challenger)</pre>
 
@@ -154,7 +157,7 @@ head(TitanicSurvival)</pre>
 <li>What was the probability of O-ring failure when the space shuttle Challenger took off on the 28th of January 1986 by 31 degrees F?</li>
 </ul>
 
-</article></slide><slide class=''><hgroup><h2>Dataset: LM2GLMM::UK</h2></hgroup><article  id="dataset-lm2glmmuk" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Dataset: LM2GLMM::UK</h2></hgroup><article  id="dataset-lm2glmmuk" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>UK[1:2, ]</pre>
 
@@ -176,7 +179,7 @@ head(TitanicSurvival)</pre>
 <li>Try to identify the determinant of the variable <code>backward</code>.</li>
 </ul>
 
-</article></slide><slide class=''><hgroup><h2>Dataset: LM2GLMM::HSE98women</h2></hgroup><article  id="dataset-lm2glmmhse98women" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Dataset: LM2GLMM::HSE98women</h2></hgroup><article  id="dataset-lm2glmmhse98women" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>head(HSE98women)</pre>
 
@@ -196,7 +199,7 @@ head(TitanicSurvival)</pre>
 <li>Does the number of drinking problems experienced during life depends on education?</li>
 </ul>
 
-</article></slide><slide class=''><hgroup><h2>Dataset: MASS::mammals</h2></hgroup><article  id="dataset-massmammals" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Dataset: MASS::mammals</h2></hgroup><article  id="dataset-massmammals" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>data(mammals, package = &quot;MASS&quot;)
 head(mammals)</pre>
@@ -219,7 +222,7 @@ head(mammals)</pre>
 <li>Repeat the analysis with the dataset <code>MASS::Animals</code></li>
 </ul>
 
-</article></slide><slide class=''><hgroup><h2>Dataset: LM2GLMM::Surprise</h2></hgroup><article  id="dataset-lm2glmmsurprise" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Dataset: LM2GLMM::Surprise</h2></hgroup><article  id="dataset-lm2glmmsurprise" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>head(Surprise)</pre>
 
@@ -237,9 +240,9 @@ head(mammals)</pre>
 <li>Do children value more the type of the present, the cost of the present, or both?</li>
 </ul>
 
-</article></slide><slide class='segue dark nobackground level1'><hgroup class = 'auto-fadein'><h2>Table of content</h2></hgroup><article  id="table-of-content" class="smaller ">
+</article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Table of content</h2></hgroup><article  id="table-of-content" class="smaller ">
 
-</article></slide><slide class=''><hgroup><h2>The Generalized Linear Model: GLM</h2></hgroup><article  id="the-generalized-linear-model-glm" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>The Generalized Linear Model: GLM</h2></hgroup><article  id="the-generalized-linear-model-glm" class="smaller ">
 
 <ul>
 <li>3.0 <a href='./GLM_intro.html' title=''>Introduction</a></li>

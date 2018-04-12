@@ -270,6 +270,7 @@ The correlation is not very high, especially in the dataset that is used for the
 We visualise the relationship between the predictor and the response:
 ```{r}
 library(car)
+mod_menop_logit$model$smoked <- as.factor(mod_menop_logit$model$smoked) ## patch to solve bug in car 3.0
 scatterplot(menopause ~ age + smoked, data = mod_menop_logit$model)
 scatterplot(menopause ~ bmi + smoked, data = mod_menop_logit$model)
 ```

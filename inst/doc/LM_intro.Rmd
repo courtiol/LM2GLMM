@@ -13,7 +13,18 @@ vignette: >
 ---
 ```{r setup, include=FALSE}
 library(LM2GLMM)
+options(width = 120)
 ```
+
+## The Linear Model: LM
+
+* 2.0 [Introduction](./LM_intro.html)
+* 2.1 [Point estimates](./LM_point_estimates.html)
+* 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
+* 2.3 [Tests](./LM_tests.html)
+* 2.4 [Assumptions and Outliers](./LM_assumptions.html)
+* 2.5 [Let's practice more](./LM_practice.html)
+
 
 ## You will learn in this session
 
@@ -42,7 +53,7 @@ library(LM2GLMM)
 
 <br>
 
-* $y_i$ = the observations to explain / explanatory variable / dependent variable
+* $y_i$ = the observations to explain / response variable / dependent variable
 * $x_{j,i}$ = constants derived from the predictors / explanatory variables / independent variables
 * $\beta_j$ = the regression coefficients / model parameters
 * $\epsilon_i$ = the errors / residual errors
@@ -71,10 +82,10 @@ $$
 
 <br>
 
-* $Y$ = a vector of observations
-* $X$ = an matrix called the design (or model) matrix
-* $\beta$ = a vector of model parameters
-* $\epsilon$ = a vector of errors
+* $Y$ = the vector of observations
+* $X$ = a matrix called the design (or model) matrix
+* $\beta$ = the vector of model parameters
+* $\epsilon$ = the vector of errors
 
 # The response
 
@@ -97,6 +108,12 @@ $$
 * known and measured without error
 * columns should be linearly independent
 
+<br>
+
+Sad but ```TRUE```:
+
+### You cannot interpret model parameters correctly without knowing the design matrix of the model!!!
+
 ## How to compute the design (or model) matrix?
 
 ```{r pred matrix}
@@ -106,7 +123,9 @@ somedata <- data.frame(x1 = 1:6)
 
 <br>
 
-The term ```~ x1``` is an object of class formula.
+The term "```~ x1```" is an object of class formula.
+
+Note: the functions fitting linear models will call ```model.matrix()``` for you.
 
 ## Ploting the design matrix
 ```{r plot mm, fig.align = "center", fig.width = 5, fig.height = 5}
@@ -119,7 +138,7 @@ model.matrix(object = ~ 0 + x1, data = somedata)
 model.matrix(object = ~ -1 + x1, data = somedata)
 ```
 
-## A design matrix with functions
+## A design matrix with function calls
 
 ```{r pred matrix 1}
 model.matrix(object = ~ log(x1) + poly(x1, 2, raw = TRUE), data = somedata)
@@ -134,29 +153,33 @@ model.matrix(object = ~ log(x1) + poly(x1, 2), data = somedata)
 <br>
 
 Looking at the design matrix shows whether some transformation are happening behind the scene.
-This is important as when it happens model parameters should be interpreted accordingly.
+This is important because model parameters should be interpreted accordingly.
 
 ## A design matrix with a factor
 
 ```{r pred matrix 2}
 somedata$x2 <- c(10, 11, 12, 13, 14, 15)
 somedata$x3 <- factor(c("b", "b", "a", "a", "c", "c"))
-(MA <- model.matrix(object = ~ x1 + x2 + x3, data = somedata))
+model.matrix(object = ~ x1 + x2 + x3, data = somedata)
 ```
 
 <br>
 
-This traditional parameterization of ```x3``` is called the "treatement contrast". It is the easiest one to interpret.
+This parameterization of factors such as ```x3``` is called the "treatment contrast".
+
+It is the easiest one to interpret and the one use by default in R (but not in all software).
 
 ## An alternative parametrization for the factor
 
 ```{r pred matrix 3}
-(MB <- model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = "contr.helmert")))
+model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = "contr.helmert"))
 ```
 
 <br>
 
-Alternative parameterizations can ease convergence in GLM(M) (for continuous variable) or can allow for testing specific hypotheses (for qualitative variables). 
+Alternative parameterizations of the contrasts can ease convergence in GLM(M) (for continuous variable) or can allow for testing specific hypotheses (for qualitative variables). 
+
+It will not change the predictions, the likelihood, the AIC, etc... only the parameter values and their interpretation.
 
 
 ## A design matrix with interactions
@@ -189,7 +212,7 @@ Interactions allow to consider that the effect of one predictor depends on the v
 
 Alternative parameterization of equivalent design matrices lead to the same predictions!
 
-This function converts parameters between equivalent design matrices:
+This function converts parameters between alternative (but equivalent) design matrices:
 ```{r convert}
 conv_betaXA_to_betaXB <- function(XA, XB, betaXA) {
   ## Test that inputs are OK:
@@ -215,59 +238,79 @@ conv_betaXA_to_betaXB <- function(XA, XB, betaXA) {
 ## The case of polynomials: raw
 
 ```{r pred matrix poly a}
-(M2a <- model.matrix(object = ~ poly(x1, 2, raw = TRUE), data = somedata))
-M2a %*% c(1, 2, -2)  ## predictions using matrix multiplication
+(DM_raw <- model.matrix(object = ~ poly(x1, 2, raw = TRUE), data = somedata))
+DM_raw %*% c(1, 2, -2)  ## predictions using matrix multiplication with c(1, 2, -2) the model parameters
 ```
 
-## The case of polynomials: orthogonal
+## The case of polynomials: conversion between orthogonal and raw
+
+```{r convert poly}
+(DM_ortho <- model.matrix(object = ~ poly(x1, 2), data = somedata))
+conv_betaXA_to_betaXB(XA = DM_raw, XB = DM_ortho, betaXA = c(1, 2, -2))
+```
+
+
+## The case of polynomials: identical predictions
 
 ```{r pred matrix poly b}
-
-(M2b <- model.matrix(object = ~ poly(x1, 2), data = somedata))
-round(M2b %*% c(-22.33333, -50.19960, -12.22020), 3)  ## predictions
+DM_raw %*% c(1, 2, -2)  ## predictions
+round(DM_ortho %*% c(-22.33333, -50.19960, -12.22020), 3)
 ```
+
+
+## Interim: the product XTX
+
+The product XTX is essential for many computations around linear models.
+
+It represents all pairwise products between the columns of the design matrix.
+
+```{r XTX_explained}
+X <- matrix(c(1, 1, 1, 1, 2, 3, 4, 5, 6), byrow = FALSE, ncol = 3)
+(XTX_1 <- t(X) %*% X)
+XTX_2 <- crossprod(X)
+
+XTX_3 <- matrix(0, nrow = 3, ncol = 3)
+
+for (i in 1:3) for (j in 1:3) XTX_3[i, j] <- sum(X[, i]*X[, j])
+
+identical(XTX_1, XTX_2) & identical(XTX_1, XTX_3)
+```
+
 
 ## The case of polynomials: why making things more complex?
 
 ```{r XTX}
-t(M2a) %*% M2a  ## high values mean that predictors are colinear -> will be hard to fit
-zapsmall(t(M2b) %*% M2b)  ## 0 means that predictors are orthogonal -> will be easy to fit
+crossprod(DM_raw)  ## high values mean that predictors are colinear -> will be hard to fit
+zapsmall(crossprod(DM_ortho))  ## 0 means that predictors are orthogonal -> will be easy to fit
 ```
-
-## The case of polynomials: conversion
-
-```{r convert poly}
-p1 <- model.matrix(~ poly(somedata$x1, 2, raw = TRUE))
-p2 <- model.matrix(~ poly(somedata$x1, 2))
-conv_betaXA_to_betaXB(XA = p1, XB = p2, betaXA = c(1, 2, -2))
-```
-
 
 ## The case of contrasts: treatment vs Helmert
 
 ```{r helmert conv}
-BetaA <- matrix(c(50, 1.5, 20, 2, 3))
-(BetaB <- conv_betaXA_to_betaXB(XA = MA, XB = MB, betaXA = BetaA))
+DM_treat <- model.matrix(object = ~ x1 + x2 + x3, data = somedata)
+DM_Helm <- model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = "contr.helmert"))
+beta_treat <- matrix(c(50, 1.5, 20, 2, 3))
+(beta_Helm <- conv_betaXA_to_betaXB(XA = DM_treat, XB = DM_Helm, betaXA = beta_treat))
 ```
 
 <div  class="columns-2">
 
 ```{r param MA}
-MA %*% BetaA ## predictions
+DM_treat %*% beta_treat ## predictions
 ```
 
 <br>
 
 ```{r param MB}
-MB %*% BetaB ## predictions
+DM_Helm %*% beta_Helm ## predictions
 ```
 
 </div>
 
 
-## Practice
+## Let's practice!
 
-Explore the differences in the design matrix stemming from coding the gender as:
+Are these different representations of gender equivalent?
 
 * ```"boy"``` vs ```"girl"```
 * ```"male"``` vs ```"female"```
@@ -275,15 +318,13 @@ Explore the differences in the design matrix stemming from coding the gender as:
 * ```1``` vs ```2```
 * ```TRUE``` vs ```FALSE```
 
-Are these different representations equivalent?
-
-Create all corresponding design matrices to explore the differences!
+Create all corresponding design matrices to be sure!
 
 <br>
 
 Same question with:
 
-* ```baby``` vs ```child``` vs ```adult```
+* ```"baby"``` vs ```"child"``` vs ```"adult"```
 * ```0``` vs ```1``` vs ```2```
 * ```1``` vs ```2``` vs ```3```
 
@@ -310,7 +351,7 @@ with(poison, table(treat, poison))
 ## The errors
 
 * one dimension: $n \times 1$ vector
-* equal observation - model approximation ($Y - X\beta$)
+* error = observation - model approximation ($Y - X\beta$)
 * random variable
 * we assume it Gaussian (normally distributed), independent (no autocorrelation) and identically distributed (homoscedasticity)
 
@@ -406,7 +447,7 @@ $$
 </div>
 
 
-## Practice
+## Let's practice!
 
 <br>
 

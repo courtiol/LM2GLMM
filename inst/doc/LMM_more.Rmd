@@ -76,7 +76,7 @@ plot(with(air, tapply(passengers, month, mean)) ~ I(1:12),
 ## Simple fit
 
 ```{r}
-(mod_air <- lm(passengers ~ year + month, data = air))
+(mod_air <- lm(passengers ~ year * month, data = air))
 ```
 
 
@@ -114,7 +114,7 @@ round(corMatrix(MAR1)[["1950"]], 2)
 
 ## Solution
 ```{r}
-(mod_air2 <- lme(passengers ~ month + year, random = ~ 1 | year, data = air,
+(mod_air2 <- lme(passengers ~ month * year, random = ~ 1 | year, data = air,
                  correlation = MAR1, method = "REML"))
 ```
 
@@ -122,7 +122,7 @@ round(corMatrix(MAR1)[["1950"]], 2)
 ## Alternative code
 
 ```{r}
-(mod_air2b <- lme(passengers ~ month + year, random = ~ 1 | year, data = air,
+(mod_air2b <- lme(passengers ~ month * year, random = ~ 1 | year, data = air,
                  correlation = corAR1(form = ~ 1|year), method = "REML"))
 ```
 
@@ -130,7 +130,7 @@ round(corMatrix(MAR1)[["1950"]], 2)
 ## Testing the temporal autocorrelation
 
 ```{r}
-mod_air3 <- lme(passengers ~ month + year, random = ~ 1 | year, data = air, method = "REML")
+mod_air3 <- lme(passengers ~ month * year, random = ~ 1 | year, data = air, method = "REML")
 anova(mod_air2, mod_air3)
 ```
 
@@ -352,20 +352,20 @@ anova(mod_rat3ML, mod_rat_no_diet2)
 ```{r spaMM air}
 air$time <- seq(1949, 1960, length = (1960 - 1949 + 1) * 12)
 
-mod_air_spaMM1 <- fitme(passengers ~ month + year + Matern(1|time), data = air, method = "REML")
+mod_air_spaMM1 <- fitme(passengers ~ month * year + Matern(1|time), data = air, method = "REML")
 
-mod_air_spaMM2 <- fitme(passengers ~ month + year + Matern(1|time), data = air, method = "REML",
+mod_air_spaMM2 <- fitme(passengers ~ month * year + Matern(1|time), data = air, method = "REML",
                         init = list(Nugget = 0))
 
-mod_air_spaMM3 <- fitme(passengers ~ month + year + Matern(1|time), data = air, method = "REML",
+mod_air_spaMM3 <- fitme(passengers ~ month * year + Matern(1|time), data = air, method = "REML",
                         init = list(Nugget = 0), fixed = list(nu = 0.5))
 
-mod_air_spaMM4 <- fitme(passengers ~ month + year + Matern(1|time), data = air, method = "REML",
+mod_air_spaMM4 <- fitme(passengers ~ month * year + Matern(1|time), data = air, method = "REML",
                         fixed = list(nu = 0.5, Nugget = 0))
 ```
 
 
-## Models comparison
+## Models comparison (NOTE: CHECK THIS AGAIN LATER WITH FRANCOIS.. I changed the model to include the interaction and results are now strange...)
 
 ```{r}
 print(AIC(mod_air_spaMM1))
@@ -642,11 +642,11 @@ mod_glmm_spaMMpos1 <- fitme(shopping ~ gender + (1|individual) + (1|month), fami
                         data = Flatwork_pos)
 mod_glmm_spaMMpos2 <- fitme(shopping ~ gender + (1|individual) + (1|month), family = negbin(),
                         data = Flatwork_pos)
-mod_glmm_spaMMpos3 <- fitme(shopping ~ gender + (1|individual) + (1|month), family = COMPoisson(),
-                        data = Flatwork_pos)
+#mod_glmm_spaMMpos3 <- fitme(shopping ~ gender + (1|individual) + (1|month), family = COMPoisson(),
+#                        data = Flatwork_pos) ## bug
 
 c(AIC(mod_glmm_lme4pos1), AIC(mod_glmm_lme4pos2))
-print(c(AIC(mod_glmm_spaMMpos1), AIC(mod_glmm_spaMMpos2), AIC(mod_glmm_spaMMpos3)))
+print(c(AIC(mod_glmm_spaMMpos1), AIC(mod_glmm_spaMMpos2)))
 ```
 
 
@@ -844,35 +844,26 @@ library(IsoriX)
 ```
 
 
-## Loading the ```GNIP``` data
+## Loading the ```GNIPDataDE``` data
 
 ```{r}
-data(GNIPdata)
-dim(GNIPdata)
-head(GNIPdata)
+dim(GNIPDataDE)
+head(GNIPDataDE)
 ```
 
 
-## Crop and aggregate the ```GNIP``` data for Europe
-
+## Aggregate the ```GNIPDataDE```
 ```{r}
-GNIPdataEU <- queryGNIP(data = GNIPdata, long.min = -30, long.max = 60,
-                        lat.min = 30, lat.max = 70)
-
-dim(GNIPdataEU)
-head(GNIPdataEU)
+GNIPDataDE_agg <- prepdata(data = GNIPDataDE)
+dim(GNIPDataDE_agg)
+head(GNIPDataDE_agg)
 ```
 
 
 ## ```IsoriX``` using ```IsoriX```
 
 ```{r, warning=FALSE}
-Europefit <- isofit(iso.data = GNIPdataEU, mean.model.fix = list(elev = TRUE, lat.abs = TRUE))
-```
-
-```{r, warning=FALSE}
-data(elevraster)
-elevationraster <- relevate(elevation.raster = elevraster, manual.crop = c(-30, 60, 30, 70))
+Europefit <- isofit(iso.data = GNIPDataDE_agg, mean.model.fix = list(elev = TRUE, lat.abs = TRUE))
 ```
 
 
@@ -880,23 +871,17 @@ elevationraster <- relevate(elevation.raster = elevraster, manual.crop = c(-30, 
 
 ```{r, message = FALSE}
 library(rasterVis)
-plot(elevationraster)
+plot(ElevRasterDE)
 ```
 
 
 ## ```IsoriX``` using ```IsoriX```
 ```{r, warning = FALSE}
-isoscape <- isoscape(elevation.raster = elevationraster, isofit = Europefit)
+isoscape <- isoscape(elevation.raster = ElevRasterDE, isofit = Europefit)
 
-data(countries)
-data(oceanmask)
-data(isopalette1)
+plot.mean <- plot(x = isoscape, which = "mean", plot = FALSE)
 
-plot.mean <- plot(x = isoscape, which = "mean", borders = list(borders = countries),
-    mask = list(mask = oceanmask), palette = isopalette1, plot = FALSE)
-
-plot.disp <- plot(x = isoscape, which = "disp", borders = list(borders = countries),
-    mask = list(mask = oceanmask), palette = isopalette1, plot = FALSE)
+plot.disp <- plot(x = isoscape, which = "disp", plot = FALSE)
 ```
 
 
@@ -918,18 +903,18 @@ plot.disp
 ```{r}
 disp.fit <- fitme(var.isoscape.value ~ 1 + Matern(1 | long + lat), family = Gamma(log),
                   prior.weights = n.isoscape.value - 1, method = "REML", fixed = list(phi = 2),
-                  control.dist = list(dist.method = "Earth"), data = GNIPdataEU)
+                  control.dist = list(dist.method = "Earth"), data = GNIPDataDE_agg)
 ```
 
 ```{r}
-GNIPdataEU$pred.disp <- predict(disp.fit)[, 1]
+GNIPDataDE_agg$pred.disp <- predict(disp.fit)[, 1]
 ```
 
 ```{r}
 mean.fit <- fitme(isoscape.value ~ lat + elev + Matern(1 | long + lat), family = gaussian(), 
                   prior.weights = n.isoscape.value, method = "REML",
                   resid.model = list(formula = ~ 0 + offset(pred.disp), family = Gamma(identity)),
-                  control.dist = list(dist.method = "Earth"), data = GNIPdataEU)
+                  control.dist = list(dist.method = "Earth"), data = GNIPDataDE_agg)
 ```
 
 ```{r}
@@ -940,23 +925,21 @@ Europefit2 <- list(mean.fit = mean.fit, disp.fit = disp.fit)
 ## Predictions
 
 ```{r, warning=FALSE, message=FALSE}
-isoscape2 <- isoscape(elevation.raster = elevationraster, isofit = Europefit2)
-plot(x = isoscape2, which = "mean", borders = list(borders = countries),
-    mask = list(mask = oceanmask), palette = isopalette1, plot = TRUE)
+isoscape2 <- isoscape(elevation.raster = ElevRasterDE, isofit = Europefit2)
+plot(x = isoscape2, which = "mean", plot = TRUE)
 ```
 
 
 ## DHGLM
 
-```{r DHGLM, warning=FALSE, message=FALSE, eval = FALSE}
-GNIP <- subset(GNIPdata, GNIPdata$lat > 30 & GNIPdata$lat < 70 & GNIPdata$long > -30 & GNIPdata$long < 60)
-dim(GNIP)
+```{r DHGLM, warning = FALSE, message = FALSE, eval = FALSE}
 system.time(
   dhglm <- corrHLfit(isoscape.value ~ lat + elev + Matern(1 | long + lat), family = gaussian(), 
-              HLmethod = "REML", data = GNIP, control.dist = list(dist.method = "Earth"),
+              HLmethod = "REML", data = GNIPDataDE, control.dist = list(dist.method = "Earth"),
               resid.model = list(formula = ~ 1 + Matern(1 | long + lat),
                                  control.dist = list(dist.method = "Earth"),
-                                 family = Gamma(log), fixed = list(phi = 2)))
+                                 family = Gamma(log), fixed = list(phi = 2)),
+                                 verbose = c(TRACE = TRUE))
 )
 ```
 

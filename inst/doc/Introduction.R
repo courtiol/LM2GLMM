@@ -62,18 +62,27 @@ foo[, "x"]
 
 ## ----matrix--------------------------------------------------------------
 foo <- matrix(data = 1:9, nrow = 3, ncol = 3) ## Tip: try with byrow = TRUE
-colnames(foo) <- c("a", "b", "c")
-rownames(foo) <- c("A", "B", "C")
+colnames(foo) <- c("a", "b", "c"); rownames(foo) <- c("A", "B", "C")
 foo
 
+## ----matrix indexing-----------------------------------------------------
+foo[, 2]  ## indexing similar to dataframes (but you cannot use $)
+foo[2, ]
+
+## ----matrix transpose----------------------------------------------------
+foo
+t(foo)  ## matrix transposition
+
 ## ----matrix multiplication-----------------------------------------------
-foo %*% matrix(c(0, 1, -1))  ## matrix multiplication
+foo %*% matrix(c(-1, 1, 0))  ## matrix multiplication; same as foo %*% c(0, 1, -1)
+t(foo) %*% foo  ## matrix multiplication
+t(foo) * foo  ## NOT MATRIX MULTIPLICATION!
 
 ## ----lists---------------------------------------------------------------
-  foo <- list("foo1" = c(1:10), "foo2" = factor(c("a", "b")))
-  foo
-  foo[["foo2"]]
-  foo$foo2
+foo <- list("foo1" = c(1:10), "foo2" = factor(c("a", "b")))
+foo
+foo[["foo2"]]
+foo$foo2
 
 ## ----function------------------------------------------------------------
 addA_B <- function(a = 0, b = 0) {
@@ -90,7 +99,7 @@ addA_B_bis <- function(a, b) a + b
 addA_B_bis(2, 3)
 
 ## ----rnorm---------------------------------------------------------------
-rnorm(5, mean = 2, sd = 0.1)  ## Tip: check ?Distributions for other distribution
+rnorm(5, mean = 2, sd = 0.1)  ## Tip: check ?Distributions for other distributions
 rnorm(5, mean = 2, sd = 0.1)
 set.seed(14353L)
 rnorm(5, mean = 2, sd = 0.1)
