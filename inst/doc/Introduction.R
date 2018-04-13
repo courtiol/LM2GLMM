@@ -79,8 +79,8 @@ solve(foo)  ## inverse of foo
 
 ## ----matrix multiplication-----------------------------------------------
 foo %*% matrix(c(-1, 1))  ## matrix multiplication; same as foo %*% c(0, 1, -1)
-t(foo) %*% foo  ## matrix multiplication
-t(foo) * foo  ## NOT MATRIX MULTIPLICATION!
+foo %*% foo  ## matrix multiplication
+foo * foo  ## NOT MATRIX MULTIPLICATION!
 
 ## ----lists---------------------------------------------------------------
 foo <- list("foo1" = c(1:10), "foo2" = factor(c("a", "b")))
