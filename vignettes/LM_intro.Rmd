@@ -30,8 +30,9 @@ options(width = 120)
 
 * how to write a linear model (using two notations)
 * what a response, a design matrix and model parameters are
-* how to get the design matrix
+* how to understand the design matrix
 * that the meaning of the parameter depends on the design matrix
+* that different contrast matrices can be used
 * how to simulate the data for a linear model
 
 # Definition and notations
@@ -114,7 +115,7 @@ Sad but ```TRUE```:
 
 ### You cannot interpret model parameters correctly without knowing the design matrix of the model!!!
 
-## How to compute the design (or model) matrix?
+## How to create the design (or model) matrix?
 
 ```{r pred matrix}
 somedata <- data.frame(x1 = 1:6)
@@ -141,13 +142,28 @@ model.matrix(object = ~ -1 + x1, data = somedata)
 ## A design matrix with function calls
 
 ```{r pred matrix 1}
-model.matrix(object = ~ log(x1) + poly(x1, 2, raw = TRUE), data = somedata)
+(m <- model.matrix(object = ~ x1 + log(x1) + sqrt(x1) + I(x1-1), data = somedata))
 ```
 
-## An alternative parametrization for polynomials
+<br>
 
-```{r pred matrix 1b}
-model.matrix(object = ~ log(x1) + poly(x1, 2), data = somedata)
+Note that this design matrix is ill defined as some columns are linearly dependent.
+
+```{r unsolvable}
+all.equal(det(crossprod(m)), 0)  ## quick test for linear dependence (cf later)
+```
+
+
+## A design matrix with polynomials
+
+```{r poly 1}
+(DM_raw <- model.matrix(object = ~ poly(x1, 2, raw = TRUE), data = somedata))
+```
+
+## A design matrix with polynomials
+
+```{r poly 2}
+(DM_ortho <- model.matrix(object = ~ poly(x1, 2), data = somedata))
 ```
 
 <br>
@@ -165,11 +181,23 @@ model.matrix(object = ~ x1 + x2 + x3, data = somedata)
 
 <br>
 
-This parameterization of factors such as ```x3``` is called the "treatment contrast".
+This parameterization of factors such as ```x3``` follows the so-called contrast matrix "treatment".
 
 It is the easiest one to interpret and the one use by default in R (but not in all software).
 
-## An alternative parametrization for the factor
+## Interpreting the treatment contrast
+
+```{r treatment contrast}
+model.matrix(object = ~ x3, data = somedata)
+```
+
+* The intercept represents the mean of the baseline (here, reference level = ```"a"```).
+* ```x3b``` represents the mean of ```"b"``` minus the mean of the baseline.
+* ```x3c``` represents the mean of ```"c"``` minus the mean of the baseline.
+
+Note: in R the default level of reference is always the first level of a factor (which level is first can be changed).
+
+## There are alternative contrasts parametrizations!
 
 ```{r pred matrix 3}
 model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = "contr.helmert"))
@@ -177,11 +205,98 @@ model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 =
 
 <br>
 
-Alternative parameterizations of the contrasts can ease convergence in GLM(M) (for continuous variable) or can allow for testing specific hypotheses (for qualitative variables). 
+Alternative parameterizations of the contrast matrix can ease convergence in GLM(M) (for continuous variable) and can allow for testing specific hypotheses or fit particular experimental design (for qualitative variables). 
 
 It will not change the predictions, the likelihood, the AIC, etc... only the parameter values and their interpretation.
 
+## Interim: the product XTX
 
+The product XTX is essential for many computations around linear models.
+
+It represents all pairwise products between the columns of the design matrix.
+
+```{r XTX_explained}
+X <- matrix(c(1, 1, 1, 1, 2, 3, 4, 5, 6), byrow = FALSE, ncol = 3)
+(XTX_1 <- t(X) %*% X)
+XTX_2 <- crossprod(X)
+
+XTX_3 <- matrix(0, nrow = 3, ncol = 3)
+
+for (i in 1:3) for (j in 1:3) XTX_3[i, j] <- sum(X[, i]*X[, j])
+
+identical(XTX_1, XTX_2) & identical(XTX_1, XTX_3)
+```
+
+
+## Why make things more complex?
+
+### For technical reasons
+
+```{r XTX}
+crossprod(DM_raw)  ## high values mean that predictors are colinear -> will be hard to fit
+zapsmall(crossprod(DM_ortho))  ## 0 means that predictors are orthogonal -> will be easy to fit
+```
+
+## Why make things more complex?
+
+### For technical reasons
+
+```{r helmert contrast 1}
+somedata2 <- data.frame(x = factor(c("a", "b", "c")))
+m <- model.matrix(object = ~ x, data = somedata2, contrasts.arg = list(x = "contr.helmert"))
+crossprod(m)
+```
+
+Helmert contrasts are also orthogonal.
+
+## Why make things more complex?
+
+### To ease the interpretation
+
+```{r helmert contrast 2, echo = FALSE}
+m
+```
+Average of the three levels =
+$$
+\frac{(1*\text{Int}-1*\text{x1}-1*\text{x2})+(1*\text{Int}+1*\text{x1}-1*\text{x2})+(1*\text{Int}+0*\text{x1}-2*\text{x2})}{3}=\text{Int}
+$$
+The intercept thus represents the mean of the mean of all groups. (nice!)
+
+You can use the same idea to show that the first coefficient corresponds to the mean of the first 2 groups minus the mean of the first group, that the second coefficient corresponds to the mean of the first 3 groups minus the mean of the first 2 groups, and so forth. (weird ?!)
+
+
+## Why make things more complex?
+
+### To ease the interpretation
+
+```{r contr.sum 1}
+model.matrix(object = ~ x, data = somedata2, contrasts.arg = list(x = "contr.sum"))
+```
+
+* The intercept thus represents the mean of the mean of all groups. (nice!)
+* ```x1``` represents the mean of the first group minus the mean of the mean of all groups. (nice!)
+* ```x2``` represents the mean of the second group minus the mean of the mean of all groups. (nice!)
+
+Note: not much used by R users (because not the default) but seems more useful when there is no clear control.
+
+## Understanding factorial design
+
+```{r factorial}
+data(poison, package = "fastR")  ##  ?fastR::poison for description
+poison$treat <- factor(poison$Treatment)
+poison$poison <- factor(poison$Poison)
+m <- model.matrix( ~ poison + treat, data = poison)
+head(m)
+```
+
+## Understanding factorial design
+
+```{r factorial 2}
+crossprod(m)
+with(poison, table(treat, poison))
+```
+
+Note: this works only with the contrast matrix "treatment".
 
 ## A design matrix with interactions
 
@@ -192,6 +307,13 @@ model.matrix(object = ~ x1 * x2 + x1 * x3, data = somedata)
 <br>
 
 Interactions allow consideration of the effect of one predictor dependent on the value taken by other(s). If interactions are not considered, effects are assumed to be independent.
+
+
+## A design matrix with interactions
+
+```{r pred matrix 5}
+model.matrix(object = ~ x1 * x2 + x1 * x3, data = somedata, contrasts.arg = list(x3 = "contr.sum"))
+```
 
 # The model parameters
 
@@ -207,6 +329,10 @@ Interactions allow consideration of the effect of one predictor dependent on the
 <br>
 
 ### The meaning of the parameters always depends on the model matrix!!!
+
+<br>
+
+Consequence: if what the design matrix looks like is unclear for the reader, you must provide information (e.g. contrasts used, number of levels...).
 
 
 ## Alternative parameterizations of equivalent design matrices
@@ -236,67 +362,30 @@ conv_betaXA_to_betaXB <- function(XA, XB, betaXA) {
 ```
 
 
-## The example of polynomials: raw
+## The example of polynomials
 
 ```{r pred matrix poly a}
-(DM_raw <- model.matrix(object = ~ poly(x1, 2, raw = TRUE), data = somedata))
-DM_raw %*% c(1, 2, -2)  ## predictions using matrix multiplication with c(1, 2, -2) the model parameters
+DM_raw
+DM_ortho
 ```
 
-## The example of polynomials: conversion between orthogonal and raw
+## The example of polynomials
 
 ```{r convert poly}
-(DM_ortho <- model.matrix(object = ~ poly(x1, 2), data = somedata))
 conv_betaXA_to_betaXB(XA = DM_raw, XB = DM_ortho, betaXA = c(1, 2, -2))
 ```
 
-## The example of polynomials: predictions are identical!
+## The example of polynomials
 
 ```{r pred matrix poly b}
 DM_raw %*% c(1, 2, -2)  ## predictions
 round(DM_ortho %*% c(-22.33333, -50.19960, -12.22020), 3)
 ```
 
-
-## Interim: the product XTX
-
-The product XTX is essential for many computations around linear models.
-
-It represents all pairwise products between the columns of the design matrix.
-
-```{r XTX_explained}
-X <- matrix(c(1, 1, 1, 1, 2, 3, 4, 5, 6), byrow = FALSE, ncol = 3)
-(XTX_1 <- t(X) %*% X)
-XTX_2 <- crossprod(X)
-
-XTX_3 <- matrix(0, nrow = 3, ncol = 3)
-
-for (i in 1:3) for (j in 1:3) XTX_3[i, j] <- sum(X[, i]*X[, j])
-
-identical(XTX_1, XTX_2) & identical(XTX_1, XTX_3)
-```
-
-
-## Why making things more complex?
-
-### For technical reasons
-
-```{r XTX}
-crossprod(DM_raw)  ## high values mean that predictors are colinear -> will be hard to fit
-zapsmall(crossprod(DM_ortho))  ## 0 means that predictors are orthogonal -> will be easy to fit
-```
-
-## Why making things more complex?
-
-### To ease the interpretation
-
-TO DO: discuss diff contrasts!
-
-
-## treatment contrasts vs Helmert
+## The example of treatment vs Helmert
 
 ```{r helmert conv}
-DM_treat <- model.matrix(object = ~ x1 + x2 + x3, data = somedata)
+DM_treat <- model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = "contr.treatment"))
 DM_Helm <- model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = "contr.helmert"))
 beta_treat <- matrix(c(50, 1.5, 20, 2, 3))
 (beta_Helm <- conv_betaXA_to_betaXB(XA = DM_treat, XB = DM_Helm, betaXA = beta_treat))
@@ -337,23 +426,6 @@ Same question with:
 * ```0``` vs ```1``` vs ```2```
 * ```1``` vs ```2``` vs ```3```
 
-
-## Understanding factorial design through the design matrix
-
-```{r factorial}
-data(poison, package = "fastR")  ##  ?fastR::poison for description
-poison$treat <- factor(poison$Treatment)
-poison$poison <- factor(poison$Poison)
-X <- model.matrix( ~ poison + treat, data = poison)
-head(X)
-```
-
-## Understanding factorial design through the design matrix
-
-```{r factorial 2}
-crossprod(X)  ## compute t(X) %*% X, i.e. x_ij = sum(X[, i]*X[, j])
-with(poison, table(treat, poison))
-```
 
 # The errors
 
@@ -470,8 +542,9 @@ $$
 
 * how to write a linear model (using two notations)
 * what a response, a design matrix and model parameters are
-* how to get the design matrix
+* how to understand the design matrix
 * that the meaning of the parameter depends on the design matrix
+* that different contrast matrices can be used
 * how to simulate the data for a linear model
 
 
