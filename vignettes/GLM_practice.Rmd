@@ -32,7 +32,7 @@ head(esoph)
 ## Dataset: effects::TitanicSurvival
 
 ```{r}
-data(TitanicSurvival, package = "effects")
+data(TitanicSurvival, package = "carData")
 head(TitanicSurvival)
 ```
 
