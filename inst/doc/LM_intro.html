@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2018-04-12" />
+  <meta name="date" content="2018-04-13" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,7 +94,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2018-04-12</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2018-04-13</p>
           </hgroup>
   </slide>
 
@@ -114,8 +114,9 @@
 <ul>
 <li>how to write a linear model (using two notations)</li>
 <li>what a response, a design matrix and model parameters are</li>
-<li>how to get the design matrix</li>
+<li>how to understand the design matrix</li>
 <li>that the meaning of the parameter depends on the design matrix</li>
+<li>that different contrast matrices can be used</li>
 <li>how to simulate the data for a linear model</li>
 </ul>
 
@@ -215,7 +216,7 @@
 
 <h3>You cannot interpret model parameters correctly without knowing the design matrix of the model!!!</h3>
 
-</article></slide><slide class=""><hgroup><h2>How to compute the design (or model) matrix?</h2></hgroup><article  id="how-to-compute-the-design-or-model-matrix" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>How to create the design (or model) matrix?</h2></hgroup><article  id="how-to-create-the-design-or-model-matrix" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>somedata &lt;- data.frame(x1 = 1:6)
 (mm &lt;- model.matrix(object = ~ x1, data = somedata))</pre>
@@ -270,31 +271,53 @@
 
 </article></slide><slide class=""><hgroup><h2>A design matrix with function calls</h2></hgroup><article  id="a-design-matrix-with-function-calls" class="smaller ">
 
-<pre class = 'prettyprint lang-r'>model.matrix(object = ~ log(x1) + poly(x1, 2, raw = TRUE), data = somedata)</pre>
+<pre class = 'prettyprint lang-r'>(m &lt;- model.matrix(object = ~ x1 + log(x1) + sqrt(x1) + I(x1-1), data = somedata))</pre>
 
-<pre >##   (Intercept)   log(x1) poly(x1, 2, raw = TRUE)1 poly(x1, 2, raw = TRUE)2
-## 1           1 0.0000000                        1                        1
-## 2           1 0.6931472                        2                        4
-## 3           1 1.0986123                        3                        9
-## 4           1 1.3862944                        4                       16
-## 5           1 1.6094379                        5                       25
-## 6           1 1.7917595                        6                       36
+<pre >##   (Intercept) x1   log(x1) sqrt(x1) I(x1 - 1)
+## 1           1  1 0.0000000 1.000000         0
+## 2           1  2 0.6931472 1.414214         1
+## 3           1  3 1.0986123 1.732051         2
+## 4           1  4 1.3862944 2.000000         3
+## 5           1  5 1.6094379 2.236068         4
+## 6           1  6 1.7917595 2.449490         5
 ## attr(,&quot;assign&quot;)
-## [1] 0 1 2 2</pre>
+## [1] 0 1 2 3 4</pre>
 
-</article></slide><slide class=""><hgroup><h2>An alternative parametrization for polynomials</h2></hgroup><article  id="an-alternative-parametrization-for-polynomials" class="smaller ">
+<p><br></p>
 
-<pre class = 'prettyprint lang-r'>model.matrix(object = ~ log(x1) + poly(x1, 2), data = somedata)</pre>
+<p>Note that this design matrix is ill defined as some columns are linearly dependent.</p>
 
-<pre >##   (Intercept)   log(x1) poly(x1, 2)1 poly(x1, 2)2
-## 1           1 0.0000000   -0.5976143    0.5455447
-## 2           1 0.6931472   -0.3585686   -0.1091089
-## 3           1 1.0986123   -0.1195229   -0.4364358
-## 4           1 1.3862944    0.1195229   -0.4364358
-## 5           1 1.6094379    0.3585686   -0.1091089
-## 6           1 1.7917595    0.5976143    0.5455447
+<pre class = 'prettyprint lang-r'>all.equal(det(crossprod(m)), 0)  ## quick test for linear dependence (cf later)</pre>
+
+<pre >## [1] TRUE</pre>
+
+</article></slide><slide class=""><hgroup><h2>A design matrix with polynomials</h2></hgroup><article  id="a-design-matrix-with-polynomials" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>(DM_raw &lt;- model.matrix(object = ~ poly(x1, 2, raw = TRUE), data = somedata))</pre>
+
+<pre >##   (Intercept) poly(x1, 2, raw = TRUE)1 poly(x1, 2, raw = TRUE)2
+## 1           1                        1                        1
+## 2           1                        2                        4
+## 3           1                        3                        9
+## 4           1                        4                       16
+## 5           1                        5                       25
+## 6           1                        6                       36
 ## attr(,&quot;assign&quot;)
-## [1] 0 1 2 2</pre>
+## [1] 0 1 1</pre>
+
+</article></slide><slide class=""><hgroup><h2>A design matrix with polynomials</h2></hgroup><article  id="a-design-matrix-with-polynomials-1" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>(DM_ortho &lt;- model.matrix(object = ~ poly(x1, 2), data = somedata))</pre>
+
+<pre >##   (Intercept) poly(x1, 2)1 poly(x1, 2)2
+## 1           1   -0.5976143    0.5455447
+## 2           1   -0.3585686   -0.1091089
+## 3           1   -0.1195229   -0.4364358
+## 4           1    0.1195229   -0.4364358
+## 5           1    0.3585686   -0.1091089
+## 6           1    0.5976143    0.5455447
+## attr(,&quot;assign&quot;)
+## [1] 0 1 1</pre>
 
 <p><br></p>
 
@@ -321,11 +344,36 @@ model.matrix(object = ~ x1 + x2 + x3, data = somedata)</pre>
 
 <p><br></p>
 
-<p>This parameterization of factors such as <code>x3</code> is called the &quot;treatment contrast&quot;.</p>
+<p>This parameterization of factors such as <code>x3</code> follows the so-called contrast matrix &quot;treatment&quot;.</p>
 
 <p>It is the easiest one to interpret and the one use by default in R (but not in all software).</p>
 
-</article></slide><slide class=""><hgroup><h2>An alternative parametrization for the factor</h2></hgroup><article  id="an-alternative-parametrization-for-the-factor" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Interpreting the treatment contrast</h2></hgroup><article  id="interpreting-the-treatment-contrast" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>model.matrix(object = ~ x3, data = somedata)</pre>
+
+<pre >##   (Intercept) x3b x3c
+## 1           1   1   0
+## 2           1   1   0
+## 3           1   0   0
+## 4           1   0   0
+## 5           1   0   1
+## 6           1   0   1
+## attr(,&quot;assign&quot;)
+## [1] 0 1 1
+## attr(,&quot;contrasts&quot;)
+## attr(,&quot;contrasts&quot;)$x3
+## [1] &quot;contr.treatment&quot;</pre>
+
+<ul>
+<li>The intercept represents the mean of the baseline (here, reference level = <code>&quot;a&quot;</code>).</li>
+<li><code>x3b</code> represents the mean of <code>&quot;b&quot;</code> minus the mean of the baseline.</li>
+<li><code>x3c</code> represents the mean of <code>&quot;c&quot;</code> minus the mean of the baseline.</li>
+</ul>
+
+<p>Note: in R the default level of reference is always the first level of a factor (which level is first can be changed).</p>
+
+</article></slide><slide class=""><hgroup><h2>There are alternative contrasts parametrizations!</h2></hgroup><article  id="there-are-alternative-contrasts-parametrizations" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = &quot;contr.helmert&quot;))</pre>
 
@@ -344,9 +392,149 @@ model.matrix(object = ~ x1 + x2 + x3, data = somedata)</pre>
 
 <p><br></p>
 
-<p>Alternative parameterizations of the contrasts can ease convergence in GLM(M) (for continuous variable) or can allow for testing specific hypotheses (for qualitative variables).</p>
+<p>Alternative parameterizations of the contrast matrix can ease convergence in GLM(M) (for continuous variable) and can allow for testing specific hypotheses or fit particular experimental design (for qualitative variables).</p>
 
 <p>It will not change the predictions, the likelihood, the AIC, etc&#8230; only the parameter values and their interpretation.</p>
+
+</article></slide><slide class=""><hgroup><h2>Interim: the product XTX</h2></hgroup><article  id="interim-the-product-xtx" class="smaller ">
+
+<p>The product XTX is essential for many computations around linear models.</p>
+
+<p>It represents all pairwise products between the columns of the design matrix.</p>
+
+<pre class = 'prettyprint lang-r'>X &lt;- matrix(c(1, 1, 1, 1, 2, 3, 4, 5, 6), byrow = FALSE, ncol = 3)
+(XTX_1 &lt;- t(X) %*% X)</pre>
+
+<pre >##      [,1] [,2] [,3]
+## [1,]    3    6   15
+## [2,]    6   14   32
+## [3,]   15   32   77</pre>
+
+<pre class = 'prettyprint lang-r'>XTX_2 &lt;- crossprod(X)
+
+XTX_3 &lt;- matrix(0, nrow = 3, ncol = 3)
+
+for (i in 1:3) for (j in 1:3) XTX_3[i, j] &lt;- sum(X[, i]*X[, j])
+
+identical(XTX_1, XTX_2) &amp; identical(XTX_1, XTX_3)</pre>
+
+<pre >## [1] TRUE</pre>
+
+</article></slide><slide class=""><hgroup><h2>Why make things more complex?</h2></hgroup><article  id="why-make-things-more-complex" class="smaller ">
+
+<h3>For technical reasons</h3>
+
+<pre class = 'prettyprint lang-r'>crossprod(DM_raw)  ## high values mean that predictors are colinear -&gt; will be hard to fit</pre>
+
+<pre >##                          (Intercept) poly(x1, 2, raw = TRUE)1 poly(x1, 2, raw = TRUE)2
+## (Intercept)                        6                       21                       91
+## poly(x1, 2, raw = TRUE)1          21                       91                      441
+## poly(x1, 2, raw = TRUE)2          91                      441                     2275</pre>
+
+<pre class = 'prettyprint lang-r'>zapsmall(crossprod(DM_ortho))  ## 0 means that predictors are orthogonal -&gt; will be easy to fit</pre>
+
+<pre >##              (Intercept) poly(x1, 2)1 poly(x1, 2)2
+## (Intercept)            6            0            0
+## poly(x1, 2)1           0            1            0
+## poly(x1, 2)2           0            0            1</pre>
+
+</article></slide><slide class=""><hgroup><h2>Why make things more complex?</h2></hgroup><article  id="why-make-things-more-complex-1" class="smaller ">
+
+<h3>For technical reasons</h3>
+
+<pre class = 'prettyprint lang-r'>somedata2 &lt;- data.frame(x = factor(c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;)))
+m &lt;- model.matrix(object = ~ x, data = somedata2, contrasts.arg = list(x = &quot;contr.helmert&quot;))
+crossprod(m)</pre>
+
+<pre >##             (Intercept) x1 x2
+## (Intercept)           3  0  0
+## x1                    0  2  0
+## x2                    0  0  6</pre>
+
+<p>Helmert contrasts are also orthogonal.</p>
+
+</article></slide><slide class=""><hgroup><h2>Why make things more complex?</h2></hgroup><article  id="why-make-things-more-complex-2" class="smaller ">
+
+<h3>To ease the interpretation</h3>
+
+<pre >##   (Intercept) x1 x2
+## 1           1 -1 -1
+## 2           1  1 -1
+## 3           1  0  2
+## attr(,&quot;assign&quot;)
+## [1] 0 1 1
+## attr(,&quot;contrasts&quot;)
+## attr(,&quot;contrasts&quot;)$x
+## [1] &quot;contr.helmert&quot;</pre>
+
+<p>Average of the three levels = \[
+\frac{(1*\text{Int}-1*\text{x1}-1*\text{x2})+(1*\text{Int}+1*\text{x1}-1*\text{x2})+(1*\text{Int}+0*\text{x1}-2*\text{x2})}{3}=\text{Int}
+\] The intercept thus represents the mean of the mean of all groups. (nice!)</p>
+
+<p>You can use the same idea to show that the first coefficient corresponds to the mean of the first 2 groups minus the mean of the first group, that the second coefficient corresponds to the mean of the first 3 groups minus the mean of the first 2 groups, and so forth. (weird ?!)</p>
+
+</article></slide><slide class=""><hgroup><h2>Why make things more complex?</h2></hgroup><article  id="why-make-things-more-complex-3" class="smaller ">
+
+<h3>To ease the interpretation</h3>
+
+<pre class = 'prettyprint lang-r'>model.matrix(object = ~ x, data = somedata2, contrasts.arg = list(x = &quot;contr.sum&quot;))</pre>
+
+<pre >##   (Intercept) x1 x2
+## 1           1  1  0
+## 2           1  0  1
+## 3           1 -1 -1
+## attr(,&quot;assign&quot;)
+## [1] 0 1 1
+## attr(,&quot;contrasts&quot;)
+## attr(,&quot;contrasts&quot;)$x
+## [1] &quot;contr.sum&quot;</pre>
+
+<ul>
+<li>The intercept thus represents the mean of the mean of all groups. (nice!)</li>
+<li><code>x1</code> represents the mean of the first group minus the mean of the mean of all groups. (nice!)</li>
+<li><code>x2</code> represents the mean of the second group minus the mean of the mean of all groups. (nice!)</li>
+</ul>
+
+<p>Note: not much used by R users (because not the default) but seems more useful when there is no clear control.</p>
+
+</article></slide><slide class=""><hgroup><h2>Understanding factorial design</h2></hgroup><article  id="understanding-factorial-design" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>data(poison, package = &quot;fastR&quot;)  ##  ?fastR::poison for description
+poison$treat &lt;- factor(poison$Treatment)
+poison$poison &lt;- factor(poison$Poison)
+m &lt;- model.matrix( ~ poison + treat, data = poison)
+head(m)</pre>
+
+<pre >##   (Intercept) poison2 poison3 treat2 treat3 treat4
+## 1           1       0       0      0      0      0
+## 2           1       0       0      0      0      0
+## 3           1       0       0      0      0      0
+## 4           1       0       0      0      0      0
+## 5           1       0       0      1      0      0
+## 6           1       0       0      1      0      0</pre>
+
+</article></slide><slide class=""><hgroup><h2>Understanding factorial design</h2></hgroup><article  id="understanding-factorial-design-1" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>crossprod(m)</pre>
+
+<pre >##             (Intercept) poison2 poison3 treat2 treat3 treat4
+## (Intercept)          48      16      16     12     12     12
+## poison2              16      16       0      4      4      4
+## poison3              16       0      16      4      4      4
+## treat2               12       4       4     12      0      0
+## treat3               12       4       4      0     12      0
+## treat4               12       4       4      0      0     12</pre>
+
+<pre class = 'prettyprint lang-r'>with(poison, table(treat, poison))</pre>
+
+<pre >##      poison
+## treat 1 2 3
+##     1 4 4 4
+##     2 4 4 4
+##     3 4 4 4
+##     4 4 4 4</pre>
+
+<p>Note: this works only with the contrast matrix &quot;treatment&quot;.</p>
 
 </article></slide><slide class=""><hgroup><h2>A design matrix with interactions</h2></hgroup><article  id="a-design-matrix-with-interactions" class="smaller ">
 
@@ -369,6 +557,23 @@ model.matrix(object = ~ x1 + x2 + x3, data = somedata)</pre>
 
 <p>Interactions allow consideration of the effect of one predictor dependent on the value taken by other(s). If interactions are not considered, effects are assumed to be independent.</p>
 
+</article></slide><slide class=""><hgroup><h2>A design matrix with interactions</h2></hgroup><article  id="a-design-matrix-with-interactions-1" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>model.matrix(object = ~ x1 * x2 + x1 * x3, data = somedata, contrasts.arg = list(x3 = &quot;contr.sum&quot;))</pre>
+
+<pre >##   (Intercept) x1 x2 x31 x32 x1:x2 x1:x31 x1:x32
+## 1           1  1 10   0   1    10      0      1
+## 2           1  2 11   0   1    22      0      2
+## 3           1  3 12   1   0    36      3      0
+## 4           1  4 13   1   0    52      4      0
+## 5           1  5 14  -1  -1    70     -5     -5
+## 6           1  6 15  -1  -1    90     -6     -6
+## attr(,&quot;assign&quot;)
+## [1] 0 1 2 3 3 4 5 5
+## attr(,&quot;contrasts&quot;)
+## attr(,&quot;contrasts&quot;)$x3
+## [1] &quot;contr.sum&quot;</pre>
+
 </article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>The model parameters</h2></hgroup><article  id="the-model-parameters" class="smaller ">
 
 </article></slide><slide class=""><hgroup><h2>Model parameters:</h2></hgroup><article  id="model-parameters" class="smaller ">
@@ -385,6 +590,10 @@ model.matrix(object = ~ x1 + x2 + x3, data = somedata)</pre>
 <p><br></p>
 
 <h3>The meaning of the parameters always depends on the model matrix!!!</h3>
+
+<p><br></p>
+
+<p>Consequence: if what the design matrix looks like is unclear for the reader, you must provide information (e.g. contrasts used, number of levels&#8230;).</p>
 
 </article></slide><slide class=""><hgroup><h2>Alternative parameterizations of equivalent design matrices</h2></hgroup><article  id="alternative-parameterizations-of-equivalent-design-matrices" class="smaller ">
 
@@ -411,9 +620,9 @@ model.matrix(object = ~ x1 + x2 + x3, data = somedata)</pre>
 }
 ## homemade: this function may break in some legitimate cases...</pre>
 
-</article></slide><slide class=""><hgroup><h2>The example of polynomials: raw</h2></hgroup><article  id="the-example-of-polynomials-raw" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>The example of polynomials</h2></hgroup><article  id="the-example-of-polynomials" class="smaller ">
 
-<pre class = 'prettyprint lang-r'>(DM_raw &lt;- model.matrix(object = ~ poly(x1, 2, raw = TRUE), data = somedata))</pre>
+<pre class = 'prettyprint lang-r'>DM_raw</pre>
 
 <pre >##   (Intercept) poly(x1, 2, raw = TRUE)1 poly(x1, 2, raw = TRUE)2
 ## 1           1                        1                        1
@@ -425,19 +634,7 @@ model.matrix(object = ~ x1 + x2 + x3, data = somedata)</pre>
 ## attr(,&quot;assign&quot;)
 ## [1] 0 1 1</pre>
 
-<pre class = 'prettyprint lang-r'>DM_raw %*% c(1, 2, -2)  ## predictions using matrix multiplication with c(1, 2, -2) the model parameters</pre>
-
-<pre >##   [,1]
-## 1    1
-## 2   -3
-## 3  -11
-## 4  -23
-## 5  -39
-## 6  -59</pre>
-
-</article></slide><slide class=""><hgroup><h2>The example of polynomials: conversion between orthogonal and raw</h2></hgroup><article  id="the-example-of-polynomials-conversion-between-orthogonal-and-raw" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>(DM_ortho &lt;- model.matrix(object = ~ poly(x1, 2), data = somedata))</pre>
+<pre class = 'prettyprint lang-r'>DM_ortho</pre>
 
 <pre >##   (Intercept) poly(x1, 2)1 poly(x1, 2)2
 ## 1           1   -0.5976143    0.5455447
@@ -449,11 +646,13 @@ model.matrix(object = ~ x1 + x2 + x3, data = somedata)</pre>
 ## attr(,&quot;assign&quot;)
 ## [1] 0 1 1</pre>
 
+</article></slide><slide class=""><hgroup><h2>The example of polynomials</h2></hgroup><article  id="the-example-of-polynomials-1" class="smaller ">
+
 <pre class = 'prettyprint lang-r'>conv_betaXA_to_betaXB(XA = DM_raw, XB = DM_ortho, betaXA = c(1, 2, -2))</pre>
 
 <pre >## [1] -22.33333 -50.19960 -12.22020</pre>
 
-</article></slide><slide class=""><hgroup><h2>The example of polynomials: predictions are identical!</h2></hgroup><article  id="the-example-of-polynomials-predictions-are-identical" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>The example of polynomials</h2></hgroup><article  id="the-example-of-polynomials-2" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>DM_raw %*% c(1, 2, -2)  ## predictions</pre>
 
@@ -475,57 +674,9 @@ model.matrix(object = ~ x1 + x2 + x3, data = somedata)</pre>
 ## 5  -39
 ## 6  -59</pre>
 
-</article></slide><slide class=""><hgroup><h2>Interim: the product XTX</h2></hgroup><article  id="interim-the-product-xtx" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>The example of treatment vs Helmert</h2></hgroup><article  id="the-example-of-treatment-vs-helmert" class="smaller ">
 
-<p>The product XTX is essential for many computations around linear models.</p>
-
-<p>It represents all pairwise products between the columns of the design matrix.</p>
-
-<pre class = 'prettyprint lang-r'>X &lt;- matrix(c(1, 1, 1, 1, 2, 3, 4, 5, 6), byrow = FALSE, ncol = 3)
-(XTX_1 &lt;- t(X) %*% X)</pre>
-
-<pre >##      [,1] [,2] [,3]
-## [1,]    3    6   15
-## [2,]    6   14   32
-## [3,]   15   32   77</pre>
-
-<pre class = 'prettyprint lang-r'>XTX_2 &lt;- crossprod(X)
-
-XTX_3 &lt;- matrix(0, nrow = 3, ncol = 3)
-
-for (i in 1:3) for (j in 1:3) XTX_3[i, j] &lt;- sum(X[, i]*X[, j])
-
-identical(XTX_1, XTX_2) &amp; identical(XTX_1, XTX_3)</pre>
-
-<pre >## [1] TRUE</pre>
-
-</article></slide><slide class=""><hgroup><h2>Why making things more complex?</h2></hgroup><article  id="why-making-things-more-complex" class="smaller ">
-
-<h3>For technical reasons</h3>
-
-<pre class = 'prettyprint lang-r'>crossprod(DM_raw)  ## high values mean that predictors are colinear -&gt; will be hard to fit</pre>
-
-<pre >##                          (Intercept) poly(x1, 2, raw = TRUE)1 poly(x1, 2, raw = TRUE)2
-## (Intercept)                        6                       21                       91
-## poly(x1, 2, raw = TRUE)1          21                       91                      441
-## poly(x1, 2, raw = TRUE)2          91                      441                     2275</pre>
-
-<pre class = 'prettyprint lang-r'>zapsmall(crossprod(DM_ortho))  ## 0 means that predictors are orthogonal -&gt; will be easy to fit</pre>
-
-<pre >##              (Intercept) poly(x1, 2)1 poly(x1, 2)2
-## (Intercept)            6            0            0
-## poly(x1, 2)1           0            1            0
-## poly(x1, 2)2           0            0            1</pre>
-
-</article></slide><slide class=""><hgroup><h2>Why making things more complex?</h2></hgroup><article  id="why-making-things-more-complex-1" class="smaller ">
-
-<h3>To ease the interpretation</h3>
-
-<p>TO DO: discuss diff contrasts!</p>
-
-</article></slide><slide class=""><hgroup><h2>treatment contrasts vs Helmert</h2></hgroup><article  id="treatment-contrasts-vs-helmert" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>DM_treat &lt;- model.matrix(object = ~ x1 + x2 + x3, data = somedata)
+<pre class = 'prettyprint lang-r'>DM_treat &lt;- model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = &quot;contr.treatment&quot;))
 DM_Helm &lt;- model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = &quot;contr.helmert&quot;))
 beta_treat &lt;- matrix(c(50, 1.5, 20, 2, 3))
 (beta_Helm &lt;- conv_betaXA_to_betaXB(XA = DM_treat, XB = DM_Helm, betaXA = beta_treat))</pre>
@@ -578,43 +729,6 @@ beta_treat &lt;- matrix(c(50, 1.5, 20, 2, 3))
 <li><code>0</code> vs <code>1</code> vs <code>2</code></li>
 <li><code>1</code> vs <code>2</code> vs <code>3</code></li>
 </ul>
-
-</article></slide><slide class=""><hgroup><h2>Understanding factorial design through the design matrix</h2></hgroup><article  id="understanding-factorial-design-through-the-design-matrix" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>data(poison, package = &quot;fastR&quot;)  ##  ?fastR::poison for description
-poison$treat &lt;- factor(poison$Treatment)
-poison$poison &lt;- factor(poison$Poison)
-X &lt;- model.matrix( ~ poison + treat, data = poison)
-head(X)</pre>
-
-<pre >##   (Intercept) poison2 poison3 treat2 treat3 treat4
-## 1           1       0       0      0      0      0
-## 2           1       0       0      0      0      0
-## 3           1       0       0      0      0      0
-## 4           1       0       0      0      0      0
-## 5           1       0       0      1      0      0
-## 6           1       0       0      1      0      0</pre>
-
-</article></slide><slide class=""><hgroup><h2>Understanding factorial design through the design matrix</h2></hgroup><article  id="understanding-factorial-design-through-the-design-matrix-1" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>crossprod(X)  ## compute t(X) %*% X, i.e. x_ij = sum(X[, i]*X[, j])</pre>
-
-<pre >##             (Intercept) poison2 poison3 treat2 treat3 treat4
-## (Intercept)          48      16      16     12     12     12
-## poison2              16      16       0      4      4      4
-## poison3              16       0      16      4      4      4
-## treat2               12       4       4     12      0      0
-## treat3               12       4       4      0     12      0
-## treat4               12       4       4      0      0     12</pre>
-
-<pre class = 'prettyprint lang-r'>with(poison, table(treat, poison))</pre>
-
-<pre >##      poison
-## treat 1 2 3
-##     1 4 4 4
-##     2 4 4 4
-##     3 4 4 4
-##     4 4 4 4</pre>
 
 </article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>The errors</h2></hgroup><article  id="the-errors" class="smaller ">
 
@@ -742,8 +856,9 @@ Y = \begin{bmatrix}
 <ul>
 <li>how to write a linear model (using two notations)</li>
 <li>what a response, a design matrix and model parameters are</li>
-<li>how to get the design matrix</li>
+<li>how to understand the design matrix</li>
 <li>that the meaning of the parameter depends on the design matrix</li>
+<li>that different contrast matrices can be used</li>
 <li>how to simulate the data for a linear model</li>
 </ul>
 
