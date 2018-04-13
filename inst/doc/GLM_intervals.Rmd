@@ -268,13 +268,13 @@ rbind(poiss = apply(test_poiss, 1, mean),
 
 ## 95% CI using Gaussian approximation
 
-### Coverage N = 15
+### Coverage N = 30
 ```{r coverage1b, warning = FALSE}
-set.seed(1L)
-test_poiss <- replicate(1000, confint.approx(update(mod_poiss, data = simulate_Aliens_GLM(N = 15))))
-test_binar <- replicate(1000, confint.approx(update(mod_binar, data = simulate_Aliens_GLM(N = 15))))
-test_binom <- replicate(1000, confint.approx(update(mod_binom, data = simulate_Aliens_GLM(N = 15))))
-test_gauss <- replicate(1000, confint.approx(update(mod_gauss, data = simulate_Aliens_GLM(N = 15))))
+set.seed(3L)
+test_poiss <- replicate(1000, confint.approx(update(mod_poiss, data = simulate_Aliens_GLM(N = 30))))
+test_binar <- replicate(1000, confint.approx(update(mod_binar, data = simulate_Aliens_GLM(N = 30))))
+test_binom <- replicate(1000, confint.approx(update(mod_binom, data = simulate_Aliens_GLM(N = 30))))
+test_gauss <- replicate(1000, confint.approx(update(mod_gauss, data = simulate_Aliens_GLM(N = 30))))
 rbind(poiss = apply(test_poiss, 1, mean, na.rm = TRUE),
       binar = apply(test_binar, 1, mean, na.rm = TRUE),
       binom = apply(test_binom, 1, mean, na.rm = TRUE),
@@ -380,13 +380,13 @@ rbind(poiss = apply(test_poiss, 1, mean),
 
 ## 95% CI using likelihood profiling
 
-### Coverage  N = 15
+### Coverage  N = 30
 ```{r  coverage3, message = FALSE, warning = FALSE}
-set.seed(1L)
-test_poiss <- replicate(1000, confint.profile(update(mod_poiss, data = simulate_Aliens_GLM(N = 15))))
-test_binar <- replicate(1000, confint.profile(update(mod_binar, data = simulate_Aliens_GLM(N = 15))))
-test_binom <- replicate(1000, confint.profile(update(mod_binom, data = simulate_Aliens_GLM(N = 15))))
-test_gauss <- replicate(1000, confint.profile(update(mod_gauss, data = simulate_Aliens_GLM(N = 15))))
+set.seed(3L)
+test_poiss <- replicate(1000, confint.profile(update(mod_poiss, data = simulate_Aliens_GLM(N = 30))))
+test_binar <- replicate(1000, confint.profile(update(mod_binar, data = simulate_Aliens_GLM(N = 30))))
+test_binom <- replicate(1000, confint.profile(update(mod_binom, data = simulate_Aliens_GLM(N = 30))))
+test_gauss <- replicate(1000, confint.profile(update(mod_gauss, data = simulate_Aliens_GLM(N = 30))))
 rbind(poiss = apply(test_poiss, 1, mean, na.rm = TRUE),
       binar = apply(test_binar, 1, mean, na.rm = TRUE),
       binom = apply(test_binom, 1, mean, na.rm = TRUE),

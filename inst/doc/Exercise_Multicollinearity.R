@@ -1,6 +1,7 @@
 ## ----setup, include=FALSE------------------------------------------------
 library(LM2GLMM)
-knitr::opts_chunk$set(cache = FALSE, fig.align = "center", fig.width = 5, fig.height = 5)
+knitr::opts_chunk$set(fig.align = "center", fig.width = 5, fig.height = 5,
+                      cache = TRUE, cache.path = "./cache_knitr/Exo_multicollinearity/", fig.path = "./fig_knitr/Exo_multicollinearity/")
 
 ## ------------------------------------------------------------------------
 FungiAlive <- subset(Fungi, alive == TRUE)

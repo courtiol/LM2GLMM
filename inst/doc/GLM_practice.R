@@ -7,7 +7,7 @@ knitr::opts_chunk$set(cache = FALSE, fig.width = 5, fig.height = 5, fig.align = 
 head(esoph)
 
 ## -------------------------------------------------------------------------------------------------
-data(TitanicSurvival, package = "effects")
+data(TitanicSurvival, package = "carData")
 head(TitanicSurvival)
 
 ## -------------------------------------------------------------------------------------------------
