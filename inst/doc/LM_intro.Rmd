@@ -237,6 +237,10 @@ crossprod(DM_raw)  ## high values mean that predictors are colinear -> will be h
 zapsmall(crossprod(DM_ortho))  ## 0 means that predictors are orthogonal -> will be easy to fit
 ```
 
+<br>
+
+It produces a symetric diagonal matrix. Those are particularly math friendly.
+
 ## Why make things more complex?
 
 ### For technical reasons
@@ -247,7 +251,9 @@ m <- model.matrix(object = ~ x, data = somedata2, contrasts.arg = list(x = "cont
 crossprod(m)
 ```
 
-Helmert contrasts are also orthogonal.
+<br>
+
+The predictors in Helmert contrasts are also orthogonal. It also produces a symetric diagonal matrix.
 
 ## Why make things more complex?
 

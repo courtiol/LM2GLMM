@@ -10,6 +10,8 @@ vignette: >
   %\VignetteIndexEntry{2.2 Uncertainty in point estimates}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -21,6 +23,15 @@ library(rgl)
 knitr::knit_hooks$set(webgl = hook_webgl) ## for rgl
 knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_uncertainty/", fig.path = "./fig_knitr/LM_uncertainty/", error = TRUE)
 ```
+
+## The Linear Model: LM
+
+* 2.0 [Introduction](./LM_intro.html)
+* 2.1 [Point estimates](./LM_point_estimates.html)
+* 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
+* 2.3 [Tests](./LM_tests.html)
+* 2.4 [Assumptions and Outliers](./LM_assumptions.html)
+* 2.5 [Let's practice more](./LM_practice.html)
 
 ## You will learn in this session
 
@@ -51,7 +62,7 @@ c(coef(mod_stats), sigma2_error <- summary(mod_stats)$sigma^2)
 
 mod_spaMM_ML   <- fitme(size ~ humans_eaten, data = Alien, method = "ML")
 mod_spaMM_REML <- fitme(size ~ humans_eaten, data = Alien, method = "REML")
-c(mod_spaMM_ML$fixef, sigma2 = mod_spaMM_REML$phi)  ## fixef are same for REML as estimated with ML too
+c(mod_spaMM_ML$fixef, sigma2 = mod_spaMM_REML$phi)  ## in LM fixef are same for ML and REML but not in LMM
 ```
 
 ### Those are point estimates. Estimates are random variables!
@@ -73,7 +84,7 @@ vcov(mod_stats)
 vcov(mod_spaMM_REML)  ## don't use the ML fit here!
 ```
 
-## The estimates of $\beta$ are Gaussian
+## The estimates of $\beta$ are Gaussian (asymptotically)
 
 <br>
 
@@ -86,7 +97,11 @@ candidates <- expand.grid(candidate_intercept = candidate_intercept_u, candidate
 candidates$d <- dmvnorm(x = candidates[, 1:2], mean = coef(mod_stats), sigma = vcov(mod_stats), log = FALSE)
 ```
 
-## Density of the estimates for $\beta$
+<br>
+
+Note: we will reuse the candidate values repeatedly.
+
+## Multivariate density of the estimates for $\beta$
 
 ```{r plot rgl, webgl=TRUE, fig.align="center"}
 library(rgl)  ## to make interactive plots!
@@ -220,6 +235,19 @@ with(candidates, contour(candidate_intercept_u, candidate_slope_u,
 ### Compute the distribution of the estimate of the error variance by parametric bootstrap and compare it to the theoretical result.
 
 # Confidence intervals
+
+## What is a confidence interval?
+
+<font size = 5> If it was computed on an infinite number of datasets coming from the same data generating process, then a confidence interval at level 95% should contain the true (unknown) parameter value for 95% of the sets. </font>
+
+<br>
+
+<font size = 5> Since the observed data correspond to a randomly selected set, then it is likely that the true value of the parameter lies within the confidence interval. </font>
+
+<br>
+
+<font size = 5> Yet, you never know for sure (when using real data). </font>
+
 
 ## CI for $\widehat{\beta}$ with known variance {.build}
 
@@ -362,8 +390,7 @@ pred$residual.scale^2 == summary(mod_stats)$sigma^2  ## estimate of the error va
 ```{r logLik fixed}
 logLik(lm(size ~ 0 + offset(50 + 1.5 * humans_eaten), data = Alien))
 
-mod_spaMM_fix <- fitme(size ~ 0 + offset(50 + 1.5 * humans_eaten), fixed = list(phi = 25), data = Alien)
-mod_spaMM_fix$APHLs$p_v
+logLik(fitme(size ~ 0 + offset(50 + 1.5 * humans_eaten), fixed = list(phi = 25), data = Alien))
 ```
 
 ## Likelihood profiling 1 parameter: $\sigma^2$
@@ -372,7 +399,7 @@ mod_spaMM_fix$APHLs$p_v
 mod_spaMM_allfix <- fitme(size ~ humans_eaten, fixed = list(phi = 25), data = Alien)
 candidate_sigma2 <- seq(10, 70, 0.5)
 logLik_profile <- sapply(candidate_sigma2, function(sigma2) 
-  update(mod_spaMM_allfix, fixed = list(phi = sigma2))$APHLs$p_v)
+  logLik(update(mod_spaMM_allfix, fixed = list(phi = sigma2))))
 plot(logLik_profile ~ candidate_sigma2, type = "l")
 abline(v = 25, col = "green", lwd = 2)
 abline(v = mod_spaMM_ML$phi, col = "blue", lwd = 2)
@@ -381,7 +408,6 @@ abline(v = mod_spaMM_ML$phi, col = "blue", lwd = 2)
 ## Likelihood profiling 1 parameter: intercept
 
 ```{r profile for intercept, fig.align = "center", fig.width = 4, fig.height = 4, fig.show = "hold"}
-# candidate_intercept_u was a sequence of values defined back on slide 7 (could be nice for clarity to redefine it here)
 logLik_profile <- sapply(candidate_intercept_u, function(intercept)
   logLik(lm(size ~ 0 + humans_eaten + offset(rep(intercept, nrow(Alien))), data = Alien)))
 plot(logLik_profile ~ candidate_intercept_u, type = "l")
