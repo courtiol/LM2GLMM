@@ -515,10 +515,10 @@ confint.myboot2 <- function(mod, print = FALSE) {
     update(mod, newY ~ ., data = mod$data)$coef})
   
   intervals <- rbind(
-    "(Intercept)" = boot::boot.ci(list(t0 = as.matrix(rep(coef(mod)[1][[1]], 100)),
+    "(Intercept)" = boot::boot.ci(list(t0 = coef(mod)[[1]],
                                        t = as.matrix(new_betas[1, ]), 
                                        R = 100), type = "basic")$basic[4:5],
-    "humans_eaten" = boot::boot.ci(list(t0 = as.matrix(rep(coef(mod)[2][[1]], 100)),
+    "humans_eaten" = boot::boot.ci(list(t0 = coef(mod)[[2]],
                                         t = as.matrix(new_betas[2, ]),
                                         R = 100), type = "basic")$basic[4:5])
   if (print) print(intervals)
