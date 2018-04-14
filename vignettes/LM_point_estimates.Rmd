@@ -17,6 +17,15 @@ options(width = 120)
 knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_point/", fig.path = "./fig_knitr/LM_point/")
 ```
 
+## The Linear Model: LM
+
+* 2.0 [Introduction](./LM_intro.html)
+* 2.1 [Point estimates](./LM_point_estimates.html)
+* 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
+* 2.3 [Tests](./LM_tests.html)
+* 2.4 [Assumptions and Outliers](./LM_assumptions.html)
+* 2.5 [Let's practice more](./LM_practice.html)
+
 ## You will learn in this session
 
 * what predictions, estimates and residuals are
@@ -348,7 +357,7 @@ deviance(mod_alien_lm)
 (logLik_mod <- logLik(mod_alien_lm))
 (logLik_sat <- sum(dnorm(Alien$size, mean = Alien$size, sd = sqrt(sigma2_resid), log = TRUE)))
 
-(-2 * sigma2_resid * (logLik_mod - logLik_sat))  ## unscaled deviance
+(-2 * sigma2_resid * (logLik_mod - logLik_sat))  ## definition of the unscaled deviance!!!
 ```
 
 Note: the deviance is in LM equal to the residual sum of squares!
@@ -447,10 +456,12 @@ all.equal(Q %*% R, X, check.attributes = FALSE)  ## TRUE: Q %*% R is equal to X!
 
 ```{r QR 3}
 QTY <- t(Q) %*% Y    ## same as mod_alien_lm$effects
-backsolve(R, QTY)    ## RB = QTY 
+backsolve(R, QTY)    ## RB = QTY, solve B for triangular matrix (more efficient than solve(R[1:2, 1:2], QTY[1:2]))
 ```
 
-* Note 1: the matrix $Q^\text{T}Y$ is also used to compute sum of squares in ```anova()```.
+* Note 1: $Q^\text{T}Y$ is also used to compute sum of squares efficiently in e.g. ```anova()```.
+<!--Factor sum of squares is given by sum(QTY[1:2]^2)
+residual sum of square is given by sum(QTY[-c(1:2)]^2)```-->
 * Note 2: other decompositions are sometimes used (e.g. Cholesky).
 
 
@@ -481,7 +492,7 @@ X  <- model.matrix(~ humans_eaten, data = Alien)
 lm.fit(X, Y)
 ```
 
-Then, ```lm.fit()``` calls a C function (Cdqrls) that calls a Fortran function (dqrls, which computes least square solutions) calling another Fortran function (dqrdc2, which performs the QR decomposition).
+Then, ```lm.fit()``` calls a C function (Cdqrls) that calls a Fortran function (dqrls, which will compute estimates after QR) calling another Fortran function (dqrdc2, which performs the QR decomposition).
 
 ```
 C     Dqrdc2 is a *modification* of Linpack's dqrdc ('DQRDC') for R
@@ -498,6 +509,23 @@ c     if you are a computational linear algebra guru and you really
 c     understand how to solve this problem please feel free to
 c     suggest improvements to this code.
 ```
+
+<!--
+It calls .Call(stats:::C_Cdqrls, X, Y, tol = 1e-7, TRUE)
+The last logical only activates some checks about the input.
+This function is defined in src/library/stats/src/lm.c
+as SEXP Cdqrls(SEXP x, SEXP y, SEXP tol, SEXP chk).
+It then calls
+F77_CALL(dqrls)(REAL(qr), &n, &p, REAL(y), &ny, &rtol,
+    REAL(coefficients), REAL(residuals), REAL(effects),
+    &rank, INTEGER(pivot), REAL(qraux), work).
+This fortan function is defined in src/appl/dqrls.f
+as subroutine dqrls(x,n,p,y,ny,tol,b,rsd,qty,k,jpvt,qraux,work).
+It is documented.
+This then calls dqrdc2(x,n,n,p,tol,k,qraux,jpvt,work)
+which is itself defined in the file src/appl/dqrdc2.f
+as subroutine dqrdc2(x,ldx,n,p,tol,k,qraux,jpvt,work).
+-->
 
 # Interpreting estimates
 
