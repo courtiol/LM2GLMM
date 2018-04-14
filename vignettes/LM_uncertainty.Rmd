@@ -36,16 +36,16 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_uncertainty/"
 ## You will learn in this session
 
 * that point estimates are random variables with estimated means and variances
-* that estimates for $\beta$ are Gaussian and the estimate of the error variance is gamma distributed
-* what parametric bootstrap is
-* what 95% Confidence Intervals are
-* that boundaries for 95% CI on $\widehat{\beta}$ are given by the Student distribution
-* what statistical coverage is
-* what the 95% CI on the mean response is
-* what 95% Prediction Intervals are
-* what likelihood profiling is
 * that estimates are not necessarily independent from each other
-* that there are 3 ways to get 95% CI for LM
+* that estimates for $\beta$ are Gaussian and the estimate of the error variance is gamma distributed
+* what the parametric bootstrap is
+* what 95% Confidence Intervals are
+* that there are 3 main ways to get 95% CI for LM
+* that boundaries for 95% CI on $\widehat{\beta}$ are given by the Student distribution
+* what likelihood profiling is
+* what statistical coverage is
+* what 95% CI on the mean response are
+* what 95% Prediction Intervals are
 
 
 # Introduction
@@ -192,6 +192,18 @@ plot(ecdf(new_sigma2_error), col = "red", add = TRUE)
 
 # Comparing theoretical distributions to parametric bootstrap
 
+## The idea of bootstraps
+
+### The idea of bootstrap is to get a sense of the variability between datasets (non-parametric boostrap) or estimates (parametric bootstrap) that we would get if we could really draw several datasets, while considering that we cannot.
+
+<br>
+
+* When we simulate, we decide what the parameter values really are.
+* When we fit, we estimate what the unknown parameter values are.
+* Bootstrap: something in the middle; we simulate new observations considering the estimates as the true parameter values.
+    * Non-parametric bootstrap: bootstrap samples that are iid (independent and identically distributed) from the point of view of the empirical distribution.
+    * Parametric bootstrap: bootstrap samples that are iid from the point of view of the estimates.
+
 
 ## Comparison with parametric bootstrap
 
@@ -228,7 +240,7 @@ with(candidates, contour(candidate_intercept_u, candidate_slope_u,
   matrix(d, nrow = length(candidate_intercept_u)), nlevels = 4, add = TRUE))
 ```
 
-## Practice
+## Let's practice!
 
 <br>
 
@@ -248,6 +260,7 @@ with(candidates, contour(candidate_intercept_u, candidate_slope_u,
 
 <font size = 5> Yet, you never know for sure (when using real data). </font>
 
+# Confidence intervals: asymptotic
 
 ## CI for $\widehat{\beta}$ with known variance {.build}
 
@@ -280,7 +293,6 @@ c(Qt_0.025 = qt(0.025, df = 10), Qt_0.975 = qt(0.975, df = 10))  ## with N-K = 1
 <font size = 6> $[\widehat{\beta} + \mathrm{Q}0.025_{\mathcal{t}_{N - K}} \times \widehat{\sigma_{\widehat{\beta}}}; \ \widehat{\beta} + \mathrm{Q}0.975_{\mathcal{t}_{N - K}} \times \widehat{\sigma_{\widehat{\beta}}}]$ </font>
 
 
-
 ## Computing 95% CI for estimates
 
 ```{r CI Wald}
@@ -298,6 +310,8 @@ set.seed(1L)
 mean(replicate(5000, sum(findInterval(confint(update(mod_stats, data = simulate_Aliens()))[1, ], 50)) == 1))
 mean(replicate(5000, sum(findInterval(confint(update(mod_stats, data = simulate_Aliens()))[2, ], 1.5)) == 1))
 ```
+
+# Confidence intervals: parametric bootstraps
 
 ## Computing 95% CI for estimates (param. boot.)
 
@@ -346,8 +360,10 @@ refit(data = newY(Alien, mod_stats)) ## fit on data simulated by parametric boot
 ### 2. Run the parameteric bootstrap using ```boot```
 ```{r param boot proper 2, message = FALSE}
 library(boot)
-(sim.boot <- boot(data = Alien, statistic = refit, ran.gen = newY,
+(sim.boot1 <- boot(data = Alien, statistic = refit, ran.gen = newY,
                   i = 1, R = 100, sim = "parametric")) ## change i to 2 for the slope!
+sim.boot2 <- boot(data = Alien, statistic = refit, ran.gen = newY,
+                  i = 2, R = 100, sim = "parametric")
 ```
 <br>
 
@@ -357,7 +373,10 @@ Note: the bias (= mean bootstraps - estimate) will be accounted for!
 
 ### 3. Compute the CI using ```boot.ci```
 ```{r param boot proper 3}
-boot.ci(sim.boot, type = "basic")
+boot.ci(sim.boot1, type = "basic")  ## try also type = "norm"
+
+(confint_boot2 <- rbind(boot.ci(sim.boot1, type = "basic")$basic[, 4:5],
+                        boot.ci(sim.boot2, type = "basic")$basic[, 4:5]))
 ```
 
 ## Testing the coverage of the 95% CI (proper param. boot.)
@@ -390,9 +409,9 @@ CIboot2b <- function(rep = 100, i){
   mod <- update(mod_stats, data = data)
   newYs <- simulate(mod, nsim = rep)
   res_sim <- t(coef(lm(as.matrix(newYs) ~ humans_eaten, data = data)))
-  boot.ci(list(t0 = coef(mod)[i][[1]],
-               t = res_sim[, i, drop = FALSE], 
-               R = nrow(res_sim)), type = "basic")$basic[, 4:5]
+  boot.ci(list(t0 = coef(mod)[[i]],
+               t  = res_sim[, i, drop = FALSE], 
+               R  = nrow(res_sim)), type = "basic")$basic[, 4:5]
 }
 set.seed(1L)
 c(mean(replicate(5000, sum(findInterval(CIboot2b(i = 1), 50)) == 1)),
@@ -403,62 +422,7 @@ c(mean(replicate(5000, sum(findInterval(CIboot2b(i = 1), 50)) == 1)),
 Note: we bypass ```boot()``` to save time (a single call to ```simulate()``` is more efficient).
 
 
-## 95% CI for the mean response
-
-```{r CI predVar, fig.align="center", fig.width=4, fig.height=4}
-pred <- data.frame(humans_eaten = seq(1, 12, 0.1))
-pred <- cbind(pred, predict(mod_stats, newdata = pred, interval = "confidence"))
-plot(size ~ humans_eaten, data = Alien)
-points(fit ~ humans_eaten, data = pred, lty = 1, lwd = 2, col = "blue", type = "l")
-points(upr ~ humans_eaten, data = pred, lty = 2, lwd = 2, col = "blue", type = "l")
-points(lwr ~ humans_eaten, data = pred, lty = 2, lwd = 2, col = "blue", type = "l")
-```
-
-## Computing 95% CI for the mean response
-
-```{r compute predVar}
-predict(mod_stats, newdata = data.frame(humans_eaten = 4:5), interval = "confidence")
-pred <- predict(mod_stats, newdata = data.frame(humans_eaten = 4:5), interval = "confidence", se.fit = TRUE)
-rbind(c(pred$fit[1, "fit"] + quantile_min * pred$se.fit[1], 
-        pred$fit[1, "fit"] + quantile_max * pred$se.fit[1]),
-      c(pred$fit[2, "fit"] + quantile_min * pred$se.fit[2], 
-        pred$fit[2, "fit"] + quantile_max * pred$se.fit[2]))
-```
-
-## Computing 95% CI for the mean response
-
-```{r compute predVar2}
-pred$se.fit^2 ## prediction variance
-(X <- cbind(c(1, 1), 4:5))  ## design matrix
-(vcov.means <- X %*% vcov(mod_stats) %*% t(X))  ## covariances for predicted values
-diag(vcov.means)
-```
-
-# Prediction interval
-
-## 95% Prediction Interval
-
-```{r respVar, fig.align="center", fig.width=4, fig.height=4}
-pred <- data.frame(humans_eaten = seq(1, 12, 0.1))
-pred <- cbind(pred, predict(mod_stats, newdata = pred, interval = "prediction"))
-plot(size ~ humans_eaten, data = Alien)
-points(fit ~ humans_eaten, data = pred, lty = 1, lwd = 2, col = "red", type = "l")
-points(upr ~ humans_eaten, data = pred, lty = 2, lwd = 2, col = "red", type = "l")
-points(lwr ~ humans_eaten, data = pred, lty = 2, lwd = 2, col = "red", type = "l")
-```
-
-## Computing 95% PI
-
-```{r compute respVar}
-pred <- predict(mod_stats, newdata = data.frame(humans_eaten = 4), interval = "prediction", se.fit = TRUE)
-pred$fit
-se.pred <- sqrt(pred$se.fit^2 + pred$residual.scale^2)
-pred$fit[, "fit"] + quantile_min * se.pred
-pred$fit[, "fit"] + quantile_max * se.pred
-pred$residual.scale^2 == summary(mod_stats)$sigma^2  ## estimate of the error variance
-```
-
-# Likelihood profiling
+# Confidence intervals: likelihood profiling
 
 ## Computing the likelihood for specific parameters
 
@@ -558,8 +522,8 @@ CI_intercept <- function(model_ref) {
   upr <- optimise(where.is.limit.inter, interval = c(coef(model_ref)[1], coef(model_ref)[1] + 10),
                   model_ref = model_ref)
   return(c(lwr = lwr$minimum, upr = upr$minimum))}
-rbind("using SE" = confint(mod_stats)[1, ], "using SE boot" = confint_boot[1, ],
-      "using profile" = CI_intercept(mod_stats))
+rbind("using SE" = confint(mod_stats)[1, ], "using SE boot 1" = confint_boot[1, ],
+      "using SE boot 2" = confint_boot2[1, ], "using profile" = CI_intercept(mod_stats))
 ```
 
 ## Same for the slope
@@ -580,8 +544,8 @@ CI_slope <- function(model_ref) {
   return(c(lwr = lwr$minimum, upr = upr$minimum))
 }
 
-rbind("using SE" = confint(mod_stats)[2, ], "using SE boot" = confint_boot[2, ],
-      "using profile" = CI_slope(mod_stats))
+rbind("using SE" = confint(mod_stats)[2, ], "using SE boot 1" = confint_boot[2, ],
+      "using SE boot 2" = confint_boot2[2, ], "using profile" = CI_slope(mod_stats))
 ```
 
 ## Testing the coverage of the 95% CI by profile
@@ -599,20 +563,78 @@ mean(replicate(n.replicates, sum(findInterval(CI_slope(lm(size ~ humans_eaten,
     data = simulate_Aliens(N = 500))), 1.5)) == 1))
 ```
 
+# Confidence intervals of the mean response
+
+## 95% CI for the mean response
+
+```{r CI predVar, fig.align="center", fig.width=4, fig.height=4}
+pred <- data.frame(humans_eaten = seq(1, 12, 0.1))
+pred <- cbind(pred, predict(mod_stats, newdata = pred, interval = "confidence"))
+plot(size ~ humans_eaten, data = Alien)
+points(fit ~ humans_eaten, data = pred, lty = 1, lwd = 2, col = "blue", type = "l")
+points(upr ~ humans_eaten, data = pred, lty = 2, lwd = 2, col = "blue", type = "l")
+points(lwr ~ humans_eaten, data = pred, lty = 2, lwd = 2, col = "blue", type = "l")
+```
+
+## Computing 95% CI for the mean response
+
+```{r compute predVar}
+predict(mod_stats, newdata = data.frame(humans_eaten = 4:5), interval = "confidence")
+pred <- predict(mod_stats, newdata = data.frame(humans_eaten = 4:5), interval = "confidence", se.fit = TRUE)
+rbind(c(pred$fit[1, "fit"] + quantile_min * pred$se.fit[1], 
+        pred$fit[1, "fit"] + quantile_max * pred$se.fit[1]),
+      c(pred$fit[2, "fit"] + quantile_min * pred$se.fit[2], 
+        pred$fit[2, "fit"] + quantile_max * pred$se.fit[2]))
+```
+
+## Computing 95% CI for the mean response
+
+```{r compute predVar2}
+pred$se.fit^2 ## prediction variance
+(X <- cbind(c(1, 1), 4:5))  ## design matrix
+(vcov.means <- X %*% vcov(mod_stats) %*% t(X))  ## covariances for predicted values
+diag(vcov.means)
+```
+
+
+# Prediction interval
+
+## 95% Prediction Interval
+
+```{r respVar, fig.align="center", fig.width=4, fig.height=4}
+pred <- data.frame(humans_eaten = seq(1, 12, 0.1))
+pred <- cbind(pred, predict(mod_stats, newdata = pred, interval = "prediction"))
+plot(size ~ humans_eaten, data = Alien)
+points(fit ~ humans_eaten, data = pred, lty = 1, lwd = 2, col = "red", type = "l")
+points(upr ~ humans_eaten, data = pred, lty = 2, lwd = 2, col = "red", type = "l")
+points(lwr ~ humans_eaten, data = pred, lty = 2, lwd = 2, col = "red", type = "l")
+```
+
+## Computing 95% PI
+
+```{r compute respVar}
+pred <- predict(mod_stats, newdata = data.frame(humans_eaten = 4), interval = "prediction", se.fit = TRUE)
+pred$fit
+se.pred <- sqrt(pred$se.fit^2 + pred$residual.scale^2)
+pred$fit[, "fit"] + quantile_min * se.pred
+pred$fit[, "fit"] + quantile_max * se.pred
+pred$residual.scale^2 == summary(mod_stats)$sigma^2  ## estimate of the error variance
+```
+
 
 ## What you need to remember
 
 * that point estimates are random variables with estimated means and variances
-* that estimates for $\beta$ are Gaussian and the estimate of the error variance is Gamma distributed
-* what parametric bootstrap is
-* what 95% Confidence Intervals are
-* that boundaries for 95% CI on $\widehat{\beta}$ are given by the Student distribution
-* what statistical coverage is
-* what the 95% CI on the mean response is
-* what 95% Prediction Intervals are
-* what likelihood profiling is
 * that estimates are not necessarily independent from each other
-* that there are 3 ways to get 95% CI for LM
+* that estimates for $\beta$ are Gaussian and the estimate of the error variance is gamma distributed
+* what the parametric bootstrap is
+* what 95% Confidence Intervals are
+* that there are 3 main ways to get 95% CI for LM
+* that boundaries for 95% CI on $\widehat{\beta}$ are given by the Student distribution
+* what likelihood profiling is
+* what statistical coverage is
+* what 95% CI on the mean response are
+* what 95% Prediction Intervals are
 
 # Table of contents
 
