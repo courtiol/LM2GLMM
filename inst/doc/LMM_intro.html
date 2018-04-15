@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2018-04-14" />
+  <meta name="date" content="2018-04-15" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,7 +94,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2018-04-14</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2018-04-15</p>
           </hgroup>
   </slide>
 
@@ -480,7 +480,7 @@ logLik(mod_constr)</pre>
 )</pre>
 
 <pre >##    user  system elapsed 
-##  39.619   0.367  40.332</pre>
+##  39.234   0.300  39.767</pre>
 
 </article></slide><slide class=""><hgroup><h2>Fitting the mixed model numerically</h2></hgroup><article  id="fitting-the-mixed-model-numerically-1" class="smaller ">
 
@@ -929,7 +929,7 @@ plot(ecdf(pvalues)); abline(0, 1, col = 2)</pre>
 <pre class = 'prettyprint lang-r'>library(pbkrtest)
 PBmodcomp(mod_lmm_lme4, mod_lmm_lme4_nonitro, nsim = 500)</pre>
 
-<pre >## Parametric bootstrap test; time: 10.87 sec; samples: 500 extremes: 0;
+<pre >## Parametric bootstrap test; time: 10.68 sec; samples: 500 extremes: 0;
 ## large : yield ~ nitro + Variety + (1 | Block)
 ## small : yield ~ Variety + (1 | Block)
 ##          stat df   p.value    
@@ -954,7 +954,7 @@ anova(mod_lmm_spaMM, mod_lmm_spaMM_nonitro)</pre>
 
 <pre class = 'prettyprint lang-r'>anova(mod_lmm_spaMM, mod_lmm_spaMM_nonitro, boot.repl = 500, nb_cores = 4) ## for 4 CPUs</pre>
 
-<pre >## Bootstrap replicates: bootstrap took 23.8 s.</pre>
+<pre >## Bootstrap replicates: bootstrap took 24 s.</pre>
 
 <pre >##      chi2_LR df      p_value
 ## p_v 55.57491  1 8.992806e-14
@@ -2366,7 +2366,7 @@ A[1305:1309, 1296:1309]</pre>
 system.time(mod1 &lt;- fitme(BWT ~ 1 + corrMatrix(1|ID), corrMatrix = A, data = Gryphon$data, method = &quot;REML&quot;))</pre>
 
 <pre >##    user  system elapsed 
-##  62.788   3.375  66.302</pre>
+##  61.284   2.690  64.055</pre>
 
 <pre class = 'prettyprint lang-r'>(h2 &lt;- as.numeric(mod1$lambda / (mod1$lambda + mod1$phi)))</pre>
 
@@ -2384,7 +2384,7 @@ system.time(
   )</pre>
 
 <pre >##    user  system elapsed 
-## 221.068  10.814 229.973</pre>
+## 218.695   9.612 228.728</pre>
 
 <pre class = 'prettyprint lang-r'>h2 &lt;- as.numeric(mod2$lambda[&quot;ID&quot;]     / (sum(mod2$lambda) + mod2$phi))
 m2 &lt;- as.numeric(mod2$lambda[&quot;mother&quot;] / (sum(mod2$lambda) + mod2$phi))
@@ -3038,7 +3038,7 @@ anova(mod_spaMM2, mod_spaMM2_H0)</pre>
 
 <pre class = 'prettyprint lang-r'>res.boot &lt;- anova(mod_spaMM2, mod_spaMM2_H0, boot.repl = 1000)</pre>
 
-<pre >## Bootstrap replicates: bootstrap took 266.6 s.</pre>
+<pre >## Bootstrap replicates: bootstrap took 265.9 s.</pre>
 
 </article></slide><slide class=""><hgroup><h2>Can we do abstraction of fixed effects?</h2></hgroup><article  id="can-we-do-abstraction-of-fixed-effects-2" class="smaller ">
 
@@ -3128,7 +3128,7 @@ anova(mod_spaMM3, mod_spaMM3_H0)</pre>
 
 <pre class = 'prettyprint lang-r'>res.boot2 &lt;- anova(mod_spaMM3, mod_spaMM3_H0, boot.repl = 1000)</pre>
 
-<pre >## Bootstrap replicates: bootstrap took 133.4 s.</pre>
+<pre >## Bootstrap replicates: bootstrap took 132.3 s.</pre>
 
 </article></slide><slide class=""><hgroup><h2>Does vaccination work?</h2></hgroup><article  id="does-vaccination-work-2" class="smaller ">
 

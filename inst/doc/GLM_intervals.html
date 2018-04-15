@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2018-04-14" />
+  <meta name="date" content="2018-04-15" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,7 +94,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2018-04-14</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2018-04-15</p>
           </hgroup>
   </slide>
 
@@ -669,10 +669,10 @@ test_gauss &lt;- replicate(1000, {
     update(mod, newY ~ ., data = mod$data)$coef})
   
   intervals &lt;- rbind(
-    &quot;(Intercept)&quot; = boot::boot.ci(list(t0 = as.matrix(rep(coef(mod)[1][[1]], 100)),
+    &quot;(Intercept)&quot; = boot::boot.ci(list(t0 = coef(mod)[[1]],
                                        t = as.matrix(new_betas[1, ]), 
                                        R = 100), type = &quot;basic&quot;)$basic[4:5],
-    &quot;humans_eaten&quot; = boot::boot.ci(list(t0 = as.matrix(rep(coef(mod)[2][[1]], 100)),
+    &quot;humans_eaten&quot; = boot::boot.ci(list(t0 = coef(mod)[[2]],
                                         t = as.matrix(new_betas[2, ]),
                                         R = 100), type = &quot;basic&quot;)$basic[4:5])
   if (print) print(intervals)
@@ -1149,7 +1149,7 @@ cbind(LR, pvalue)</pre>
 
 <pre class = 'prettyprint lang-r'>anova(mod_gauss2_spaMM, mod_gauss2_spaMM0, boot.repl = 200)</pre>
 
-<pre >## Bootstrap replicates: bootstrap took 9.4 s.</pre>
+<pre >## Bootstrap replicates: bootstrap took 9.6 s.</pre>
 
 <pre >##      chi2_LR df      p_value
 ## p_v 12.04748  1 0.0005186244
@@ -1165,7 +1165,7 @@ cbind(LR, pvalue)</pre>
 
 <pre class = 'prettyprint lang-r'>anova(mod_poiss2_spaMM, mod_poiss2_spaMM0, boot.repl = 200)</pre>
 
-<pre >## Bootstrap replicates: bootstrap took 6.8 s.</pre>
+<pre >## Bootstrap replicates: bootstrap took 6.4 s.</pre>
 
 <pre >##      chi2_LR df   p_value
 ## p_v 0.234734  1 0.6280356
