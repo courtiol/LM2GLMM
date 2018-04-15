@@ -411,7 +411,7 @@ Note: the bias (= mean bootstrap - estimate) will be accounted for!
 
 ### 3. Compute the CI using ```boot.ci```
 ```{r param boot proper 3}
-boot.ci(sim.boot1, type = "basic")  ## alternative: "perc", "norm"
+boot.ci(sim.boot1, type = "basic")  ## alternative: "perc", "norm", "stud"
 
 (confint_boot2 <- rbind(boot.ci(sim.boot1, type = "basic")$basic[, 4:5],
                         boot.ci(sim.boot2, type = "basic")$basic[, 4:5]))
@@ -477,6 +477,11 @@ set.seed(1L)
 c(mean(replicate(5000, sum(findInterval(CIboot2c(i = 1), 50)) == 1)),
   mean(replicate(5000, sum(findInterval(CIboot2c(i = 2), 1.5)) == 1)))
 ```
+
+<br>
+
+Note: here it accounts for the uncertainty in the estimation of the variance.
+
 
 # Confidence intervals: likelihood profiling
 
