@@ -1,7 +1,8 @@
 ## ----setup, include=FALSE------------------------------------------------
 library(LM2GLMM)
 library(car)
-knitr::opts_chunk$set(cache = FALSE, fig.align = "center", fig.width = 6, fig.height = 6)
+knitr::opts_chunk$set(cache = TRUE, fig.align = "center", fig.width = 6, fig.height = 6,
+                      cache.path = "./cache_knitr/Exo_GLM/", fig.path = "./fig_knitr/Exo_GLM/")
 
 ## ------------------------------------------------------------------------
 mod_insect <- lm(count ~ spray, data = InsectSprays)
