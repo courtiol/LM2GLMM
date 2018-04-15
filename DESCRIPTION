@@ -22,7 +22,7 @@ Imports:
     DHARMa,
     effects,
     ellipse,
-    spaMM (>= 2.0.0),
+    spaMM (>= 2.4.8),
     stats,
     glm2,
     gtools,
