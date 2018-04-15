@@ -448,9 +448,9 @@ CIboot2b <- function(rep = 100, i){
   mod <- update(mod_stats, data = data)
   newYs <- simulate(mod, nsim = rep)
   res_sim <- t(coef(lm(as.matrix(newYs) ~ humans_eaten, data = data)))
-  boot.ci(list(t0 = coef(mod)[[i]],
-               t  = res_sim[, i, drop = FALSE], 
-               R  = nrow(res_sim)), type = "basic")$basic[, 4:5]
+  boot.ci(boot.out = list(R = nrow(res_sim)),
+          t0 = coef(mod)[[i]], t  = res_sim[, i, drop = FALSE],
+          type = "basic")$basic[, 4:5]
 }
 set.seed(1L)
 c(mean(replicate(5000, sum(findInterval(CIboot2b(i = 1), 50)) == 1)),
@@ -460,6 +460,23 @@ c(mean(replicate(5000, sum(findInterval(CIboot2b(i = 1), 50)) == 1)),
 
 Note: we bypass ```boot()``` to save time (a single call to ```simulate()``` is more efficient).
 
+## Testing the coverage of the 95% CI (using boot)
+
+```{r coverage CI param boot proper 3}
+CIboot2c <- function(rep = 100, i){
+  data <- simulate_Aliens()
+  mod <- update(mod_stats, data = data)
+  newYs <- simulate(mod, nsim = rep)
+  res_sim <- t(coef(lm(as.matrix(newYs) ~ humans_eaten, data = data)))
+  boot.ci(boot.out = list(R = nrow(res_sim)),
+          t0 = coef(mod)[[i]], t  = res_sim[, i, drop = FALSE],
+          var.t0 = vcov(mod)[i, i], var.t = rep(var(res_sim[, i]), nrow(res_sim)),
+          type = "stud")$student[, 4:5]
+}
+set.seed(1L)
+c(mean(replicate(5000, sum(findInterval(CIboot2c(i = 1), 50)) == 1)),
+  mean(replicate(5000, sum(findInterval(CIboot2c(i = 2), 1.5)) == 1)))
+```
 
 # Confidence intervals: likelihood profiling
 
