@@ -192,9 +192,11 @@ plot(ecdf(new_sigma2_error), col = "red", add = TRUE)
 
 # Comparing theoretical distributions to parametric bootstrap
 
-## The idea of bootstraps
+## The aim of the bootstrap
 
-### The idea of bootstrap is to get a sense of the variability between datasets (non-parametric boostrap) or estimates (parametric bootstrap) that we would get if we could really draw several datasets, while considering that we cannot.
+<font size = 5> The aim of the boostrap is to approximate the distribution of a statistic, in cases where parameters are not known (as usual) and where this distribution is not known analytically for given parameters. </font>
+
+<font size = 5>  The data (non-parametric bootstrap), or estimates derived from it (parametric bootstrap) are used as approximations to the unknown distribution. </font>
 
 <br>
 
@@ -250,15 +252,19 @@ with(candidates, contour(candidate_intercept_u, candidate_slope_u,
 
 ## What is a confidence interval?
 
-<font size = 5> If it was computed on an infinite number of datasets coming from the same data generating process, then a confidence interval at level 95% should contain the true (unknown) parameter value for 95% of the sets. </font>
+<font size = 5> For any interval-construction method applied to samples from a distribution characterized by some parameter value P, the coverage is by definition the probability that the interval contains P. </font>
+
+<font size = 5>
+By definition, an interval is an exact confidence interval with given coverage X if its coverage is X for any parameter P.
+</font>
 
 <br>
 
-<font size = 5> Since the observed data correspond to a randomly selected set, then it is likely that the true value of the parameter lies within the confidence interval. </font>
+<font size = 5> Most methods for interval computation are approximate, i.e. the actual coverage differs from the given coverage X. </font>
 
-<br>
+<font size = 5> Since the observed data correspond to a randomly selected set, then it is likely that the true value of the parameter lies within the confidence interval. Yet, you never know for sure (when using real data). </font>
 
-<font size = 5> Yet, you never know for sure (when using real data). </font>
+<font size = 5> Note: a confidence interval is also the set of parameter values not rejected by a given test. </font>
 
 # Confidence intervals: asymptotic
 
@@ -311,7 +317,31 @@ mean(replicate(5000, sum(findInterval(confint(update(mod_stats, data = simulate_
 mean(replicate(5000, sum(findInterval(confint(update(mod_stats, data = simulate_Aliens()))[2, ], 1.5)) == 1))
 ```
 
-# Confidence intervals: parametric bootstraps
+# Confidence intervals: parametric bootstrap
+
+## How to get CI using from parametric bootstrap
+
+We have
+
+* one real parameter (out of one possible): $a$
+* one estimate (out of many possible): $\widehat{a}$
+* bootstrap: a set of $a^*$
+
+We assume that
+
+* the difference $\widehat{a} - a$ follows the same distribution than the difference $a^* - \widehat{a}$
+
+Thus
+
+$\widehat{a} - a \sim \widehat{a} - (a^* - \widehat{a}) = 2\widehat{a} - a^*$
+
+Example using the bootstrap expectation:
+
+If $a = 1$ and $\widehat{a} = 2$ then we expect $\overline{a^*} = 3$;
+
+Reciprocally,
+
+if $\overline{a^*} = 3$ and $\widehat{a} = 2$, we infer $\widehat{a} - a \sim 2\widehat{a} - \overline{a^*} = 2 \times 2 - 3 = 1$ so $a \sim \widehat{a} - 1 = 1$.
 
 ## Computing 95% CI for estimates (param. boot.)
 
@@ -319,12 +349,19 @@ mean(replicate(5000, sum(findInterval(confint(update(mod_stats, data = simulate_
 confint(mod_stats)  ## asymptotic (for comparison)
 ```
 
-It still depends on the t-distribution but SE are no longer computed analytically:
+We now longer use the knowledge of the asymptotic distribution:
 
 ```{r CI param boot}
-ses <- t(apply(res_sim, 2, sd))  ## compute sd of estimates from parametric bootstrap
-(confint_boot <- cbind(c(coef(mod_stats) + quantile_min * ses), c(coef(mod_stats) + quantile_max * ses)))
+(confint_boot <- rbind(quantile(2*coef(mod_stats)[1] - res_sim[, 1], probs = c(0.025, 0.975)),
+                       quantile(2*coef(mod_stats)[2] - res_sim[, 2], probs = c(0.025, 0.975))))
 ```
+
+<!--
+Before I was not accounting for bias:
+ses <- t(apply(res_sim, 2, sd))  ## compute sd of estimates from parametric bootstrap
+
+(confint_boot <- cbind(c(coef(mod_stats) + quantile_min * ses), c(coef(mod_stats) + quantile_max * ses)))
+-->
 
 ## Testing the coverage of the 95% CI (param. boot.)
 
@@ -334,15 +371,16 @@ CIboot <- function(rep = 100){
   mod <- update(mod_stats, data = data)
   newYs <- simulate(mod, nsim = rep)
   res_sim <- t(coef(lm(as.matrix(newYs) ~ humans_eaten, data = data)))
-  ses <- apply(res_sim, 2, sd)
-  cbind(coef(mod) + quantile_min * ses, coef(mod) + quantile_max * ses)
+  rbind(quantile(2*coef(mod)[1] - res_sim[, 1], probs = c(0.025, 0.975)),
+        quantile(2*coef(mod)[2] - res_sim[, 2], probs = c(0.025, 0.975)))
 }
 set.seed(1L)
 mean(replicate(5000, sum(findInterval(CIboot()[1, ], 50)) == 1))
 mean(replicate(5000, sum(findInterval(CIboot()[2, ], 1.5)) == 1))
 ```
 
-## CI using proper parametric bootstrap
+
+## CI using the package boot
 
 ### 1. Define the functions computing statistics and new data
 ```{r param boot proper 1}
@@ -355,7 +393,7 @@ refit(Alien) ## the original fit
 refit(data = newY(Alien, mod_stats)) ## fit on data simulated by parametric bootstrap
 ```
 
-## CI using proper parametric bootstrap
+## CI using the package boot
 
 ### 2. Run the parameteric bootstrap using ```boot```
 ```{r param boot proper 2, message = FALSE}
@@ -367,19 +405,20 @@ sim.boot2 <- boot(data = Alien, statistic = refit, ran.gen = newY,
 ```
 <br>
 
-Note: the bias (= mean bootstraps - estimate) will be accounted for!
+Note: the bias (= mean bootstrap - estimate) will be accounted for!
 
-## CI using proper parametric bootstrap
+## CI using the package boot
 
 ### 3. Compute the CI using ```boot.ci```
 ```{r param boot proper 3}
-boot.ci(sim.boot1, type = "basic")  ## try also type = "norm"
+boot.ci(sim.boot1, type = "basic")  ## alternative: "perc", "norm"
 
 (confint_boot2 <- rbind(boot.ci(sim.boot1, type = "basic")$basic[, 4:5],
                         boot.ci(sim.boot2, type = "basic")$basic[, 4:5]))
 ```
 
-## Testing the coverage of the 95% CI (proper param. boot.)
+
+## Testing the coverage of the 95% CI (using boot)
 
 ```{r coverage CI param boot proper}
 CIboot2a <- function(rep = 100, i){
@@ -401,7 +440,7 @@ c(mean(replicate(500, sum(findInterval(CIboot2a(i = 1), 50)) == 1)),
 
 Note: extremelly slow...
 
-## Testing the coverage of the 95% CI (proper param. boot.)
+## Testing the coverage of the 95% CI (using boot)
 
 ```{r coverage CI param boot proper 2}
 CIboot2b <- function(rep = 100, i){
