@@ -449,7 +449,8 @@ CIboot2b <- function(rep = 100, i){
   newYs <- simulate(mod, nsim = rep)
   res_sim <- t(coef(lm(as.matrix(newYs) ~ humans_eaten, data = data)))
   boot.ci(boot.out = list(R = nrow(res_sim)),
-          t0 = coef(mod)[[i]], t  = res_sim[, i, drop = FALSE],
+          t0 = coef(mod)[[i]],
+          t  = res_sim[, i, drop = FALSE],
           type = "basic")$basic[, 4:5]
 }
 set.seed(1L)
@@ -458,7 +459,10 @@ c(mean(replicate(5000, sum(findInterval(CIboot2b(i = 1), 50)) == 1)),
 ```
 <br>
 
-Note: we bypass ```boot()``` to save time (a single call to ```simulate()``` is more efficient).
+Note 1: we bypass ```boot()``` to save time (a single call to ```simulate()``` is more efficient).
+
+Note 2: there are many variations of the parametric bootstrap!
+
 
 ## Testing the coverage of the 95% CI (using boot)
 
@@ -469,8 +473,10 @@ CIboot2c <- function(rep = 100, i){
   newYs <- simulate(mod, nsim = rep)
   res_sim <- t(coef(lm(as.matrix(newYs) ~ humans_eaten, data = data)))
   boot.ci(boot.out = list(R = nrow(res_sim)),
-          t0 = coef(mod)[[i]], t  = res_sim[, i, drop = FALSE],
-          var.t0 = vcov(mod)[i, i], var.t = rep(var(res_sim[, i]), nrow(res_sim)),
+          t0 = coef(mod)[[i]],
+          t  = res_sim[, i, drop = FALSE],
+          var.t0 = vcov(mod)[i, i],
+          var.t = rep(var(res_sim[, i]), nrow(res_sim)),
           type = "stud")$student[, 4:5]
 }
 set.seed(1L)
@@ -480,7 +486,7 @@ c(mean(replicate(5000, sum(findInterval(CIboot2c(i = 1), 50)) == 1)),
 
 <br>
 
-Note: here it accounts for the uncertainty in the estimation of the variance.
+Note: here it accounts for the uncertainty in the estimation of the variance (but not great either...).
 
 
 # Confidence intervals: likelihood profiling
@@ -583,8 +589,8 @@ CI_intercept <- function(model_ref) {
   upr <- optimise(where.is.limit.inter, interval = c(coef(model_ref)[1], coef(model_ref)[1] + 10),
                   model_ref = model_ref)
   return(c(lwr = lwr$minimum, upr = upr$minimum))}
-rbind("using SE" = confint(mod_stats)[1, ], "using SE boot 1" = confint_boot[1, ],
-      "using SE boot 2" = confint_boot2[1, ], "using profile" = CI_intercept(mod_stats))
+rbind("using Student" = confint(mod_stats)[1, ], "using bootstrap 1" = confint_boot[1, ],
+      "using bootstrap 2" = confint_boot2[1, ], "using profile" = CI_intercept(mod_stats))
 ```
 
 ## Same for the slope
@@ -605,8 +611,8 @@ CI_slope <- function(model_ref) {
   return(c(lwr = lwr$minimum, upr = upr$minimum))
 }
 
-rbind("using SE" = confint(mod_stats)[2, ], "using SE boot 1" = confint_boot[2, ],
-      "using SE boot 2" = confint_boot2[2, ], "using profile" = CI_slope(mod_stats))
+rbind("using Student" = confint(mod_stats)[2, ], "using bootstrap 1" = confint_boot[2, ],
+      "using bootstrap 2" = confint_boot2[2, ], "using profile" = CI_slope(mod_stats))
 ```
 
 ## Testing the coverage of the 95% CI by profile
