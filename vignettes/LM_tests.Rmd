@@ -13,6 +13,7 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
+options(width = 120)
 library(LM2GLMM)
 library(spaMM)
 library(lattice)
@@ -250,7 +251,7 @@ stat.rand <- replicate(1000, {
   c(2*(logLik(mod_milk) - logLik(mod_no_milk)))
   })
 
-mean(stat.rand >= stat.obs)
+mean(stat.rand >= stat.obs) #or better: (sum(stat.rand >= stat.obs) + 1) / (length(stat.rand) + 1)
 ```
 
 ## LRT by parametric boostrap
@@ -260,7 +261,7 @@ hist(stat.rand)
 abline(v = stat.obs, lwd = 2, lty = 2, col = "red")
 ```
 
-# Comparing two non-nested models
+# Comparing two non-nested models (with same response!)
 
 ## Comparing two non-nested models using deviance
 
@@ -281,7 +282,7 @@ deviance(mod_UK5)
 
 You may use the AIC (AIC = -2 * (logLik - K)) (smaller is better) even if df differ
 
-```{r non nested AIC, cache = FALSE}
+```{r non nested AIC}
 AIC(mod_UK1)
 AIC(mod_UK5)
 exp((AIC(mod_UK5) - AIC(mod_UK1)) / 2) ## evidence ratio
@@ -322,7 +323,7 @@ LRTH0 <- replicate(1000, {
                     logLik(update(mod_UK1, newY ~. ))[[1]] -
                       logLik(update(mod_UK5, newY ~. ))[[1]]
                     })
-c(summary(LRTH0), "p-value" = mean(LRTH0 >= LRTobs))
+c(summary(LRTH0), "p-value" = mean(LRTH0 >= LRTobs)) ## or (sum + 1) / (R + 1), see earlier
 ```
 
 # Comparing too many things
@@ -431,7 +432,7 @@ library(multcomp)
 summary(glht(mod_drink, linfct = mcp(drink = "Tukey")))
 ```
 
-```{r ghlt echo, echo = FALSE}
+```{r ghlt echo, echo = FALSE, message = FALSE}
 options(width = 200)
 mod_drink <- lm(height ~ drink, data = UK)
 library(multcomp)
