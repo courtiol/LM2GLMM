@@ -76,26 +76,27 @@ To download and install this package, visit: https://github.com/courtiol/LM2GLMM
 To load the package, do:
 
 ```{r load_package, eval = FALSE}
-library(package = "LM2GLMM")
+library(package = "LM2GLMM") ## !!! Always check the version with me because I will update it often !!!
 ```
 
 ```
  #############################################
  #                                           #
- #     This is the package for the course    #
+ #    This is the package for the course     #
  #                                           #
  #    Advanced Statistical Applications:     #
  #          from LM to GLMM using R          #
  #                                           #
- #   You have the version X.X.X installed!   #
+ #       Version XX.XX.XX.X installed!       #
  #                                           #
- # Type browseVignettes(package = 'LM2GLMM') #
- #    to access the slides of the course     #
+ #    To access the slides, type either      #
+ #   browseVignettes(package = 'LM2GLMM')    #
+ #                    or                     #
+ #             get_vignettes()               #
  #                                           #
  #############################################
 ```
 
-### !!! Always check the version with me because I will update it often !!!
 
 # Refreshing your R skills
 
@@ -151,7 +152,7 @@ foo <-  factor(c("a", "b", "c"))
 ```{r attributes}
 foo <- c(a = 1, b = 5, c = 10, d = 23)
 attributes(foo)
-attr(foo, "names")  ## Tip: here a shortcut would be 'names(foo4)', but this is not general
+attr(foo, "names")  ## Tip: here a shortcut would be 'names(foo)', but this is not general
 foo <-  factor(c("a", "b", "c"))
 attributes(foo)
 ```
