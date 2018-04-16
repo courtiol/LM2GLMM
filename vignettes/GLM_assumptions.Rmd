@@ -18,6 +18,7 @@ library(spaMM)
 library(car)
 library(DHARMa)
 library(pscl)
+spaMM.options(nb_cores = 4L)
 options(width = 120)
 knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/GLM_resid/", fig.path = "./fig_knitr/GLM_resid/", fig.width = 5, fig.height = 5, fig.align = "center", error = TRUE)
 ```
