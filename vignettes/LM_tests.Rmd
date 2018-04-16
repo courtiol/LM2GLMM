@@ -332,7 +332,7 @@ LRTH0 <- replicate(200, {
                     2*(logLik(update(mod_UK1))[[1]] -
                       logLik(update(mod_UK5))[[1]])
                     })
-c(summary(LRTH0), "p-value" = mean(LRTH0 >= LRTobs)) ## or (sum + 1) / (R + 1), see earlier
+(sum(LRTH0 >= LRTobs) + 1) / (length(LRTH0) + 1)
 ```
 
 ## Comparing two non-nested models using parametric bootstrap using spaMM
