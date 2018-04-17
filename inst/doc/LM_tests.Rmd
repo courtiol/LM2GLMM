@@ -13,12 +13,14 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
+options(width = 120)
 library(LM2GLMM)
 library(spaMM)
 library(lattice)
 library(mvtnorm)
 library(rgl)
 library(car)
+spaMM.options(nb_cores = 4L)
 knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_tests/", fig.path = "./fig_knitr/LM_tests/")
 ```
 
@@ -243,14 +245,14 @@ mod_UK_no_milk <- lm(height ~ sex*weight, data = mod_UK_milk$model)
 anova(mod_UK_no_milk, mod_UK_milk, test = "Chisq")[2, "Pr(>Chi)"]
 (stat.obs <- 2*(c(logLik(mod_UK_milk)) - c(logLik(mod_UK_no_milk))))
 
-stat.rand <- replicate(1000, {
+stat.rand <- replicate(200, {
   newY <- as.matrix(simulate(mod_UK_no_milk))
   mod_milk <- lm(newY ~ milk + sex*weight, data = mod_UK_milk$model)
   mod_no_milk <- lm(newY ~ sex*weight, data = mod_UK_milk$model)
   c(2*(logLik(mod_milk) - logLik(mod_no_milk)))
   })
 
-mean(stat.rand >= stat.obs)
+(sum(stat.rand >= stat.obs) + 1) / (length(stat.rand) + 1)
 ```
 
 ## LRT by parametric boostrap
@@ -260,7 +262,15 @@ hist(stat.rand)
 abline(v = stat.obs, lwd = 2, lty = 2, col = "red")
 ```
 
-# Comparing two non-nested models
+## LRT by parametric boostrap using spaMM
+```{r LRT param boot spaMM}
+mod_UK_milk_spaMM <- fitme(height ~ milk + sex*weight, data = UK)
+mod_UK_no_milk_spaMM <- fitme(height ~ sex*weight, data = mod_UK_milk$model)
+LRT(mod_UK_milk_spaMM, mod_UK_no_milk_spaMM, boot.repl = 200)
+```
+
+
+# Comparing two non-nested models (with same response!)
 
 ## Comparing two non-nested models using deviance
 
@@ -281,7 +291,7 @@ deviance(mod_UK5)
 
 You may use the AIC (AIC = -2 * (logLik - K)) (smaller is better) even if df differ
 
-```{r non nested AIC, cache = FALSE}
+```{r non nested AIC}
 AIC(mod_UK1)
 AIC(mod_UK5)
 exp((AIC(mod_UK5) - AIC(mod_UK1)) / 2) ## evidence ratio
@@ -316,14 +326,33 @@ We consider one model as the null model of the other (we choose here the worse m
 
 ```{r non-nested param boot}
 set.seed(1L)
-(LRTobs <- logLik(mod_UK1) - logLik(mod_UK5))
-LRTH0 <- replicate(1000, {
-                    UK_for_both$newY <- simulate(mod_UK5)[, 1]
-                    logLik(update(mod_UK1, newY ~. ))[[1]] -
-                      logLik(update(mod_UK5, newY ~. ))[[1]]
+(LRTobs <- 2*(logLik(mod_UK1)[[1]] - logLik(mod_UK5)[[1]]))
+LRTH0 <- replicate(200, {
+                    UK_for_both$height <- simulate(mod_UK5)[, 1]
+                    2*(logLik(update(mod_UK1))[[1]] -
+                      logLik(update(mod_UK5))[[1]])
                     })
-c(summary(LRTH0), "p-value" = mean(LRTH0 >= LRTobs))
+(sum(LRTH0 >= LRTobs) + 1) / (length(LRTH0) + 1)
 ```
+
+## Comparing two non-nested models using parametric bootstrap using spaMM
+
+```{r non-nested param boot spaMM}
+mod_UK1_spaMM <- fitme(height ~ cigarettes + sex*weight, data = UK_for_both)
+mod_UK5_spaMM <- fitme(height ~ milk + sex*weight, data = UK_for_both)
+LRTUK5null_obs <- 2*(logLik(mod_UK1_spaMM) - logLik(mod_UK5_spaMM))
+refit_mod <- function(y, data, mod_null, mod_full, ...) {
+  data$height <- y  ## replace original response by response simulated under mod_null
+  mod_full_under_null <- update(mod_full, data = data)
+  mod_null_under_null <- update(mod_null, data = data)
+  2*(logLik(mod_full_under_null) - logLik(mod_null_under_null))
+}
+LRTUK5null_boot <- spaMM_boot(mod_UK5_spaMM, simuland = refit_mod, nsim = 200,
+                              data = UK_for_both, mod_null = mod_UK5_spaMM,
+                              mod_full = mod_UK1_spaMM)[["bootreps"]]
+(sum(LRTUK5null_boot >= LRTUK5null_obs) + 1) / (length(LRTUK5null_boot) + 1)
+```
+
 
 # Comparing too many things
 
@@ -431,7 +460,7 @@ library(multcomp)
 summary(glht(mod_drink, linfct = mcp(drink = "Tukey")))
 ```
 
-```{r ghlt echo, echo = FALSE}
+```{r ghlt echo, echo = FALSE, message = FALSE}
 options(width = 200)
 mod_drink <- lm(height ~ drink, data = UK)
 library(multcomp)

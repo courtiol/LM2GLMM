@@ -32,7 +32,7 @@ options(width = 120)
 * what a response, a design matrix and model parameters are
 * how to understand the design matrix
 * that the meaning of the parameter depends on the design matrix
-* that different contrast matrices can be used
+* that the design matrix depends on the formula, the data and the contrats
 * how to simulate the data for a linear model
 
 # Definition and notations
@@ -115,7 +115,7 @@ Sad but ```TRUE```:
 
 ### You cannot interpret model parameters correctly without knowing the design matrix of the model!!!
 
-## How to create the design (or model) matrix?
+## How to create the design matrix?
 
 ```{r pred matrix}
 somedata <- data.frame(x1 = 1:6)
@@ -334,7 +334,7 @@ model.matrix(object = ~ x1 * x2 + x1 * x3, data = somedata, contrasts.arg = list
 
 <br>
 
-### The meaning of the parameters always depends on the model matrix!!!
+### The meaning of the parameters always depends on the design matrix!!!
 
 <br>
 
@@ -423,6 +423,8 @@ Are these different representations of gender equivalent?
 * ```TRUE``` vs ```FALSE```
 
 Create all corresponding design matrices to be sure!
+
+If the average IQ for boys were 90 and 110 for girls, what would the parameter values be, for each coding?
 
 <br>
 
@@ -550,7 +552,7 @@ $$
 * what a response, a design matrix and model parameters are
 * how to understand the design matrix
 * that the meaning of the parameter depends on the design matrix
-* that different contrast matrices can be used
+* that the design matrix depends on the formula, the data and the contrats
 * how to simulate the data for a linear model
 
 

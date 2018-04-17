@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2018-04-16" />
+  <meta name="date" content="2018-04-17" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,7 +94,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2018-04-16</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2018-04-17</p>
           </hgroup>
   </slide>
 
@@ -116,7 +116,7 @@
 <li>what a response, a design matrix and model parameters are</li>
 <li>how to understand the design matrix</li>
 <li>that the meaning of the parameter depends on the design matrix</li>
-<li>that different contrast matrices can be used</li>
+<li>that the design matrix depends on the formula, the data and the contrats</li>
 <li>how to simulate the data for a linear model</li>
 </ul>
 
@@ -216,7 +216,7 @@
 
 <h3>You cannot interpret model parameters correctly without knowing the design matrix of the model!!!</h3>
 
-</article></slide><slide class=""><hgroup><h2>How to create the design (or model) matrix?</h2></hgroup><article  id="how-to-create-the-design-or-model-matrix" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>How to create the design matrix?</h2></hgroup><article  id="how-to-create-the-design-matrix" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>somedata &lt;- data.frame(x1 = 1:6)
 (mm &lt;- model.matrix(object = ~ x1, data = somedata))</pre>
@@ -595,7 +595,7 @@ head(m)</pre>
 
 <p><br></p>
 
-<h3>The meaning of the parameters always depends on the model matrix!!!</h3>
+<h3>The meaning of the parameters always depends on the design matrix!!!</h3>
 
 <p><br></p>
 
@@ -725,6 +725,8 @@ beta_treat &lt;- matrix(c(50, 1.5, 20, 2, 3))
 </ul>
 
 <p>Create all corresponding design matrices to be sure!</p>
+
+<p>If the average IQ for boys were 90 and 110 for girls, what would the parameter values be, for each coding?</p>
 
 <p><br></p>
 
@@ -864,7 +866,7 @@ Y = \begin{bmatrix}
 <li>what a response, a design matrix and model parameters are</li>
 <li>how to understand the design matrix</li>
 <li>that the meaning of the parameter depends on the design matrix</li>
-<li>that different contrast matrices can be used</li>
+<li>that the design matrix depends on the formula, the data and the contrats</li>
 <li>how to simulate the data for a linear model</li>
 </ul>
 

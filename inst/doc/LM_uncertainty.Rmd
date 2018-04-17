@@ -20,6 +20,7 @@ library(spaMM)
 library(lattice)
 library(mvtnorm)
 library(rgl)
+spaMM.options(nb_cores = 4L)
 knitr::knit_hooks$set(webgl = hook_webgl) ## for rgl
 knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_uncertainty/", fig.path = "./fig_knitr/LM_uncertainty/", error = TRUE)
 ```
@@ -194,7 +195,7 @@ plot(ecdf(new_sigma2_error), col = "red", add = TRUE)
 
 ## The aim of the bootstrap
 
-<font size = 5> The aim of the boostrap is to approximate the distribution of a statistic, in cases where parameters are not known (as usual) and where this distribution is not known analytically for given parameters. </font>
+<font size = 5> The aim of the boostrap is to approximate the distribution of a statistic, in cases where parameters are not known (as usual) and where this distribution is not known analytically. </font>
 
 <font size = 5>  The data (non-parametric bootstrap), or estimates derived from it (parametric bootstrap) are used as approximations to the unknown distribution. </font>
 
@@ -210,7 +211,7 @@ plot(ecdf(new_sigma2_error), col = "red", add = TRUE)
 ## Comparison with parametric bootstrap
 
 ```{r betas param boot}
-newYs <- simulate(mod_stats, nsim = 5000)  ## generate new values for the response variable
+newYs <- simulate(mod_stats, nsim = 5000)  ## new response variable using parametric bootstrap
 res_sim <- t(coef(lm(as.matrix(newYs) ~ humans_eaten, data = Alien)))
 ```
 
@@ -220,14 +221,16 @@ res_sim <- t(coef(lm(as.matrix(newYs) ~ humans_eaten, data = Alien)))
 curve(pnorm(x, mean = coef(mod_stats)[1],
     sd = sqrt(vcov(mod_stats)[[1]])),
     from = 30, to = 60, ylab = "cdf", lwd = 3)
-plot(ecdf(res_sim[, 1]), col = "red", add = TRUE)
+plot(ecdf(new_beta_estimates[, 1]), col = "red", add = TRUE)
+plot(ecdf(res_sim[, 1]), col = "orange", add = TRUE)
 ```
 
 ```{r plot slope param boot, fig.align = "center", fig.height = 4, fig.width = 4}
 curve(pnorm(x, mean = coef(mod_stats)[2],
     sd = sqrt(vcov(mod_stats)[[4]])),
     from = 0, to = 3, ylab = "cdf", lwd = 3)
-plot(ecdf(res_sim[, 2]), col = "red", add = TRUE)
+plot(ecdf(new_beta_estimates[, 2]), col = "red", add = TRUE)
+plot(ecdf(res_sim[, 2]), col = "orange", add = TRUE)
 ```
 
 </div>
@@ -237,7 +240,7 @@ plot(ecdf(res_sim[, 2]), col = "red", add = TRUE)
 ```{r plot 2D betas param boot, fig.align = "center", fig.height = 4, fig.width = 4, results = "hide"}
 with(candidates, contour(candidate_intercept_u, candidate_slope_u,
   matrix(d, nrow = length(candidate_intercept_u)), col = "transparent", xlab = "intercept", ylab = "slope"))
-points(res_sim[, "(Intercept)"], res_sim[, "humans_eaten"], col = "red", pch = 1, cex = 0.5, lwd = 0.2)
+points(res_sim[, "(Intercept)"], res_sim[, "humans_eaten"], col = "orange", pch = 1, cex = 0.5, lwd = 0.2)
 with(candidates, contour(candidate_intercept_u, candidate_slope_u,
   matrix(d, nrow = length(candidate_intercept_u)), nlevels = 4, add = TRUE))
 ```
@@ -317,7 +320,51 @@ mean(replicate(5000, sum(findInterval(confint(update(mod_stats, data = simulate_
 mean(replicate(5000, sum(findInterval(confint(update(mod_stats, data = simulate_Aliens()))[2, ], 1.5)) == 1))
 ```
 
-# Confidence intervals: parametric bootstrap
+<br>
+
+The coverage of the CI based on the Student distribution is great!
+
+(note: asymptotically this method is perfect for LM)
+
+# Confidence intervals: bootstrap
+
+## Computing 95% CI for estimates (np. boot.)
+
+```{r CI nonparam boot}
+  res_sim <- do.call("rbind", sapply(1:rep, function(i) {
+    newdata <- Alien[sample(1:nrow(Alien), replace = TRUE), ]
+    t(coef(update(mod_stats, data = newdata)))
+    }, simplify = FALSE))
+  (confint_npboot <- rbind(quantile(res_sim[, 1], probs = c(0.025, 0.975)),
+                           quantile(res_sim[, 2], probs = c(0.025, 0.975))))
+```
+
+<br>
+
+There is no theoretical reason to expect non-parametric bootstrap to produce good CI!
+
+## Testing the coverage of the 95% CI (np. boot.)
+
+```{r coverage CI nonparam boot}
+CInpboot <- function(rep = 100){
+  data <- simulate_Aliens()
+  mod <- update(mod_stats, data = data)
+  res_sim <- do.call("rbind", sapply(1:rep, function(i) {
+    newdata <- data[sample(1:nrow(data), replace = TRUE), ]
+    t(coef(update(mod, data = newdata)))
+  }, simplify = FALSE))
+  rbind(quantile(res_sim[, 1], probs = c(0.025, 0.975)),
+        quantile(res_sim[, 2], probs = c(0.025, 0.975)))
+}
+set.seed(1L)
+mean(replicate(5000, sum(findInterval(CInpboot()[1, ], 50)) == 1))
+mean(replicate(5000, sum(findInterval(CInpboot()[2, ], 1.5)) == 1))
+```
+
+<br>
+
+Indeed, the non-parametric bootstrap sucks!
+
 
 ## How to get CI using from parametric bootstrap
 
@@ -379,6 +426,9 @@ mean(replicate(5000, sum(findInterval(CIboot()[1, ], 50)) == 1))
 mean(replicate(5000, sum(findInterval(CIboot()[2, ], 1.5)) == 1))
 ```
 
+<br>
+
+That is far from perfect, but already better...
 
 ## CI using the package boot
 
@@ -390,7 +440,7 @@ newY  <- function(data, ...) { ## the second argument is necessary even if we do
   return(data)
 }
 refit(Alien) ## the original fit
-refit(data = newY(Alien, mod_stats)) ## fit on data simulated by parametric bootstrap
+refit(data = newY(Alien)) ## fit on data simulated by parametric bootstrap
 ```
 
 ## CI using the package boot
@@ -405,7 +455,7 @@ sim.boot2 <- boot(data = Alien, statistic = refit, ran.gen = newY,
 ```
 <br>
 
-Note: the bias (= mean bootstrap - estimate) will be accounted for!
+Note: the bias (= mean bootstrap - estimate) will be accounted for at the next step.
 
 ## CI using the package boot
 
@@ -499,12 +549,16 @@ logLik(lm(size ~ 0 + offset(50 + 1.5 * humans_eaten), data = Alien))
 logLik(fitme(size ~ 0 + offset(50 + 1.5 * humans_eaten), fixed = list(phi = 25), data = Alien))
 ```
 
+<br>
+
+Note: ```spaMM``` allows the fixation of the variance in addition to the fixation of the other parameters.
+
 ## Likelihood profiling 1 parameter: $\sigma^2$
 
 ```{r profile sigma2, fig.align = "center", fig.width = 4, fig.height = 4}
 mod_spaMM_allfix <- fitme(size ~ humans_eaten, fixed = list(phi = 25), data = Alien)
 candidate_sigma2 <- seq(10, 70, 0.5)
-logLik_profile <- sapply(candidate_sigma2, function(sigma2) 
+logLik_profile <- sapply(candidate_sigma2, function(sigma2) ## for each sigma2 we re-estimate other parameters
   logLik(update(mod_spaMM_allfix, fixed = list(phi = sigma2))))
 plot(logLik_profile ~ candidate_sigma2, type = "l")
 abline(v = 25, col = "green", lwd = 2)
@@ -589,8 +643,9 @@ CI_intercept <- function(model_ref) {
   upr <- optimise(where.is.limit.inter, interval = c(coef(model_ref)[1], coef(model_ref)[1] + 10),
                   model_ref = model_ref)
   return(c(lwr = lwr$minimum, upr = upr$minimum))}
-rbind("using Student" = confint(mod_stats)[1, ], "using bootstrap 1" = confint_boot[1, ],
-      "using bootstrap 2" = confint_boot2[1, ], "using profile" = CI_intercept(mod_stats))
+rbind("using Student" = confint(mod_stats)[1, ], "using np. boot." = confint_npboot[1, ],
+      "using param. boot. 1" = confint_boot[1, ], "using param. boot. 2" = confint_boot2[1, ],
+      "using profile" = CI_intercept(mod_stats))
 ```
 
 ## Same for the slope
@@ -611,8 +666,9 @@ CI_slope <- function(model_ref) {
   return(c(lwr = lwr$minimum, upr = upr$minimum))
 }
 
-rbind("using Student" = confint(mod_stats)[2, ], "using bootstrap 1" = confint_boot[2, ],
-      "using bootstrap 2" = confint_boot2[2, ], "using profile" = CI_slope(mod_stats))
+rbind("using Student" = confint(mod_stats)[2, ], "using np. boot." = confint_npboot[2, ],
+      "using param. boot. 1" = confint_boot[2, ], "using param. boot. 2" = confint_boot2[2, ],
+      "using profile" = CI_slope(mod_stats))
 ```
 
 ## Testing the coverage of the 95% CI by profile

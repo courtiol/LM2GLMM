@@ -3,7 +3,7 @@ library(LM2GLMM)
 set.seed(1L)
 
 ## ----load_package, eval = FALSE------------------------------------------
-#  library(package = "LM2GLMM")
+#  library(package = "LM2GLMM") ## !!! Always check the version with me because I will update it often !!!
 
 ## ----vectors basics------------------------------------------------------
 foo <- c(1, 5, 5, 10, 23, NA, NA)
@@ -41,7 +41,7 @@ foo <-  factor(c("a", "b", "c"))
 ## ----attributes----------------------------------------------------------
 foo <- c(a = 1, b = 5, c = 10, d = 23)
 attributes(foo)
-attr(foo, "names")  ## Tip: here a shortcut would be 'names(foo4)', but this is not general
+attr(foo, "names")  ## Tip: here a shortcut would be 'names(foo)', but this is not general
 foo <-  factor(c("a", "b", "c"))
 attributes(foo)
 
