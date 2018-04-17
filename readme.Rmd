@@ -33,3 +33,26 @@ Example of installation from behind a proxy:
 ```{r, eval = FALSE}
 httr::with_config(httr::use_proxy("192.168.2.2:3128"), devtools::install_github("courtiol/LM2GLMM"))
 ```
+
+## Alternative install using drat
+
+
+1. install the R package ```drat``` (only if you don't have it):
+
+```{r, eval = FALSE}
+install.packages("drat")
+```
+
+2. install the R package LM2GLMM:
+
+```{r, eval = FALSE}
+drat::addRepo("courtiol")
+install.packages("LM2GLMM")
+```
+
+3. update the R package LM2GLMM:
+
+```{r, eval = FALSE}
+drat::addRepo("courtiol")
+update.packages()
+```
