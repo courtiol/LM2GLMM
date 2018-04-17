@@ -920,7 +920,7 @@ mean(sum(AliensZ$eggs == 0) / sum(dpois(0, fitted(mod_Zpoiss))))
 
 ## Poisson fit of zero-augmented data
 
-```{r, cache = FALSE}
+```{r}
 testZeroInflation(r, plot = TRUE)
 ```
 

@@ -4502,10 +4502,12 @@ You must enable Javascript to view this page properly.
 
 <pre class = 'prettyprint lang-r'>simulate_Aliens</pre>
 
-<pre >## function(N = 12, intercept = 50, slope = 1.5, sigma2 = 25) {
-##   Aliens &lt;- data.frame(humans_eaten = sample(1:N))
-##   Aliens$size &lt;- stats::rnorm(n = N, mean = intercept + slope*Aliens$humans_eaten, sd = sqrt(sigma2))
-##   return(Aliens)
+<pre >## function (N = 12, intercept = 50, slope = 1.5, sigma2 = 25) 
+## {
+##     Aliens &lt;- data.frame(humans_eaten = sample(1:N))
+##     Aliens$size &lt;- stats::rnorm(n = N, mean = intercept + slope * 
+##         Aliens$humans_eaten, sd = sqrt(sigma2))
+##     return(Aliens)
 ## }
 ## &lt;environment: namespace:LM2GLMM&gt;</pre>
 

@@ -910,7 +910,7 @@ deviance.pt[1:2]  ## here the prior.weights directly considered</pre>
                    y = c(5254, 35.92, 84.14, 641.8, 1.21, 47.2))
 glm(y ~ x, data = test, family = Gamma(link = &quot;log&quot;)) </pre>
 
-<pre >## Error in glm.fit(x = X, y = Y, weights = weights, start = start, etastart = etastart, : NA/NaN/Inf in &#39;x&#39;</pre>
+<pre >## Error in glm.fit(x = structure(c(1, 1, 1, 1, 1, 1, 8.752, 20.27, 24.71, : NA/NaN/Inf in &#39;x&#39;</pre>
 
 <p>In such cases, you may try to play with parameters of the iterative algorithm (difficult):</p>
 
@@ -934,14 +934,24 @@ glm(y ~ x, data = test, family = Gamma(link = &quot;log&quot;)) </pre>
                    y = c(5254, 35.92, 84.14, 641.8, 1.21, 47.2))
 glm(y ~ x, data = test, family = Gamma(link = &quot;log&quot;)) </pre>
 
-<pre >## Error in glm.fit(x = X, y = Y, weights = weights, start = start, etastart = etastart, : NA/NaN/Inf in &#39;x&#39;</pre>
+<pre >## Error in glm.fit(x = structure(c(1, 1, 1, 1, 1, 1, 8.752, 20.27, 24.71, : NA/NaN/Inf in &#39;x&#39;</pre>
 
 <p>In such cases, you may also try other methods (much easier):</p>
 
 <pre class = 'prettyprint lang-r'>library(spaMM)
 glm(y ~ x, data = test, family = Gamma(link = &quot;log&quot;), method=&quot;spaMM_glm.fit&quot;)</pre>
 
-<pre >## Error in glm(y ~ x, data = test, family = Gamma(link = &quot;log&quot;), method = &quot;spaMM_glm.fit&quot;): invalid &#39;method&#39;: spaMM_glm.fit</pre>
+<pre >## 
+## Call:  glm(formula = y ~ x, family = Gamma(link = &quot;log&quot;), data = test, 
+##     method = &quot;spaMM_glm.fit&quot;)
+## 
+## Coefficients:
+## (Intercept)            x  
+##     8.47715     -0.09617  
+## 
+## Degrees of Freedom: 5 Total (i.e. Null);  4 Residual
+## Null Deviance:       28.84 
+## Residual Deviance: 21.97     AIC: 88.05</pre>
 
 </article></slide><slide class=""><hgroup><h2>The iterative algorithm can sometimes fail</h2></hgroup><article  id="the-iterative-algorithm-can-sometimes-fail-2" class="smaller ">
 
@@ -949,14 +959,24 @@ glm(y ~ x, data = test, family = Gamma(link = &quot;log&quot;), method=&quot;spa
                    y = c(5254, 35.92, 84.14, 641.8, 1.21, 47.2))
 glm(y ~ x, data = test, family = Gamma(link = &quot;log&quot;)) </pre>
 
-<pre >## Error in glm.fit(x = X, y = Y, weights = weights, start = start, etastart = etastart, : NA/NaN/Inf in &#39;x&#39;</pre>
+<pre >## Error in glm.fit(x = structure(c(1, 1, 1, 1, 1, 1, 8.752, 20.27, 24.71, : NA/NaN/Inf in &#39;x&#39;</pre>
 
 <p>In such cases, you may also try other methods (much easier):</p>
 
 <pre class = 'prettyprint lang-r'>library(glm2)   ## seems less robust than spaMM in at least some other cases, so try both in case of troubles
 glm(y ~ x, data = test, family = Gamma(link = &quot;log&quot;), method=&quot;glm.fit2&quot;)</pre>
 
-<pre >## Error in glm(y ~ x, data = test, family = Gamma(link = &quot;log&quot;), method = &quot;glm.fit2&quot;): invalid &#39;method&#39;: glm.fit2</pre>
+<pre >## 
+## Call:  glm(formula = y ~ x, family = Gamma(link = &quot;log&quot;), data = test, 
+##     method = &quot;glm.fit2&quot;)
+## 
+## Coefficients:
+## (Intercept)            x  
+##     8.47718     -0.09617  
+## 
+## Degrees of Freedom: 5 Total (i.e. Null);  4 Residual
+## Null Deviance:       28.84 
+## Residual Deviance: 21.97     AIC: 88.05</pre>
 
 </article></slide><slide class=""><hgroup><h2>The iterative algorithm can sometimes fail</h2></hgroup><article  id="the-iterative-algorithm-can-sometimes-fail-3" class="smaller ">
 

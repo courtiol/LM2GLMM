@@ -765,7 +765,7 @@ cbind(z, pvalues)
 
 ## Summary: Binomial
 
-```{r, cache = FALSE}
+```{r}
 summary(mod_binar2)$coef
 z <- (mod_binar2$coef - 0) / sqrt(diag(vcov(mod_binar2)))
 pvalues <- 2 * (1 - pnorm(abs(z)))

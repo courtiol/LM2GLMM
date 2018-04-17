@@ -1383,7 +1383,7 @@ round(c(R2_metafor = mod$R2, R2_spaMM = R2_spaMM), 4)  ## amount of heterogeneit
 
 ## Comparing outputs
 
-```{r, cache = FALSE}
+```{r}
 c(mod$I2, mod$H2, mod$QE) ## from metafor
 
 get_meta_metrics <- function(model, vi) {
@@ -1407,7 +1407,7 @@ get_meta_metrics(mod_spaMM, dat.bcg$sampling.var) ## add vi.avg: weighted mean w
 
 ## Nice plots with ```metafor```
 
-```{r, fig.width = 6, fig.height = 5.5, cache = FALSE}
+```{r, fig.width = 6, fig.height = 5.5}
 metafor::plot.rma.uni(mod)  ## or just plot(mod)
 ```
 

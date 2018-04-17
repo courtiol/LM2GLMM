@@ -460,8 +460,7 @@ backsolve(R, QTY)    ## RB = QTY, solve B for triangular matrix (more efficient 
 ```
 
 * Note 1: $Q^\text{T}Y$ is also used to compute sum of squares efficiently in e.g. ```anova()```.
-<!--Factor sum of squares is given by sum(QTY[1:2]^2)
-residual sum of square is given by sum(QTY[-c(1:2)]^2)```-->
+<!--Factor sum of squares is given by the first elements of QTY, it seems to depend on the design matrix. E.g. sum(QTY[1:2]^2) or just sum(QTY[2]^2). The, the residual sum of square would be given by sum(QTY[-c(1:2)]^2)```-->
 * Note 2: other decompositions are sometimes used (e.g. Cholesky).
 
 
@@ -627,7 +626,7 @@ library(spaMM)
 mod_spaMM_ML <- fitme(size ~ humans_eaten, data = Alien, method = "ML")  ## ML is the default
 mod_spaMM_ML$fixef
 mod_spaMM_ML$phi ## biased estimate of error variance (= here to residual variance)
-mod_spaMM_ML$APHLs$p_v
+logLik(mod_spaMM_ML)[[1]]
 ```
 
 ## With ```spaMM``` using REML
@@ -636,7 +635,7 @@ mod_spaMM_ML$APHLs$p_v
 mod_spaMM_REML <- fitme(size ~ humans_eaten, data = Alien, method = "REML")
 mod_spaMM_REML$fixef
 mod_spaMM_REML$phi ## unbiased estimate of error variance
-mod_spaMM_REML$APHLs$p_v
+logLik(mod_spaMM_REML)[[1]]
 ```
 
 ## What you need to remember
