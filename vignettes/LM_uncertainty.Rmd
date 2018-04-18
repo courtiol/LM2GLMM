@@ -39,8 +39,8 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_uncertainty/"
 * that point estimates are random variables with estimated means and variances
 * that estimates are not necessarily independent from each other
 * that estimates for $\beta$ are Gaussian and the estimate of the error variance is gamma distributed
-* what the parametric bootstrap is
 * what 95% Confidence Intervals are
+* what the parametric bootstrap is
 * that there are 3 main ways to get 95% CI for LM
 * that boundaries for 95% CI on $\widehat{\beta}$ are given by the Student distribution
 * what likelihood profiling is
@@ -189,68 +189,6 @@ curve(pgamma(x, shape = mod_stats$df.residual/2, scale = 2*summary(mod_stats)$si
 plot(ecdf(new_sigma2_error), col = "red", add = TRUE)
 ```
 
-
-
-# Comparing theoretical distributions to parametric bootstrap
-
-## The aim of the bootstrap
-
-<font size = 5> The aim of the boostrap is to approximate the distribution of a statistic, in cases where parameters are not known (as usual) and where this distribution is not known analytically. </font>
-
-<font size = 5>  The data (non-parametric bootstrap), or estimates derived from it (parametric bootstrap) are used as approximations to the unknown distribution. </font>
-
-<br>
-
-* When we simulate, we decide what the parameter values really are.
-* When we fit, we estimate what the unknown parameter values are.
-* Bootstrap: something in the middle; we simulate new observations considering the estimates as the true parameter values.
-    * Non-parametric bootstrap: bootstrap samples that are iid (independent and identically distributed) from the point of view of the empirical distribution.
-    * Parametric bootstrap: bootstrap samples that are iid from the point of view of the estimates.
-
-
-## Comparison with parametric bootstrap
-
-```{r betas param boot}
-newYs <- simulate(mod_stats, nsim = 5000)  ## new response variable using parametric bootstrap
-res_sim <- t(coef(lm(as.matrix(newYs) ~ humans_eaten, data = Alien)))
-```
-
-<div class="columns-2">
-
-```{r plot intercept param boot, fig.align = "center", fig.height = 4, fig.width = 4}
-curve(pnorm(x, mean = coef(mod_stats)[1],
-    sd = sqrt(vcov(mod_stats)[[1]])),
-    from = 30, to = 60, ylab = "cdf", lwd = 3)
-plot(ecdf(new_beta_estimates[, 1]), col = "red", add = TRUE)
-plot(ecdf(res_sim[, 1]), col = "orange", add = TRUE)
-```
-
-```{r plot slope param boot, fig.align = "center", fig.height = 4, fig.width = 4}
-curve(pnorm(x, mean = coef(mod_stats)[2],
-    sd = sqrt(vcov(mod_stats)[[4]])),
-    from = 0, to = 3, ylab = "cdf", lwd = 3)
-plot(ecdf(new_beta_estimates[, 2]), col = "red", add = TRUE)
-plot(ecdf(res_sim[, 2]), col = "orange", add = TRUE)
-```
-
-</div>
-
-## Same in 2D
-
-```{r plot 2D betas param boot, fig.align = "center", fig.height = 4, fig.width = 4, results = "hide"}
-with(candidates, contour(candidate_intercept_u, candidate_slope_u,
-  matrix(d, nrow = length(candidate_intercept_u)), col = "transparent", xlab = "intercept", ylab = "slope"))
-points(res_sim[, "(Intercept)"], res_sim[, "humans_eaten"], col = "orange", pch = 1, cex = 0.5, lwd = 0.2)
-with(candidates, contour(candidate_intercept_u, candidate_slope_u,
-  matrix(d, nrow = length(candidate_intercept_u)), nlevels = 4, add = TRUE))
-```
-
-## Let's practice!
-
-<br>
-
-### Compute the distribution of the estimate of the error variance by parametric bootstrap and compare it to the theoretical result.
-
 # Confidence intervals
 
 ## What is a confidence interval?
@@ -328,10 +266,25 @@ The coverage of the CI based on the Student distribution is great!
 
 # Confidence intervals: bootstrap
 
+## The aim of the bootstrap
+
+<font size = 5> The aim of the boostrap is to approximate the distribution of a statistic, in cases where parameters are not known (as usual) and where this distribution is not known analytically. </font>
+
+<font size = 5>  The data (non-parametric bootstrap), or estimates derived from it (parametric bootstrap) are used as approximations to the unknown distribution. </font>
+
+<br>
+
+* When we simulate, we decide what the parameter values really are.
+* When we fit, we estimate what the unknown parameter values are.
+* Bootstrap: something in the middle; we simulate new observations considering the estimates as the true parameter values.
+    * Non-parametric bootstrap: bootstrap samples that are iid (independent and identically distributed) from the point of view of the empirical distribution.
+    * Parametric bootstrap: bootstrap samples that are iid from the point of view of the estimates.
+
+
 ## Computing 95% CI for estimates (np. boot.)
 
 ```{r CI nonparam boot}
-  res_sim <- do.call("rbind", sapply(1:rep, function(i) {
+  res_sim <- do.call("rbind", sapply(1:100, function(i) {
     newdata <- Alien[sample(1:nrow(Alien), replace = TRUE), ]
     t(coef(update(mod_stats, data = newdata)))
     }, simplify = FALSE))
@@ -750,8 +703,8 @@ pred$residual.scale^2 == summary(mod_stats)$sigma^2  ## estimate of the error va
 * that point estimates are random variables with estimated means and variances
 * that estimates are not necessarily independent from each other
 * that estimates for $\beta$ are Gaussian and the estimate of the error variance is gamma distributed
-* what the parametric bootstrap is
 * what 95% Confidence Intervals are
+* what the parametric bootstrap is
 * that there are 3 main ways to get 95% CI for LM
 * that boundaries for 95% CI on $\widehat{\beta}$ are given by the Student distribution
 * what likelihood profiling is
