@@ -80,7 +80,7 @@ model.matrix(object = ~ x1 * x2 + x1 * x3, data = somedata)
 model.matrix(object = ~ x1 * x2 + x1 * x3, data = somedata, contrasts.arg = list(x3 = "contr.sum"))
 
 ## ----convert----------------------------------------------------------------------------------------------------------
-conv_betaXA_to_betaXB <- function(XA, XB, betaXA) {
+convert_betaXA_to_betaXB <- function(XA, XB, betaXA) {
   ## Test that inputs are OK:
   if (!any(dim(XA) == dim(XB)))   stop("design matrices differ in size")
   if (ncol(XA) != length(betaXA)) stop("betaXA of wrong length")
@@ -104,7 +104,7 @@ DM_raw
 DM_ortho
 
 ## ----convert poly-----------------------------------------------------------------------------------------------------
-conv_betaXA_to_betaXB(XA = DM_raw, XB = DM_ortho, betaXA = c(1, 2, -2))
+convert_betaXA_to_betaXB(XA = DM_raw, XB = DM_ortho, betaXA = c(1, 2, -2))
 
 ## ----pred matrix poly b-----------------------------------------------------------------------------------------------
 DM_raw %*% c(1, 2, -2)  ## predictions
@@ -114,7 +114,7 @@ round(DM_ortho %*% c(-22.33333, -50.19960, -12.22020), 3)
 DM_treat <- model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = "contr.treatment"))
 DM_Helm <- model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = "contr.helmert"))
 beta_treat <- matrix(c(50, 1.5, 20, 2, 3))
-(beta_Helm <- conv_betaXA_to_betaXB(XA = DM_treat, XB = DM_Helm, betaXA = beta_treat))
+(beta_Helm <- convert_betaXA_to_betaXB(XA = DM_treat, XB = DM_Helm, betaXA = beta_treat))
 
 ## ----param MA---------------------------------------------------------------------------------------------------------
 DM_treat %*% beta_treat ## predictions

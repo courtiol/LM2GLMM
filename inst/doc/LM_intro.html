@@ -607,7 +607,7 @@ head(m)</pre>
 
 <p>This function converts parameters between alternative (but equivalent) design matrices:</p>
 
-<pre class = 'prettyprint lang-r'>conv_betaXA_to_betaXB &lt;- function(XA, XB, betaXA) {
+<pre class = 'prettyprint lang-r'>convert_betaXA_to_betaXB &lt;- function(XA, XB, betaXA) {
   ## Test that inputs are OK:
   if (!any(dim(XA) == dim(XB)))   stop(&quot;design matrices differ in size&quot;)
   if (ncol(XA) != length(betaXA)) stop(&quot;betaXA of wrong length&quot;)
@@ -654,7 +654,7 @@ head(m)</pre>
 
 </article></slide><slide class=""><hgroup><h2>The example of polynomials</h2></hgroup><article  id="the-example-of-polynomials-1" class="smaller ">
 
-<pre class = 'prettyprint lang-r'>conv_betaXA_to_betaXB(XA = DM_raw, XB = DM_ortho, betaXA = c(1, 2, -2))</pre>
+<pre class = 'prettyprint lang-r'>convert_betaXA_to_betaXB(XA = DM_raw, XB = DM_ortho, betaXA = c(1, 2, -2))</pre>
 
 <pre >## [1] -22.33333 -50.19960 -12.22020</pre>
 
@@ -685,7 +685,7 @@ head(m)</pre>
 <pre class = 'prettyprint lang-r'>DM_treat &lt;- model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = &quot;contr.treatment&quot;))
 DM_Helm &lt;- model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = &quot;contr.helmert&quot;))
 beta_treat &lt;- matrix(c(50, 1.5, 20, 2, 3))
-(beta_Helm &lt;- conv_betaXA_to_betaXB(XA = DM_treat, XB = DM_Helm, betaXA = beta_treat))</pre>
+(beta_Helm &lt;- convert_betaXA_to_betaXB(XA = DM_treat, XB = DM_Helm, betaXA = beta_treat))</pre>
 
 <pre >## [1] 51.6666667  1.5000000 20.0000000  1.0000000  0.6666667</pre>
 
