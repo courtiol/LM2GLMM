@@ -347,7 +347,7 @@ Alternative parameterization of equivalent design matrices lead to the same pred
 
 This function converts parameters between alternative (but equivalent) design matrices:
 ```{r convert}
-conv_betaXA_to_betaXB <- function(XA, XB, betaXA) {
+convert_betaXA_to_betaXB <- function(XA, XB, betaXA) {
   ## Test that inputs are OK:
   if (!any(dim(XA) == dim(XB)))   stop("design matrices differ in size")
   if (ncol(XA) != length(betaXA)) stop("betaXA of wrong length")
@@ -378,7 +378,7 @@ DM_ortho
 ## The example of polynomials
 
 ```{r convert poly}
-conv_betaXA_to_betaXB(XA = DM_raw, XB = DM_ortho, betaXA = c(1, 2, -2))
+convert_betaXA_to_betaXB(XA = DM_raw, XB = DM_ortho, betaXA = c(1, 2, -2))
 ```
 
 ## The example of polynomials
@@ -394,7 +394,7 @@ round(DM_ortho %*% c(-22.33333, -50.19960, -12.22020), 3)
 DM_treat <- model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = "contr.treatment"))
 DM_Helm <- model.matrix(object = ~ x1 + x2 + x3, data = somedata, contrasts.arg = list(x3 = "contr.helmert"))
 beta_treat <- matrix(c(50, 1.5, 20, 2, 3))
-(beta_Helm <- conv_betaXA_to_betaXB(XA = DM_treat, XB = DM_Helm, betaXA = beta_treat))
+(beta_Helm <- convert_betaXA_to_betaXB(XA = DM_treat, XB = DM_Helm, betaXA = beta_treat))
 ```
 
 <div  class="columns-2">
