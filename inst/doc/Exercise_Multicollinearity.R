@@ -3,9 +3,6 @@ library(LM2GLMM)
 knitr::opts_chunk$set(fig.align = "center", fig.width = 5, fig.height = 5,
                       cache = TRUE, cache.path = "./cache_knitr/Exo_multicollinearity/", fig.path = "./fig_knitr/Exo_multicollinearity/")
 
-## ------------------------------------------------------------------------
-FungiAlive <- subset(Fungi, alive == TRUE)
-
 ## ---- error=TRUE---------------------------------------------------------
 coef(mod_silly <- lm(growth ~ species* (T36 + T38 + PT36 + PT38), data = FungiAlive))
 (XTX <- crossprod(model.matrix(~ species* (T36 + T38 + PT36 + PT38), data = FungiAlive)))

@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2018-04-18" />
+  <meta name="date" content="2018-04-19" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,7 +94,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2018-04-18</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2018-04-19</p>
           </hgroup>
   </slide>
 
@@ -4750,12 +4750,16 @@ mean(replicate(5000, sum(findInterval(CInpboot()[1, ], 50)) == 1))</pre>
 
 <p>We now longer use the knowledge of the asymptotic distribution:</p>
 
-<pre class = 'prettyprint lang-r'>(confint_boot &lt;- rbind(quantile(2*coef(mod_stats)[1] - res_sim[, 1], probs = c(0.025, 0.975)),
+<pre class = 'prettyprint lang-r'>res_sim &lt;- do.call(&quot;rbind&quot;, sapply(1:100, function(i) {
+    newYs &lt;- simulate(mod_stats)
+    t(coef(lm(as.matrix(newYs) ~ humans_eaten, data = Alien)))
+    }, simplify = FALSE))
+(confint_boot &lt;- rbind(quantile(2*coef(mod_stats)[1] - res_sim[, 1], probs = c(0.025, 0.975)),
                        quantile(2*coef(mod_stats)[2] - res_sim[, 2], probs = c(0.025, 0.975))))</pre>
 
-<pre >##            2.5%     97.5%
-## [1,] 44.4455767 57.610081
-## [2,]  0.4167782  2.238069</pre>
+<pre >##          2.5%     97.5%
+## [1,] 45.93363 56.737380
+## [2,]  0.47853  2.013208</pre>
 
 <!--
 Before I was not accounting for bias:
@@ -5021,7 +5025,7 @@ rbind(&quot;using Student&quot; = confint(mod_stats)[1, ], &quot;using np. boot.
 <pre >##                         2.5 %   97.5 %
 ## using Student        43.71860 58.56103
 ## using np. boot.      44.51653 56.77361
-## using param. boot. 1 44.44558 57.61008
+## using param. boot. 1 45.93363 56.73738
 ## using param. boot. 2 43.98147 57.57615
 ## using profile        44.67026 57.60937</pre>
 
@@ -5049,7 +5053,7 @@ rbind(&quot;using Student&quot; = confint(mod_stats)[2, ], &quot;using np. boot.
 <pre >##                          2.5 %   97.5 %
 ## using Student        0.3112346 2.327924
 ## using np. boot.      0.2393982 2.128688
-## using param. boot. 1 0.4167782 2.238069
+## using param. boot. 1 0.4785300 2.013208
 ## using param. boot. 2 0.3638193 2.230722
 ## using profile        0.4405519 2.198607</pre>
 

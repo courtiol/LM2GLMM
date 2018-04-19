@@ -352,6 +352,10 @@ confint(mod_stats)  ## asymptotic (for comparison)
 We now longer use the knowledge of the asymptotic distribution:
 
 ```{r CI param boot}
+res_sim <- do.call("rbind", sapply(1:100, function(i) {
+    newYs <- simulate(mod_stats)
+    t(coef(lm(as.matrix(newYs) ~ humans_eaten, data = Alien)))
+    }, simplify = FALSE))
 (confint_boot <- rbind(quantile(2*coef(mod_stats)[1] - res_sim[, 1], probs = c(0.025, 0.975)),
                        quantile(2*coef(mod_stats)[2] - res_sim[, 2], probs = c(0.025, 0.975))))
 ```
