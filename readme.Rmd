@@ -26,6 +26,6 @@ To load the package and access to the vignettes:
 
 ```{r, eval = FALSE}
 library("LM2GLMM")
-browseVignettes(package = "LM2GLMM")  ## see in your web browser
-get_vignettes() ## see in your file manager
+browseVignettes(package = "LM2GLMM")  ## see vignettes in your web browser
+get_vignettes() ## see folder cointaining vignettes as *.html files
 ```
