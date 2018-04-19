@@ -1,8 +1,8 @@
 # LM2GLMM
 
 This is the repository for the R package LM2GLMM.
-This R package is only aimed at the students and helpers of the course I am giving at the 
-Freie Universität, Berlin. It is not aimed at general users.
+This R package is primarily aimed at the students of the course I am giving at the 
+Freie Universität, Berlin. Without the bla bla it will be difficult to follow...
 
 ## Installation
 
