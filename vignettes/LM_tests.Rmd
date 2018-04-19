@@ -269,7 +269,7 @@ stat.rand <- replicate(1000, {
 ## LRT by parametric boostrap
 
 ```{r plot LRT param boot, fig.align = "center", fig.width = 5, fig.height = 5}
-hist(stat.rand)
+hist(stat.rand, nclass = 50, xlim = c(0, 7))
 abline(v = stat.obs, lwd = 2, lty = 2, col = "red")
 ```
 
