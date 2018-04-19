@@ -19,7 +19,10 @@
 #'                    contrasts.arg = list(x = "contr.treatment"))
 #' xb <- model.matrix(object = ~ x, data = data.frame(x = factor(c("A", "B", "C"))),
 #'                    contrasts.arg = list(x = "contr.sum"))
-#' conv_betaXA_to_betaXB(XA = xa, XB = xb, betaXA = c(0.5, 2, 1))
+#' beta_xa <- c(0.5, 2, 1)
+#' beta_xb <- conv_betaXA_to_betaXB(XA = xa, XB = xb, betaXA = beta_xa)
+#' xa %*% beta_xa
+#' xb %*% beta_xb
 #'
 conv_betaXA_to_betaXB <- function(XA, XB, betaXA) {
   ## Test that inputs are OK:
