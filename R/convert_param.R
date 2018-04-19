@@ -20,11 +20,12 @@
 #' xb <- model.matrix(object = ~ x, data = data.frame(x = factor(c("A", "B", "C"))),
 #'                    contrasts.arg = list(x = "contr.sum"))
 #' beta_xa <- c(0.5, 2, 1)
-#' beta_xb <- conv_betaXA_to_betaXB(XA = xa, XB = xb, betaXA = beta_xa)
+#' beta_xb <- convert_betaXA_to_betaXB(XA = xa, XB = xb, betaXA = beta_xa)
+#' ## test that we get same predictions as we should:
 #' xa %*% beta_xa
 #' xb %*% beta_xb
 #'
-conv_betaXA_to_betaXB <- function(XA, XB, betaXA) {
+convert_betaXA_to_betaXB <- function(XA, XB, betaXA) {
   ## Test that inputs are OK:
   if (!any(dim(XA) == dim(XB)))   stop("design matrices differ in size")
   if (ncol(XA) != length(betaXA)) stop("betaXA of wrong length")
