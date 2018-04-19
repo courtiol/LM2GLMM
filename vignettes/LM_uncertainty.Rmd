@@ -270,7 +270,7 @@ The coverage of the CI based on the Student distribution is great!
 
 <font size = 5> The aim of the boostrap is to approximate the distribution of a statistic, in cases where parameters are not known (as usual) and where this distribution is not known analytically. </font>
 
-<font size = 5>  The data (non-parametric bootstrap), or estimates derived from it (parametric bootstrap) are used as approximations to the unknown distribution. </font>
+<font size = 5>  The data (non-parametric bootstrap), or estimates derived from it (parametric bootstrap) are used as approximations to the unknown distribution using a resampling procedure. </font>
 
 <br>
 
@@ -431,11 +431,11 @@ boot.ci(sim.boot1, type = "basic")  ## alternative: "perc", "norm", "stud"
 CIboot2a <- function(rep = 100, i){
   data <- simulate_Aliens()
   mod <- update(mod_stats, data = data)
-  newY  <- function(data, ...) {
+  newData  <- function(data, ...) {
     data[, "size"] <- simulate(mod, nsim = 1)
     return(data)
   }
-  sim.boot <- boot(data = data, statistic = refit, ran.gen = newY, i = i, R = rep, sim = "parametric")
+  sim.boot <- boot(data = data, statistic = refit, ran.gen = newData, i = i, R = rep, sim = "parametric")
   boot.ci(sim.boot, type = "basic")$basic[, 4:5]
 }
 set.seed(1L)
@@ -520,6 +520,7 @@ logLik_profile <- sapply(candidate_sigma2, function(sigma2) ## for each sigma2 w
 plot(logLik_profile ~ candidate_sigma2, type = "l")
 abline(v = 25, col = "green", lwd = 2)
 abline(v = mod_spaMM_ML$phi, col = "blue", lwd = 2)
+abline(h = logLik(mod_stats) - 0.5*qchisq(0.95, 1), col = "red", lty = 2, lwd = 2)
 ```
 
 ## Likelihood profiling 1 parameter: intercept
@@ -530,8 +531,7 @@ logLik_profile <- sapply(candidate_intercept_u, function(intercept)
 plot(logLik_profile ~ candidate_intercept_u, type = "l")
 abline(v = 50, col = "green", lwd = 2)
 abline(v = coef(mod_stats)[1], col = "blue", lwd = 2)
-#abline(v = confint(mod_stats)[1, ], col = "purple", lty = 2, lwd = 2)
-#abline(h = logLik(mod_stats) - 0.5*qchisq(0.95, 1), col = "red", lty = 2, lwd = 2)
+abline(h = logLik(mod_stats) - 0.5*qchisq(0.95, 1), col = "red", lty = 2, lwd = 2)
 ```
 
 ## Likelihood profiling 2 parameters: plot
@@ -552,10 +552,10 @@ points(mod_spaMM_ML$fixef["(Intercept)"], mod_spaMM_ML$fixef["humans_eaten"],
         col = "blue", pch = 4, lwd = 2, cex = 3)
 points(50, 1.5, col = "green", pch = 4, lwd = 2, cex = 3)
 
-#limit <- c(logLik(mod_stats) - 0.5*qchisq(0.95, df = 2))
-#with(candidates, contour(candidate_intercept_u, candidate_slope_u,
-#  matrix(candidates$logLik, nrow = length(candidate_intercept_u)),
-#  levels = limit, add = TRUE, col = "red", lwd = 2))
+limit <- c(logLik(mod_stats) - 0.5*qchisq(0.95, df = 2))
+with(candidates, contour(candidate_intercept_u, candidate_slope_u,
+  matrix(candidates$logLik, nrow = length(candidate_intercept_u)),
+  levels = limit, add = TRUE, col = "red", lwd = 2))
 ```
 
 
@@ -577,10 +577,10 @@ points(mod_spaMM_ML$fixef["(Intercept)"], mod_spaMM_ML$fixef["humans_eaten"],
        col = "blue", pch = 4, lwd = 2, cex = 3)
 points(50, 1.5, col = "green", pch = 4, lwd = 2, cex = 3)
 
-#limit <- c(logLik(mod_stats) - 0.5*qchisq(0.95, df = 2))
-#with(candidates, contour(candidate_intercept_u, candidate_slope_u,
-#  matrix(candidates$logLik, nrow = length(candidate_intercept_u)),
-#  levels = limit, add = TRUE, col = "red", lwd = 2))
+limit <- c(logLik(mod_stats) - 0.5*qchisq(0.95, df = 2))
+with(candidates, contour(candidate_intercept_u, candidate_slope_u,
+  matrix(candidates$logLik, nrow = length(candidate_intercept_u)),
+  levels = limit, add = TRUE, col = "red", lwd = 2))
 ```
 
 ## Confidence intervals by likelihood profiling
