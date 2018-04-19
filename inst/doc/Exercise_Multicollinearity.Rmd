@@ -12,18 +12,19 @@ vignette: >
 ```{r setup, include=FALSE}
 library(LM2GLMM)
 knitr::opts_chunk$set(fig.align = "center", fig.width = 5, fig.height = 5,
-                      cache = TRUE, cache.path = "./cache_knitr/Exo_multicollinearity/", fig.path = "./fig_knitr/Exo_multicollinearity/")
+                      cache = TRUE, cache.path = "./cache_knitr/Exo_multicol/",
+                      fig.path = "./fig_knitr/Exo_multicol/")
 ```
 
 ## Preparing the data
 
-```{r}
+```{r create data}
 FungiAlive <- subset(Fungi, alive == TRUE)
 ```
 
 ## Silly attempt
 
-```{r, error=TRUE}
+```{r silly, error=TRUE}
 coef(mod_silly <- lm(growth ~ species* (T36 + T38 + PT36 + PT38), data = FungiAlive))
 (XTX <- crossprod(model.matrix(~ species* (T36 + T38 + PT36 + PT38), data = FungiAlive)))
 det(XTX)  ## bad --> this model won't work
@@ -33,14 +34,14 @@ caret::findLinearCombos(model.matrix(mod_silly))
 
 ## Looking at the data structure (ignoring species for now)
 
-```{r}
+```{r crossprod}
 with(FungiAlive, table(T36, T38, PT36, PT38))  ## cumbersome
 crossprod(model.matrix(~ T36 + T38 + PT36 + PT38, data = FungiAlive)) ## more efficient
 ```
 
 ## Creating the pre-treatment variable
 
-```{r}
+```{r reshaping}
 FungiAlive$PT <- "no"
 FungiAlive$PT[FungiAlive$PT36 == 1] <- "36"
 FungiAlive$PT[FungiAlive$PT38 == 1] <- "38"
@@ -50,7 +51,7 @@ table(FungiAlive$PT, FungiAlive$species)
 
 ## Creating the treatment variable
 
-```{r}
+```{r reshaping 2}
 FungiAlive$T <- "no"
 FungiAlive$T[FungiAlive$T36 == 1] <- "36"
 FungiAlive$T[FungiAlive$T38 == 1] <- "38"
@@ -61,7 +62,7 @@ table(FungiAlive$T, FungiAlive$species)
 
 ## Fitting the model and predicting the effects: solution 1
 
-```{r}
+```{r pred 1}
 X <- model.matrix(~ species * (PT + T), data = FungiAlive)
 (XTX <- crossprod(X))
 det(XTX)
@@ -74,7 +75,7 @@ newdata2$pred <- predict(m2, newdata = newdata2)
 newdata2
 ```
 
-```{r}
+```{r plot pred 1}
 plot(newdata2[newdata2$species == "M_A", "pred"],
      type = "b", axes = FALSE, col = "red",
      ylim = range(newdata2$pred),
@@ -92,14 +93,14 @@ legend("top", pch = c(1, 1), col = c("blue", "red"), horiz = TRUE,
 
 ## Fitting the model and predicting the effects: solution 2
 
-```{r}
+```{r reshaping 3}
 FungiAlive$condition <-
   factor(paste(FungiAlive$species, FungiAlive$PT, FungiAlive$T, sep = "_"))
   table(FungiAlive$condition)
 ```
 
 
-```{r}
+```{r pred 2}
 X <- model.matrix(~ -1 + condition, data = FungiAlive)
 (XTX <- crossprod(X))
 det(XTX)
@@ -110,7 +111,7 @@ newdata1 <- data.frame(condition = levels(FungiAlive$condition))
 newdata1$pred <- predict(m1, newdata = newdata1)
 ```
 
-```{r}
+```{r plot pred 2}
 plot(c(
   newdata1[newdata1$condition == "M_A_36_36", "pred"],
   newdata1[newdata1$condition == "M_A_38_38", "pred"],
