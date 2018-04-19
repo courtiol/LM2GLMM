@@ -6,37 +6,6 @@ Freie Universität, Berlin. It is not aimed at general users.
 
 ## Installation
 
-1. install the R package ```devtools``` (only if you don't have it):
-
-```{r, eval = FALSE}
-install.packages("devtools")
-```
-
-2. install the R package LM2GLMM:
-
-```{r, eval = FALSE}
-devtools::install_github("courtiol/LM2GLMM")
-```
-
-## Other tips
-
-To load the package and access to the vignettes:
-
-```{r, eval = FALSE}
-library("LM2GLMM")
-browseVignettes(package = "LM2GLMM")  ## see in your web browser
-get_vignettes() ## see in your file manager
-```
-
-Example of installation from behind a proxy:
-
-```{r, eval = FALSE}
-httr::with_config(httr::use_proxy("192.168.2.2:3128"), devtools::install_github("courtiol/LM2GLMM"))
-```
-
-## Alternative install using drat
-
-
 1. install the R package ```drat``` (only if you don't have it):
 
 ```{r, eval = FALSE}
@@ -50,9 +19,13 @@ drat::addRepo("courtiol")
 install.packages("LM2GLMM")
 ```
 
-3. update the R package LM2GLMM:
+
+## Other tips
+
+To load the package and access to the vignettes:
 
 ```{r, eval = FALSE}
-drat::addRepo("courtiol")
-update.packages()
+library("LM2GLMM")
+browseVignettes(package = "LM2GLMM")  ## see in your web browser
+get_vignettes() ## see in your file manager
 ```
