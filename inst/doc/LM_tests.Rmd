@@ -10,6 +10,8 @@ vignette: >
   %\VignetteIndexEntry{2.3 Tests}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -213,7 +215,7 @@ anova(mod_UK1)
 
 ### Marginal test: Type 2 ANOVA (recommended)
 
-```{r anova 2}
+```{r anova 2, message = FALSE}
 library(car)
 Anova(mod_UK1)
 ```
@@ -254,7 +256,7 @@ mod_UK_no_milk <- lm(height ~ sex*weight, data = mod_UK_milk$model)
 anova(mod_UK_no_milk, mod_UK_milk, test = "Chisq")[2, "Pr(>Chi)"]
 (stat.obs <- 2*(c(logLik(mod_UK_milk)) - c(logLik(mod_UK_no_milk))))
 
-stat.rand <- replicate(200, {
+stat.rand <- replicate(1000, {
   newY <- as.matrix(simulate(mod_UK_no_milk))
   mod_milk <- lm(newY ~ milk + sex*weight, data = mod_UK_milk$model)
   mod_no_milk <- lm(newY ~ sex*weight, data = mod_UK_milk$model)
@@ -267,7 +269,7 @@ stat.rand <- replicate(200, {
 ## LRT by parametric boostrap
 
 ```{r plot LRT param boot, fig.align = "center", fig.width = 5, fig.height = 5}
-hist(stat.rand)
+hist(stat.rand, nclass = 50, xlim = c(0, 7))
 abline(v = stat.obs, lwd = 2, lty = 2, col = "red")
 ```
 
@@ -284,7 +286,7 @@ LRT(mod_UK_milk_spaMM, mod_UK_no_milk_spaMM, boot.repl = 200)
 ## Comparing two non-nested models using deviance
 
 You may use the deviance (smaller is better) or (log)likelihood  (bigger is better),
-but only if the number of df is the same
+but only if the number of residual degrees of freedom is the same
 
 ```{r non nested deviance}
 UK_for_both <- na.omit(UK[, c("height", "cigarettes", "sex", "weight", "milk")])
@@ -298,21 +300,19 @@ deviance(mod_UK5)
 
 ## Comparing two non-nested models using AIC
 
-You may use the AIC (AIC = -2 * (logLik - K)) (smaller is better) even if df differ
+You may use the AIC (AIC = -2 * (logLik - K)) (smaller is better) even if the number of residual degrees of freedom differ.
 
 ```{r non nested AIC}
 AIC(mod_UK1)
 AIC(mod_UK5)
-exp((AIC(mod_UK5) - AIC(mod_UK1)) / 2) ## evidence ratio
 ```
 
-The model ```mod_UK1``` is ```r round(exp((AIC(mod_UK5) - AIC(mod_UK1)) / 2), 1)``` times more
-likely to minimizes the (estimated) information loss than ```mod_UK5```.
+The smaller the AIC the better!
 
 
 ## Comparing two non-nested models using adjusted R-squared
 
-You may use ajusted R-squared (higher is better) even if df differ
+You may use ajusted R-squared (higher is better) even if the number of residual degrees of freedom differ, but it is not a valid statistical model comparison technic.
 
 <br>
 
@@ -329,7 +329,7 @@ summary(mod_UK5)$adj.r.squared
 
 ## Comparing two non-nested models using parametric bootstrap
 
-### This is the only general method to get a p-value
+### This is the best method as it deals with uncertainty. It also gives a p-value.
 
 We consider one model as the null model of the other (we choose here the worse model)
 

@@ -161,7 +161,7 @@ abline(h = 0, col = "red", lty = 2)
 
 ## The Box-Cox transformation (Box & Cox 1964)
 
-```{r boxcox}
+```{r boxcox, message = FALSE}
 library(car)
 boxCox(mod_poison)  ## makes logLik profile!
 ```
@@ -238,8 +238,8 @@ Caused by having less data than parameters or when there is linear dependence be
 set.seed(1L)
 N <- 3
 Alien <- data.frame(humans_eaten = 1:N,
-                     flowers_eaten = round(runif(N, min = 1, max = 15)),
-                     cactus_eaten =  round(runif(N, min = 1, max = 10)))
+                    flowers_eaten = round(runif(N, min = 1, max = 15)),
+                    cactus_eaten =  round(runif(N, min = 1, max = 10)))
 
 Alien$size <- rnorm(n = nrow(Alien),
   mean = 50 + 0.2 * Alien$humans_eaten + 0.9 * Alien$flowers_eaten + 0.1 * Alien$cactus_eaten,
@@ -691,7 +691,7 @@ head(sort(dffits(mod_davis), decreasing = TRUE))
 head(sort(cooks.distance(mod_davis), decreasing = TRUE))
 ```
 
-Both the DFFITS measure and the Cook distance (aka Cook's D) are two relative measures of the extent to which the predicted y-values changes if a given observation is dropped. DFFITS measures it in standard errors, Cook's D in the value of a F statistics comparing simultaneously the changes in all estimates when the observation is dropped or not.
+Both the DFFITS measure and the Cook distance (aka Cook's D) are two relative measures of the extent to which the predicted y-values changes if a given observation is dropped. DFFITS measures it scaled by the standard deviation of the fit at the point, Cook's D in the value of a F statistics comparing simultaneously the changes in all estimates when the observation is dropped or not.
 
 A high value is obtained when the observation is associated to high leverage, high residual or both.
 
@@ -748,6 +748,8 @@ Note: don't trust much rule of thumbs to identify outliers "automatically". If y
 ```{r influence.measures}
 influence.measures(mod_davis)  ## stars are just there to attract your attention, there is no proper tests!
 ```
+<!- The dfbetas are shown for each parameter! -->
+
 
 ## What you need to remember
 
