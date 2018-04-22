@@ -24,7 +24,7 @@ Fungi
 \description{
 This dataset is the result of an experiment aiming at assessing how the heat
 and pre-exposure to heat influences the growth rate and survival of two
-species of fungi in petry dishes.
+species of fungi in petri dishes.
 }
 \details{
 This dataset has not yet been published, so the identity of the species and
@@ -37,8 +37,8 @@ are kept for some time at an elevated temperature (36 or 38 degrees). The
 growth rate and survival status of the fungi were recorded at the end of the
 experiement.
 
-Before being put in petry dishes each species were grown in three different
+Before being put in petri dishes each species were grown in three different
 batches referred to as colonies. Each row of the dataset corresponds to a
-different petry dish.
+different petri dish.
 }
 \keyword{datasets}
