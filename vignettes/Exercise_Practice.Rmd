@@ -6,9 +6,11 @@ output:
   html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{2.X Answers to Exercises: Let's practice more LM}
   %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{2.X Answers to Exercises: Let's practice more LM}
   %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 ```{r setup, include=FALSE}
 library(LM2GLMM)
@@ -44,8 +46,10 @@ I don't know much about chicken but the values seem alright.
 We can also check the structure of the experimental design using the cross product of the design matrix we are planing to use for the fitting procedure:
 
 ```{r}
-crossprod(model.matrix( ~ feed, data = chickwts))
+crossprod(model.matrix( ~ feed - 1, data = chickwts))
 ```
+
+Removing the intercept when there is only one qualitative predictor gives the counts directly.
 
 Here, because there is only one factor involved, we could also have directly used the following:
 
@@ -59,7 +63,7 @@ We check if there is any missing data:
 any(is.na(chickwts))
 ```
 
-Great there is no missing data.
+Great! There is no missing data.
 
 ## Fitting the model
 
@@ -73,7 +77,7 @@ We fit the model:
 
 * linearity cannot be an issue here as we only have one qualitative predictor.
 * multicollinearity is not an issue either has each chick has received a different feeding treatment (see cross-product above).
-* fixed values for the predictor: unless the diet have not been recorded correctly, there should not been any problem.
+* fixed values for the predictor: unless the diet has not been recorded correctly, there should not been any problem.
 
 Let's have a look at the residuals of the model:
 
@@ -318,7 +322,7 @@ for (col in 2:ncol(model.matrix(mod_swiss))) {
 }
 ```
 
-No evident non linear pattern emerges.
+No obvious non-linear pattern emerges.
 
 ### Multicollinearity
 
@@ -379,12 +383,19 @@ Both of our models are fit the data clearly better than the null model.
 
 Because this is a simple LM, we can try to use the function ```allEffects``` from the package ```effects``` to do that:
 
-```{r, fig.height = 8, fig.width = 8}
+```{r plot effects, fig.height = 8, fig.width = 8}
 plot(effects::allEffects(mod_swiss))
 plot(effects::allEffects(mod_swiss_bis))
 ```
 
-Both models predict the same overall trends. To illustrate the difference in predicted values between the two models, one would have to do the plot manually instead of using the package ```effects```. Let's do that to illustrate how the prediction for the mean effect of education differ between models:
+Many other packages can probably do the same. One example is ```visreg```:
+
+```{r plot visreg, fig.height = 8, fig.width = 8}
+par(mfrow = c(2, 2))
+plot(visreg::visreg(mod_swiss_bis))
+```
+
+Both models predict the same overall trends. To illustrate the difference in predicted values between the two models, one would have to do the plot manually instead of using some easy package. Let's do that to illustrate how the prediction for the mean effect of education differ between models:
 
 ```{r}
 data.for.pred <- expand.grid("Agriculture" = mean(swiss$Agriculture), 
