@@ -10,6 +10,8 @@ vignette: >
   %\VignetteIndexEntry{2.4 Assumptions and Outliers}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -336,10 +338,12 @@ In more complex models, the numbers do not necessarily match, so it is good prac
 ```{r USA 4}
 vif(mod_US)
 R2 <- summary(lm(Assault ~ Murder, data = USArrests))$r.squared  ## works too if more variables
-1/(1-R2)
+1/(1 - R2)
 ```
 
 <br>
+
+Note: the model here considers the relationship between the predictors (the response variable of ```mod_US``` was ```rape```).
 
 The VIF tells you by how much the variance in the uncertainty in parameter estimates increases due to multicollinearity.
 
@@ -406,6 +410,8 @@ eqns <- specifyEquations(text = "
 fitted.mod <- sem(eqns, data = Alien4, raw = TRUE, fixed.x = "Intercept")
 summary(fitted.mod, analytic.se = FALSE)$coef  ## use analytic.se = FALSE (uses z as consider variance known)
 ```
+
+Other solutions are possible using mixed models.
 
 # Assumptions about the errors
 
@@ -642,6 +648,12 @@ abline(mod_davis2, col = "blue", lwd = 2)
 ```
 </div>
 
+## Many ways to be an outlier
+
+```{r influence.measures 0}
+influence.measures(mod_davis)  ## In the next slides we will see all that in details!
+```
+
 ## Leverage vs Influence
 
 A regression outlier is an observation that has an unusual value of the dependent variable Y, conditional on X.
@@ -657,6 +669,10 @@ A high leverage is not necessarily a bad thing.
 ### Influence
 
 An observation is influential if it strongly influences the predicted values.
+
+A high influence is not necessarily a bad thing.
+
+We do not want high influence caused by high leverage!
 
 ### Conclusion: we need to look at both!
 

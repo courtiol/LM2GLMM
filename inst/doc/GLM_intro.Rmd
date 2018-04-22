@@ -164,7 +164,7 @@ names(mod_binom)
 
 The components are the same no matter the family.
 
-We will only detail the interesting ones that differ from LM.
+We will only detail the interesting ones.
 
 ## Coefficients (```coefficients```)
 
@@ -948,7 +948,7 @@ The effect is constant on the scale of the odds ratios!
 
 <br>
 
-And the odds ratios can be directly deduced from the parameter estimates:
+And the odds ratios can also be directly deduced from the parameter estimates:
 
 ```{r}
 exp(mod_binom$coefficients[2])

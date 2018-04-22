@@ -12,7 +12,7 @@
 
 <meta name="author" content="Alexandre Courtiol" />
 
-<meta name="date" content="2018-04-19" />
+<meta name="date" content="2018-04-22" />
 
 <title>Answers to Exercises: Perfect Multicollinearity in LM</title>
 
@@ -70,10 +70,32 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Answers to Exercises: Perfect Multicollinearity in LM</h1>
 <h4 class="author"><em>Alexandre Courtiol</em></h4>
-<h4 class="date"><em>2018-04-19</em></h4>
+<h4 class="date"><em>2018-04-22</em></h4>
 
 
 
+<div id="looking-at-the-data" class="section level2">
+<h2>Looking at the data</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(Fungi)</code></pre></div>
+<pre><code>##   colony species T36 T38 PT36 PT38 alive   growth
+## 1      B     M_A   1   0    1    0  TRUE 1.875000
+## 2      C     M_A   1   0    1    0  TRUE 2.892857
+## 3      A     M_A   1   0    1    0  TRUE 3.107143
+## 4      A     M_A   1   0    1    0  TRUE 3.285714
+## 5      C     M_A   1   0    1    0  TRUE 3.812500
+## 6      B     M_A   1   0    1    0  TRUE 3.937500</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">str</span>(Fungi)</code></pre></div>
+<pre><code>## 'data.frame':    63 obs. of  8 variables:
+##  $ colony : Factor w/ 3 levels &quot;A&quot;,&quot;B&quot;,&quot;C&quot;: 2 3 1 1 3 2 2 3 1 3 ...
+##  $ species: Factor w/ 2 levels &quot;M_A&quot;,&quot;M_B&quot;: 1 1 1 1 1 1 1 1 2 2 ...
+##  $ T36    : int  1 1 1 1 1 1 1 1 1 1 ...
+##  $ T38    : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ PT36   : int  1 1 1 1 1 1 1 1 1 1 ...
+##  $ PT38   : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ alive  : logi  TRUE TRUE TRUE TRUE TRUE TRUE ...
+##  $ growth : num  1.88 2.89 3.11 3.29 3.81 ...</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#View(Fungi) ## Try that too!</span></code></pre></div>
+</div>
 <div id="preparing-the-data" class="section level2">
 <h2>Preparing the data</h2>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">FungiAlive &lt;-<span class="st"> </span><span class="kw">subset</span>(Fungi, alive <span class="op">==</span><span class="st"> </span><span class="ot">TRUE</span>)</code></pre></div>
@@ -87,47 +109,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 ##     -0.04241071     -0.68303571      2.22534014              NA 
 ## speciesM_B:PT36 speciesM_B:PT38 
 ##      0.29822137      0.93005952</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(XTX &lt;-<span class="st"> </span><span class="kw">crossprod</span>(<span class="kw">model.matrix</span>(<span class="op">~</span><span class="st"> </span>species<span class="op">*</span><span class="st"> </span>(T36 <span class="op">+</span><span class="st"> </span>T38 <span class="op">+</span><span class="st"> </span>PT36 <span class="op">+</span><span class="st"> </span>PT38), <span class="dt">data =</span> FungiAlive)))</code></pre></div>
-<pre><code>##                 (Intercept) speciesM_B T36 T38 PT36 PT38 speciesM_B:T36
-## (Intercept)              43         25  31  12   17    8             16
-## speciesM_B               25         25  16   9    9    6             16
-## T36                      31         16  31   0   17    0             16
-## T38                      12          9   0  12    0    8              0
-## PT36                     17          9  17   0   17    0              9
-## PT38                      8          6   0   8    0    8              0
-## speciesM_B:T36           16         16  16   0    9    0             16
-## speciesM_B:T38            9          9   0   9    0    6              0
-## speciesM_B:PT36           9          9   9   0    9    0              9
-## speciesM_B:PT38           6          6   0   6    0    6              0
-##                 speciesM_B:T38 speciesM_B:PT36 speciesM_B:PT38
-## (Intercept)                  9               9               6
-## speciesM_B                   9               9               6
-## T36                          0               9               0
-## T38                          9               0               6
-## PT36                         0               9               0
-## PT38                         6               0               6
-## speciesM_B:T36               0               9               0
-## speciesM_B:T38               9               0               6
-## speciesM_B:PT36              0               9               0
-## speciesM_B:PT38              6               0               6</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">det</span>(XTX)  ## bad --&gt; this model won't work</code></pre></div>
-<pre><code>## [1] 5.009582e-25</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">solve</span>(XTX)</code></pre></div>
-<pre><code>## Error in solve.default(XTX): system is computationally singular: reciprocal condition number = 1.60205e-18</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">caret<span class="op">::</span><span class="kw">findLinearCombos</span>(<span class="kw">model.matrix</span>(mod_silly))</code></pre></div>
-<pre><code>## $linearCombos
-## $linearCombos[[1]]
-## [1] 4 1 3
-## 
-## $linearCombos[[2]]
-## [1] 8 2 7
-## 
-## 
-## $remove
-## [1] 4 8</code></pre>
 </div>
-<div id="looking-at-the-data-structure-ignoring-species-for-now" class="section level2">
-<h2>Looking at the data structure (ignoring species for now)</h2>
+<div id="looking-at-the-data-structure-to-figure-out-the-issue-ignoring-species-for-now" class="section level2">
+<h2>Looking at the data structure to figure out the issue (ignoring species for now)</h2>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">with</span>(FungiAlive, <span class="kw">table</span>(T36, T38, PT36, PT38))  ## cumbersome</code></pre></div>
 <pre><code>## , , PT36 = 0, PT38 = 0
 ## 
@@ -156,13 +140,16 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 ## T36  0  1
 ##   0  0  0
 ##   1  0  0</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">crossprod</span>(<span class="kw">model.matrix</span>(<span class="op">~</span><span class="st"> </span>T36 <span class="op">+</span><span class="st"> </span>T38 <span class="op">+</span><span class="st"> </span>PT36 <span class="op">+</span><span class="st"> </span>PT38, <span class="dt">data =</span> FungiAlive)) ## more efficient</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(XTX &lt;-<span class="st"> </span><span class="kw">crossprod</span>(<span class="kw">model.matrix</span>(<span class="op">~</span><span class="st"> </span>T36 <span class="op">+</span><span class="st"> </span>T38 <span class="op">+</span><span class="st"> </span>PT36 <span class="op">+</span><span class="st"> </span>PT38, <span class="dt">data =</span> FungiAlive))) ## more efficient</code></pre></div>
 <pre><code>##             (Intercept) T36 T38 PT36 PT38
 ## (Intercept)          43  31  12   17    8
 ## T36                  31  31   0   17    0
 ## T38                  12   0  12    0    8
 ## PT36                 17  17   0   17    0
 ## PT38                  8   0   8    0    8</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">det</span>(XTX)</code></pre></div>
+<pre><code>## [1] 2.705747e-11</code></pre>
+<p>The determinant close to zero shows that the matrix is not invertible. This is because of the multicollinearity between the different levels of pre-treatments and treatments.</p>
 </div>
 <div id="creating-the-pre-treatment-variable" class="section level2">
 <h2>Creating the pre-treatment variable</h2>
@@ -191,52 +178,16 @@ FungiAlive<span class="op">$</span>T &lt;-<span class="st"> </span><span class="
 </div>
 <div id="fitting-the-model-and-predicting-the-effects-solution-1" class="section level2">
 <h2>Fitting the model and predicting the effects: solution 1</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">X &lt;-<span class="st"> </span><span class="kw">model.matrix</span>(<span class="op">~</span><span class="st"> </span>species <span class="op">*</span><span class="st"> </span>(PT <span class="op">+</span><span class="st"> </span>T), <span class="dt">data =</span> FungiAlive)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">X &lt;-<span class="st"> </span><span class="kw">model.matrix</span>(<span class="op">~</span><span class="st"> </span>PT <span class="op">+</span><span class="st"> </span>T, <span class="dt">data =</span> FungiAlive)
 (XTX &lt;-<span class="st"> </span><span class="kw">crossprod</span>(X))</code></pre></div>
-<pre><code>##                 (Intercept) speciesM_B PT38 PTno T38 speciesM_B:PT38
-## (Intercept)              43         25    8   18  12               6
-## speciesM_B               25         25    6   10   9               6
-## PT38                      8          6    8    0   8               6
-## PTno                     18         10    0   18   4               0
-## T38                      12          9    8    4  12               6
-## speciesM_B:PT38           6          6    6    0   6               6
-## speciesM_B:PTno          10         10    0   10   3               0
-## speciesM_B:T38            9          9    6    3   9               6
-##                 speciesM_B:PTno speciesM_B:T38
-## (Intercept)                  10              9
-## speciesM_B                   10              9
-## PT38                          0              6
-## PTno                         10              3
-## T38                           3              9
-## speciesM_B:PT38               0              6
-## speciesM_B:PTno              10              3
-## speciesM_B:T38                3              9</code></pre>
+<pre><code>##             (Intercept) PT38 PTno T38
+## (Intercept)          43    8   18  12
+## PT38                  8    8    0   8
+## PTno                 18    0   18   4
+## T38                  12    8    4  12</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">det</span>(XTX)</code></pre></div>
-<pre><code>## [1] 127008</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(m2 &lt;-<span class="st"> </span><span class="kw">lm</span>(growth <span class="op">~</span><span class="st"> </span>species <span class="op">*</span><span class="st"> </span>(PT <span class="op">+</span><span class="st"> </span>T), <span class="dt">data =</span> FungiAlive))</code></pre></div>
-<pre><code>## 
-## Call:
-## lm(formula = growth ~ species * (PT + T), data = FungiAlive)
-## 
-## Coefficients:
-##     (Intercept)       speciesM_B             PT38             PTno  
-##         3.59152          0.97297         -0.64062          0.04241  
-##             T38  speciesM_B:PT38  speciesM_B:PTno   speciesM_B:T38  
-##         1.34821          0.63184         -0.29822         -2.22534</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">newdata2 &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">PT =</span> <span class="kw">c</span>(<span class="st">&quot;36&quot;</span>, <span class="st">&quot;38&quot;</span>, <span class="st">&quot;no&quot;</span>, <span class="st">&quot;no&quot;</span>, <span class="st">&quot;36&quot;</span>, <span class="st">&quot;38&quot;</span>, <span class="st">&quot;no&quot;</span>, <span class="st">&quot;no&quot;</span>),
-                       <span class="dt">T =</span> <span class="kw">c</span>(<span class="st">&quot;36&quot;</span>, <span class="st">&quot;38&quot;</span>, <span class="st">&quot;36&quot;</span>, <span class="st">&quot;38&quot;</span>, <span class="st">&quot;36&quot;</span>, <span class="st">&quot;38&quot;</span>, <span class="st">&quot;36&quot;</span>, <span class="st">&quot;38&quot;</span>),
-                       <span class="dt">species =</span> <span class="kw">c</span>(<span class="kw">rep</span>(<span class="st">&quot;M_A&quot;</span>, <span class="dv">4</span>), <span class="kw">rep</span>(<span class="st">&quot;M_B&quot;</span>, <span class="dv">4</span>)))
-newdata2<span class="op">$</span>pred &lt;-<span class="st"> </span><span class="kw">predict</span>(m2, <span class="dt">newdata =</span> newdata2)
-newdata2</code></pre></div>
-<pre><code>##   PT  T species     pred
-## 1 36 36     M_A 3.591518
-## 2 38 38     M_A 4.299107
-## 3 no 36     M_A 3.633929
-## 4 no 38     M_A 4.982143
-## 5 36 36     M_B 4.564484
-## 6 38 38     M_B 3.678571
-## 7 no 36     M_B 4.308673
-## 8 no 38     M_B 3.431548</code></pre>
+<pre><code>## [1] 7616</code></pre>
+<p>That looks much better!</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(newdata2[newdata2<span class="op">$</span>species <span class="op">==</span><span class="st"> &quot;M_A&quot;</span>, <span class="st">&quot;pred&quot;</span>],
      <span class="dt">type =</span> <span class="st">&quot;b&quot;</span>, <span class="dt">axes =</span> <span class="ot">FALSE</span>, <span class="dt">col =</span> <span class="st">&quot;red&quot;</span>,
      <span class="dt">ylim =</span> <span class="kw">range</span>(newdata2<span class="op">$</span>pred),
@@ -261,6 +212,7 @@ newdata2</code></pre></div>
 ##         8         2         7         1         9         6         7 
 ## M_B_no_38 
 ##         3</code></pre>
+<p>You can in fact directly get the estimates for each treatment by simply removing the intercept:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">X &lt;-<span class="st"> </span><span class="kw">model.matrix</span>(<span class="op">~</span><span class="st"> </span><span class="op">-</span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>condition, <span class="dt">data =</span> FungiAlive)
 (XTX &lt;-<span class="st"> </span><span class="kw">crossprod</span>(X))</code></pre></div>
 <pre><code>##                    conditionM_A_36_36 conditionM_A_38_38
