@@ -6,3 +6,4 @@
 ^readme\.html$
 ^vignettes/cache_knitr/*$
 ^vignettes/fig_knitr/*$
+^Rplot.pdf$
