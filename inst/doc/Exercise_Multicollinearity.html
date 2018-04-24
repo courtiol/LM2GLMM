@@ -188,11 +188,26 @@ FungiAlive<span class="op">$</span>T &lt;-<span class="st"> </span><span class="
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">det</span>(XTX)</code></pre></div>
 <pre><code>## [1] 7616</code></pre>
 <p>That looks much better!</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(newdata2[newdata2<span class="op">$</span>species <span class="op">==</span><span class="st"> &quot;M_A&quot;</span>, <span class="st">&quot;pred&quot;</span>],
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mod &lt;-<span class="st"> </span><span class="kw">lm</span>(growth <span class="op">~</span><span class="st"> </span>species <span class="op">*</span><span class="st"> </span>(PT <span class="op">+</span><span class="st"> </span>T), <span class="dt">data =</span> FungiAlive)
+newdata &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">PT =</span> <span class="kw">c</span>(<span class="st">&quot;36&quot;</span>, <span class="st">&quot;38&quot;</span>, <span class="st">&quot;no&quot;</span>, <span class="st">&quot;no&quot;</span>, <span class="st">&quot;36&quot;</span>, <span class="st">&quot;38&quot;</span>, <span class="st">&quot;no&quot;</span>, <span class="st">&quot;no&quot;</span>),
+                       <span class="dt">T =</span> <span class="kw">c</span>(<span class="st">&quot;36&quot;</span>, <span class="st">&quot;38&quot;</span>, <span class="st">&quot;36&quot;</span>, <span class="st">&quot;38&quot;</span>, <span class="st">&quot;36&quot;</span>, <span class="st">&quot;38&quot;</span>, <span class="st">&quot;36&quot;</span>, <span class="st">&quot;38&quot;</span>),
+                       <span class="dt">species =</span> <span class="kw">c</span>(<span class="kw">rep</span>(<span class="st">&quot;M_A&quot;</span>, <span class="dv">4</span>), <span class="kw">rep</span>(<span class="st">&quot;M_B&quot;</span>, <span class="dv">4</span>)))
+newdata<span class="op">$</span>pred &lt;-<span class="st"> </span><span class="kw">predict</span>(mod, <span class="dt">newdata =</span> newdata)
+newdata</code></pre></div>
+<pre><code>##   PT  T species     pred
+## 1 36 36     M_A 3.591518
+## 2 38 38     M_A 4.299107
+## 3 no 36     M_A 3.633929
+## 4 no 38     M_A 4.982143
+## 5 36 36     M_B 4.564484
+## 6 38 38     M_B 3.678571
+## 7 no 36     M_B 4.308673
+## 8 no 38     M_B 3.431548</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(newdata[newdata<span class="op">$</span>species <span class="op">==</span><span class="st"> &quot;M_A&quot;</span>, <span class="st">&quot;pred&quot;</span>],
      <span class="dt">type =</span> <span class="st">&quot;b&quot;</span>, <span class="dt">axes =</span> <span class="ot">FALSE</span>, <span class="dt">col =</span> <span class="st">&quot;red&quot;</span>,
-     <span class="dt">ylim =</span> <span class="kw">range</span>(newdata2<span class="op">$</span>pred),
+     <span class="dt">ylim =</span> <span class="kw">range</span>(newdata<span class="op">$</span>pred),
      <span class="dt">ylab =</span> <span class="st">&quot;Growth rate&quot;</span>, <span class="dt">xlab =</span> <span class="st">&quot;Experimental condition&quot;</span>)
-<span class="kw">points</span>(newdata2[newdata2<span class="op">$</span>species <span class="op">==</span><span class="st"> &quot;M_B&quot;</span>, <span class="st">&quot;pred&quot;</span>],
+<span class="kw">points</span>(newdata[newdata<span class="op">$</span>species <span class="op">==</span><span class="st"> &quot;M_B&quot;</span>, <span class="st">&quot;pred&quot;</span>],
        <span class="dt">type =</span> <span class="st">&quot;b&quot;</span>, <span class="dt">col =</span> <span class="st">&quot;blue&quot;</span>)
 <span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">2</span>, <span class="dt">las =</span> <span class="dv">1</span>)
 <span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">1</span>, <span class="dt">at =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">4</span>,
@@ -253,32 +268,32 @@ FungiAlive<span class="op">$</span>T &lt;-<span class="st"> </span><span class="
 ## conditionM_B_no_38                  0                  3</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">det</span>(XTX)</code></pre></div>
 <pre><code>## [1] 127008</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">m1 &lt;-<span class="st"> </span><span class="kw">lm</span>(growth <span class="op">~</span><span class="st"> </span><span class="op">-</span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>condition, <span class="dt">data =</span> FungiAlive)
-<span class="kw">data.frame</span>(<span class="kw">coef</span>(m1))</code></pre></div>
-<pre><code>##                    coef.m1.
-## conditionM_A_36_36 3.591518
-## conditionM_A_38_38 4.299107
-## conditionM_A_no_36 3.633929
-## conditionM_A_no_38 4.982143
-## conditionM_B_36_36 4.564484
-## conditionM_B_38_38 3.678571
-## conditionM_B_no_36 4.308673
-## conditionM_B_no_38 3.431548</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">newdata1 &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">condition =</span> <span class="kw">levels</span>(FungiAlive<span class="op">$</span>condition))
-newdata1<span class="op">$</span>pred &lt;-<span class="st"> </span><span class="kw">predict</span>(m1, <span class="dt">newdata =</span> newdata1)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">mod2 &lt;-<span class="st"> </span><span class="kw">lm</span>(growth <span class="op">~</span><span class="st"> </span><span class="op">-</span><span class="dv">1</span> <span class="op">+</span><span class="st"> </span>condition, <span class="dt">data =</span> FungiAlive)
+<span class="kw">data.frame</span>(<span class="kw">coef</span>(mod2))</code></pre></div>
+<pre><code>##                    coef.mod2.
+## conditionM_A_36_36   3.591518
+## conditionM_A_38_38   4.299107
+## conditionM_A_no_36   3.633929
+## conditionM_A_no_38   4.982143
+## conditionM_B_36_36   4.564484
+## conditionM_B_38_38   3.678571
+## conditionM_B_no_36   4.308673
+## conditionM_B_no_38   3.431548</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">newdata2 &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">condition =</span> <span class="kw">levels</span>(FungiAlive<span class="op">$</span>condition))
+newdata2<span class="op">$</span>pred &lt;-<span class="st"> </span><span class="kw">predict</span>(mod2, <span class="dt">newdata =</span> newdata2)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(<span class="kw">c</span>(
-  newdata1[newdata1<span class="op">$</span>condition <span class="op">==</span><span class="st"> &quot;M_A_36_36&quot;</span>, <span class="st">&quot;pred&quot;</span>],
-  newdata1[newdata1<span class="op">$</span>condition <span class="op">==</span><span class="st"> &quot;M_A_38_38&quot;</span>, <span class="st">&quot;pred&quot;</span>],
-  newdata1[newdata1<span class="op">$</span>condition <span class="op">==</span><span class="st"> &quot;M_A_no_36&quot;</span>, <span class="st">&quot;pred&quot;</span>],
-  newdata1[newdata1<span class="op">$</span>condition <span class="op">==</span><span class="st"> &quot;M_A_no_38&quot;</span>, <span class="st">&quot;pred&quot;</span>]),
+  newdata2[newdata2<span class="op">$</span>condition <span class="op">==</span><span class="st"> &quot;M_A_36_36&quot;</span>, <span class="st">&quot;pred&quot;</span>],
+  newdata2[newdata2<span class="op">$</span>condition <span class="op">==</span><span class="st"> &quot;M_A_38_38&quot;</span>, <span class="st">&quot;pred&quot;</span>],
+  newdata2[newdata2<span class="op">$</span>condition <span class="op">==</span><span class="st"> &quot;M_A_no_36&quot;</span>, <span class="st">&quot;pred&quot;</span>],
+  newdata2[newdata2<span class="op">$</span>condition <span class="op">==</span><span class="st"> &quot;M_A_no_38&quot;</span>, <span class="st">&quot;pred&quot;</span>]),
   <span class="dt">type =</span> <span class="st">&quot;b&quot;</span>, <span class="dt">axes =</span> <span class="ot">FALSE</span>, <span class="dt">col =</span> <span class="st">&quot;red&quot;</span>,
-  <span class="dt">ylim =</span> <span class="kw">range</span>(newdata1<span class="op">$</span>pred),
+  <span class="dt">ylim =</span> <span class="kw">range</span>(newdata2<span class="op">$</span>pred),
   <span class="dt">ylab =</span> <span class="st">&quot;Growth rate&quot;</span>, <span class="dt">xlab =</span> <span class="st">&quot;Experimental condition&quot;</span>)
 <span class="kw">points</span>(<span class="kw">c</span>(
-  newdata1[newdata1<span class="op">$</span>condition <span class="op">==</span><span class="st"> &quot;M_B_36_36&quot;</span>, <span class="st">&quot;pred&quot;</span>],
-  newdata1[newdata1<span class="op">$</span>condition <span class="op">==</span><span class="st"> &quot;M_B_38_38&quot;</span>, <span class="st">&quot;pred&quot;</span>],
-  newdata1[newdata1<span class="op">$</span>condition <span class="op">==</span><span class="st"> &quot;M_B_no_36&quot;</span>, <span class="st">&quot;pred&quot;</span>],
-  newdata1[newdata1<span class="op">$</span>condition <span class="op">==</span><span class="st"> &quot;M_B_no_38&quot;</span>, <span class="st">&quot;pred&quot;</span>]),
+  newdata2[newdata2<span class="op">$</span>condition <span class="op">==</span><span class="st"> &quot;M_B_36_36&quot;</span>, <span class="st">&quot;pred&quot;</span>],
+  newdata2[newdata2<span class="op">$</span>condition <span class="op">==</span><span class="st"> &quot;M_B_38_38&quot;</span>, <span class="st">&quot;pred&quot;</span>],
+  newdata2[newdata2<span class="op">$</span>condition <span class="op">==</span><span class="st"> &quot;M_B_no_36&quot;</span>, <span class="st">&quot;pred&quot;</span>],
+  newdata2[newdata2<span class="op">$</span>condition <span class="op">==</span><span class="st"> &quot;M_B_no_38&quot;</span>, <span class="st">&quot;pred&quot;</span>]),
   <span class="dt">type =</span> <span class="st">&quot;b&quot;</span>, <span class="dt">col =</span> <span class="st">&quot;blue&quot;</span>)
 <span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">2</span>, <span class="dt">las =</span> <span class="dv">1</span>)
 <span class="kw">axis</span>(<span class="dt">side =</span> <span class="dv">1</span>, <span class="dt">at =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">4</span>,

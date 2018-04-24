@@ -80,12 +80,21 @@ det(XTX)
 
 That looks much better!
 
+```{r newdata}
+mod <- lm(growth ~ species * (PT + T), data = FungiAlive)
+newdata <- data.frame(PT = c("36", "38", "no", "no", "36", "38", "no", "no"),
+                       T = c("36", "38", "36", "38", "36", "38", "36", "38"),
+                       species = c(rep("M_A", 4), rep("M_B", 4)))
+newdata$pred <- predict(mod, newdata = newdata)
+newdata
+```
+
 ```{r plot pred 1}
-plot(newdata2[newdata2$species == "M_A", "pred"],
+plot(newdata[newdata$species == "M_A", "pred"],
      type = "b", axes = FALSE, col = "red",
-     ylim = range(newdata2$pred),
+     ylim = range(newdata$pred),
      ylab = "Growth rate", xlab = "Experimental condition")
-points(newdata2[newdata2$species == "M_B", "pred"],
+points(newdata[newdata$species == "M_B", "pred"],
        type = "b", col = "blue")
 axis(side = 2, las = 1)
 axis(side = 1, at = 1:4,
@@ -110,26 +119,26 @@ X <- model.matrix(~ -1 + condition, data = FungiAlive)
 (XTX <- crossprod(X))
 det(XTX)
 
-m1 <- lm(growth ~ -1 + condition, data = FungiAlive)
-data.frame(coef(m1))
-newdata1 <- data.frame(condition = levels(FungiAlive$condition))
-newdata1$pred <- predict(m1, newdata = newdata1)
+mod2 <- lm(growth ~ -1 + condition, data = FungiAlive)
+data.frame(coef(mod2))
+newdata2 <- data.frame(condition = levels(FungiAlive$condition))
+newdata2$pred <- predict(mod2, newdata = newdata2)
 ```
 
 ```{r plot pred 2}
 plot(c(
-  newdata1[newdata1$condition == "M_A_36_36", "pred"],
-  newdata1[newdata1$condition == "M_A_38_38", "pred"],
-  newdata1[newdata1$condition == "M_A_no_36", "pred"],
-  newdata1[newdata1$condition == "M_A_no_38", "pred"]),
+  newdata2[newdata2$condition == "M_A_36_36", "pred"],
+  newdata2[newdata2$condition == "M_A_38_38", "pred"],
+  newdata2[newdata2$condition == "M_A_no_36", "pred"],
+  newdata2[newdata2$condition == "M_A_no_38", "pred"]),
   type = "b", axes = FALSE, col = "red",
-  ylim = range(newdata1$pred),
+  ylim = range(newdata2$pred),
   ylab = "Growth rate", xlab = "Experimental condition")
 points(c(
-  newdata1[newdata1$condition == "M_B_36_36", "pred"],
-  newdata1[newdata1$condition == "M_B_38_38", "pred"],
-  newdata1[newdata1$condition == "M_B_no_36", "pred"],
-  newdata1[newdata1$condition == "M_B_no_38", "pred"]),
+  newdata2[newdata2$condition == "M_B_36_36", "pred"],
+  newdata2[newdata2$condition == "M_B_38_38", "pred"],
+  newdata2[newdata2$condition == "M_B_no_36", "pred"],
+  newdata2[newdata2$condition == "M_B_no_38", "pred"]),
   type = "b", col = "blue")
 axis(side = 2, las = 1)
 axis(side = 1, at = 1:4,
