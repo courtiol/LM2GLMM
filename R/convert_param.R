@@ -34,7 +34,7 @@ convert_betaXA_to_betaXB <- function(XA, XB, betaXA) {
   if (all(XA[, 1] == 1)) id_col_keep <- c(1, id_col_keep) ## add intercept
   id_col_drop <- setdiff(1:ncol(XA), id_col_keep) ## index columns to discard
   ## Conversion per se:
-  betaXB_temp <- solve(coef(stats::lm.fit(XA[, id_col_keep], XB[, id_col_keep])), betaXA[id_col_keep])
+  betaXB_temp <- solve(stats::coef(stats::lm.fit(XA[, id_col_keep], XB[, id_col_keep])), betaXA[id_col_keep])
   ## Put back non converted parameters into output
   betaXB <- numeric(length(betaXA))
   betaXB[id_col_keep] <- betaXB_temp
