@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2018-04-24" />
+  <meta name="date" content="2018-04-26" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,7 +94,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2018-04-24</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2018-04-26</p>
           </hgroup>
   </slide>
 
@@ -417,8 +417,31 @@ mod_binom</pre>
 <p>The GLM object contains:</p>
 
 <ul>
-<li>the scaled residual deviance of the model fit (deviance between the fit and the fit of a saturated model)</li>
-<li>the scaled null deviance (deviance between the null fit and the fit of a saturated model)</li>
+<li>the unscaled residual deviance of the model fit (deviance between the fit and the fit of a saturated model)</li>
+<li>the unscaled null deviance (deviance between the null fit and the fit of a saturated model)</li>
+</ul>
+
+<pre class = 'prettyprint lang-r'>sigma2_error &lt;- deviance(mod_gauss) / mod_gauss$df.residual
+sigma2_resid &lt;- sigma2_error *  mod_gauss$df.residual / nrow(mod_gauss$model)
+mod_gauss_sat &lt;- spaMM::fitme(formula = size ~ -1 + offset(size), data = Aliens, fixed = list(phi = sigma2_resid))
+
+c(mod_gauss$deviance, deviance(mod_gauss), -2*(logLik(mod_gauss) - logLik(mod_gauss_sat))*sigma2_resid)</pre>
+
+<pre >##                        p_v 
+## 2172.918 2172.918 2172.918</pre>
+
+<pre class = 'prettyprint lang-r'>mod_gauss_null &lt;- update(mod_gauss, . ~ 1)
+c(mod_gauss$null.deviance, mod_gauss_null$deviance)</pre>
+
+<pre >## [1] 6229.051 6229.051</pre>
+
+</article></slide><slide class=""><hgroup><h2>Deviances (<code>deviance</code> &amp; <code>null.deviance</code>)</h2></hgroup><article  id="deviances-deviance-null.deviance-1" class="smaller ">
+
+<p>The GLM object contains:</p>
+
+<ul>
+<li>the unscaled residual deviance of the model fit (deviance between the fit and the fit of a saturated model)</li>
+<li>the unscaled null deviance (deviance between the null fit and the fit of a saturated model)</li>
 </ul>
 
 <pre class = 'prettyprint lang-r'>mod_poiss_sat &lt;- update(mod_poiss, . ~ as.factor(mod_poiss$y))
@@ -431,13 +454,13 @@ c(mod_poiss$null.deviance, mod_poiss_null$deviance)</pre>
 
 <pre >## [1] 118.6854 118.6854</pre>
 
-</article></slide><slide class=""><hgroup><h2>Deviances (<code>deviance</code> &amp; <code>null.deviance</code>)</h2></hgroup><article  id="deviances-deviance-null.deviance-1" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Deviances (<code>deviance</code> &amp; <code>null.deviance</code>)</h2></hgroup><article  id="deviances-deviance-null.deviance-2" class="smaller ">
 
 <p>The GLM object contains:</p>
 
 <ul>
-<li>the scaled residual deviance of the model fit (deviance between the fit and the fit of a saturated model)</li>
-<li>the scaled null deviance (deviance between the null fit and the fit of a saturated model)</li>
+<li>the unscaled residual deviance of the model fit (deviance between the fit and the fit of a saturated model)</li>
+<li>the unscaled null deviance (deviance between the null fit and the fit of a saturated model)</li>
 </ul>
 
 <pre class = 'prettyprint lang-r'>mod_binom_sat &lt;- update(mod_binom, . ~ as.factor(mod_binom$y))</pre>
@@ -620,7 +643,7 @@ c(binomial(link = &quot;cloglog&quot;)$linkfun(0.9), log(-log(1 - 0.9)))</pre>
 
 </article></slide><slide class=""><hgroup><h2>Deviance residuals (<code>dev.resids</code>)</h2></hgroup><article  id="deviance-residuals-dev.resids" class="smaller ">
 
-<p>This function computes the squared deviance residuals.</p>
+<p>This function computes the squared deviance residuals (their sum equals the unscaled deviance).</p>
 
 <p>Example for the Gaussian family:</p>
 
@@ -629,9 +652,7 @@ c(binomial(link = &quot;cloglog&quot;)$linkfun(0.9), log(-log(1 - 0.9)))</pre>
 <pre >##        1        2 
 ## 5.925742 7.863338</pre>
 
-<pre class = 'prettyprint lang-r'>sigma2_error &lt;- sum(summary(mod_gauss)$deviance.resid^2) / mod_gauss$df.residual
-sigma2_resid &lt;- sigma2_error *  mod_gauss$df.residual / nrow(mod_gauss$model)
-deviance.pt &lt;- -2 * sigma2_resid * (dnorm(x = mod_gauss$y, mean = mod_gauss$fitted.values,
+<pre class = 'prettyprint lang-r'>deviance.pt &lt;- -2 * sigma2_resid * (dnorm(x = mod_gauss$y, mean = mod_gauss$fitted.values,
                                           sd = rep(sqrt(sigma2_resid), length(mod_gauss$y)), log = TRUE) - 
                                     dnorm(x = mod_gauss$y, mean = mod_gauss$y,
                                           sd = rep(sqrt(sigma2_resid), length(mod_gauss$y)), log = TRUE))
@@ -640,9 +661,13 @@ deviance.pt &lt;- -2 * sigma2_resid * (dnorm(x = mod_gauss$y, mean = mod_gauss$f
 <pre >##        1        2 
 ## 5.925742 7.863338</pre>
 
+<pre class = 'prettyprint lang-r'>c(deviance(mod_gauss), sum(mod_gauss$prior.weight * deviance.pt))</pre>
+
+<pre >## [1] 2172.918 2172.918</pre>
+
 </article></slide><slide class=""><hgroup><h2>Deviance residuals (<code>dev.resids</code>)</h2></hgroup><article  id="deviance-residuals-dev.resids-1" class="smaller ">
 
-<p>This function computes the squared deviance residuals.</p>
+<p>This function computes the squared deviance residuals (their sum equals the unscaled deviance).</p>
 
 <p>Example for the Poisson family:</p>
 
@@ -659,9 +684,13 @@ deviance.pt &lt;- -2 * sigma2_resid * (dnorm(x = mod_gauss$y, mean = mod_gauss$f
 <pre >##          1          2 
 ## 0.06966248 1.63194511</pre>
 
+<pre class = 'prettyprint lang-r'>c(deviance(mod_poiss), sum(mod_poiss$prior.weight * deviance.pt))</pre>
+
+<pre >## [1] 116.8588 116.8588</pre>
+
 </article></slide><slide class=""><hgroup><h2>Deviance residuals (<code>dev.resids</code>)</h2></hgroup><article  id="deviance-residuals-dev.resids-2" class="smaller ">
 
-<p>This function computes the squared deviance residuals.</p>
+<p>This function computes the squared deviance residuals (their sum equals the unscaled deviance).</p>
 
 <p>Example for the binomial family (binary case):</p>
 
@@ -670,21 +699,22 @@ deviance.pt &lt;- -2 * sigma2_resid * (dnorm(x = mod_gauss$y, mean = mod_gauss$f
 <pre >##         1         2 
 ## 0.6978547 0.9410719</pre>
 
-<pre class = 'prettyprint lang-r'>deviance.pt  &lt;- -2 * (dbinom(x    = mod_binar$y,
-                             size = 1,
+<pre class = 'prettyprint lang-r'>deviance.pt  &lt;- -2 * (dbinom(x    = mod_binar$y, size = 1,
                              prob = mod_binar$fitted.values, log = TRUE) - 
-                      dbinom(x    = mod_binar$y,
-                             size = 1,
+                      dbinom(x    = mod_binar$y, size = 1,
                              prob = mod_binar$y, log = TRUE))
-
-(mod_poiss$prior.weight * deviance.pt)[1:2]</pre>
+(mod_binar$prior.weight * deviance.pt)[1:2]</pre>
 
 <pre >##         1         2 
 ## 0.6978547 0.9410719</pre>
 
+<pre class = 'prettyprint lang-r'>c(deviance(mod_binar), sum(mod_binar$prior.weight * deviance.pt))</pre>
+
+<pre >## [1] 126.3332 126.3332</pre>
+
 </article></slide><slide class=""><hgroup><h2>Deviance residuals (<code>dev.resids</code>)</h2></hgroup><article  id="deviance-residuals-dev.resids-3" class="smaller ">
 
-<p>This function computes the squared deviance residuals.</p>
+<p>This function computes the squared deviance residuals (their sum equals the unscaled deviance).</p>
 
 <p>Example for the binomial family (general case):</p>
 
@@ -693,17 +723,18 @@ deviance.pt &lt;- -2 * sigma2_resid * (dnorm(x = mod_gauss$y, mean = mod_gauss$f
 <pre >##         1         2 
 ## 1.9844669 0.7877921</pre>
 
-<pre class = 'prettyprint lang-r'>deviance.pt  &lt;- -2 * (dbinom(x    = mod_binom$y*mod_binom$prior.weights,
-                             size = mod_binom$prior.weights,
+<pre class = 'prettyprint lang-r'>deviance.pt  &lt;- -2 * (dbinom(x    = mod_binom$y*mod_binom$prior.weights, size = mod_binom$prior.weights,
                              prob = mod_binom$fitted.values, log = TRUE) - 
-                      dbinom(x    = mod_binom$y*mod_binom$prior.weights,
-                             size = mod_binom$prior.weights,
+                      dbinom(x    = mod_binom$y*mod_binom$prior.weights, size = mod_binom$prior.weights,
                              prob = mod_binom$y, log = TRUE))
-
 deviance.pt[1:2]  ## here the prior.weights directly considered</pre>
 
 <pre >##         1         2 
 ## 1.9844669 0.7877921</pre>
+
+<pre class = 'prettyprint lang-r'>c(deviance(mod_binom), sum(deviance.pt))</pre>
+
+<pre >## [1] 92.83338 92.83338</pre>
 
 </article></slide><slide class=""><hgroup><h2>Other components from <code>family()</code></h2></hgroup><article  id="other-components-from-family" class="smaller ">
 
@@ -745,11 +776,11 @@ deviance.pt[1:2]  ## here the prior.weights directly considered</pre>
   etastart &lt;- start &lt;- mustart &lt;- NULL  ## required for family$initialize
   eval(family$initialize)               ## recomputes y and prior weights if binomial + cbind
   
-  get_resid_deviance &lt;- function(coef) {  ## define function computing the scaled residual deviance
+  get_resid_deviance &lt;- function(coef) {  ## define function computing the unscaled residual deviance
     eta &lt;- as.numeric(X %*% coef)   ## compute the linear predictors
     mu  &lt;- family$linkinv(eta)      ## express the linear predictor in the scale of the response
     dev &lt;- sum(family$dev.resids(y, mu, weights))  ## compute the deviance. Here: prior weights are used!
-    return(dev)  ## return the scaled residual deviance
+    return(dev)  ## return the unscaled residual deviance
   }
   
   fit &lt;- nlminb(rep(0, ncol(X)), get_resid_deviance) ## optimisation; same as optim() but seems to work better
@@ -939,7 +970,7 @@ glm(y ~ x, data = test, family = Gamma(link = &quot;log&quot;)) </pre>
 <p>In such cases, you may also try other methods (much easier):</p>
 
 <pre class = 'prettyprint lang-r'>library(spaMM)
-glm(y ~ x, data = test, family = Gamma(link = &quot;log&quot;), method=&quot;spaMM_glm.fit&quot;)</pre>
+glm(y ~ x, data = test, family = Gamma(link = &quot;log&quot;), method = &quot;spaMM_glm.fit&quot;)</pre>
 
 <pre >## 
 ## Call:  glm(formula = y ~ x, family = Gamma(link = &quot;log&quot;), data = test, 
@@ -963,12 +994,41 @@ glm(y ~ x, data = test, family = Gamma(link = &quot;log&quot;)) </pre>
 
 <p>In such cases, you may also try other methods (much easier):</p>
 
+<pre class = 'prettyprint lang-r'>fitme(y ~ x, data = test, family = Gamma(link = &quot;log&quot;))</pre>
+
+<pre >## formula: y ~ x
+## ML: Estimation of phi by ML.
+##     Estimation of fixed effects by ML.
+## Family: Gamma ( link = log ) 
+##  ------------ Fixed effects (beta) ------------
+##             Estimate Cond. SE t-value
+## (Intercept)  8.47053  2.10070   4.032
+## x           -0.09587  0.08975  -1.068
+##  -- Residual variation ( var = phi * mu^2 )  --
+## Coefficients for log(phi) ~ 1 :
+##             Estimate Cond. SE
+## (Intercept)    1.008   0.4995
+## Estimate of phi:  2.741 
+##  ------------- Likelihood values  -------------
+##                         logLik
+## p(h)   (Likelihood): -40.84264
+## linear predictor estimation did not converge; try control.HLfit=list(LevenbergM=TRUE), or increase &#39;max.iter.mean&#39; above 50</pre>
+
+</article></slide><slide class=""><hgroup><h2>The iterative algorithm can sometimes fail</h2></hgroup><article  id="the-iterative-algorithm-can-sometimes-fail-3" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>test &lt;- data.frame(x = c(8.752, 20.27, 24.71, 32.88, 27.27, 19.09),
+                   y = c(5254, 35.92, 84.14, 641.8, 1.21, 47.2))
+glm(y ~ x, data = test, family = Gamma(link = &quot;log&quot;)) </pre>
+
+<pre >## Error in glm.fit(x = structure(c(1, 1, 1, 1, 1, 1, 8.752, 20.27, 24.71, : NA/NaN/Inf in &#39;x&#39;</pre>
+
+<p>In such cases, you may also try other methods (much easier):</p>
+
 <pre class = 'prettyprint lang-r'>library(glm2)   ## seems less robust than spaMM in at least some other cases, so try both in case of troubles
-glm(y ~ x, data = test, family = Gamma(link = &quot;log&quot;), method=&quot;glm.fit2&quot;)</pre>
+glm2(y ~ x, data = test, family = Gamma(link = &quot;log&quot;))</pre>
 
 <pre >## 
-## Call:  glm(formula = y ~ x, family = Gamma(link = &quot;log&quot;), data = test, 
-##     method = &quot;glm.fit2&quot;)
+## Call:  glm2(formula = y ~ x, family = Gamma(link = &quot;log&quot;), data = test)
 ## 
 ## Coefficients:
 ## (Intercept)            x  
@@ -978,7 +1038,7 @@ glm(y ~ x, data = test, family = Gamma(link = &quot;log&quot;), method=&quot;glm
 ## Null Deviance:       28.84 
 ## Residual Deviance: 21.97     AIC: 88.05</pre>
 
-</article></slide><slide class=""><hgroup><h2>The iterative algorithm can sometimes fail</h2></hgroup><article  id="the-iterative-algorithm-can-sometimes-fail-3" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>The iterative algorithm can sometimes fail</h2></hgroup><article  id="the-iterative-algorithm-can-sometimes-fail-4" class="smaller ">
 
 <p>Just for fun let&#39;s try our toy functions too:</p>
 

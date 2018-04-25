@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2018-04-24" />
+  <meta name="date" content="2018-04-26" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,11 +94,20 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2018-04-24</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2018-04-26</p>
           </hgroup>
   </slide>
 
-<slide class=""><hgroup><h2>You will learn in this session</h2></hgroup><article  id="you-will-learn-in-this-session" class="smaller ">
+<slide class=""><hgroup><h2>The Generalized Linear Model: GLM</h2></hgroup><article  id="the-generalized-linear-model-glm" class="smaller ">
+
+<ul>
+<li>3.0 <a href='./GLM_intro.html' title=''>Introduction</a></li>
+<li>3.1 <a href='./GLM_intervals.html' title=''>Intervals &amp; Tests</a></li>
+<li>3.2 <a href='./GLM_assumptions.html' title=''>Residuals &amp; Assumptions</a></li>
+<li>3.3 <a href='./GLM_practice.html' title=''>Let&#39;s practice more</a></li>
+</ul>
+
+</article></slide><slide class=""><hgroup><h2>You will learn in this session</h2></hgroup><article  id="you-will-learn-in-this-session" class="smaller ">
 
 <ul>
 <li>that estimates are still roughly normally distributed (but only roughly)</li>
@@ -580,88 +589,7 @@ rbind(poiss = apply(test_poiss, 1, mean),
 
 </article></slide><slide class=""><hgroup><h2>95% CI using parametric bootstrap</h2></hgroup><article  id="ci-using-parametric-bootstrap" class="smaller ">
 
-<pre class = 'prettyprint lang-r'>set.seed(1)
-new_betas &lt;- replicate(100, {
-  Aliens$newY &lt;- as.matrix(simulate(mod_binar, 1))
-  update(mod_binar, newY ~ .)$coefficients})
-cbind(intercept = quantile(new_betas[1, ], c(0.025, 0.975)),
-      slope = quantile(new_betas[2, ], c(0.025, 0.975)))</pre>
-
-<pre >##        intercept     slope
-## 2.5%  -3.1229507 0.0785700
-## 97.5% -0.7044315 0.3055914</pre>
-
-</article></slide><slide class=""><hgroup><h2>95% CI using parametric bootstrap</h2></hgroup><article  id="ci-using-parametric-bootstrap-1" class="smaller ">
-
-<pre class = 'prettyprint lang-r'>confint.myboot &lt;- function(mod, print = FALSE) {
-  
-  new_betas &lt;- replicate(100, {
-    mod$data$newY &lt;- simulate(mod, 1)[, 1]
-    update(mod, newY ~ ., data = mod$data)$coef})
- 
-  intervals &lt;- rbind(&quot;(Intercept)&quot; = quantile(new_betas[1, ], c(0.025, 0.975)),
-      &quot;humans_eaten&quot; = quantile(new_betas[2, ], c(0.025, 0.975)))
-  
-  if (print) print(intervals)
-  name.response &lt;- mod$terms[[2]]
-  if (length(name.response) == 3) name.response &lt;- name.response[[2]]  ## for  binomial with cbind
-  true.intercept &lt;- attributes(mod$data)$param.eta[[paste(name.response)]][1]
-  true.slope &lt;- attributes(mod$data)$param.eta[[paste(name.response)]][2]
-  if (print) cat(&quot;\n true parameters in 95% CI? \n&quot;)
-  
-  c(true.intercept &gt; intervals[&quot;(Intercept)&quot;, 1] &amp; true.intercept &lt; intervals[&quot;(Intercept)&quot;, 2],
-    true.slope &gt; intervals[&quot;humans_eaten&quot;, 1] &amp; true.slope &lt; intervals[&quot;humans_eaten&quot;, 2])
-}</pre>
-
-</article></slide><slide class=""><hgroup><h2>95% CI using parametric bootstrap</h2></hgroup><article  id="ci-using-parametric-bootstrap-2" class="smaller ">
-
-<h3>Coverage N = 100</h3>
-
-<pre class = 'prettyprint lang-r'>set.seed(1L)
-test_poiss &lt;- replicate(1000, {
-  new.data &lt;- simulate_Aliens_GLM()
-  mod &lt;- update(mod_poiss, data = new.data)
-  confint.myboot(mod)
-  })
-
-test_binar &lt;- replicate(1000, {
-  new.data &lt;- simulate_Aliens_GLM()
-  mod &lt;- update(mod_binar, data = new.data)
-  confint.myboot(mod)
-  })
-
-test_binom &lt;- replicate(1000, {
-  new.data &lt;- simulate_Aliens_GLM()
-  mod &lt;- update(mod_binom, data = new.data)
-  confint.myboot(mod)
-  })
-
-test_gauss &lt;- replicate(1000, {
-  new.data &lt;- simulate_Aliens_GLM()
-  mod &lt;- update(mod_gauss, data = new.data)
-  confint.myboot(mod)
-  })</pre>
-
-</article></slide><slide class=""><hgroup><h2>95% CI using parametric bootstrap</h2></hgroup><article  id="ci-using-parametric-bootstrap-3" class="smaller ">
-
-<h3>Coverage N = 100</h3>
-
-<pre class = 'prettyprint lang-r'>rbind(poiss = apply(test_poiss, 1, mean),
-      binar = apply(test_binar, 1, mean),
-      binom = apply(test_binom, 1, mean),
-      gauss = apply(test_gauss, 1, mean))</pre>
-
-<pre >##       intercept slope
-## poiss     0.938 0.944
-## binar     0.908 0.909
-## binom     0.920 0.926
-## gauss     0.914 0.937</pre>
-
-<p>This is not good&#8230;</p>
-
-</article></slide><slide class=""><hgroup><h2>95% CI using parametric bootstrap</h2></hgroup><article  id="ci-using-parametric-bootstrap-4" class="smaller ">
-
-<h3>A more serious approach of parametric bootstrap using <code>boot</code></h3>
+<h3>Parametric bootstrap using <code>boot</code></h3>
 
 <pre class = 'prettyprint lang-r'>confint.myboot2 &lt;- function(mod, print = FALSE) {
   new_betas &lt;- replicate(100, {
@@ -685,7 +613,7 @@ test_gauss &lt;- replicate(1000, {
     true.slope &gt; intervals[&quot;humans_eaten&quot;, 1] &amp; true.slope &lt; intervals[&quot;humans_eaten&quot;, 2])
 }</pre>
 
-</article></slide><slide class=""><hgroup><h2>95% CI using parametric bootstrap</h2></hgroup><article  id="ci-using-parametric-bootstrap-5" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>95% CI using parametric bootstrap</h2></hgroup><article  id="ci-using-parametric-bootstrap-1" class="smaller ">
 
 <h3>Coverage N = 100</h3>
 
@@ -711,7 +639,7 @@ test_gauss &lt;- replicate(1000, {
   confint.myboot2(mod)
   })</pre>
 
-</article></slide><slide class=""><hgroup><h2>95% CI using parametric bootstrap</h2></hgroup><article  id="ci-using-parametric-bootstrap-6" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>95% CI using parametric bootstrap</h2></hgroup><article  id="ci-using-parametric-bootstrap-2" class="smaller ">
 
 <h3>Coverage N = 100</h3>
 
@@ -929,6 +857,8 @@ mod_poiss2_spaMM  &lt;- fitme(eggs  ~ humans_eaten, family = poisson(),  data = 
 mod_poiss2_spaMM0 &lt;- fitme(eggs  ~ 1, family = poisson(),  data = Aliens2)
 mod_binar2_spaMM &lt;- fitme(happy ~ humans_eaten, family = binomial(), data = Aliens2)</pre>
 
+<pre >## If the &#39;e1071&#39; package were installed, spaMM could check (quasi-)separation in binary regression problem.</pre>
+
 <pre >## Fits using Laplace approximation may diverge for all-or-none binomial data:
 ##  check PQL or PQL/L methods in that case.</pre>
 
@@ -1116,7 +1046,7 @@ plot(ecdf(rchisq(10000, df = 1)), add = TRUE, col = &quot;green&quot;, lwd = 1)<
 <h3>Under certain conditions, these 3 distributions are the same:</h3>
 
 <ul>
-<li>when <code>df1 = 1</code> &amp; when <code>residuals.df</code> \(\rightarrow \infty\)</li>
+<li>when \(F_{df1 = 1}\) &amp; when <code>residuals.df</code> \(\rightarrow \infty\)</li>
 </ul>
 
 <pre class = 'prettyprint lang-r'>plot(ecdf(rt(10000, df = 500)^2), col = &quot;blue&quot;, lwd = 3, main = &quot;&quot;)
@@ -1230,7 +1160,7 @@ mean(logLikH0 &lt; (logLik(mod_lm) - logLik(mod_glm)))</pre>
 
 </article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Table of contents</h2></hgroup><article  id="table-of-contents" class="smaller ">
 
-</article></slide><slide class=""><hgroup><h2>The Generalized Linear Model: GLM</h2></hgroup><article  id="the-generalized-linear-model-glm" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>The Generalized Linear Model: GLM</h2></hgroup><article  id="the-generalized-linear-model-glm-1" class="smaller ">
 
 <ul>
 <li>3.0 <a href='./GLM_intro.html' title=''>Introduction</a></li>
