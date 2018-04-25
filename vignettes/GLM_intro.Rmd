@@ -10,6 +10,8 @@ vignette: >
   %\VignetteIndexEntry{3.0 Generalized Linear Models}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 ```{r setup, include=FALSE}
 library(LM2GLMM)
@@ -246,13 +248,30 @@ rbind(mod_poiss$fitted.values[1:2], poisson()$linkinv(mod_poiss$linear.predictor
 rbind(mod_binom$fitted.values[1:2], binomial()$linkinv(mod_binom$linear.predictors[1:2]))
 ```
 
+## Deviances (```deviance``` & ```null.deviance```)
+
+The GLM object contains:
+
+* the unscaled residual deviance of the model fit (deviance between the fit and the fit of a saturated model)
+* the unscaled null deviance (deviance between the null fit and the fit of a saturated model)
+
+```{r}
+sigma2_error <- deviance(mod_gauss) / mod_gauss$df.residual
+sigma2_resid <- sigma2_error *  mod_gauss$df.residual / nrow(mod_gauss$model)
+mod_gauss_sat <- spaMM::fitme(formula = size ~ -1 + offset(size), data = Aliens, fixed = list(phi = sigma2_resid))
+
+c(mod_gauss$deviance, deviance(mod_gauss), -2*(logLik(mod_gauss) - logLik(mod_gauss_sat))*sigma2_resid)
+mod_gauss_null <- update(mod_gauss, . ~ 1)
+c(mod_gauss$null.deviance, mod_gauss_null$deviance)
+```
+
 
 ## Deviances (```deviance``` & ```null.deviance```)
 
 The GLM object contains:
 
-* the scaled residual deviance of the model fit (deviance between the fit and the fit of a saturated model)
-* the scaled null deviance (deviance between the null fit and the fit of a saturated model)
+* the unscaled residual deviance of the model fit (deviance between the fit and the fit of a saturated model)
+* the unscaled null deviance (deviance between the null fit and the fit of a saturated model)
 
 ```{r}
 mod_poiss_sat <- update(mod_poiss, . ~ as.factor(mod_poiss$y))
@@ -265,8 +284,8 @@ c(mod_poiss$null.deviance, mod_poiss_null$deviance)
 
 The GLM object contains:
 
-* the scaled residual deviance of the model fit (deviance between the fit and the fit of a saturated model)
-* the scaled null deviance (deviance between the null fit and the fit of a saturated model)
+* the unscaled residual deviance of the model fit (deviance between the fit and the fit of a saturated model)
+* the unscaled null deviance (deviance between the null fit and the fit of a saturated model)
 
 ```{r}
 mod_binom_sat <- update(mod_binom, . ~ as.factor(mod_binom$y))
@@ -407,26 +426,25 @@ binomial()$variance(seq(0, 1, 0.1))  ## = p x q
 
 ## Deviance residuals (```dev.resids```)
 
-This function computes the squared deviance residuals.
+This function computes the squared deviance residuals (their sum equals the unscaled deviance).
 
 Example for the Gaussian family:
 
 ```{r}
 with(mod_gauss, gaussian()$dev.resids(y = y, mu = fitted.values, wt = prior.weights))[1:2]
 
-sigma2_error <- sum(summary(mod_gauss)$deviance.resid^2) / mod_gauss$df.residual
-sigma2_resid <- sigma2_error *  mod_gauss$df.residual / nrow(mod_gauss$model)
 deviance.pt <- -2 * sigma2_resid * (dnorm(x = mod_gauss$y, mean = mod_gauss$fitted.values,
                                           sd = rep(sqrt(sigma2_resid), length(mod_gauss$y)), log = TRUE) - 
                                     dnorm(x = mod_gauss$y, mean = mod_gauss$y,
                                           sd = rep(sqrt(sigma2_resid), length(mod_gauss$y)), log = TRUE))
 (mod_gauss$prior.weight * deviance.pt)[1:2] 
+c(deviance(mod_gauss), sum(mod_gauss$prior.weight * deviance.pt))
 ```
 
 
 ## Deviance residuals (```dev.resids```)
 
-This function computes the squared deviance residuals.
+This function computes the squared deviance residuals (their sum equals the unscaled deviance).
 
 Example for the Poisson family:
 
@@ -437,46 +455,44 @@ deviance.pt  <- -2 * (dpois(x = mod_poiss$y, lambda = mod_poiss$fitted.values, l
                       dpois(x = mod_poiss$y, lambda = mod_poiss$y, log = TRUE))
 
 (mod_poiss$prior.weight * deviance.pt)[1:2]
+c(deviance(mod_poiss), sum(mod_poiss$prior.weight * deviance.pt))
 ```
 
 
 ## Deviance residuals (```dev.resids```)
 
-This function computes the squared deviance residuals.
+This function computes the squared deviance residuals (their sum equals the unscaled deviance).
 
 Example for the binomial family (binary case):
 
 ```{r}
 with(mod_binar, binomial()$dev.resids(y = y, mu = fitted.values, wt = prior.weights))[1:2]
 
-deviance.pt  <- -2 * (dbinom(x    = mod_binar$y,
-                             size = 1,
+deviance.pt  <- -2 * (dbinom(x    = mod_binar$y, size = 1,
                              prob = mod_binar$fitted.values, log = TRUE) - 
-                      dbinom(x    = mod_binar$y,
-                             size = 1,
+                      dbinom(x    = mod_binar$y, size = 1,
                              prob = mod_binar$y, log = TRUE))
+(mod_binar$prior.weight * deviance.pt)[1:2]
+c(deviance(mod_binar), sum(mod_binar$prior.weight * deviance.pt))
 
-(mod_poiss$prior.weight * deviance.pt)[1:2]
 ```
 
 
 ## Deviance residuals (```dev.resids```)
 
-This function computes the squared deviance residuals.
+This function computes the squared deviance residuals (their sum equals the unscaled deviance).
 
 Example for the binomial family (general case):
 
 ```{r}
 with(mod_binom, binomial()$dev.resids(y = y, mu = fitted.values, wt = prior.weights))[1:2]
 
-deviance.pt  <- -2 * (dbinom(x    = mod_binom$y*mod_binom$prior.weights,
-                             size = mod_binom$prior.weights,
+deviance.pt  <- -2 * (dbinom(x    = mod_binom$y*mod_binom$prior.weights, size = mod_binom$prior.weights,
                              prob = mod_binom$fitted.values, log = TRUE) - 
-                      dbinom(x    = mod_binom$y*mod_binom$prior.weights,
-                             size = mod_binom$prior.weights,
+                      dbinom(x    = mod_binom$y*mod_binom$prior.weights, size = mod_binom$prior.weights,
                              prob = mod_binom$y, log = TRUE))
-
 deviance.pt[1:2]  ## here the prior.weights directly considered
+c(deviance(mod_binom), sum(deviance.pt))
 ```
 
 
@@ -521,11 +537,11 @@ my_glm1 <- function(formula, data, family, weights = NULL) {
   etastart <- start <- mustart <- NULL  ## required for family$initialize
   eval(family$initialize)               ## recomputes y and prior weights if binomial + cbind
   
-  get_resid_deviance <- function(coef) {  ## define function computing the scaled residual deviance
+  get_resid_deviance <- function(coef) {  ## define function computing the unscaled residual deviance
     eta <- as.numeric(X %*% coef)   ## compute the linear predictors
     mu  <- family$linkinv(eta)      ## express the linear predictor in the scale of the response
     dev <- sum(family$dev.resids(y, mu, weights))  ## compute the deviance. Here: prior weights are used!
-    return(dev)  ## return the scaled residual deviance
+    return(dev)  ## return the unscaled residual deviance
   }
   
   fit <- nlminb(rep(0, ncol(X)), get_resid_deviance) ## optimisation; same as optim() but seems to work better
@@ -701,7 +717,21 @@ In such cases, you may also try other methods (much easier):
 
 ```{r, error = TRUE, message = FALSE}
 library(spaMM)
-glm(y ~ x, data = test, family = Gamma(link = "log"), method="spaMM_glm.fit")
+glm(y ~ x, data = test, family = Gamma(link = "log"), method = "spaMM_glm.fit")
+```
+
+## The iterative algorithm can sometimes fail
+
+```{r, error = TRUE}
+test <- data.frame(x = c(8.752, 20.27, 24.71, 32.88, 27.27, 19.09),
+                   y = c(5254, 35.92, 84.14, 641.8, 1.21, 47.2))
+glm(y ~ x, data = test, family = Gamma(link = "log")) 
+```
+
+In such cases, you may also try other methods (much easier):
+
+```{r, error = TRUE, message = FALSE}
+fitme(y ~ x, data = test, family = Gamma(link = "log"))
 ```
 
 
@@ -717,7 +747,7 @@ In such cases, you may also try other methods (much easier):
 
 ```{r, error = TRUE, message = FALSE, warning = FALSE}
 library(glm2)   ## seems less robust than spaMM in at least some other cases, so try both in case of troubles
-glm(y ~ x, data = test, family = Gamma(link = "log"), method="glm.fit2")
+glm2(y ~ x, data = test, family = Gamma(link = "log"))
 ```
 
 
