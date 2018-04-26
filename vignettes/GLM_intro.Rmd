@@ -224,17 +224,16 @@ This contains the predicted values for the observations at the scale of the resp
 
 ```{r}
 rbind(summary(mod_gauss$fitted.values),
-      summary(mod_poiss$fitted.values),
-      summary(mod_binom$fitted.values)
-      )
+      summary(mod_poiss$fitted.values))
 ```
 
 <br>
 
-For binary variables, the fitted values remains a probability. It is not a binary outcome:
+For binomial family, the fitted values is a probability:
 
 ```{r}
-summary(mod_binar$fitted.values)
+rbind(summary(mod_binar$fitted.values),
+      summary(mod_binom$fitted.values))
 ```
 
 
@@ -434,9 +433,9 @@ Example for the Gaussian family:
 with(mod_gauss, gaussian()$dev.resids(y = y, mu = fitted.values, wt = prior.weights))[1:2]
 
 deviance.pt <- -2 * sigma2_resid * (dnorm(x = mod_gauss$y, mean = mod_gauss$fitted.values,
-                                          sd = rep(sqrt(sigma2_resid), length(mod_gauss$y)), log = TRUE) - 
+                                          sd = sqrt(sigma2_resid), log = TRUE) - 
                                     dnorm(x = mod_gauss$y, mean = mod_gauss$y,
-                                          sd = rep(sqrt(sigma2_resid), length(mod_gauss$y)), log = TRUE))
+                                          sd = sqrt(sigma2_resid), log = TRUE))
 (mod_gauss$prior.weight * deviance.pt)[1:2] 
 c(deviance(mod_gauss), sum(mod_gauss$prior.weight * deviance.pt))
 ```
@@ -468,10 +467,8 @@ Example for the binomial family (binary case):
 ```{r}
 with(mod_binar, binomial()$dev.resids(y = y, mu = fitted.values, wt = prior.weights))[1:2]
 
-deviance.pt  <- -2 * (dbinom(x    = mod_binar$y, size = 1,
-                             prob = mod_binar$fitted.values, log = TRUE) - 
-                      dbinom(x    = mod_binar$y, size = 1,
-                             prob = mod_binar$y, log = TRUE))
+deviance.pt  <- -2 * (dbinom(x = mod_binar$y, size = 1, prob = mod_binar$fitted.values, log = TRUE) - 
+                      dbinom(x = mod_binar$y, size = 1, prob = mod_binar$y, log = TRUE))
 (mod_binar$prior.weight * deviance.pt)[1:2]
 c(deviance(mod_binar), sum(mod_binar$prior.weight * deviance.pt))
 
@@ -487,9 +484,9 @@ Example for the binomial family (general case):
 ```{r}
 with(mod_binom, binomial()$dev.resids(y = y, mu = fitted.values, wt = prior.weights))[1:2]
 
-deviance.pt  <- -2 * (dbinom(x    = mod_binom$y*mod_binom$prior.weights, size = mod_binom$prior.weights,
+deviance.pt  <- -2 * (dbinom(x = mod_binom$y*mod_binom$prior.weights, size = mod_binom$prior.weights,
                              prob = mod_binom$fitted.values, log = TRUE) - 
-                      dbinom(x    = mod_binom$y*mod_binom$prior.weights, size = mod_binom$prior.weights,
+                      dbinom(x = mod_binom$y*mod_binom$prior.weights, size = mod_binom$prior.weights,
                              prob = mod_binom$y, log = TRUE))
 deviance.pt[1:2]  ## here the prior.weights directly considered
 c(deviance(mod_binom), sum(deviance.pt))
@@ -600,6 +597,18 @@ my_glm2 <- function(formula, data, family, weights = NULL) {
 ```
 
 
+## Iterations in action
+
+The algorithm often quickly converges:
+
+```{r iterations}
+foo <- glm(size ~ humans_eaten, data = Aliens, family = gaussian(), control = list(trace = TRUE))
+foo <- glm(eggs ~ humans_eaten, data = Aliens, family = poisson(), control = list(trace = TRUE))
+```
+
+Check other options for the iterative procedure in ```?glm.control```
+
+
 ## A toy function approximating ```glm.fit()```
 
 ```{r}
@@ -686,6 +695,7 @@ rbind(mod_binom$coefficients,
       my_glm3(prop_blue ~ humans_eaten, data = Aliens, family = binomial(), weights = Aliens$all_eyes)
       )
 ```
+
 
 
 # Fitting troubles
