@@ -48,7 +48,7 @@ simulate_Aliens <- function(N = 12, intercept = 50, slope = 1.5, sigma2 = 25) {
 #'
 #' This function creates different response variables to be used for GLM.
 #'
-#' @param N the number of Aliens (default = 12)
+#' @param N the number of Aliens (default = 100)
 #'
 #' @return a \var{data.frame} containing the simulated data
 #' @export
