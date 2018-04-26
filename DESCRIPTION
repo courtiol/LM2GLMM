@@ -20,6 +20,7 @@ Imports:
     carData,
     caret,
     DHARMa,
+    e1071,
     effects,
     ellipse,
     spaMM,
