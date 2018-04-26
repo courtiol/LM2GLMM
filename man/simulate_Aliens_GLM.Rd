@@ -7,7 +7,7 @@
 simulate_Aliens_GLM(N = 100)
 }
 \arguments{
-\item{N}{the number of Aliens (default = 12)}
+\item{N}{the number of Aliens (default = 100)}
 }
 \value{
 a \var{data.frame} containing the simulated data
