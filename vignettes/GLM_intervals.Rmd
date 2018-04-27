@@ -1086,17 +1086,13 @@ anova(mod_gauss2_spaMM, mod_gauss2_spaMM0, boot.repl = 200)
 anova(mod_poiss2_spaMM, mod_poiss2_spaMM0, boot.repl = 200)
 ```
 
-<br>
 
-But it may crash... (work in progress).
+## Comparing tests using spaMM
 
-
-## Comparison tests using spaMM
-
-```{r comp 3, warning = FALSE}
+```{r comp 3, warning = FALSE, eval = FALSE}
 set.seed(1L)
-N <- 20
-pv <- replicate(200, {
+N <- 50
+pv <- replicate(1000, {
   d <<- data.frame(eggs = rpois(N, lambda = 0.5),
                   humans_eaten = round(runif(N, min = 0, max = 50)))
   mod_poiss_1      <- glm(eggs ~ humans_eaten, family = poisson(), data = d)
@@ -1104,7 +1100,7 @@ pv <- replicate(200, {
   mod_poiss_1_spaMM      <- fitme(eggs ~ humans_eaten, family = poisson(), data = d)
   mod_poiss_1_null_spaMM <- fitme(eggs ~ 1, family = poisson(), data = d)
   
-  boot <- anova(mod_poiss_1_spaMM, mod_poiss_1_null_spaMM, boot.repl = 100, nb_cores = 4L)
+  boot <- anova(mod_poiss_1_spaMM, mod_poiss_1_null_spaMM, boot.repl = 100, nb_cores = 1)
   c(z = summary(mod_poiss_1)$coefficients["humans_eaten", "Pr(>|z|)" ],
     LR = boot$basicLRT$p_value,
     Bartlett = boot$BartBootLRT$p_value,
@@ -1112,14 +1108,15 @@ pv <- replicate(200, {
 })
 ```
 
-## Comparison tests using spaMM
-
-```{r outcome comp 3}
+```{r outcome comp 3 new trial, eval = FALSE}
 rbind(mean(pv["z", ] <= 0.05, na.rm = TRUE),
       mean(pv["LR", ] <= 0.05, na.rm = TRUE),
       mean(pv["Bartlett", ] <= 0.05, na.rm = TRUE),
       mean(pv["Raw", ] <= 0.05, na.rm = TRUE))
 ```
+
+Results for later...
+
 
 
 # Non-nested model comparison
@@ -1154,7 +1151,7 @@ logLikH0 <- replicate(1000, {
 
 Here we used the GLM as the null model so we simulate the data using the LM.
 
-In principle, we could have do the opposite, but in practice the function ```simulate()``` bugs for GLM with gaussian(link != "identity").
+In principle, we could have do the opposite, but in practice the function ```simulate()``` bugs for GLM with ```gaussian()$link != "identity"```.
 
 ## What you need to remember
 
