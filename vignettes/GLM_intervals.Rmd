@@ -846,9 +846,9 @@ get_intervals(mod_gauss_spaMM, newdata = newdata, intervals = "respVar")
 ### The residual variance is no longer constant!
 ```{r pred int poiss}
 pred <- predict(mod_poiss, newdata = newdata, se.fit = TRUE)
-lwr <- pred$fit + qnorm(0.025) * sqrt(pred$se.fit^2 + poisson()$variance(exp(pred$fit)))
-upr <- pred$fit + qnorm(0.975) * sqrt(pred$se.fit^2 + poisson()$variance(exp(pred$fit)))
-exp(cbind(lwr, upr))  ## don't forget the inverse link!
+lwr <- pred$fit + qnorm(0.025) * sqrt(pred$se.fit^2 + poisson()$variance(poisson()$linkinv(pred$fit)))
+upr <- pred$fit + qnorm(0.975) * sqrt(pred$se.fit^2 + poisson()$variance(poisson()$linkinv(pred$fit)))
+poisson()$linkinv(cbind(lwr, upr))  ## don't forget the inverse link!
 ## spaMM does not work well in this case as announced in ?predict.HLfit:
 get_intervals(mod_poiss_spaMM, newdata = newdata, intervals = "respVar")
 ```
@@ -1020,8 +1020,15 @@ abline(0, 1, col = "red", lty = 2, lwd = 2)
 ```
 
 ```{r comp plot 2, echo = FALSE}
-plot(pv["LR", ] ~ pv["z", ], xlim = c(0, 0.1), ylim = c(0, 0.1))
+colors <- rep(NA, ncol(pv))
+colors[pv["LR", ] > 0.05 & pv["z", ] > 0.05] <- "black"
+colors[pv["LR", ] < 0.05 & pv["z", ] < 0.05] <- "green"
+colors[pv["LR", ] > 0.05 & pv["z", ] < 0.05] <- "blue"
+colors[pv["LR", ] < 0.05 & pv["z", ] > 0.05] <- "purple"
+plot(pv["LR", ] ~ pv["z", ], xlim = c(0, 0.1), ylim = c(0, 0.1), col = colors)
 abline(0, 1, col = "red", lty = 2, lwd = 2)
+abline(v = 0.05, lty = 3)
+abline(h = 0.05, lty = 3)
 ```
 
 </div>
@@ -1059,8 +1066,15 @@ abline(0, 1, col = "red", lty = 2, lwd = 2)
 ```
 
 ```{r comp 2 plot 2, echo = FALSE}
-plot(pv["LR", ] ~ pv["F", ], xlim = c(0, 0.1), ylim = c(0, 0.1))
+colors <- rep(NA, ncol(pv))
+colors[pv["LR", ] > 0.05 & pv["F", ] > 0.05] <- "black"
+colors[pv["LR", ] < 0.05 & pv["F", ] < 0.05] <- "green"
+colors[pv["LR", ] > 0.05 & pv["F", ] < 0.05] <- "blue"
+colors[pv["LR", ] < 0.05 & pv["F", ] > 0.05] <- "purple"
+plot(pv["LR", ] ~ pv["F", ], xlim = c(0, 0.1), ylim = c(0, 0.1), col = colors)
 abline(0, 1, col = "red", lty = 2, lwd = 2)
+abline(v = 0.05, lty = 3)
+abline(h = 0.05, lty = 3)
 ```
 
 </div>
@@ -1089,18 +1103,18 @@ anova(mod_poiss2_spaMM, mod_poiss2_spaMM0, boot.repl = 200)
 
 ## Comparing tests using spaMM
 
-```{r comp 3, warning = FALSE, eval = FALSE}
+```{r comp 3, warning = FALSE}
 set.seed(1L)
-N <- 50
-pv <- replicate(1000, {
-  d <<- data.frame(eggs = rpois(N, lambda = 0.5),
+N <- 20
+pv <- replicate(200, {
+  d <<- data.frame(eggs = rpois(N, lambda = 2),
                   humans_eaten = round(runif(N, min = 0, max = 50)))
   mod_poiss_1      <- glm(eggs ~ humans_eaten, family = poisson(), data = d)
   mod_poiss_1_null <- glm(eggs ~ 1, family = poisson(), data = d)
   mod_poiss_1_spaMM      <- fitme(eggs ~ humans_eaten, family = poisson(), data = d)
   mod_poiss_1_null_spaMM <- fitme(eggs ~ 1, family = poisson(), data = d)
   
-  boot <- anova(mod_poiss_1_spaMM, mod_poiss_1_null_spaMM, boot.repl = 100, nb_cores = 1)
+  boot <- anova(mod_poiss_1_spaMM, mod_poiss_1_null_spaMM, boot.repl = 199, nb_cores = 4L)
   c(z = summary(mod_poiss_1)$coefficients["humans_eaten", "Pr(>|z|)" ],
     LR = boot$basicLRT$p_value,
     Bartlett = boot$BartBootLRT$p_value,
@@ -1108,15 +1122,30 @@ pv <- replicate(1000, {
 })
 ```
 
-```{r outcome comp 3 new trial, eval = FALSE}
+
+## Comparing tests using spaMM
+
+```{r outcome comp 3 new trial}
 rbind(mean(pv["z", ] <= 0.05, na.rm = TRUE),
       mean(pv["LR", ] <= 0.05, na.rm = TRUE),
       mean(pv["Bartlett", ] <= 0.05, na.rm = TRUE),
       mean(pv["Raw", ] <= 0.05, na.rm = TRUE))
 ```
 
-Results for later...
+Not bad!
 
+
+## Comparing tests using spaMM
+
+```{r ecfd spaMM 1, echo = FALSE, fig.width = 7, fig.height = 5}
+par(las = 1)
+plot(ecdf(pv["z", ]), xlim = c(0, 0.1), ylim = c(0, 0.1), col = "blue", cex = 0.5, main = "")
+plot(ecdf(pv["LR", ]), xlim = c(0, 0.1), ylim = c(0, 0.1), col = "green", add = TRUE, cex = 0.5)
+plot(ecdf(pv["Bartlett", ]), xlim = c(0, 0.1), ylim = c(0, 0.1), col = "orange", add = TRUE, cex = 0.5)
+plot(ecdf(pv["Raw", ]), xlim = c(0, 0.1), ylim = c(0, 0.1), col = "purple", add = TRUE, cex = 0.5)
+legend("topleft", fill = c("blue", "green", "orange", "purple"), legend = c("z", "LR", "Bartlett", "Raw"), bty = "n")
+abline(0, 1, col = "red", lty = 2)
+```
 
 
 # Non-nested model comparison
