@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2018-04-26" />
+  <meta name="date" content="2018-04-27" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,7 +94,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2018-04-26</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2018-04-27</p>
           </hgroup>
   </slide>
 
@@ -372,23 +372,22 @@ mod_binom</pre>
 <p>This contains the predicted values for the observations at the scale of the response:</p>
 
 <pre class = 'prettyprint lang-r'>rbind(summary(mod_gauss$fitted.values),
-      summary(mod_poiss$fitted.values),
-      summary(mod_binom$fitted.values)
-      )</pre>
+      summary(mod_poiss$fitted.values))</pre>
 
-<pre >##             Min.    1st Qu.     Median      Mean    3rd Qu.       Max.
-## [1,] 49.18066932 57.1501386 60.3379264 61.597103 67.1119753 73.0890773
-## [2,]  0.65607603  0.7868440  0.8461794  0.880000  0.9876678  1.1317685
-## [3,]  0.09551738  0.5785086  0.7929070  0.729163  0.9707196  0.9957053</pre>
+<pre >##           Min.   1st Qu.     Median    Mean    3rd Qu.      Max.
+## [1,] 49.180669 57.150139 60.3379264 61.5971 67.1119753 73.089077
+## [2,]  0.656076  0.786844  0.8461794  0.8800  0.9876678  1.131769</pre>
 
 <p><br></p>
 
-<p>For binary variables, the fitted values remains a probability. It is not a binary outcome:</p>
+<p>For binomial family, the fitted values is a probability:</p>
 
-<pre class = 'prettyprint lang-r'>summary(mod_binar$fitted.values)</pre>
+<pre class = 'prettyprint lang-r'>rbind(summary(mod_binar$fitted.values),
+      summary(mod_binom$fitted.values))</pre>
 
-<pre >##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##  0.1678  0.3337  0.4189  0.4600  0.6095  0.7555</pre>
+<pre >##            Min.   1st Qu.    Median     Mean   3rd Qu.      Max.
+## [1,] 0.16780467 0.3337254 0.4188661 0.460000 0.6095095 0.7555404
+## [2,] 0.09551738 0.5785086 0.7929070 0.729163 0.9707196 0.9957053</pre>
 
 </article></slide><slide class=""><hgroup><h2>Fitted values (<code>fitted.values</code>)</h2></hgroup><article  id="fitted-values-fitted.values-1" class="smaller ">
 
@@ -653,9 +652,9 @@ c(binomial(link = &quot;cloglog&quot;)$linkfun(0.9), log(-log(1 - 0.9)))</pre>
 ## 5.925742 7.863338</pre>
 
 <pre class = 'prettyprint lang-r'>deviance.pt &lt;- -2 * sigma2_resid * (dnorm(x = mod_gauss$y, mean = mod_gauss$fitted.values,
-                                          sd = rep(sqrt(sigma2_resid), length(mod_gauss$y)), log = TRUE) - 
+                                          sd = sqrt(sigma2_resid), log = TRUE) - 
                                     dnorm(x = mod_gauss$y, mean = mod_gauss$y,
-                                          sd = rep(sqrt(sigma2_resid), length(mod_gauss$y)), log = TRUE))
+                                          sd = sqrt(sigma2_resid), log = TRUE))
 (mod_gauss$prior.weight * deviance.pt)[1:2] </pre>
 
 <pre >##        1        2 
@@ -699,10 +698,8 @@ c(binomial(link = &quot;cloglog&quot;)$linkfun(0.9), log(-log(1 - 0.9)))</pre>
 <pre >##         1         2 
 ## 0.6978547 0.9410719</pre>
 
-<pre class = 'prettyprint lang-r'>deviance.pt  &lt;- -2 * (dbinom(x    = mod_binar$y, size = 1,
-                             prob = mod_binar$fitted.values, log = TRUE) - 
-                      dbinom(x    = mod_binar$y, size = 1,
-                             prob = mod_binar$y, log = TRUE))
+<pre class = 'prettyprint lang-r'>deviance.pt  &lt;- -2 * (dbinom(x = mod_binar$y, size = 1, prob = mod_binar$fitted.values, log = TRUE) - 
+                      dbinom(x = mod_binar$y, size = 1, prob = mod_binar$y, log = TRUE))
 (mod_binar$prior.weight * deviance.pt)[1:2]</pre>
 
 <pre >##         1         2 
@@ -723,9 +720,9 @@ c(binomial(link = &quot;cloglog&quot;)$linkfun(0.9), log(-log(1 - 0.9)))</pre>
 <pre >##         1         2 
 ## 1.9844669 0.7877921</pre>
 
-<pre class = 'prettyprint lang-r'>deviance.pt  &lt;- -2 * (dbinom(x    = mod_binom$y*mod_binom$prior.weights, size = mod_binom$prior.weights,
+<pre class = 'prettyprint lang-r'>deviance.pt  &lt;- -2 * (dbinom(x = mod_binom$y*mod_binom$prior.weights, size = mod_binom$prior.weights,
                              prob = mod_binom$fitted.values, log = TRUE) - 
-                      dbinom(x    = mod_binom$y*mod_binom$prior.weights, size = mod_binom$prior.weights,
+                      dbinom(x = mod_binom$y*mod_binom$prior.weights, size = mod_binom$prior.weights,
                              prob = mod_binom$y, log = TRUE))
 deviance.pt[1:2]  ## here the prior.weights directly considered</pre>
 
@@ -832,6 +829,25 @@ deviance.pt[1:2]  ## here the prior.weights directly considered</pre>
   }
   return(beta)  ## returns estimates
 }</pre>
+
+</article></slide><slide class=""><hgroup><h2>Iterations in action</h2></hgroup><article  id="iterations-in-action" class="smaller ">
+
+<p>The algorithm often quickly converges:</p>
+
+<pre class = 'prettyprint lang-r'>foo &lt;- glm(size ~ humans_eaten, data = Aliens, family = gaussian(), control = list(trace = TRUE))</pre>
+
+<pre >## Deviance = 2172.918 Iterations - 1
+## Deviance = 2172.918 Iterations - 2</pre>
+
+<pre class = 'prettyprint lang-r'>foo &lt;- glm(eggs ~ humans_eaten, data = Aliens, family = poisson(), control = list(trace = TRUE))</pre>
+
+<pre >## Deviance = 142.4369 Iterations - 1
+## Deviance = 117.9133 Iterations - 2
+## Deviance = 116.8623 Iterations - 3
+## Deviance = 116.8588 Iterations - 4
+## Deviance = 116.8588 Iterations - 5</pre>
+
+<p>Check other options for the iterative procedure in <code>?glm.control</code></p>
 
 </article></slide><slide class=""><hgroup><h2>A toy function approximating <code>glm.fit()</code></h2></hgroup><article  id="a-toy-function-approximating-glm.fit" class="smaller ">
 

@@ -10,6 +10,8 @@ vignette: >
   %\VignetteIndexEntry{3.1 Intervals & Tests}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -19,7 +21,7 @@ library(MASS)
 library(spaMM)
 spaMM.options(nb_cores = 4L)
 options(width = 120)
-knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/GLM_uncertainty/", fig.path = "./fig_knitr/GLM_uncertainty/", fig.width = 4, fig.height = 4, fig.align = "center", error = FALSE)
+knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/GLM_uncertainty/", fig.path = "./fig_knitr/GLM_uncertainty/", fig.width = 4, fig.height = 4, fig.align = "center", error = TRUE)
 ```
 
 ## The Generalized Linear Model: GLM
@@ -44,7 +46,7 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/GLM_uncertainty/
 
 ## Our data
 
-```{r}
+```{r data}
 set.seed(1L)
 Aliens <- simulate_Aliens_GLM()
 head(Aliens)
@@ -57,7 +59,7 @@ attributes(Aliens)$param.eta$blue_eyes
 
 <br>
 
-```{r}
+```{r models}
 mod_gauss <- glm(size  ~ humans_eaten, family = gaussian(), data = Aliens)
 mod_poiss <- glm(eggs  ~ humans_eaten, family = poisson(),  data = Aliens)
 mod_binar <- glm(happy ~ humans_eaten, family = binomial(), data = Aliens)
@@ -68,17 +70,34 @@ mod_binom <- glm(cbind(blue_eyes, pink_eyes) ~ humans_eaten, family = binomial()
 
 ## Covariances between parameter estimates
 
-### Poisson family
+### gaussian family
 
 <br>
 
-```{r}
-X <- model.matrix(mod_poiss)
-W <- matrix(0, ncol = nrow(mod_poiss$model), nrow = nrow(mod_poiss$model))
-diag(W) <- mod_poiss$weights
-t(X) %*% W %*% X
-(XTWX <- crossprod(mod_poiss$R))
+```{r vcov gaussian}
+X <- model.matrix(mod_gauss)
+W <- matrix(0, ncol = nrow(mod_gauss$model), nrow = nrow(mod_gauss$model))
+diag(W) <- mod_gauss$weights
+XTWX <- t(X) %*% W %*% X
+phi <- mod_gauss$deviance / mod_gauss$df.residual
+phi*solve(XTWX)
+vcov(mod_gauss)
 ```
+
+## Covariances between parameter estimates
+
+### gaussian family
+
+<br>
+
+Same using the QR decomposition:
+
+```{r vcov gaussian 2}
+(XTWX <- crossprod(mod_gauss$R))
+phi <- mod_gauss$deviance / mod_gauss$df.residual
+phi*solve(XTWX)
+```
+
 
 ## Covariances between parameter estimates
 
@@ -86,24 +105,13 @@ t(X) %*% W %*% X
 
 <br>
 
-```{r}
+```{r vcov poisson}
 vcov(mod_poiss)
+XTWX <- crossprod(mod_poiss$R)
 phi <- 1
 phi*solve(XTWX)
 ```
 
-## Covariances between parameter estimates
-
-### Gaussian family
-
-<br>
-
-```{r}
-vcov(mod_gauss)
-XTWX <- crossprod(mod_gauss$R)
-phi <- mod_gauss$deviance / mod_gauss$df.residual
-phi*solve(XTWX)
-```
 
 ## Covariances between parameter estimates
 
@@ -111,7 +119,7 @@ phi*solve(XTWX)
 
 <br>
 
-```{r}
+```{r vcov binar}
 vcov(mod_binar)
 XTWX <- crossprod(mod_binar$R)
 phi <- 1
@@ -124,7 +132,7 @@ phi*solve(XTWX)
 
 <br>
 
-```{r}
+```{r vcov binom}
 vcov(mod_binom)
 XTWX <- crossprod(mod_binom$R)
 phi <- 1
@@ -136,17 +144,17 @@ phi*solve(XTWX)
 
 The parameter estimates are asymptotically normally distributed.
 
-```{r}
-new_betas <- t(replicate(1000, update(mod_gauss, data = simulate_Aliens_GLM())$coef))
+```{r simu beta gaussian}
+new_betas <- t(replicate(1000, update(mod_gauss, data = simulate_Aliens_GLM(N = 1000))$coef))
 ```
 
 <div class="columns-2">
-```{r}
+```{r qq gaussian 1}
 qqnorm(new_betas[, 1])
 qqline(new_betas[, 1], col = "red", lwd = 2)
 ```
 
-```{r}
+```{r qq gaussian 2}
 qqnorm(new_betas[, 2])
 qqline(new_betas[, 2], col = "red", lwd = 2)
 ```
@@ -157,17 +165,37 @@ qqline(new_betas[, 2], col = "red", lwd = 2)
 
 The parameter estimates are asymptotically normally distributed.
 
-```{r}
-new_betas <- t(replicate(1000, update(mod_poiss, data = simulate_Aliens_GLM())$coef))
+```{r simu beta gaussian bis}
+new_betas <- t(replicate(1000, update(mod_gauss, data = simulate_Aliens_GLM(N = 10))$coef))
 ```
 
 <div class="columns-2">
-```{r}
+```{r qq gaussian bis 1}
 qqnorm(new_betas[, 1])
 qqline(new_betas[, 1], col = "red", lwd = 2)
 ```
 
-```{r}
+```{r qq gaussian bis 2}
+qqnorm(new_betas[, 2])
+qqline(new_betas[, 2], col = "red", lwd = 2)
+```
+</div>
+
+## Distribution of parameter estimates
+
+The parameter estimates are asymptotically normally distributed.
+
+```{r simu poiss, warning = FALSE}
+new_betas <- t(replicate(1000, update(mod_poiss, data = simulate_Aliens_GLM(N = 1000))$coef))
+```
+
+<div class="columns-2">
+```{r qq poiss 1}
+qqnorm(new_betas[, 1])
+qqline(new_betas[, 1], col = "red", lwd = 2)
+```
+
+```{r qq poiss 2}
 qqnorm(new_betas[, 2])
 qqline(new_betas[, 2], col = "red", lwd = 2)
 ```
@@ -178,17 +206,37 @@ qqline(new_betas[, 2], col = "red", lwd = 2)
 
 The parameter estimates are asymptotically normally distributed.
 
-```{r}
-new_betas <- t(replicate(1000, update(mod_binar, data = simulate_Aliens_GLM())$coef))
+```{r simu poiss bis, warning = FALSE}
+new_betas <- t(replicate(1000, update(mod_poiss, data = simulate_Aliens_GLM(N = 10))$coef))
 ```
 
 <div class="columns-2">
-```{r}
+```{r qq poiss bis 1}
 qqnorm(new_betas[, 1])
 qqline(new_betas[, 1], col = "red", lwd = 2)
 ```
 
-```{r}
+```{r qq poiss bis 2}
+qqnorm(new_betas[, 2])
+qqline(new_betas[, 2], col = "red", lwd = 2)
+```
+</div>
+
+## Distribution of parameter estimates
+
+The parameter estimates are asymptotically normally distributed.
+
+```{r simu binar}
+new_betas <- t(replicate(1000, update(mod_binar, data = simulate_Aliens_GLM(N = 1000))$coef))
+```
+
+<div class="columns-2">
+```{r qq binar 1}
+qqnorm(new_betas[, 1])
+qqline(new_betas[, 1], col = "red", lwd = 2)
+```
+
+```{r qq binar 2}
 qqnorm(new_betas[, 2])
 qqline(new_betas[, 2], col = "red", lwd = 2)
 ```
@@ -199,30 +247,96 @@ qqline(new_betas[, 2], col = "red", lwd = 2)
 
 The parameter estimates are asymptotically normally distributed.
 
-```{r}
-new_betas <- t(replicate(1000, update(mod_binom, data = simulate_Aliens_GLM())$coef))
+```{r simu binar bis, warning = FALSE}
+new_betas <- t(replicate(1000, update(mod_binar, data = simulate_Aliens_GLM(N = 10))$coef))
 ```
 
-
 <div class="columns-2">
-```{r}
+```{r qq binar bis 1}
 qqnorm(new_betas[, 1])
 qqline(new_betas[, 1], col = "red", lwd = 2)
 ```
 
-```{r}
+```{r qq binar bis 2}
 qqnorm(new_betas[, 2])
 qqline(new_betas[, 2], col = "red", lwd = 2)
 ```
 </div>
+
+
+## Distribution of parameter estimates
+
+The parameter estimates are asymptotically normally distributed.
+
+```{r simu binom}
+new_betas <- t(replicate(1000, update(mod_binom, data = simulate_Aliens_GLM(N = 1000))$coef))
+```
+
+<div class="columns-2">
+```{r qq binom 1}
+qqnorm(new_betas[, 1])
+qqline(new_betas[, 1], col = "red", lwd = 2)
+```
+
+```{r qq binom 2}
+qqnorm(new_betas[, 2])
+qqline(new_betas[, 2], col = "red", lwd = 2)
+```
+</div>
+
+
+## Distribution of parameter estimates
+
+The parameter estimates are asymptotically normally distributed.
+
+```{r simu binom bis, warning = FALSE}
+new_betas <- t(replicate(1000, update(mod_binom, data = simulate_Aliens_GLM(N = 10))$coef))
+```
+
+<div class="columns-2">
+```{r qq binom bis 1}
+qqnorm(new_betas[, 1])
+qqline(new_betas[, 1], col = "red", lwd = 2)
+```
+
+```{r qq binom bis 2}
+qqnorm(new_betas[, 2])
+qqline(new_betas[, 2], col = "red", lwd = 2)
+```
+</div>
+
+
+## Distribution of parameter estimates
+
+### Conclusion
+
+* Large dataset: the assumption of normality for the distribution of parameter estimates holds well.
+
+* Small dataset: the assumption of normality for the distribution of parameter estimates holds well for ```gaussian()```, but it really does not for the other families.
+
+<br>
+
+### Open question
+
+How small is small? -> Simulate as we did to check for your design.
+
+<br>
+
+### Challenge
+
+Determine if the issue is steming from the link function, the family or both.
+
+Tip: test by simulation using ```gaussian(link = "gaussian")``` and ```poisson(link = "identity")```.
 
 
 # Confidence intervals on estimates
 
-## 95% CI using Gaussian approximation
+# CI by gaussian approximation
+
+## 95% CI using gaussian approximation
 
 ### Computation
-```{r}
+```{r confint fn}
 confint.approx <- function(mod, print = FALSE) {
   
   intervals <- cbind(lwr = (mod$coefficients + qnorm(0.025) *  sqrt(diag(vcov(mod)))),
@@ -241,83 +355,87 @@ confint.approx <- function(mod, print = FALSE) {
 ```
 
 
-## 95% CI using Gaussian approximation
+## 95% CI using gaussian approximation
 
 ### Testing our function
-```{r}
+```{r confint test 1}
 confint.approx(mod_poiss, print = TRUE)
 ```
 
 
-## 95% CI using Gaussian approximation
+## 95% CI using gaussian approximation
 
 ### Coverage
-```{r}
+```{r confint test 2}
 set.seed(1L)
 replicate(5, confint.approx(update(mod_poiss, data = simulate_Aliens_GLM())))
 ```
 
 
-## 95% CI using Gaussian approximation
+## 95% CI using gaussian approximation
 
-### Coverage N = 100
-```{r coverage1}
-set.seed(1L)
-test_poiss <- replicate(1000, confint.approx(update(mod_poiss, data = simulate_Aliens_GLM())))
-test_binar <- replicate(1000, confint.approx(update(mod_binar, data = simulate_Aliens_GLM())))
-test_binom <- replicate(1000, confint.approx(update(mod_binom, data = simulate_Aliens_GLM())))
-test_gauss <- replicate(1000, confint.approx(update(mod_gauss, data = simulate_Aliens_GLM())))
-rbind(poiss = apply(test_poiss, 1, mean),
-      binar = apply(test_binar, 1, mean),
-      binom = apply(test_binom, 1, mean),
-      gauss = apply(test_gauss, 1, mean))
-```
-
-
-## 95% CI using Gaussian approximation
-
-### Coverage N = 30
+### Coverage N = 10
 ```{r coverage1b, warning = FALSE}
 set.seed(3L)
-test_poiss <- replicate(1000, confint.approx(update(mod_poiss, data = simulate_Aliens_GLM(N = 30))))
-test_binar <- replicate(1000, confint.approx(update(mod_binar, data = simulate_Aliens_GLM(N = 30))))
-test_binom <- replicate(1000, confint.approx(update(mod_binom, data = simulate_Aliens_GLM(N = 30))))
-test_gauss <- replicate(1000, confint.approx(update(mod_gauss, data = simulate_Aliens_GLM(N = 30))))
+test_poiss <- replicate(1000, confint.approx(update(mod_poiss, data = simulate_Aliens_GLM(N = 10))))
+test_binar <- replicate(1000, confint.approx(update(mod_binar, data = simulate_Aliens_GLM(N = 10))))
+test_binom <- replicate(1000, confint.approx(update(mod_binom, data = simulate_Aliens_GLM(N = 10))))
+test_gauss <- replicate(1000, confint.approx(update(mod_gauss, data = simulate_Aliens_GLM(N = 10))))
 rbind(poiss = apply(test_poiss, 1, mean, na.rm = TRUE),
       binar = apply(test_binar, 1, mean, na.rm = TRUE),
       binom = apply(test_binom, 1, mean, na.rm = TRUE),
       gauss = apply(test_gauss, 1, mean, na.rm = TRUE))
 ```
 
+Bad for all!
 
-## 95% CI using Gaussian approximation
 
-### Coverage N = 1000
+## 95% CI using gaussian approximation
+
+### Coverage N = 2000
 ```{r coverage1c, error = TRUE}
 set.seed(1L)
-test_poiss <- replicate(1000, confint.approx(update(mod_poiss, data = simulate_Aliens_GLM(N = 1000))))
-test_binar <- replicate(1000, confint.approx(update(mod_binar, data = simulate_Aliens_GLM(N = 1000))))
-test_binom <- replicate(1000, confint.approx(update(mod_binom, data = simulate_Aliens_GLM(N = 1000))))
-test_gauss <- replicate(1000, confint.approx(update(mod_gauss, data = simulate_Aliens_GLM(N = 1000))))
+test_poiss <- replicate(1000, confint.approx(update(mod_poiss, data = simulate_Aliens_GLM(N = 2000))))
+test_binar <- replicate(1000, confint.approx(update(mod_binar, data = simulate_Aliens_GLM(N = 2000))))
+test_binom <- replicate(1000, confint.approx(update(mod_binom, data = simulate_Aliens_GLM(N = 2000))))
+test_gauss <- replicate(1000, confint.approx(update(mod_gauss, data = simulate_Aliens_GLM(N = 2000))))
 rbind(poiss = apply(test_poiss, 1, mean),
       binar = apply(test_binar, 1, mean),
       binom = apply(test_binom, 1, mean),
       gauss = apply(test_gauss, 1, mean))
 ```
 
+Good for all!
 
-## 95% CI using Gaussian approximation
+
+## 95% CI using gaussian approximation
+
+### Coverage N = 100
+```{r coverage1}
+set.seed(1L)
+test_poiss <- replicate(1000, confint.approx(update(mod_poiss, data = simulate_Aliens_GLM(N = 100))))
+test_binar <- replicate(1000, confint.approx(update(mod_binar, data = simulate_Aliens_GLM(N = 100))))
+test_binom <- replicate(1000, confint.approx(update(mod_binom, data = simulate_Aliens_GLM(N = 100))))
+test_gauss <- replicate(1000, confint.approx(update(mod_gauss, data = simulate_Aliens_GLM(N = 100))))
+rbind(poiss = apply(test_poiss, 1, mean),
+      binar = apply(test_binar, 1, mean),
+      binom = apply(test_binom, 1, mean),
+      gauss = apply(test_gauss, 1, mean))
+```
+
+Good for all but ```gaussian()``` which would need to rely on the quantiles from the student distribution!
+
+
+## 95% CI using gaussian approximation
 
 ### Conclusion
 
-The coverage is poor when dispersion parameters must be estimated on small datasets.
+* Large datasets: good coverage for all families.
 
-This will be a problem for gaussian() but also for other families we will see later (quasiXXX()).
-
-When datasets are large, the coverage becomes good for the Gaussian case but it is a bit off for the other families.
+* Small datasets: bad coverage specifically for family for which a dispersion parameters must be estimated. This is a problem for ```gaussian()``` but also for other families we have not seen yet (the ```quasiXXX()```).
 
 
-## 95% CI on two parameters using Gaussian approximation
+## 95% CI on two parameters using gaussian approximation
 
 ```{r, message = FALSE}
 library(ellipse)
@@ -325,20 +443,76 @@ el <- ellipse(mod_poiss)
 plot(el, type = "l")
 ```
 
-## 95% CI using likelihood profiling
+# CI by likelihood profiling
 
-### Computation using MASS
-```{r}
-library(MASS)
-confint(mod_poiss)
-confint(mod_binar)
+## Recall: likelihood profiling
+
+```{r profile}
+loglik <- sapply(candidate_slopes <- seq(-0.05, 0.15, 0.01), function(param) {
+  logLik(glm(eggs ~ 1 + offset(param*humans_eaten),
+                        family = poisson(), data = mod_poiss$model))[[1]]
+})
+plot(loglik ~ candidate_slopes, type = "l")
+abline(v = coef(mod_poiss)[2], lty = 2, col = "blue")
+abline(h = logLik(mod_poiss)[[1]] - 0.5*qchisq(0.95, df = 1), lty = 2, col = "red")
+```
+
+## 95% CI by likelihood profiling
+
+### Computation by hand
+
+```{r CI by profile hand}
+where.is.limit <- function(param, which = 1) {
+  if (which == 1) {
+    logLik_mod <- logLik(glm(eggs ~ 0 + humans_eaten + offset(rep(param, nrow(mod_poiss$model))),
+                       family = poisson(), data = mod_poiss$model))[[1]]
+  } else if (which == 2) {
+    logLik_mod <- logLik(glm(eggs ~ 1 + offset(param*humans_eaten),
+                        family = poisson(), data = mod_poiss$model))[[1]]
+  }
+  
+  logLik_goal <- logLik(mod_poiss)[[1]] - 0.5*qchisq(0.95, df = 1)
+  return(abs(logLik_mod - logLik_goal))
+  }
+```
+
+```{r CI by profile hand action, warning = FALSE}
+intercept_lwr <- nlminb(start = -10, where.is.limit, which = 1)$par
+intercept_upr <- nlminb(start = 10, where.is.limit, which = 1)$par
+slope_lwr     <- nlminb(start = -1, where.is.limit, which = 2)$par
+slope_upr     <- nlminb(start = 2, where.is.limit, which = 2)$par
+rbind(c(intercept_lwr, intercept_upr), c(slope_lwr, slope_upr))
 ```
 
 
-## 95% CI using likelihood profiling
+## 95% CI by likelihood profiling
+
+### Computation using spaMM
+
+```{r confint spaMM}
+library(spaMM)
+mod_poiss_spaMM <- fitme(eggs  ~ humans_eaten, family = poisson(),  data = Aliens)
+confint(mod_poiss_spaMM, parm = 1)
+confint(mod_poiss_spaMM, parm = 2)
+```
+
+<br>
+
+This implementation is direclty equivalent to the one we just saw.
+
+## 95% CI by likelihood profiling
 
 ### Computation using MASS
-```{r}
+```{r confint mass}
+library(MASS)
+confint(mod_poiss)
+```
+
+
+## 95% CI by likelihood profiling
+
+### Computation using MASS
+```{r confint prof}
 prof <- profile(mod_poiss, alpha = (1 - 0.95)/4)  ## not sure why this alpha, but confint.glm does that
 pro <- prof$`(Intercept)`
 pro[1:3, ]
@@ -375,31 +549,34 @@ confint.profile <- function(mod, print = FALSE) {
 ### Coverage N = 100
 ```{r  coverage2, message = FALSE, warning = FALSE}
 set.seed(1L)
-test_poiss <- replicate(1000, confint.profile(update(mod_poiss, data = simulate_Aliens_GLM())))
-test_binar <- replicate(1000, confint.profile(update(mod_binar, data = simulate_Aliens_GLM())))
-test_binom <- replicate(1000, confint.profile(update(mod_binom, data = simulate_Aliens_GLM())))
-test_gauss <- replicate(1000, confint.profile(update(mod_gauss, data = simulate_Aliens_GLM())))
+test_poiss <- replicate(1000, confint.profile(update(mod_poiss, data = simulate_Aliens_GLM(N = 100))))
+test_binar <- replicate(1000, confint.profile(update(mod_binar, data = simulate_Aliens_GLM(N = 100))))
+test_binom <- replicate(1000, confint.profile(update(mod_binom, data = simulate_Aliens_GLM(N = 100))))
+test_gauss <- replicate(1000, confint.profile(update(mod_gauss, data = simulate_Aliens_GLM(N = 100))))
 rbind(poiss = apply(test_poiss, 1, mean),
       binar = apply(test_binar, 1, mean),
       binom = apply(test_binom, 1, mean),
       gauss = apply(test_gauss, 1, mean))
 ```
 
+Good for all but ```gaussian()```.
 
 ## 95% CI using likelihood profiling
 
-### Coverage  N = 30
+### Coverage  N = 20
 ```{r  coverage3, message = FALSE, warning = FALSE}
-set.seed(3L)
-test_poiss <- replicate(1000, confint.profile(update(mod_poiss, data = simulate_Aliens_GLM(N = 30))))
-test_binar <- replicate(1000, confint.profile(update(mod_binar, data = simulate_Aliens_GLM(N = 30))))
-test_binom <- replicate(1000, confint.profile(update(mod_binom, data = simulate_Aliens_GLM(N = 30))))
-test_gauss <- replicate(1000, confint.profile(update(mod_gauss, data = simulate_Aliens_GLM(N = 30))))
+set.seed(1L)
+test_poiss <- replicate(1000, confint.profile(update(mod_poiss, data = simulate_Aliens_GLM(N = 20))))
+test_binar <- replicate(1000, confint.profile(update(mod_binar, data = simulate_Aliens_GLM(N = 20))))
+test_binom <- replicate(1000, confint.profile(update(mod_binom, data = simulate_Aliens_GLM(N = 20))))
+test_gauss <- replicate(1000, confint.profile(update(mod_gauss, data = simulate_Aliens_GLM(N = 20))))
 rbind(poiss = apply(test_poiss, 1, mean, na.rm = TRUE),
       binar = apply(test_binar, 1, mean, na.rm = TRUE),
       binom = apply(test_binom, 1, mean, na.rm = TRUE),
       gauss = apply(test_gauss, 1, mean, na.rm = TRUE))
 ```
+
+Good for all!! but ```gaussian()```.
 
 
 ## 95% CI using likelihood profiling
@@ -417,38 +594,41 @@ rbind(poiss = apply(test_poiss, 1, mean),
       gauss = apply(test_gauss, 1, mean))
 ```
 
+Good for all.
+
 
 ## 95% CI using likelihood profiling
 
 ### Conclusion
 
-Using the likelihood profiling and an asymptotic cutoff does not seem (at least here) to be much better or worse than the simple Gaussian approximation for the distribution of parameter estimates when datasets are small or moderate.
+Better than CI by gaussian approximation!
 
-The coverage gets a bit better when the dataset is large.
+### Recommendation
 
-Recommendation: use t distribution for Gaussian case, profile confidence interval otherwise.
+Use student-based CI distribution for gaussian case, and confidence interval by likelihood profiling otherwise.
 
-But again, you could also use the parametric bootstrap!
+<br>
+
+or use CI by parametric bootstrap?
 
 
-# Confidence intervals using parametric bootstrap
+# Confidence intervals by parametric bootstrap
 
-## 95% CI using parametric bootstrap
+## 95% CI by parametric bootstrap
 
 ### Parametric bootstrap using ```boot```
-```{r}
+```{r boot}
 confint.myboot2 <- function(mod, print = FALSE) {
   new_betas <- replicate(100, {
     mod$data$newY <- simulate(mod, 1)[, 1]
     update(mod, newY ~ ., data = mod$data)$coef})
-  
-  intervals <- rbind(
-    "(Intercept)" = boot::boot.ci(list(t0 = coef(mod)[[1]],
-                                       t = as.matrix(new_betas[1, ]), 
-                                       R = 100), type = "basic")$basic[4:5],
-    "humans_eaten" = boot::boot.ci(list(t0 = coef(mod)[[2]],
-                                        t = as.matrix(new_betas[2, ]),
-                                        R = 100), type = "basic")$basic[4:5])
+  intervals <- rbind("(Intercept)" = c(NA, NA), "humans_eaten" = c(NA, NA))
+  intervals[1, ] <- boot::boot.ci(list(t0 = coef(mod)[[1]],
+                                  t = as.matrix(new_betas[1, ]), 
+                                  R = 100), type = "basic")$basic[4:5]
+  intervals[2, ] <- boot::boot.ci(list(t0 = coef(mod)[[2]],
+                                  t = as.matrix(new_betas[2, ]),
+                                  R = 100), type = "basic")$basic[4:5]
   if (print) print(intervals)
   name.response <- mod$terms[[2]]
   if (length(name.response) == 3) name.response <- name.response[[2]]  ## for  binomial with cbind
@@ -461,38 +641,38 @@ confint.myboot2 <- function(mod, print = FALSE) {
 ```
 
 
-## 95% CI using parametric bootstrap
+## 95% CI by parametric bootstrap
 
 ### Coverage N = 100
 ```{r  coverage boot2, message = FALSE, warning = FALSE}
 set.seed(1L)
 test_poiss <- replicate(1000, {
-  new.data <- simulate_Aliens_GLM()
+  new.data <- simulate_Aliens_GLM(N = 100)
   mod <- update(mod_poiss, data = new.data)
   confint.myboot2(mod)
   })
 test_binar <- replicate(1000, {
-  new.data <- simulate_Aliens_GLM()
+  new.data <- simulate_Aliens_GLM(N = 100)
   mod <- update(mod_binar, data = new.data)
   confint.myboot2(mod)
   })
 test_binom <- replicate(1000, {
-  new.data <- simulate_Aliens_GLM()
+  new.data <- simulate_Aliens_GLM(N = 100)
   mod <- update(mod_binom, data = new.data)
   confint.myboot2(mod)
   })
 test_gauss <- replicate(1000, {
-  new.data <- simulate_Aliens_GLM()
+  new.data <- simulate_Aliens_GLM(N = 100)
   mod <- update(mod_gauss, data = new.data)
   confint.myboot2(mod)
   })
 ```
 
 
-## 95% CI using parametric bootstrap
+## 95% CI by parametric bootstrap
 
 ### Coverage N = 100
-```{r}
+```{r coverage boot2 summary}
 rbind(poiss = apply(test_poiss, 1, mean),
       binar = apply(test_binar, 1, mean),
       binom = apply(test_binom, 1, mean),
@@ -502,12 +682,53 @@ rbind(poiss = apply(test_poiss, 1, mean),
 This is very good and our best result so far!
 
 
+## 95% CI by parametric bootstrap
+
+### Coverage N = 20
+```{r  coverage small boot3, message = FALSE, warning = FALSE}
+set.seed(1L)
+test_poiss <- replicate(1000, {
+  new.data <- simulate_Aliens_GLM(N = 20)
+  mod <- update(mod_poiss, data = new.data)
+  confint.myboot2(mod)
+  })
+test_binar <- replicate(1000, {
+  new.data <- simulate_Aliens_GLM(N = 40) ## 20 fails
+  mod <- update(mod_binar, data = new.data)
+  confint.myboot2(mod)
+  })
+test_binom <- replicate(1000, {
+  new.data <- simulate_Aliens_GLM(N = 20)
+  mod <- update(mod_binom, data = new.data)
+  confint.myboot2(mod)
+  })
+test_gauss <- replicate(1000, {
+  new.data <- simulate_Aliens_GLM(N = 20)
+  mod <- update(mod_gauss, data = new.data)
+  confint.myboot2(mod)
+  })
+```
+
+
+## 95% CI by parametric bootstrap
+
+### Coverage N = 20
+```{r coverage boot3 summary}
+rbind(poiss = apply(test_poiss, 1, mean),
+      binar = apply(test_binar, 1, mean),
+      binom = apply(test_binom, 1, mean),
+      gauss = apply(test_gauss, 1, mean))
+```
+
+Not so great; likelihood profiling was much better!
+
+
 # Confidence intervals on the fitted values
 
-## 95% CI on fitted values: Gaussian
+## 95% CI on fitted values: gaussian
 
 ### Using predict.lm from ```stats```
-```{r}
+```{r conf fitted}
 mod_lm <- lm(size ~ humans_eaten, data = Aliens)
 newdata <- data.frame(humans_eaten = c(5, 15))
 predict(mod_lm, newdata = newdata, interval = "confidence")
@@ -519,10 +740,10 @@ pred.table <- cbind(fit = pred$fit, lwr, upr)
 pred.table
 ```
 
-## 95% CI on fitted values: Gaussian
+## 95% CI on fitted values: gaussian
 
 ### Using predict.glm from ```stats```
-```{r}
+```{r conf fitted gauss}
 pred <- predict(mod_gauss, newdata = newdata, se.fit = TRUE)
 lwr <- pred$fit + qt(0.025, df = mod_lm$df.residual) * pred$se.fit
 upr <- pred$fit + qt(0.975, df = mod_lm$df.residual) * pred$se.fit
@@ -530,8 +751,8 @@ pred.table <- cbind(fit = pred$fit, lwr, upr)
 pred.table
 ```
 
-Same with Gaussian approximation:
-```{r}
+Same with gaussian approximation:
+```{r pred gauss}
 pred <- predict(mod_gauss, newdata = newdata, se.fit = TRUE)
 lwr <- pred$fit + qnorm(0.025) * pred$se.fit
 upr <- pred$fit + qnorm(0.975) * pred$se.fit
@@ -540,23 +761,23 @@ pred.table
 ```
 
 
-## 95% CI on fitted values: Gaussian
+## 95% CI on fitted values: gaussian
 
 ### Using predict.HLfit from ```spaMM```
 
-```{r, message = FALSE}
+```{r predict.HKfit, message = FALSE}
 library(spaMM)
 mod_gauss_spaMM <- fitme(size ~ humans_eaten, family = gaussian(), data = Aliens, method = "REML")
 p <- predict(mod_gauss_spaMM, newdata = newdata, intervals = "predVar")
 attr(p, "intervals")
-get_intervals(mod_gauss_spaMM, newdata = newdata, intervals = "predVar")
+get_intervals(mod_gauss_spaMM, newdata = newdata, intervals = "predVar")## spaMM uses here the Student
 ```
 
 
 ## 95% CI on fitted values: Poisson
 
 ### On the scale of the linear predictor
-```{r}
+```{r conf fitted poiss}
 pred <- predict(mod_poiss, newdata = newdata, se.fit = TRUE)
 lwr <- pred$fit + qnorm(0.025) * pred$se.fit
 upr <- pred$fit + qnorm(0.975) * pred$se.fit
@@ -570,13 +791,13 @@ log(get_intervals(mod_poiss_spaMM, newdata = newdata, intervals = "predVar"))  #
 ## 95% CI on fitted values: Poisson
 
 ### On the scale of the response
-```{r}
+```{r pred fitted poiss}
 pred <- predict(mod_poiss, newdata = newdata, se.fit = TRUE)
 lwr <- pred$fit + qnorm(0.025) * pred$se.fit
 upr <- pred$fit + qnorm(0.975) * pred$se.fit
 exp(cbind(lwr, upr))
+get_intervals(mod_poiss_spaMM, newdata = newdata, intervals = "predVar")  ## spaMM uses here the gaussian
 
-get_intervals(mod_poiss_spaMM, newdata = newdata, intervals = "predVar")
 ```
 
 
@@ -598,36 +819,38 @@ You have many options to get there, but if you do it manually never forget to fi
 
 # Prediction intervals
 
-## 95% PI: Gaussian
+## 95% PI: gaussian
 
-```{r}
+```{r pred int}
 pred <- predict(mod_gauss, newdata = newdata, se.fit = TRUE)
 lwr <- pred$fit + qt(0.025, df = mod_lm$df.residual) * sqrt(pred$se.fit^2 + pred$residual.scale^2)
 upr <- pred$fit + qt(0.975, df = mod_lm$df.residual) * sqrt(pred$se.fit^2 + pred$residual.scale^2)
 pred.table <- cbind(fit = pred$fit, lwr, upr)
 pred.table
-predict(mod_lm, newdata = newdata, interval = "prediction") ## uses t distribution
+predict(mod_lm, newdata = newdata, interval = "prediction") ## uses here the Student
 ```
 
-## 95% PI: Gaussian
+## 95% PI: gaussian
 
-```{r}
+```{r pred int gauss}
 lwr <- pred$fit + qnorm(0.025) * sqrt(pred$se.fit^2 + pred$residual.scale^2)
 upr <- pred$fit + qnorm(0.975) * sqrt(pred$se.fit^2 + pred$residual.scale^2)
 cbind(lwr, upr)
-get_intervals(mod_gauss_spaMM, newdata = newdata, intervals = "respVar")  ## uses gaussian approximation
+## spaMM works well in this case (and uses Student) as announced in ?predict.HLfit:
+get_intervals(mod_gauss_spaMM, newdata = newdata, intervals = "respVar")
 ```
 
 
 ## 95% PI: Poisson
 
 ### The residual variance is no longer constant!
-```{r}
+```{r pred int poiss}
 pred <- predict(mod_poiss, newdata = newdata, se.fit = TRUE)
 lwr <- pred$fit + qnorm(0.025) * sqrt(pred$se.fit^2 + poisson()$variance(exp(pred$fit)))
 upr <- pred$fit + qnorm(0.975) * sqrt(pred$se.fit^2 + poisson()$variance(exp(pred$fit)))
 exp(cbind(lwr, upr))  ## don't forget the inverse link!
-get_intervals(mod_poiss_spaMM, newdata = newdata, intervals = "respVar")  ## uses gaussian approximation
+## spaMM does not work well in this case as announced in ?predict.HLfit:
+get_intervals(mod_poiss_spaMM, newdata = newdata, intervals = "respVar")
 ```
 
 
@@ -643,7 +866,7 @@ Plot the predictions and prediction intervals for ```mod_binar``` and ```mod_bin
 ## New models
 
 Let us refit models with less data to see differences in p-values more easily
-```{r}
+```{r pv}
 set.seed(1L)
 Aliens2 <- simulate_Aliens_GLM(N = 20)
 mod_lm2    <- lm(size  ~ humans_eaten, data = Aliens2)
@@ -658,41 +881,44 @@ mod_binar2_spaMM <- fitme(happy ~ humans_eaten, family = binomial(), data = Alie
 ```
 
 
-## Summary: Gaussian
+## Summary: gaussian
 
-```{r}
+```{r summary lm2}
 summary(mod_lm2)
 ```
 
 
-## Summary: Gaussian
+## Summary: gaussian
 
-```{r}
+```{r summary gauss2}
 summary(mod_gauss2)
 ```
 
 
-## Summary: Gaussian
+## Summary: gaussian
 
 ### Just like LM!
-```{r}
+```{r  summary lm2 gauss2}
 summary(mod_gauss2)$coef
 summary(mod_lm2)$coef
 ```
 
 ## Summary: Poisson
 
-```{r}
+```{r summary poiss}
 summary(mod_poiss2)$coef
 z <- (mod_poiss2$coef - 0) / sqrt(diag(vcov(mod_poiss2)))
 pvalues <- 2 * (1 - pnorm(abs(z)))
 cbind(z, pvalues)
 ```
 
+<br>
+
+When the dispersion parameter is not estimated, we use $z$, not $t$!
 
 ## Summary: Binomial
 
-```{r}
+```{r summary binom}
 summary(mod_binar2)$coef
 z <- (mod_binar2$coef - 0) / sqrt(diag(vcov(mod_binar2)))
 pvalues <- 2 * (1 - pnorm(abs(z)))
@@ -702,20 +928,20 @@ cbind(z, pvalues)
 
 # Anova
 
-## Anova: Gaussian
+## Anova: gaussian
 
 ### For gaussian() (and quasiXXX()) the F test is the one you should use!
-```{r}
+```{r Anova gauss}
 library(car)
 Anova(mod_gauss2, test = "F")
 ```
 
 
-## Anova: Gaussian
+## Anova: gaussian
 
-```{r}
-Anova(mod_gauss2, test = "LR")
-anova(mod_gauss2_spaMM, mod_gauss2_spaMM0)  ## "same" with spaMM
+```{r LR gauss}
+Anova(mod_gauss2, test = "LR")  ## Does not do true LRT here!!
+anova(mod_gauss2_spaMM, mod_gauss2_spaMM0)  ## True LRT, "same" with spaMM
 c(-2 * (logLik(update(mod_gauss2, . ~ 1)) - logLik(mod_gauss2)), 
   (deviance(update(mod_gauss2, . ~ 1)) - deviance(mod_gauss2)) / summary(mod_gauss2)$dispersion)
 ```
@@ -723,9 +949,9 @@ c(-2 * (logLik(update(mod_gauss2, . ~ 1)) - logLik(mod_gauss2)),
 Note: the computation will differ between methods when dispersion is not equals to 1...
 
 
-## Anova: Gaussian
+## Anova: gaussian
 
-```{r}
+```{r t gauss}
 summary(mod_gauss2)$coef["humans_eaten", "t value"]
 summary(mod_gauss2)$coef["humans_eaten", "t value"]^2
 Anova(mod_gauss2, test = "F")
@@ -737,7 +963,7 @@ Anova(mod_gauss2, test = "F")
 ### Under certain conditions, these 3 distributions are the same:
 * when $F_{df1 = 1}$ & when ```residuals.df``` $\rightarrow \infty$
 
-```{r}
+```{r ecdf}
 plot(ecdf(rt(10000, df = 5)^2), col = "blue", lwd = 3, main = "")
 plot(ecdf(rf(10000, df1 = 1, df2 = 5)), add = TRUE, col = "red", lwd = 2)
 plot(ecdf(rchisq(10000, df = 1)), add = TRUE, col = "green", lwd = 1)
@@ -748,7 +974,7 @@ plot(ecdf(rchisq(10000, df = 1)), add = TRUE, col = "green", lwd = 1)
 ### Under certain conditions, these 3 distributions are the same:
 * when $F_{df1 = 1}$ & when ```residuals.df``` $\rightarrow \infty$
 
-```{r}
+```{r ecdf 2}
 plot(ecdf(rt(10000, df = 500)^2), col = "blue", lwd = 3, main = "")
 plot(ecdf(rf(10000, df1 = 1, df2 = 500)), add = TRUE, col = "red", lwd = 2)
 plot(ecdf(rchisq(10000, df = 1)), add = TRUE, col = "green", lwd = 1)
@@ -757,16 +983,92 @@ plot(ecdf(rchisq(10000, df = 1)), add = TRUE, col = "green", lwd = 1)
 
 ## Anova: Poisson and Binomial
 
-### For poisson() and binomial(), use the likelihood ratio test
+### For poisson() and binomial(), better use the likelihood ratio test
 
-### Don't use F test, don't use summary!!
-
-```{r}
+```{r Anova Poiss}
 Anova(mod_poiss2, test = "LR")
 LR <- -2 * (logLik(update(mod_poiss2, . ~ 1)) - logLik(mod_poiss2))
 pvalue <- 1 - pchisq(LR, 1)
 cbind(LR, pvalue)
 ```
+
+
+## Comparing the robustness of tests using simulations
+
+```{r comp 1, warning = FALSE}
+set.seed(1L)
+N <- 20
+pv <- replicate(1000, {
+  d <- data.frame(eggs = rpois(N, lambda = 0.5),
+                  humans_eaten = round(runif(N, min = 0, max = 50)))
+  mod_poiss_1      <- glm(eggs ~ humans_eaten, family = poisson(), data = d)
+  mod_poiss_1_null <- glm(eggs ~ 1, family = poisson(), data = d)
+  c(LR = anova(mod_poiss_1, mod_poiss_1_null, test = "LR")[2, "Pr(>Chi)"],
+    z = summary(mod_poiss_1)$coefficients["humans_eaten", "Pr(>|z|)" ])
+})
+rbind(mean(pv["LR", ] <= 0.05, na.rm = TRUE), mean(pv["z", ] <= 0.05, na.rm = TRUE))
+```
+
+## Comparing the robustness of tests using simulations
+
+<div class="columns-2">
+
+```{r comp plot, echo = FALSE}
+plot(ecdf(pv["LR", ]), col = "green", cex = 0.3,  asp = 1, xlim = c(0, 0.05))
+plot(ecdf(pv["z", ]), col = "blue", cex = 0.3, add = TRUE)
+abline(0, 1, col = "red", lty = 2, lwd = 2)
+```
+
+```{r comp plot 2, echo = FALSE}
+plot(pv["LR", ] ~ pv["z", ], xlim = c(0, 0.1), ylim = c(0, 0.1))
+abline(0, 1, col = "red", lty = 2, lwd = 2)
+```
+
+</div>
+
+
+<br>
+
+But the performances depend on the predictor(s), lambda and sample size...
+
+
+## Comparing the robustness of tests using simulations
+
+```{r comp 2, warning = FALSE}
+set.seed(1L)
+N <- 20
+pv <- replicate(1000, {
+  d <- data.frame(eggs = rpois(N, lambda = 0.5),
+                  mood = factor(sample(c("depr.", "happy", "upset", "tired", "anxious"), size = N, replace = TRUE)))
+  mod_poiss_1      <- glm(eggs ~ mood, family = poisson(), data = d)
+  mod_poiss_1_null <- glm(eggs ~ 1, family = poisson(), data = d)
+  c(LR = anova(mod_poiss_1, mod_poiss_1_null, test = "LR")[2, "Pr(>Chi)"],
+    F = Anova(mod_poiss_1, test = "F")["mood", "Pr(>F)"])
+})
+rbind(mean(pv["LR", ] <= 0.05, na.rm = TRUE), mean(pv["F", ] <= 0.05, na.rm = TRUE))
+```
+
+## Comparing the robustness of tests using simulations
+
+<div class="columns-2">
+
+```{r comp 2 plot, echo = FALSE}
+plot(ecdf(pv["LR", ]), col = "green", cex = 0.3,  asp = 1, xlim = c(0, 0.05))
+plot(ecdf(pv["F", ]), col = "blue", cex = 0.3, add = TRUE)
+abline(0, 1, col = "red", lty = 2, lwd = 2)
+```
+
+```{r comp 2 plot 2, echo = FALSE}
+plot(pv["LR", ] ~ pv["F", ], xlim = c(0, 0.1), ylim = c(0, 0.1))
+abline(0, 1, col = "red", lty = 2, lwd = 2)
+```
+
+</div>
+
+
+<br>
+
+But the performances depend on the predictor(s), lambda and sample size...
 
 
 ## Anova: parametric bootstrap with ```spaMM```
@@ -784,6 +1086,39 @@ anova(mod_gauss2_spaMM, mod_gauss2_spaMM0, boot.repl = 200)
 anova(mod_poiss2_spaMM, mod_poiss2_spaMM0, boot.repl = 200)
 ```
 
+
+## Comparing tests using spaMM
+
+```{r comp 3, warning = FALSE, eval = FALSE}
+set.seed(1L)
+N <- 50
+pv <- replicate(1000, {
+  d <<- data.frame(eggs = rpois(N, lambda = 0.5),
+                  humans_eaten = round(runif(N, min = 0, max = 50)))
+  mod_poiss_1      <- glm(eggs ~ humans_eaten, family = poisson(), data = d)
+  mod_poiss_1_null <- glm(eggs ~ 1, family = poisson(), data = d)
+  mod_poiss_1_spaMM      <- fitme(eggs ~ humans_eaten, family = poisson(), data = d)
+  mod_poiss_1_null_spaMM <- fitme(eggs ~ 1, family = poisson(), data = d)
+  
+  boot <- anova(mod_poiss_1_spaMM, mod_poiss_1_null_spaMM, boot.repl = 100, nb_cores = 1)
+  c(z = summary(mod_poiss_1)$coefficients["humans_eaten", "Pr(>|z|)" ],
+    LR = boot$basicLRT$p_value,
+    Bartlett = boot$BartBootLRT$p_value,
+    Raw = boot$rawBootLRT$p_value)
+})
+```
+
+```{r outcome comp 3 new trial, eval = FALSE}
+rbind(mean(pv["z", ] <= 0.05, na.rm = TRUE),
+      mean(pv["LR", ] <= 0.05, na.rm = TRUE),
+      mean(pv["Bartlett", ] <= 0.05, na.rm = TRUE),
+      mean(pv["Raw", ] <= 0.05, na.rm = TRUE))
+```
+
+Results for later...
+
+
+
 # Non-nested model comparison
 
 ## Comparing different links or different families
@@ -800,7 +1135,7 @@ For true test, the only method available is the parametric bootstrap!
 ## Comparing LM vs GLM
 
 ### Responses differ, so only parametric bootstrap is possible
-```{r}
+```{r LM vs GLM}
 set.seed(1L)
 x <- seq(1, 2, length = 100)
 y <- exp(rnorm(n = length(x), mean = 2 + 1 * x, sd = 0.5))
@@ -811,12 +1146,12 @@ logLikH0 <- replicate(1000, {
   new.y <- exp(as.matrix(simulate(mod_lm)))
   logLik(lm(log(new.y) ~ x)) - logLik(glm(new.y ~ x, family = gaussian(link = "log")))
   })
-mean(logLikH0 < (logLik(mod_lm) - logLik(mod_glm)))
+(sum(logLikH0 < (logLik(mod_lm) - logLik(mod_glm))) + 1) / (length(logLikH0) + 1)
 ```
 
 Here we used the GLM as the null model so we simulate the data using the LM.
 
-In principle, we could have do the opposite, but in practice the function ```simulate()``` bugs for GLM with gaussian(link != "identity").
+In principle, we could have do the opposite, but in practice the function ```simulate()``` bugs for GLM with ```gaussian()$link != "identity"```.
 
 ## What you need to remember
 
