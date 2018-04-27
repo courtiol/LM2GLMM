@@ -326,7 +326,7 @@ How small is small? -> Simulate as we did to check for your design.
 
 Determine if the issue is steming from the link function, the family or both.
 
-Tip: test by simulation using ```gaussian(link = "gaussian")``` and ```poisson(link = "identity")```.
+Tip: test by simulation using ```gaussian(link = "log")``` and ```poisson(link = "identity")```.
 
 
 # Confidence intervals on estimates
