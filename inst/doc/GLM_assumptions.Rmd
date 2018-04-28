@@ -10,6 +10,8 @@ vignette: >
   %\VignetteIndexEntry{3.2 Residuals & Assumptions}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -23,6 +25,13 @@ options(width = 120)
 knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/GLM_resid/", fig.path = "./fig_knitr/GLM_resid/", fig.width = 5, fig.height = 5, fig.align = "center", error = TRUE)
 ```
 
+## The Generalized Linear Model: GLM
+
+* 3.0 [Introduction](./GLM_intro.html)
+* 3.1 [Intervals & Tests](./GLM_intervals.html)
+* 3.2 [Residuals & Assumptions](./GLM_assumptions.html)
+* 3.3 [Let's practice more](./GLM_practice.html)
+
 ## You will learn in this session
 
 * that many residuals can be computed for GLM and that they are often useless
@@ -35,7 +44,7 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/GLM_resid/", fig
 
 ## Our data and toy models
 
-```{r}
+```{r fit all models}
 set.seed(1L)
 Aliens <- simulate_Aliens_GLM()
 mod_gauss <- glm(size  ~ humans_eaten, family = gaussian(), data = Aliens)
@@ -48,7 +57,7 @@ mod_binom <- glm(cbind(blue_eyes, pink_eyes) ~ humans_eaten, family = binomial()
 
 ## Can we still use ```plot(model)``` ?
 
-```{r}
+```{r plot poiss}
 par(mfrow = c(2, 2))
 plot(mod_poiss)
 ```
@@ -56,7 +65,7 @@ plot(mod_poiss)
 
 ## Can we still use ```plot(model)``` ?
 
-```{r}
+```{r plot binar}
 par(mfrow = c(2, 2))
 plot(mod_binar)
 ```
@@ -64,7 +73,7 @@ plot(mod_binar)
 
 ## Can we still use ```plot(model)``` ?
 
-```{r}
+```{r plot binom}
 par(mfrow = c(2, 2))
 plot(mod_binom)
 ```
@@ -73,7 +82,7 @@ plot(mod_binom)
 
 <div class="columns-2">
 
-```{r}
+```{r residuals poiss}
 rbind(
   residuals(mod_poiss, type = "deviance")[1:2],
   residuals(mod_poiss, type = "pearson")[1:2],
@@ -81,7 +90,7 @@ rbind(
   residuals(mod_poiss, type = "response")[1:2])
 ```
 
-```{r}
+```{r residuals binom}
 rbind(
   residuals(mod_binom, type = "deviance")[1:2],
   residuals(mod_binom, type = "pearson")[1:2],
@@ -95,7 +104,7 @@ rbind(
 
 Note 1: we can also compute partial residuals, which we shall see later.
 
-Note 2: this is also true for LM and Gaussian GLM, but it makes no difference in such case (except for partial residuals).
+Note 2: this is also true for LM and ```gaussian(link = "identity")``` GLM, but it makes no difference in such case (except for partial residuals).
 
 ## Distribution
 
@@ -103,7 +112,7 @@ Note 2: this is also true for LM and Gaussian GLM, but it makes no difference in
 
 <div class="columns-2">
 
-```{r, echo = FALSE}
+```{r ecdf resid poiss, echo = FALSE}
 par(las = 1)
 plot(ecdf(residuals(mod_poiss, type = "working")), col = 3, main = "mod_poiss")
 plot(ecdf(residuals(mod_poiss, type = "deviance")), col = 1, add = TRUE)
@@ -112,7 +121,7 @@ plot(ecdf(residuals(mod_poiss, type = "response")), col = 4, add = TRUE)
 legend("bottomright", fill = 1:4, bty = "n", legend = c("deviance", "pearson", "working", "response"), title = "Type of residuals:")
 ```
 
-```{r, echo = FALSE}
+```{r ecdf resid binom, echo = FALSE}
 par(las = 1)
 plot(ecdf(residuals(mod_binom, type = "working")), col = 3, main = "mod_binom")
 plot(ecdf(residuals(mod_binom, type = "deviance")), col = 1, add = TRUE)
@@ -128,7 +137,7 @@ legend("topleft", fill = 1:4, bty = "n", legend = c("deviance", "pearson", "work
 
 These are the residuals that we saw in LM: observed - predicted. Simple but pretty much useless.
 
-```{r}
+```{r response res}
 rbind(residuals(mod_gauss, type = "response")[1:2],
       (mod_gauss$y - mod_gauss$fitted.values)[1:2])
 rbind(residuals(mod_poiss, type = "response")[1:2],
@@ -142,7 +151,7 @@ rbind(residuals(mod_binom, type = "response")[1:2],
 
 These are response residuals scaled by the square root of the variance function and accounting for their prior weights.
 
-```{r}
+```{r pearson res}
 variances <- poisson()$variance(mod_poiss$fitted.values)
 rbind(residuals(mod_poiss, type = "pearson")[1:2],
       (residuals(mod_poiss, type = "response") * sqrt(mod_poiss$prior.weights / variances))[1:2])
@@ -159,14 +168,14 @@ These residuals are often use to check the quality of the fit.
 
 The sum of the squared Pearson residuals gives the Pearson $\chi^2$ statistic of goodness of fit:
 
-```{r}
+```{r pearson dev binom}
 (X <- sum(residuals(mod_binom, type = "pearson")^2))
 ```
 
-This statistic is sometimes used to test the goodness of fit of the model or to test for overdispersion, but since its usage is often not optimal (e.g. it requires a lot of replications within each grouping) and the power if this test is poor, I would not recommend you to use such test.
+This statistic is sometimes used to test the goodness of fit of the model (= assess the ability of a model to fit the data with no alternative in mind) or to test for overdispersion (= is the residual variance compatible with the variance function), but I would not recommend you to use such test because its usage is often not optimal (it requires a lot of replications within each grouping, the power is poor, and the coverage is often poor).
 
-```{r}
-1 - pchisq(X, mod_poiss$df.residual)  ## Pearson goodness of fit test
+```{r pearson dev pois}
+pchisq(X, mod_poiss$df.residual, lower.tail = FALSE)  ## Pearson goodness of fit test
 X / mod_poiss$df.residual  ## measure of overdispersion
 ```
 
@@ -179,7 +188,7 @@ Contrary to those computed by ```family()$dev.resids``` they are here not square
 
 <br>
 
-```{r}
+```{r dev resid}
 residuals(mod_poiss, type = "deviance")[1:2]
 rbind((residuals(mod_poiss, type = "deviance")[1:2])^2,
       with(mod_poiss, poisson()$dev.resids(y = y, mu = fitted.values, wt = prior.weights))[1:2])
@@ -188,9 +197,9 @@ rbind((residuals(mod_poiss, type = "deviance")[1:2])^2,
 
 ## Deviance residuals
 
-The sum of the squared deviance residuals gives the residual deviance of the model fit:
+The sum of the squared deviance residuals gives the residual (unscaled) deviance of the model fit:
 
-```{r}
+```{r deviance}
 c(sum(residuals(mod_gauss, type = "deviance")^2), deviance(mod_gauss))
 c(sum(residuals(mod_poiss, type = "deviance")^2), deviance(mod_poiss))
 c(sum(residuals(mod_binom, type = "deviance")^2), deviance(mod_binom))
@@ -201,7 +210,7 @@ c(sum(residuals(mod_binom, type = "deviance")^2), deviance(mod_binom))
 These residuals are sometimes also used to check the quality of the fit, in the exact same fashion as the Pearson's residuals, but again (and for the same reasons), I would not recommend you to do that.
 
 
-## Testing the robustness of the goodness of fit tests
+## Testing false positives in the goodness of fit tests
 
 For ```mod_poiss```
 
@@ -212,7 +221,7 @@ p <- replicate(1000, {
   d <- simulate_Aliens_GLM()
   m <- update(mod_poiss, data = d)
   X <- sum(residuals(m, type = "pearson")^2)
-  1 - pchisq(X, m$df.residual)
+  pchisq(X, m$df.residual, lower.tail = FALSE)
 })
 plot(ecdf(p))
 abline(0, 1, lty = 2, col = "green")
@@ -223,7 +232,7 @@ p <- replicate(1000, {
   d <- simulate_Aliens_GLM()
   m <- update(mod_poiss, data = d)
   dev <- deviance(m)
-  1 - pchisq(dev, m$df.residual)
+  pchisq(dev, m$df.residual, lower.tail = FALSE)
 })
 plot(ecdf(p))
 abline(0, 1, lty = 2, col = "green")
@@ -232,7 +241,7 @@ abline(0, 1, lty = 2, col = "green")
 </div>
 
 
-## Testing the robustness of the goodness of fit tests
+## Testing false positives in the goodness of fit tests
 
 For ```mod_binar```
 
@@ -243,7 +252,7 @@ p <- replicate(1000, {
   d <- simulate_Aliens_GLM()
   m <- update(mod_binar, data = d)
   X <- sum(residuals(m, type = "pearson")^2)
-  1 - pchisq(X, m$df.residual)
+  pchisq(X, m$df.residual, lower.tail = FALSE)
 })
 plot(ecdf(p))
 abline(0, 1, lty = 2, col = "green")
@@ -254,7 +263,7 @@ p <- replicate(1000, {
   d <- simulate_Aliens_GLM()
   m <- update(mod_binar, data = d)
   dev <- deviance(m)
-  1 - pchisq(dev, m$df.residual)
+  pchisq(dev, m$df.residual, lower.tail = FALSE)
 })
 plot(ecdf(p))
 abline(0, 1, lty = 2, col = "green")
@@ -263,7 +272,7 @@ abline(0, 1, lty = 2, col = "green")
 </div>
 
 
-## Testing the robustness of the goodness of fit tests
+## Testing false positives in the goodness of fit tests
 
 For ```mod_binom```
 
@@ -274,7 +283,7 @@ p <- replicate(1000, {
   d <- simulate_Aliens_GLM()
   m <- update(mod_binom, data = d)
   X <- sum(residuals(m, type = "pearson")^2)
-  1 - pchisq(X, m$df.residual)
+  pchisq(X, m$df.residual, lower.tail = FALSE)
 })
 plot(ecdf(p))
 abline(0, 1, lty = 2, col = "green")
@@ -285,7 +294,7 @@ p <- replicate(1000, {
   d <- simulate_Aliens_GLM()
   m <- update(mod_binom, data = d)
   dev <- deviance(m)
-  1 - pchisq(dev, m$df.residual)
+  pchisq(dev, m$df.residual, lower.tail = FALSE)
 })
 plot(ecdf(p))
 abline(0, 1, lty = 2, col = "green")
@@ -298,7 +307,7 @@ abline(0, 1, lty = 2, col = "green")
 
 These are the residuals used during the last iteration of the iterative fitting procedure. Useless otherwise.
 
-```{r}
+```{r work res}
 rbind(mod_poiss$residuals[1:2],
       ((mod_poiss$y - mod_poiss$fitted.values)/poisson()$mu.eta(mod_poiss$linear.predictors))[1:2])
 
@@ -311,8 +320,8 @@ rbind(mod_binom$residuals[1:2],
 
 These are residuals expressed at the level of each predictor.
 
-```{r}
-mod_UK_small <- glm(milk ~ drink + sex + cigarettes, data = UK[1:10, ], family = poisson())
+```{r partial res}
+mod_UK_small <- glm(milk ~ sex + mother_weight + cigarettes, data = UK[1:10, ], family = poisson())
 residuals(mod_UK_small, type = "partial")
 ```
 
@@ -322,7 +331,7 @@ residuals(mod_UK_small, type = "partial")
 These are residuals expressed at the level of each predictor.
 
 Computation:
-```{r}
+```{r compute partial res}
 (p <- predict(mod_UK_small, type = "terms")) ## prediction expressed per predictor
 c(sum(p[1, ]) + attr(p, "constant"), predict(mod_UK_small, type = "link")[1])
 ```
@@ -333,45 +342,43 @@ c(sum(p[1, ]) + attr(p, "constant"), predict(mod_UK_small, type = "link")[1])
 These are residuals expressed at the level of each predictor.
 
 Computation:
-```{r}
+```{r compute partial res 2}
 rbind((p + residuals(mod_UK_small, type = "working"))[1, ],
       residuals(mod_UK_small, type = "partial")[1, ])
 ```
 
 <br>
 
-Partial residuals could be useful to check for departure from linearity (if they were not computed on the basis of working residuals...).
-
-It is probably more useful for LM in which working residuals and response residuals are the same.
+Partial residuals can be use to check for departure from linearity (concerns quantitative predictors).
 
 
 ## Partial residuals
 
-```{r, fig.width = 10, fig.height = 4}
+```{r plot partial res, fig.width = 10, fig.height = 4}
 library(car)
 par(mfrow = c(1, 3))
-crPlots(mod_UK_small, terms = ~ drink)
 crPlots(mod_UK_small, terms = ~ sex)
+crPlots(mod_UK_small, terms = ~ mother_weight)
 crPlots(mod_UK_small, terms = ~ cigarettes)
 ```
 
 
 ## Partial residuals
 
-```{r, fig.width = 10, fig.height = 4}
-mod_UK <- glm(milk ~ drink + sex + cigarettes, data = UK, family = poisson())
+```{r plot partial res 2, fig.width = 10, fig.height = 4}
+mod_UK <- glm(milk ~ sex + mother_weight + cigarettes, data = UK, family = poisson())
 par(mfrow = c(1, 3))
-crPlots(mod_UK, terms = ~ drink)
 crPlots(mod_UK, terms = ~ sex)
+crPlots(mod_UK, terms = ~ mother_weight)
 crPlots(mod_UK, terms = ~ cigarettes)
 ```
 
 
-# Residuals by parametric bootstrap: the useful ones!
+# Residuals by parametric bootstrap: the most useful ones!
 
 ## Computing residuals by parametric bootstrap
 
-```{r, fig.height = 4, fig.width = 4}
+```{r bootstrap, fig.height = 4, fig.width = 4}
 set.seed(1L)
 s <- simulate(mod_poiss, 1000)
 r <- sapply(s, function(i) i + runif(nrow(mod_poiss$model), min = -0.5, max = 0.5))
@@ -382,7 +389,7 @@ abline(v = mod_poiss$y[1] + runif(1, min = -0.5, max = 0.5), col = "red", lwd = 
 
 ## Computing residuals by parametric bootstrap
 
-```{r, fig.height = 4, fig.width = 4}
+```{r bootstrap 2, fig.height = 4, fig.width = 4}
 plot(ecdf1 <- ecdf(r[1, ]), main = "cdf of first fitted value")
 noise <- runif(1, min = -0.5, max = 0.5)
 simulated_residual_1 <-  ecdf1(mod_poiss$y[1] + noise)
@@ -393,7 +400,7 @@ arrows(x0 = mod_poiss$y[1] + noise, x1 = -1, y0 = simulated_residual_1, col = "r
 
 ## Computing residuals by parametric bootstrap
 
-```{r, fig.height = 4, fig.width = 4}
+```{r bootstrap 3, fig.height = 4, fig.width = 4}
 plot(ecdf2 <- ecdf(r[2, ]), main = "cdf of second fitted value")
 noise <- runif(1, min = -0.5, max = 0.5)
 simulated_residual_2 <-  ecdf2(mod_poiss$y[2] + noise)
@@ -414,11 +421,11 @@ for (i in 1:nrow(mod_poiss$model)) {
 
 <div class="columns-2">
 
-```{r, fig.height = 4, fig.width = 4}
+```{r plot sim res, fig.height = 4, fig.width = 4}
 plot(simulated_residuals)
 ```
 
-```{r, fig.height = 4, fig.width = 4}
+```{r plot ecdf sim res, fig.height = 4, fig.width = 4}
 plot(ecdf(simulated_residuals))
 ```
 
@@ -473,6 +480,7 @@ plot(mod_UK_simres)
 * independence (no serial autocorrelation)
 * lack of overdispersion and underdispersion
 
+# Assumptions about the model structure
 
 ## How to test for linearity?
 
@@ -487,7 +495,7 @@ but we may try to
 
 ## Example of non-linearity
 
-```{r}
+```{r Aliens2}
 set.seed(1L)
 Aliens2 <- data.frame(humans_eaten = runif(100, min = 0, max = 15))
 Aliens2$eggs <- rpois( n = 100, lambda = exp(1 + 0.2 * Aliens2$humans_eaten - 0.02 *  Aliens2$humans_eaten^2))
@@ -497,7 +505,7 @@ mod_poiss2bad <- glm(eggs ~ humans_eaten, data = Aliens2, family = poisson()) ##
 
 
 ## Example of non-linearity
-```{r,  fig.width = 4, fig.height = 4}
+```{r plot Aliens2,  fig.width = 4, fig.height = 4}
 plot(I(1 + 0.2 * Aliens2$humans_eaten - 0.02 *  Aliens2$humans_eaten^2) ~ Aliens2$humans_eaten,
      ylab = "eta", ylim = c(-1, 2))
 data.for.pred <- data.frame(humans_eaten = 0:15)
@@ -507,7 +515,7 @@ points(predict(mod_poiss2bad, newdata = data.for.pred) ~ I(0:15), col = "red")
 
 
 ## Example of non-linearity
-```{r,  fig.width = 4, fig.height = 4}
+```{r plot Aliens2 2,  fig.width = 4, fig.height = 4}
 plot(exp(1 + 0.2 * Aliens2$humans_eaten - 0.02 *  Aliens2$humans_eaten^2) ~ Aliens2$humans_eaten,
      ylab = "predicted number of eggs", ylim = c(0, 6))
 points(predict(mod_poiss2good, newdata = data.for.pred, type = "response") ~ I(0:15), col = "blue")
@@ -517,28 +525,28 @@ points(predict(mod_poiss2bad, newdata = data.for.pred, type = "response") ~ I(0:
 
 ## Example of non-linearity
 
-```{r}
+```{r plot partial Aliens2}
 crPlots(mod_poiss2bad, terms = ~ humans_eaten)
 ```
 
 
 ## Example of non-linearity
 
-```{r}
-crPlots(mod_poiss, terms = ~ humans_eaten)  ## cannot do that for mod_poiss2good
+```{r plot partial Aliens2 2}
+crPlots(mod_poiss2good)
 ```
 
 
 ## Example of non-linearity
 
-```{r, fig.width = 7, fig.height = 4}
+```{r plot res Aliens2, fig.width = 7, fig.height = 4}
 plot(s_bad <- simulateResiduals(mod_poiss2bad))
 ```
 
 
 ## Example of non-linearity
 
-```{r, fig.width = 7, fig.height = 4}
+```{r plot res Aliens2 2, fig.width = 7, fig.height = 4}
 plot(s_good <- simulateResiduals(mod_poiss2good))
 ```
 
@@ -546,7 +554,7 @@ plot(s_good <- simulateResiduals(mod_poiss2good))
 ## Example of non-linearity
 
 ### The lack of linearity is unfortunatly not detected here:
-```{r}
+```{r test unif}
 testUniformity(s_bad)
 testUniformity(s_good)
 ```
@@ -554,18 +562,23 @@ testUniformity(s_good)
 
 ## Example of non-linearity
 
-```{r, fig.width = 4, fig.height = 4, message = FALSE}
+```{r GAM, fig.width = 4, fig.height = 4, message = FALSE}
 library(mgcv)
 mod_poiss2GAM <- gam(eggs ~ s(humans_eaten), data = Aliens2, family = poisson())
-plot(mod_poiss2GAM)
+plot(mod_poiss2GAM, shade = TRUE, residuals = FALSE, shade.col = "red")  ## on the scale of the linear predictor!
 ```
 
+## Multicollinearity and fixed-values
+
+### Same as for LM!
+
+# Assumptions about the errors
 
 ## How to test for independence?
 
 You can run the Durbin Watson test on the simulated residuals:
 
-```{r}
+```{r autocorr}
 testTemporalAutocorrelation(s_good, time = mod_poiss2good$fitted.values, plot = FALSE)
 ```
 
@@ -574,7 +587,7 @@ testTemporalAutocorrelation(s_good, time = mod_poiss2good$fitted.values, plot = 
 
 You can run the Durbin Watson test on the simulated residuals:
 
-```{r}
+```{r autocorr 2}
 testTemporalAutocorrelation(s_good, time = Aliens2$humans_eaten, plot = FALSE)
 ```
 
@@ -589,7 +602,7 @@ Survival times series that are discrete and complete can be analysed using a bin
 
 Example: the study of the influence of rainfall on mortality (here A dies at 5 yrs old and B at 3 yrs old).
 
-```{r}
+```{r eles}
 data.frame(age = c(1:5, 1:5),
       id = c(rep("A", 5), rep("B", 5)),
       death = c(0, 0, 0, 0, 1, 0, 0, 1, NA, NA),
@@ -604,7 +617,7 @@ In such a case, a random effect for the identity of the individual is not needed
 
 ### A GLM assumes a particular relationship between mu and var(mu)
 
-```{r, fig.width = 10, fig.height = 3}
+```{r varmu, fig.width = 10, fig.height = 3}
 p <- seq(0, 1, 0.1)
 lambda <- 0:10
 theta <- 0:10
@@ -641,7 +654,7 @@ Usual suspects:
 
 ### A toy example
 
-```{r}
+```{r overdisp}
 set.seed(1L)
 popA <- data.frame(humans_eaten = runif(50, min = 0, max = 15))
 popA$eggs <- rpois(n = 50, lambda = exp(-1 + 0.05 * popA$humans_eaten))
@@ -659,16 +672,16 @@ AliensMix <- rbind(popA, popB)
 
 A widely used not so good way:
 
-```{r}
+```{r deviance overdisp}
 cbind(disp = mod_poissMix$deviance / mod_poissMix$df.residual,
-      pv = 1 - pchisq(mod_poissMix$deviance, mod_poissMix$df.residual))
+      pv = pchisq(mod_poissMix$deviance, mod_poissMix$df.residual, lower.tail = FALSE))
 ```
 
 A slightly better way:
 
-```{r}
+```{r pearson overdisp}
 cbind(disp = sum(residuals(mod_poissMix, type = "pearson")^2) / mod_poissMix$df.residual,
-      pv = 1 - pchisq(sum(residuals(mod_poissMix, type = "pearson")^2), mod_poissMix$df.residual))
+      pv = pchisq(sum(residuals(mod_poissMix, type = "pearson")^2), mod_poissMix$df.residual, lower.tail = FALSE))
 ```
 
 
@@ -678,9 +691,9 @@ cbind(disp = sum(residuals(mod_poissMix, type = "pearson")^2) / mod_poissMix$df.
 
 A better way (?)
 
-```{r}
+```{r sim overdisp}1
 r <- simulateResiduals(mod_poissMix, refit = TRUE)
-testOverdispersion(r)
+testOverdispersion(r) # stat = squared pearson residuals compared to that obtained by simulation
 ```
 
 
@@ -691,7 +704,7 @@ testOverdispersion(r)
 * fix linearity issues
 * fix heterogeneity issues (if you have the data)
 
-```{r}
+```{r inter}
 mod_poissMix2 <- glm(eggs ~ pop*humans_eaten, family = poisson(), data = AliensMix)
 r2 <- simulateResiduals(mod_poissMix2, refit = TRUE)
 testOverdispersion(r2)  ## you can change options to test for underdispersion
@@ -712,26 +725,27 @@ testOverdispersion(r2)  ## you can change options to test for underdispersion
 
 Variance = $k \times \mu$
 
-```{r}
+```{r quasipoiss}
 mod_poissMixQ <- glm(eggs ~ humans_eaten, family = quasipoisson(), data = AliensMix)
 summary(mod_poissMixQ)$coef
-Anova(mod_poissMixQ, test = "F")
+Anova(mod_poissMixQ, test = "F")  ## 'F' not 'LR' because dispersion is estimated!
 ```
 
 
-## Modeling overdispersion
+## Modeling simply overdispersion
 
 ### For Poisson
 
 Variance = $k \times \mu$
 
-It works, but we cannot do much with these type of fit:
-```{r}
-logLik(mod_poissMixQ)
+It works, but we cannot do everything with these types of fit:
+```{r confint quasipoiss}
+confint(mod_poissMixQ)
+c(logLik(mod_poissMixQ), AIC(mod_poissMixQ))
 ```
 
 
-## Modeling overdispersion
+## Modeling simply overdispersion
 
 ### For binomial
 
@@ -757,7 +771,7 @@ logLik(mod_poissMixQ)
 
 ### For comparison
 
-```{r}
+```{r pearson overdisp fit}
 mod_poissMix <- glm(eggs ~ humans_eaten, family = poisson(), data = AliensMix)
 sum(residuals(mod_poissMix, type = "pearson")^2) / mod_poissMix$df.residual
 summary(mod_poissMix)$coefficients
@@ -766,7 +780,7 @@ summary(mod_poissMix)$coefficients
 
 ## Negative binomial with ```MASS```
 
-```{r}
+```{r negbin}
 library(MASS)
 mod_poissMixNB <- glm.nb(eggs ~ humans_eaten, data = AliensMix)
 sum(residuals(mod_poissMixNB, type = "pearson")^2) / mod_poissMix$df.residual
@@ -777,16 +791,15 @@ c(AIC(mod_poissMix), AIC(mod_poissMixNB), logLik(mod_poissMixNB))
 
 ## Negative binomial with ```spaMM```
 
-```{r}
-negbin <- spaMM::negbin ## otherwise spaMM tries to use negbin from mgcv, which won't work
+```{r negbin spaMM}
 mod_poissMixSpaMM   <- fitme(eggs ~ humans_eaten, family = poisson(), data = AliensMix)
-mod_poissMixNBSpaMM <- fitme(eggs ~ humans_eaten, family = negbin(), data = AliensMix)
+mod_poissMixNBSpaMM <- fitme(eggs ~ humans_eaten, family = spaMM::negbin(), data = AliensMix) ## namespace needed!
 summary(mod_poissMixNBSpaMM)
 c(AIC(mod_poissMixSpaMM), AIC(mod_poissMixNBSpaMM), logLik(mod_poissMixNBSpaMM))
 ```
 
 
-## Conway-Maxwell-Poisson
+## Conway-Maxwell-Poisson (from ```spaMM```)
 
 ### It can fit both over- and under- dispersion!
 
@@ -797,11 +810,13 @@ c(AIC(mod_poissMixSpaMM), AIC(mod_poissMixNBSpaMM), logLik(mod_poissMixNBSpaMM))
 Replicating Poisson:
 
 ```{r COMPoisson, warning = FALSE}
-mod_poissMixCP <- glm(eggs ~ humans_eaten, family = COMPoisson(nu = 1), data = AliensMix)
-mod_poissMixCP$coef
-c(AIC(mod_poissMix), AIC(mod_poissMixNB), AIC(mod_poissMixCP))
+mod_poissMixCP       <- glm(eggs ~ humans_eaten, family = COMPoisson(nu = 1), data = AliensMix)
+mod_poissMixCPSpaMM <- fitme(eggs ~ humans_eaten, family = COMPoisson(nu = 1), data = AliensMix)
+
+rbind(logLik(mod_poissMix)[[1]], logLik(mod_poissMixCP)[[1]], logLik(mod_poissMixCPSpaMM)[[1]])
 ```
 
+IT SHOULD ALL BE IDENTICAL (AND USED TO), BUT THERE SEEM TO BE A BUG!!
 
 ## Conway-Maxwell-Poisson
 
@@ -818,7 +833,7 @@ Note: here we estimate nu, so it can take (much) longer time to fit!
 
 ## Comparison
 
-```{r, echo = FALSE, warning = FALSE, fig.height = 6, fig.width = 6}
+```{r comp COMPoiss, echo = FALSE, warning = FALSE, fig.height = 6, fig.width = 6}
 d <- data.frame(humans_eaten = seq(0, 15, length = 1000))
 p <- predict(mod_poissMixSpaMM, newdata = d, intervals = "predVar")
 plot(p ~ d$humans_eaten, ylim = range(mod_poissMixSpaMM$data$eggs), type = "l", lwd = 3)
@@ -835,10 +850,10 @@ points(attr(p, "interval")[, 2] ~ d$humans_eaten, lty = 2, type = "l", col = "bl
 legend("topleft", fill = c("black", "red", "blue"), legend = c("Poisson", "Negative Binomial", "Conway-Maxwell-Poisson "), bty = "n")
 ```
 
+
 ## Comparison
 
-
-```{r, eval = FALSE}
+```{r comp COMPoiss same, eval = FALSE}
 d <- data.frame(humans_eaten = seq(0, 15, length = 1000))
 p <- predict(mod_poissMixSpaMM, newdata = d, intervals = "predVar")
 plot(p ~ d$humans_eaten, ylim = range(mod_poissMixSpaMM$data$eggs), type = "l", lwd = 3)
@@ -850,8 +865,8 @@ points(attr(p, "interval")[, 1] ~ d$humans_eaten, lty = 2, type = "l", col = "re
 points(attr(p, "interval")[, 2] ~ d$humans_eaten, lty = 2, type = "l", col = "red")
 p <- predict(mod_poissMixCPSpaMM, newdata = d, intervals = "predVar")
 points(p ~ d$humans_eaten, type = "l", col = "blue", lwd = 3)
-points(attr(p, "interval")[, 1] ~ d$humans_eaten, lty = 2, type = "l", col = "blue")
-points(attr(p, "interval")[, 2] ~ d$humans_eaten, lty = 2, type = "l", col = "blue")
+points(attr(p, "interval")[, 1] ~ d$humans_eaten, lty = 2, type = "l", col = "blue") ## BUG
+points(attr(p, "interval")[, 2] ~ d$humans_eaten, lty = 2, type = "l", col = "blue") ## BUG
 legend("topleft", fill = c("black", "red", "blue"),
        legend = c("Poisson", "Negative Binomial", "Conway-Maxwell-Poisson "), bty = "n")
 ```
@@ -900,7 +915,7 @@ Fit a zero-inflation model
 
 ## Zero-augmented data
 
-```{r}
+```{r zeroinfl}
 set.seed(1L)
 AliensZ <- simulate_Aliens_GLM(N = 1000)
 AliensZ$eggs <- AliensZ$eggs * AliensZ$happy ## unhappy Aliens loose their eggs :-(
@@ -910,7 +925,7 @@ barplot(table(AliensZ$eggs))
 
 ## Poisson fit of zero-augmented data
 
-```{r}
+```{r zeroinfl poiss}
 mod_Zpoiss <- glm(eggs ~ humans_eaten, data = AliensZ, family = poisson())
 r <- simulateResiduals(mod_Zpoiss)
 testZeroInflation(r, plot = FALSE)
@@ -920,14 +935,14 @@ mean(sum(AliensZ$eggs == 0) / sum(dpois(0, fitted(mod_Zpoiss))))
 
 ## Poisson fit of zero-augmented data
 
-```{r}
+```{r test zeroinfl}
 testZeroInflation(r, plot = TRUE)
 ```
 
 
 ## Negative binomial fit of zero-augmented data
 
-```{r}
+```{r test zeroinfl negbin}
 mod_Znb <- glm.nb(eggs ~ humans_eaten, data = AliensZ)
 r <- simulateResiduals(mod_Znb)
 testZeroInflation(r, plot = FALSE)
@@ -936,14 +951,14 @@ testZeroInflation(r, plot = FALSE)
 
 ## Negative binomial fit of zero-augmented data
 
-```{r}
+```{r plot test zeroinfl}
 testZeroInflation(r, plot = TRUE)
 ```
 
 
 ## Hurdle fit of zero-augmented data
 
-```{r, message = FALSE}
+```{r hurdle, message = FALSE}
 library(pscl)
 mod_Zhurd1 <- hurdle(eggs ~ humans_eaten | humans_eaten, dist = "poisson", zero.dist = "binomial",
                      data = AliensZ)
@@ -955,7 +970,7 @@ mean(sum(AliensZ$eggs == 0) / sum(predict(mod_Zhurd1, type = "prob")[, 1]))
 
 ## Zero-inflation fit of zero-augmented data
 
-```{r, message = FALSE}
+```{r zeroinfl fit, message = FALSE}
 mod_Zzi1 <- zeroinfl(eggs ~ humans_eaten | humans_eaten, dist = "poisson", data = AliensZ)
 mod_Zzi2 <- zeroinfl(eggs ~ humans_eaten | 1, dist = "poisson", data = AliensZ)
 lmtest::lrtest(mod_Zzi1, mod_Zzi2)
@@ -965,7 +980,7 @@ mean(sum(AliensZ$eggs == 0) / sum(predict(mod_Zzi1, type = "prob")[, 1]))
 
 ## Comparison
 
-```{r}
+```{r comp zeroinfl}
 cbind(Poisson = AIC(mod_Zpoiss),
       NegBin  = AIC(mod_Znb),
       Hurdle  = AIC(mod_Zhurd1),
@@ -1004,7 +1019,7 @@ From Wikipedia:
 
 ## The problem of separation in Binomial
 
-```{r}
+```{r separ}
 set.seed(1L)
 n <- 50
 test <- data.frame(happy = rbinom(2*n, prob = c(rep(0, n), rep(0.75, n)), size = 1), 
@@ -1012,52 +1027,40 @@ test <- data.frame(happy = rbinom(2*n, prob = c(rep(0, n), rep(0.75, n)), size =
 table(test$happy, test$sp)
 ```
 
+```{r fit separ}
+mod <- glm(happy ~ sp, data = test, family = binomial())
+exp(coef(mod))
+```
+
 
 ## The problem of separation in Binomial
 
-```{r}
-mod <- glm(happy ~ sp, data = test, family = binomial())
+### Detection
+
+```{r safebin, error = TRUE, message = FALSE}
+library(safeBinaryRegression)  ## overload the glm function
+mod2 <- glm(happy ~ sp, data = test, family = binomial())
+detach(package:safeBinaryRegression)
 ```
 
+
+## The problem of separation in Binomial
+
+### Detection
+
+```{r spaMM separ, error = TRUE}
+library(spaMM)  ## with package e1071 installed! (but not working at the moment...)
+mod2 <- fitme(happy ~ sp, data = test, family = binomial())
+```
 
 ## The problem of separation in Binomial
 
 ### Let's tweak the data in a conservative way
-```{r}
+```{r tweak separ}
 test$happy[1] <- 1
 table(test$happy, test$sp)
 mod2 <- glm(happy ~ sp, data = test, family = binomial())
-```
-
-
-## The problem of separation in Binomial
-
-```{r}
-summary(mod2)
-```
-
-## The problem of separation in Binomial
-
-### A solution for the binary case (not for binomial in general)
-
-```{r, message = FALSE}
-test$eggs[1] <- 0  ## restore the original data
-library(safeBinaryRegression)  ## overload the glm function
-mod3 <- glm(happy ~ sp, data = test, family = binomial())
-summary(mod3)$coef
-AIC(mod3)
-```
-
-
-## The problem of separation in Binomial
-
-### A solution for the binary case (not for binomial in general)
-
-```{r, message = FALSE}
-library(spaMM)  ## with package e1071 installed!
-mod4 <- fitme(happy ~ sp, data = test, family = binomial())
-summary(mod4)
-AIC(mod4)
+exp(coef(mod2))
 ```
 
 
@@ -1065,13 +1068,12 @@ AIC(mod4)
 
 ### A solution for the binary case (as well as for binomial in general!)
 
-```{r, message = FALSE}
-library(brglm)  ## there is a new version in development brglm2 but it still has issues
-mod5 <- brglm(happy ~ sp, data = test, family = binomial())
-summary(mod5)
-AIC(mod5)
+```{r brglm2, message = FALSE}
+test$happy[1] <- 0  ## restore the original data
+library(brglm2)
+mod3 <- glm(happy ~ sp, data = test, family = binomial(), method = "brglmFit")
+exp(coef(mod3))
 ```
-
 
 ## What you need to remember
 
