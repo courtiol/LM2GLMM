@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2018-04-28" />
+  <meta name="date" content="2018-04-29" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,7 +94,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2018-04-28</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2018-04-29</p>
           </hgroup>
   </slide>
 
@@ -975,6 +975,10 @@ exp(cbind(lwr, upr))</pre>
 
 <p>Plot the predictions and confidence intervals for <code>mod_binar</code> and <code>mod_binom</code> for a number of humans eaten varying between 0 and 15.</p>
 
+<p><br></p>
+
+<p>You can find the solution to all problems but the bat one <a href='./Exercise_GLM_intervals.html' title=''>here</a>.</p>
+
 </article></slide><slide class=""><hgroup><h2>95% CI on fitted values</h2></hgroup><article  id="ci-on-fitted-values" class="smaller ">
 
 <h3>Conclusion</h3>
@@ -1045,6 +1049,10 @@ get_intervals(mod_poiss_spaMM, newdata = newdata, intervals = &quot;respVar&quot
 <h3>Practice</h3>
 
 <p>Plot the predictions and prediction intervals for <code>mod_binar</code> and <code>mod_binom</code> for a number of humans eaten varying between 0 and 15.</p>
+
+<p><br></p>
+
+<p>You can find the solution to all problems but the bat one <a href='./Exercise_GLM_intervals.html' title=''>here</a>.</p>
 
 </article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Summary tables</h2></hgroup><article  id="summary-tables" class="smaller ">
 
@@ -1626,6 +1634,8 @@ pv &lt;- replicate(200, {
 
 <p>For true test, the only method available is the parametric bootstrap!</p>
 
+<p>Note: you cannot compare deviances between <code>gaussian()</code> and other families unless you use the scaled deviance for the <code>gaussian()</code>.</p>
+
 </article></slide><slide class=""><hgroup><h2>Comparing LM vs GLM</h2></hgroup><article  id="comparing-lm-vs-glm" class="smaller ">
 
 <h3>Responses differ, so only parametric bootstrap is possible</h3>
@@ -1636,13 +1646,14 @@ y &lt;- exp(rnorm(n = length(x), mean = 2 + 1 * x, sd = 0.5))
 
 mod_lm   &lt;- lm(log(y) ~ x)
 mod_glm  &lt;- glm(y ~ x, family = gaussian(link = &quot;log&quot;))
-logLikH0 &lt;- replicate(1000, {
+logLik_diff_H0 &lt;- replicate(1000, {
   new.y &lt;- exp(as.matrix(simulate(mod_lm)))
   logLik(lm(log(new.y) ~ x)) - logLik(glm(new.y ~ x, family = gaussian(link = &quot;log&quot;)))
   })
-(sum(logLikH0 &lt; (logLik(mod_lm) - logLik(mod_glm))) + 1) / (length(logLikH0) + 1)</pre>
+logLik_diff_obs &lt;- logLik(mod_lm) - logLik(mod_glm)
+(sum(logLik_diff_obs &lt; logLik_diff_H0) + 1) / (length(logLik_diff_H0) + 1)</pre>
 
-<pre >## [1] 0.6353646</pre>
+<pre >## [1] 0.3656344</pre>
 
 <p>Here we used the GLM as the null model so we simulate the data using the LM.</p>
 

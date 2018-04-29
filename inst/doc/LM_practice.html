@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2018-04-28" />
+  <meta name="date" content="2018-04-29" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,11 +94,24 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2018-04-28</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2018-04-29</p>
           </hgroup>
   </slide>
 
-<slide class=""><hgroup><h2>Dataset: chickwts (difficulty = 0/5)</h2></hgroup><article  id="dataset-chickwts-difficulty-05" class="smaller ">
+<slide class=""><hgroup><h2>The Linear Model: LM</h2></hgroup><article  id="the-linear-model-lm" class="smaller ">
+
+<ul>
+<li>2.0 <a href='./LM_intro.html' title=''>Introduction</a></li>
+<li>2.1 <a href='./LM_point_estimates.html' title=''>Point estimates</a></li>
+<li>2.2 <a href='./LM_uncertainty.html' title=''>Uncertainty in point estimates</a></li>
+<li>2.3 <a href='./LM_tests.html' title=''>Tests</a></li>
+<li>2.4 <a href='./LM_assumptions.html' title=''>Assumptions and Outliers</a></li>
+<li>2.5 <a href='./LM_practice.html' title=''>Let&#39;s practice more</a></li>
+</ul>
+
+</article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Exercises</h2></hgroup><article  id="exercises" class="smaller ">
+
+</article></slide><slide class=""><hgroup><h2>Dataset: chickwts (difficulty = 0/5)</h2></hgroup><article  id="dataset-chickwts-difficulty-05" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>head(chickwts)</pre>
 
@@ -114,34 +127,32 @@
 
 <pre >## [1] &quot;casein&quot;    &quot;horsebean&quot; &quot;linseed&quot;   &quot;meatmeal&quot;  &quot;soybean&quot;   &quot;sunflower&quot;</pre>
 
-<p><br></p>
-
 <h3>Goal:</h3>
 
 <ul>
-<li>compare the effectiveness of various feed supplements on the weights of six weeks old chickens.</li>
-<li>optional: predict the proportion of chicken larger than 300gr for each feed supplements (difficulty 3/5)</li>
+<li><p>compare the effectiveness of various feed supplements on the weights of six weeks old chickens.</p></li>
+<li><p>optional: predict the proportion of chicken larger than 300gr for each feed supplements (difficulty 3/5)</p></li>
 </ul>
 
 </article></slide><slide class=""><hgroup><h2>Dataset: InsectSprays (difficulty = 2/5)</h2></hgroup><article  id="dataset-insectsprays-difficulty-25" class="smaller ">
 
-<pre class = 'prettyprint lang-r'>head(InsectSprays)</pre>
+<pre class = 'prettyprint lang-r'>head(InsectSprays, n = 3)</pre>
 
 <pre >##   count spray
 ## 1    10     A
 ## 2     7     A
-## 3    20     A
-## 4    14     A
-## 5    14     A
-## 6    12     A</pre>
+## 3    20     A</pre>
 
 <pre class = 'prettyprint lang-r'>levels(InsectSprays$spray)</pre>
 
 <pre >## [1] &quot;A&quot; &quot;B&quot; &quot;C&quot; &quot;D&quot; &quot;E&quot; &quot;F&quot;</pre>
 
-<p><br></p>
+<h3>Goal</h3>
 
-<h3>Goal: compare the effectiveness of various insecticides on the number of insects in agricultural experimental units. What is the efficiency of spray C?</h3>
+<ul>
+<li><p>Compare the effectiveness of various insecticides on the number of insects in agricultural experimental units.</p></li>
+<li><p>What is the efficiency of spray C?</p></li>
+</ul>
 
 </article></slide><slide class=""><hgroup><h2>Dataset: swiss (difficulty = 1/5)</h2></hgroup><article  id="dataset-swiss-difficulty-15" class="smaller ">
 
@@ -157,7 +168,11 @@
 
 <p><br></p>
 
-<h3>Goal: plot the influence of potential determinant of fertility variation between Swiss provinces.</h3>
+<h3>Goal</h3>
+
+<ul>
+<li>Plot the influence of potential determinant of fertility variation between Swiss provinces.</li>
+</ul>
 
 </article></slide><slide class=""><hgroup><h2>Dataset: trees (difficulty = 3/5)</h2></hgroup><article  id="dataset-trees-difficulty-35" class="smaller ">
 
@@ -173,7 +188,11 @@
 
 <p><br></p>
 
-<h3>Goal: compare the approximation of the volume of wood given by \(\text{Volume} = c*\text{Height}*\text{Girth}^2\) (with c to be estimated) to the usual consideration that a tree trunk is a cylinder.</h3>
+<h3>Goal</h3>
+
+<ul>
+<li>Compare the approximation of the volume of wood given by \(\text{Volume} = c*\text{Height}*\text{Girth}^2\) (with c to be estimated) to the usual consideration that a tree trunk is a cylinder.</li>
+</ul>
 
 </article></slide><slide class=""><hgroup><h2>Dataset: stackloss (difficulty = 1/5)</h2></hgroup><article  id="dataset-stackloss-difficulty-15" class="smaller ">
 
@@ -189,7 +208,11 @@
 
 <p><br></p>
 
-<h3>Goal: find out if the acid concentration influences the loss of ammonia by the plants.</h3>
+<h3>Goal</h3>
+
+<ul>
+<li>Find out if the acid concentration influences the loss of ammonia by the plants.</li>
+</ul>
 
 </article></slide><slide class=""><hgroup><h2>Dataset: Bats (difficulty = 5/5)</h2></hgroup><article  id="dataset-bats-difficulty-55" class="smaller ">
 
@@ -203,9 +226,13 @@
 ## 5   1.098612  Kein Forest 28.4 -1.0658297   N   M 2014 summer    LFE
 ## 6   1.098612  Kein Forest 27.0 -2.4387016   N   M 2014 summer    LFE</pre>
 
-<h3>Goal: reproduce the results on body weight from the study:</h3>
+<p><br></p>
 
-<p><a href='https://academic.oup.com/conphys/article/doi/10.1093/conphys/cox020/3103058/Habitat-disturbance-results-in-chronic-stress-and?rss=1' title=''>Seltmann et al. (Conservation Physiology, 2017)</a>.</p>
+<h3>Goal</h3>
+
+<ul>
+<li>reproduce the results on body weight from the study: <a href='https://academic.oup.com/conphys/article/doi/10.1093/conphys/cox020/3103058/Habitat-disturbance-results-in-chronic-stress-and?rss=1' title=''>Seltmann et al. (Conservation Physiology, 2017)</a>.</li>
+</ul>
 
 </article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Solutions</h2></hgroup><article  id="solutions" class="smaller ">
 
@@ -219,7 +246,7 @@
 
 </article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Table of contents</h2></hgroup><article  id="table-of-contents" class="smaller ">
 
-</article></slide><slide class=""><hgroup><h2>The Linear Model: LM</h2></hgroup><article  id="the-linear-model-lm" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>The Linear Model: LM</h2></hgroup><article  id="the-linear-model-lm-1" class="smaller ">
 
 <ul>
 <li>2.0 <a href='./LM_intro.html' title=''>Introduction</a></li>

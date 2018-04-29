@@ -35,7 +35,7 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/GLM_resid/", fig
 ## You will learn in this session
 
 * that many residuals can be computed for GLM and that they are often useless
-* that computing residuals by parametric bootstraps in the way out
+* that computing residuals by simulation in the way out
 * that traditional goodness of fit tests are bad
 * that most assumptions behing GLM are similar to those for LM
 * that General Additive Models (GAM) can be useful to improve linearity
@@ -374,9 +374,9 @@ crPlots(mod_UK, terms = ~ cigarettes)
 ```
 
 
-# Residuals by parametric bootstrap: the most useful ones!
+# Residuals by simulation: the most useful ones!
 
-## Computing residuals by parametric bootstrap
+## Computing residuals by simulation
 
 ```{r bootstrap, fig.height = 4, fig.width = 4}
 set.seed(1L)
@@ -387,7 +387,7 @@ abline(v = mod_poiss$y[1] + runif(1, min = -0.5, max = 0.5), col = "red", lwd = 
 ```
 
 
-## Computing residuals by parametric bootstrap
+## Computing residuals by simulation
 
 ```{r bootstrap 2, fig.height = 4, fig.width = 4}
 plot(ecdf1 <- ecdf(r[1, ]), main = "cdf of first fitted value")
@@ -398,7 +398,7 @@ arrows(x0 = mod_poiss$y[1] + noise, x1 = -1, y0 = simulated_residual_1, col = "r
 ```
 
 
-## Computing residuals by parametric bootstrap
+## Computing residuals by simulation
 
 ```{r bootstrap 3, fig.height = 4, fig.width = 4}
 plot(ecdf2 <- ecdf(r[2, ]), main = "cdf of second fitted value")
@@ -409,7 +409,7 @@ arrows(x0 = mod_poiss$y[2] + noise, x1 = -1, y0 = simulated_residual_2, col = "r
 ```
 
 
-## Computing residuals by parametric bootstrap
+## Computing residuals by simulation
 
 ```{r simu resid, fig.height = 4, fig.width = 4}
 simulated_residuals <- rep(NA, nrow(mod_poiss$model))
@@ -462,6 +462,16 @@ plot(mod_binom_simres)
 ```{r simres UK, fig.width = 7, fig.height = 4}
 mod_UK_simres <- simulateResiduals(mod_UK)
 plot(mod_UK_simres)
+```
+
+## Simulating residuals by parametric bootstrap
+
+A variant based on the parametric bootstrap takes more time to run (and is more fragile to convergence issues), but is likely to be more accurate when it works.
+
+In this case, the observed residuals are compared to those produced by models refitted on the simulated response.
+
+```{r simres UK param boot, fig.width = 7, fig.height = 4}
+mod_UK_simres2 <- simulateResiduals(mod_UK, refit = TRUE, n = 1000)
 ```
 
 
@@ -540,14 +550,23 @@ crPlots(mod_poiss2good)
 ## Example of non-linearity
 
 ```{r plot res Aliens2, fig.width = 7, fig.height = 4}
-plot(s_bad <- simulateResiduals(mod_poiss2bad))
+plot(s_bad <- simulateResiduals(mod_poiss2bad, refit = TRUE, n = 1000))
 ```
 
 
 ## Example of non-linearity
 
 ```{r plot res Aliens2 2, fig.width = 7, fig.height = 4}
-plot(s_good <- simulateResiduals(mod_poiss2good))
+plot(s_good <- simulateResiduals(mod_poiss2good, refit = TRUE, n = 1000))
+```
+
+
+## Example of non-linearity
+
+We try again!
+
+```{r plot res Aliens2 3, fig.width = 7, fig.height = 4}
+plot(s_good <- simulateResiduals(mod_poiss2good, refit = FALSE))
 ```
 
 
@@ -691,8 +710,8 @@ cbind(disp = sum(residuals(mod_poissMix, type = "pearson")^2) / mod_poissMix$df.
 
 A better way (?)
 
-```{r sim overdisp}1
-r <- simulateResiduals(mod_poissMix, refit = TRUE)
+```{r sim overdisp}
+r <- simulateResiduals(mod_poissMix, refit = TRUE, n = 1000)
 testOverdispersion(r) # stat = squared pearson residuals compared to that obtained by simulation
 ```
 
@@ -706,7 +725,7 @@ testOverdispersion(r) # stat = squared pearson residuals compared to that obtain
 
 ```{r inter}
 mod_poissMix2 <- glm(eggs ~ pop*humans_eaten, family = poisson(), data = AliensMix)
-r2 <- simulateResiduals(mod_poissMix2, refit = TRUE)
+r2 <- simulateResiduals(mod_poissMix2, refit = TRUE, n = 1000)
 testOverdispersion(r2)  ## you can change options to test for underdispersion
 ```
 
@@ -818,6 +837,9 @@ rbind(logLik(mod_poissMix)[[1]], logLik(mod_poissMixCP)[[1]], logLik(mod_poissMi
 
 IT SHOULD ALL BE IDENTICAL (AND USED TO), BUT THERE SEEM TO BE A BUG!!
 
+THE PATCH IS IN PROGRESS!
+
+
 ## Conway-Maxwell-Poisson
 
 ### It can fit both over- and under- dispersion!
@@ -927,7 +949,7 @@ barplot(table(AliensZ$eggs))
 
 ```{r zeroinfl poiss}
 mod_Zpoiss <- glm(eggs ~ humans_eaten, data = AliensZ, family = poisson())
-r <- simulateResiduals(mod_Zpoiss)
+r <- simulateResiduals(mod_Zpoiss, refit = TRUE, n = 1000)
 testZeroInflation(r, plot = FALSE)
 mean(sum(AliensZ$eggs == 0) / sum(dpois(0, fitted(mod_Zpoiss))))
 ```
@@ -944,7 +966,7 @@ testZeroInflation(r, plot = TRUE)
 
 ```{r test zeroinfl negbin}
 mod_Znb <- glm.nb(eggs ~ humans_eaten, data = AliensZ)
-r <- simulateResiduals(mod_Znb)
+r <- simulateResiduals(mod_Znb, refit = TRUE, n = 1000)
 testZeroInflation(r, plot = FALSE)
 ```
 
@@ -1078,7 +1100,7 @@ exp(coef(mod3))
 ## What you need to remember
 
 * that many residuals can be computed for GLM and that they are often useless
-* that computing residuals by parametric bootstraps in the way out
+* that computing residuals by simulation in the way out
 * that traditional goodness of fit tests are bad
 * that most assumptions behing GLM are similar to those for LM
 * that General Additive Models (GAM) can be useful to improve linearity

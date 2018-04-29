@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2018-04-28" />
+  <meta name="date" content="2018-04-29" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,11 +94,61 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2018-04-28</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2018-04-29</p>
           </hgroup>
   </slide>
 
-<slide class=""><hgroup><h2>Dataset: esoph</h2></hgroup><article  id="dataset-esoph" class="smaller ">
+<slide class=""><hgroup><h2>The Generalized Linear Model: GLM</h2></hgroup><article  id="the-generalized-linear-model-glm" class="smaller ">
+
+<ul>
+<li>3.0 <a href='./GLM_intro.html' title=''>Introduction</a></li>
+<li>3.1 <a href='./GLM_intervals.html' title=''>Intervals &amp; Tests</a></li>
+<li>3.2 <a href='./GLM_assumptions.html' title=''>Residuals &amp; Assumptions</a></li>
+<li>3.3 <a href='./GLM_practice.html' title=''>Let&#39;s practice more</a></li>
+</ul>
+
+</article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Exercises</h2></hgroup><article  id="exercises" class="smaller ">
+
+</article></slide><slide class=""><hgroup><h2>Dataset: InsectSprays</h2></hgroup><article  id="dataset-insectsprays" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>head(InsectSprays, n = 3)</pre>
+
+<pre >##   count spray
+## 1    10     A
+## 2     7     A
+## 3    20     A</pre>
+
+<pre class = 'prettyprint lang-r'>levels(InsectSprays$spray)</pre>
+
+<pre >## [1] &quot;A&quot; &quot;B&quot; &quot;C&quot; &quot;D&quot; &quot;E&quot; &quot;F&quot;</pre>
+
+<h3>Goal</h3>
+
+<ul>
+<li>Compare the effectiveness of various insecticides on the number of insects in agricultural experimental units.</li>
+<li>What is the efficiency of spray C?</li>
+<li>Compare results between the LM approach (with and without BoxCox transformation) and the GLM approach.</li>
+</ul>
+
+</article></slide><slide class=""><hgroup><h2>Dataset: LM2GLMM::Surprise</h2></hgroup><article  id="dataset-lm2glmmsurprise" class="smaller ">
+
+<pre class = 'prettyprint lang-r'>head(Surprise)</pre>
+
+<pre >##       type   price happiness
+## 1 dinosaur 55.3846   97.1795
+## 2 dinosaur 51.5385   96.0256
+## 3 dinosaur 46.1538   94.4872
+## 4 dinosaur 42.8205   91.4103
+## 5 dinosaur 40.7692   88.3333
+## 6 dinosaur 38.7179   84.8718</pre>
+
+<h3>Goal</h3>
+
+<ul>
+<li>Do children value more the type of the present, the cost of the present, or both?</li>
+</ul>
+
+</article></slide><slide class=""><hgroup><h2>Dataset: esoph</h2></hgroup><article  id="dataset-esoph" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>head(esoph)</pre>
 
@@ -113,10 +163,10 @@
 <h3>Goal</h3>
 
 <ul>
-<li>Find out whether you should rather limit alcohol consumption or tabacco consumption in order to avoid developing an oesophageal cancer? Does it depends on your age?</li>
+<li>Find out whether you should rather limit alcohol consumption or tabacco consumption in order to avoid developing an oesophageal cancer?</li>
 </ul>
 
-</article></slide><slide class=""><hgroup><h2>Dataset: effects::TitanicSurvival</h2></hgroup><article  id="dataset-effectstitanicsurvival" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>Dataset: carData::TitanicSurvival</h2></hgroup><article  id="dataset-cardatatitanicsurvival" class="smaller ">
 
 <pre class = 'prettyprint lang-r'>data(TitanicSurvival, package = &quot;carData&quot;)
 head(TitanicSurvival)</pre>
@@ -171,9 +221,9 @@ head(TitanicSurvival)</pre>
 <h3>Goal</h3>
 
 <ul>
-<li>Try to identify the determinant of the smoking behaviour of children.</li>
-<li>Try to identify the determinant of bronchitis in children.</li>
-<li>Try to identify the determinant of the variable <code>backward</code>.</li>
+<li>Try to identify the influential determinants of the smoking behaviour of children.</li>
+<li>Try to identify the influential determinants of bronchitis in children.</li>
+<li>Try to identify the influential determinants of the variable <code>backward</code>.</li>
 </ul>
 
 </article></slide><slide class=""><hgroup><h2>Dataset: LM2GLMM::HSE98women</h2></hgroup><article  id="dataset-lm2glmmhse98women" class="smaller ">
@@ -191,9 +241,8 @@ head(TitanicSurvival)</pre>
 <h3>Goal</h3>
 
 <ul>
-<li>How does the probability of not having periods changes with age, smoking status and BMI?</li>
-<li>How does the probability of having been drunk recently changes with age?</li>
-<li>Does the number of drinking problems experienced during life depends on education?</li>
+<li>Study the influences of age, body mass index and smoking status upon the probability of being menopaused</li>
+<li>Estimate the proportion of menopaused women in the population, depending on their age (40, 45, 50, 55, 60 yrs)</li>
 </ul>
 
 </article></slide><slide class=""><hgroup><h2>Dataset: MASS::mammals</h2></hgroup><article  id="dataset-massmammals" class="smaller ">
@@ -219,27 +268,19 @@ head(mammals)</pre>
 <li>Repeat the analysis with the dataset <code>MASS::Animals</code></li>
 </ul>
 
-</article></slide><slide class=""><hgroup><h2>Dataset: LM2GLMM::Surprise</h2></hgroup><article  id="dataset-lm2glmmsurprise" class="smaller ">
+</article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Solutions</h2></hgroup><article  id="solutions" class="smaller ">
 
-<pre class = 'prettyprint lang-r'>head(Surprise)</pre>
+</article></slide><slide class=""><hgroup><h2>Answers to Exercises</h2></hgroup><article  id="answers-to-exercises" class="smaller ">
 
-<pre >##       type   price happiness
-## 1 dinosaur 55.3846   97.1795
-## 2 dinosaur 51.5385   96.0256
-## 3 dinosaur 46.1538   94.4872
-## 4 dinosaur 42.8205   91.4103
-## 5 dinosaur 40.7692   88.3333
-## 6 dinosaur 38.7179   84.8718</pre>
+<p><br></p>
 
-<h3>Goal</h3>
+<p>You can find the solution to all problems <a href='./Exercise_Practice_GLM.html' title=''>here</a>.</p>
 
-<ul>
-<li>Do children value more the type of the present, the cost of the present, or both?</li>
-</ul>
+<p>Give it a good try before checking how I did it!</p>
 
 </article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Table of contents</h2></hgroup><article  id="table-of-contents" class="smaller ">
 
-</article></slide><slide class=""><hgroup><h2>The Generalized Linear Model: GLM</h2></hgroup><article  id="the-generalized-linear-model-glm" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>The Generalized Linear Model: GLM</h2></hgroup><article  id="the-generalized-linear-model-glm-1" class="smaller ">
 
 <ul>
 <li>3.0 <a href='./GLM_intro.html' title=''>Introduction</a></li>
