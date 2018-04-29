@@ -807,6 +807,11 @@ get_intervals(mod_poiss_spaMM, newdata = newdata, intervals = "predVar")  ## spa
 
 Plot the predictions and confidence intervals for ```mod_binar``` and ```mod_binom``` for a number of humans eaten varying between 0 and 15.
 
+<br>
+
+You can find the solution to all problems but the bat one 
+[here](./Exercise_GLM_intervals.html).
+
 
 ## 95% CI on fitted values
 
@@ -860,6 +865,10 @@ get_intervals(mod_poiss_spaMM, newdata = newdata, intervals = "respVar")
 
 Plot the predictions and prediction intervals for ```mod_binar``` and ```mod_binom``` for a number of humans eaten varying between 0 and 15.
 
+<br>
+
+You can find the solution to all problems but the bat one 
+[here](./Exercise_GLM_intervals.html).
 
 # Summary tables
 
@@ -1160,6 +1169,8 @@ Since the response variable does not change but models are not nested, you can u
 
 For true test, the only method available is the parametric bootstrap!
 
+Note: you cannot compare deviances between ```gaussian()``` and other families unless you use the scaled deviance for the ```gaussian()```.
+
 
 ## Comparing LM vs GLM
 
@@ -1171,11 +1182,12 @@ y <- exp(rnorm(n = length(x), mean = 2 + 1 * x, sd = 0.5))
 
 mod_lm   <- lm(log(y) ~ x)
 mod_glm  <- glm(y ~ x, family = gaussian(link = "log"))
-logLikH0 <- replicate(1000, {
+logLik_diff_H0 <- replicate(1000, {
   new.y <- exp(as.matrix(simulate(mod_lm)))
   logLik(lm(log(new.y) ~ x)) - logLik(glm(new.y ~ x, family = gaussian(link = "log")))
   })
-(sum(logLikH0 < (logLik(mod_lm) - logLik(mod_glm))) + 1) / (length(logLikH0) + 1)
+logLik_diff_obs <- logLik(mod_lm) - logLik(mod_glm)
+(sum(logLik_diff_obs < logLik_diff_H0) + 1) / (length(logLik_diff_H0) + 1)
 ```
 
 Here we used the GLM as the null model so we simulate the data using the LM.

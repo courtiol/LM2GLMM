@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{2.5 Practice}
+  %\VignetteIndexEntry{2.5 Let's practice more LMs}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
@@ -20,6 +20,18 @@ options(width = 200)
 set.seed(1L)
 ```
 
+## The Linear Model: LM
+
+* 2.0 [Introduction](./LM_intro.html)
+* 2.1 [Point estimates](./LM_point_estimates.html)
+* 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
+* 2.3 [Tests](./LM_tests.html)
+* 2.4 [Assumptions and Outliers](./LM_assumptions.html)
+* 2.5 [Let's practice more](./LM_practice.html)
+
+
+# Exercises
+
 ## Dataset: chickwts (difficulty = 0/5)
 
 ```{r chickwts}
@@ -27,24 +39,26 @@ head(chickwts)
 levels(chickwts$feed)
 ```
 
-<br>
-
 ### Goal:
 
 * compare the effectiveness of various feed supplements on the weights of six weeks old chickens.
+
 * optional: predict the proportion of chicken larger than 300gr for each feed supplements (difficulty 3/5)
 
 
 ## Dataset: InsectSprays (difficulty = 2/5)
 
 ```{r InsectSprays}
-head(InsectSprays)
+head(InsectSprays, n = 3)
 levels(InsectSprays$spray)
 ```
 
-<br>
 
-### Goal: compare the effectiveness of various insecticides on the number of insects in agricultural experimental units. What is the efficiency of spray C?
+### Goal
+
+* Compare the effectiveness of various insecticides on the number of insects in agricultural experimental units.
+
+* What is the efficiency of spray C?
 
 
 ## Dataset: swiss (difficulty = 1/5)
@@ -55,7 +69,9 @@ head(swiss)
 
 <br>
 
-### Goal: plot the influence of potential determinant of fertility variation between Swiss provinces.
+### Goal
+
+* Plot the influence of potential determinant of fertility variation between Swiss provinces.
 
 
 ## Dataset: trees (difficulty = 3/5)
@@ -66,7 +82,9 @@ head(trees)
 
 <br>
 
-### Goal: compare the approximation of the volume of wood given by $\text{Volume} = c*\text{Height}*\text{Girth}^2$ (with c to be estimated) to the usual consideration that a tree trunk is a cylinder.
+### Goal
+
+* Compare the approximation of the volume of wood given by $\text{Volume} = c*\text{Height}*\text{Girth}^2$ (with c to be estimated) to the usual consideration that a tree trunk is a cylinder.
 
 
 
@@ -78,7 +96,9 @@ head(stackloss)
 
 <br>
 
-### Goal: find out if the acid concentration influences the loss of ammonia by the plants.
+### Goal
+
+* Find out if the acid concentration influences the loss of ammonia by the plants.
 
 
 ## Dataset: Bats (difficulty = 5/5)
@@ -87,9 +107,11 @@ head(stackloss)
 head(Bats)
 ```
 
-### Goal: reproduce the results on body weight from the study:
+<br>
 
-[Seltmann et al. (Conservation Physiology, 2017)](https://academic.oup.com/conphys/article/doi/10.1093/conphys/cox020/3103058/Habitat-disturbance-results-in-chronic-stress-and?rss=1).
+### Goal
+
+* reproduce the results on body weight from the study: [Seltmann et al. (Conservation Physiology, 2017)](https://academic.oup.com/conphys/article/doi/10.1093/conphys/cox020/3103058/Habitat-disturbance-results-in-chronic-stress-and?rss=1).
 
 
 # Solutions

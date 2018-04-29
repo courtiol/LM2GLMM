@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{3.3 Practice}
+  %\VignetteIndexEntry{3.3  Let's practice more GLMs}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
@@ -19,6 +19,39 @@ knitr::opts_chunk$set(cache = TRUE, fig.width = 5, fig.height = 5, fig.align = "
                       cache.path = "./cache_knitr/Exo_GLM/", fig.path = "./fig_knitr/Exo_GLM/")
 ```
 
+## The Generalized Linear Model: GLM
+
+* 3.0 [Introduction](./GLM_intro.html)
+* 3.1 [Intervals & Tests](./GLM_intervals.html)
+* 3.2 [Residuals & Assumptions](./GLM_assumptions.html)
+* 3.3 [Let's practice more](./GLM_practice.html)
+
+# Exercises
+
+## Dataset: InsectSprays
+
+```{r InsectSprays}
+head(InsectSprays, n = 3)
+levels(InsectSprays$spray)
+```
+
+### Goal
+
+* Compare the effectiveness of various insecticides on the number of insects in agricultural experimental units.
+* What is the efficiency of spray C?
+* Compare results between the LM approach (with and without BoxCox transformation) and the GLM approach.
+
+
+## Dataset: LM2GLMM::Surprise
+
+```{r}
+head(Surprise)
+```
+
+### Goal
+
+* Do children value more the type of the present, the cost of the present, or both?
+
 ## Dataset: esoph
 
 ```{r}
@@ -27,10 +60,10 @@ head(esoph)
 
 ### Goal
 
-* Find out whether you should rather limit alcohol consumption or tabacco consumption in order to avoid developing an oesophageal cancer? Does it depends on your age?
+* Find out whether you should rather limit alcohol consumption or tabacco consumption in order to avoid developing an oesophageal cancer?
 
 
-## Dataset: effects::TitanicSurvival
+## Dataset: carData::TitanicSurvival
 
 ```{r}
 data(TitanicSurvival, package = "carData")
@@ -62,9 +95,9 @@ UK[1:2, ]
 
 ### Goal
 
-* Try to identify the determinant of the smoking behaviour of children.
-* Try to identify the determinant of bronchitis in children.
-* Try to identify the determinant of the variable ```backward```.
+* Try to identify the influential determinants of the smoking behaviour of children.
+* Try to identify the influential determinants of bronchitis in children.
+* Try to identify the influential determinants of the variable ```backward```.
 
 
 ## Dataset: LM2GLMM::HSE98women
@@ -75,10 +108,8 @@ head(HSE98women)
 
 ### Goal
 
-* How does the probability of not having periods changes with age, smoking status and BMI?
-* How does the probability of having been drunk recently changes with age?
-* Does the number of drinking problems experienced during life depends on education?
-
+* Study the influences of age, body mass index and smoking status upon the probability of being menopaused
+* Estimate the proportion of menopaused women in the population, depending on their age (40, 45, 50, 55, 60 yrs)
 
 ## Dataset: MASS::mammals
 
@@ -95,16 +126,16 @@ head(mammals)
 * Rank organisms by relative brain size (i.e. controlled for body size)
 * Repeat the analysis with the dataset ```MASS::Animals```
 
-## Dataset: LM2GLMM::Surprise
 
-```{r}
-head(Surprise)
-```
+# Solutions
 
-### Goal
+## Answers to Exercises
 
-* Do children value more the type of the present, the cost of the present, or both?
+<br>
 
+You can find the solution to all problems [here](./Exercise_Practice_GLM.html).
+
+Give it a good try before checking how I did it!
 
 # Table of contents
 
