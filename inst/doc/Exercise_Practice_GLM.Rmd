@@ -17,6 +17,7 @@ library(LM2GLMM)
 library(car)
 knitr::opts_chunk$set(cache = TRUE, fig.align = "center", fig.width = 6, fig.height = 6,
                       cache.path = "./cache_knitr/Exo_GLM_solution/", fig.path = "./fig_knitr/Exo_GLM_solution/")
+options(width = 200)
 ```
 
 ## Disclamer
@@ -72,12 +73,12 @@ insect_glm_resid <- simulateResiduals(mod_insect_glm, refit = TRUE, n = 1000)
 plot(insect_glm_resid)
 testUniformity(insect_glm_resid)
 plot(insect_glm_resid, asFactor = TRUE)
-testTemporalAutocorrelation(insect_glm_resid)
+testTemporalAutocorrelation(insect_glm_resid, time = insect_glm_resid$fitted)
 ```
 
 All look good. We also have to test for the goodness of fit:
 
-```{r}
+```{r over}
 testOverdispersion(insect_glm_resid, alternative = "both")
 ```
 
@@ -270,7 +271,7 @@ This is not a general results. On other data LM on BoxCoxed data and a negative 
 
 Try figuring out this one on your own! It's all in the title.
 
-
+<br>
 
 # Dataset: esoph
 
@@ -345,9 +346,6 @@ plot(esoph_probit_resid)
 testUniformity(esoph_probit_resid)
 testTemporalAutocorrelation(esoph_probit_resid, time = 1:nrow(esoph))
 testTemporalAutocorrelation(esoph_probit_resid, time = mod_esoph_probit$fitted.values)
-testTemporalAutocorrelation(esoph_probit_resid, time = mod_esoph_probit$model$agegp_f) ## useful??
-testTemporalAutocorrelation(esoph_probit_resid, time = mod_esoph_probit$model$tobgp_f) ## useful??
-testTemporalAutocorrelation(esoph_probit_resid, time = mod_esoph_probit$model$alcgp_f) ## useful??
 testZeroInflation(esoph_probit_resid)
 testOverdispersion(esoph_probit_resid, alternative = "both")
 ```
@@ -499,6 +497,8 @@ library(car)
 scatterplot(survived == "yes" ~ age, data = TitanicSurvival)
 ```
 
+The effect of age does not seem linear...
+
 ## We recode some variables
 ```{r}
 TitanicSurvival$surv <-  TitanicSurvival$survived == "yes"
@@ -542,10 +542,10 @@ resid_Titanic <- simulateResiduals(mod_cauchit, refit = TRUE, n = 1000)
 plot(resid_Titanic)
 testTemporalAutocorrelation(resid_Titanic, time = mod_cauchit$fitted.values)
 testTemporalAutocorrelation(resid_Titanic, time = 1:nrow(mod_cauchit$model))
-testOverdispersion(resid_Titanic)
 ```
 
-The overdispersion is significant but very small, so we will ignore it!
+No need to test for overdispersion in a binary model!
+
 
 ## We look at predictions
 
@@ -561,7 +561,7 @@ xyplot(pred ~ unclass(age_f) | passengerClass + sex, data = data.to.plot)
 
 ## GAM?
 
-As the effect of age looks quite linear except for the category in which we have few data we also try a GAM
+Another way to cope with the non-linearity of the age effect would be to do a GAM model:
 
 ```{r}
 library(mgcv)
@@ -577,7 +577,6 @@ The model is a bit better, we could use it.
 cauchit_gam_resid <- simulateResiduals(mod_cauchit_gam)
 plot(cauchit_gam_resid)
 scatter.smooth(mod_cauchit_gam$model$age, cauchit_gam_resid$scaledResiduals, col = 2) ## linearity
-testOverdispersion(cauchit_gam_resid)
 ```
 
 ## Tests
@@ -680,17 +679,188 @@ with(subset(TitanicSurvival, age_f == "(50,81]"), table(passengerClass, sex))
 
 * What was the probability of O-ring failure when the space shuttle Challenger took off on the 28th of January 1986 by 31 degrees F?
 
+
+## Let's explore the data
+
+```{r}
+str(Challenger)
+summary(Challenger)
+table(nb_orings = Challenger$oring_tot, nb_pb_orings = Challenger$oring_dt)
+```
+
+## Let's visualize the data
+
+```{r}
+plot(jitter(oring_dt, factor = 0.3) ~ temp, data = Challenger)
+```
+Notice the user of jitter!
+
+## We recode the data
+
+```{r}
+Challenger$oring_fine <- Challenger$oring_tot - Challenger$oring_dt
+```
+
+## We fit the models
+
+```{r}
+mod_binom_logit <- glm(cbind(oring_fine, oring_dt) ~ temp, data = Challenger,
+                       family = binomial(link = "logit"))
+mod_binom_probit <- glm(cbind(oring_fine, oring_dt) ~ temp, data = Challenger,
+                        family = binomial(link = "probit"))
+mod_binom_cauchit <- glm(cbind(oring_fine, oring_dt) ~ temp, data = Challenger,
+                         family = binomial(link = "cauchit"))
+AIC(mod_binom_logit)
+AIC(mod_binom_probit)
+AIC(mod_binom_cauchit)
+```
+
+We could choose the logit or the probit model. It would be easier with the logit to interprete the estimates but we do not need this here, so let us consider the probit model since it is best.
+
+## Let's check assumptions
+```{r}
+r_probit <- simulateResiduals(mod_binom_probit, n = 1000)
+plot(r_probit)
+testUniformity(r_probit)
+testTemporalAutocorrelation(r_probit, time = 1:nrow(Challenger))
+testTemporalAutocorrelation(r_probit, time = mod_binom_probit$fitted.values)
+testTemporalAutocorrelation(r_probit, time = Challenger$temp)
+testZeroInflation(r_probit)  ## does not work (fix in progress)
+table(Challenger$oring_fine == 0)
+```
+
+Let us try to check the zero-inflation differently:
+
+```{r}
+test <- replicate(1000, sum(simulate(mod_binom_probit, 1)[[1]][, 2] < 1))
+hist(test)
+abline(v = sum(Challenger$oring_dt < 1), col = "red", lwd = 2)
+```
+
+## Tests
+
+```{r}
+Anova(mod_binom_probit)
+summary(mod_binom_probit)
+```
+
+## Predictions
+
+```{r}
+pred <- data.frame(temp = 31:81)
+pred_probit <- predict(mod_binom_probit, newdata = pred, se.fit = TRUE)
+pred$pred <- binomial(link = "probit")$linkinv(pred_probit$fit)
+pred$lwr <- binomial(link = "probit")$linkinv(
+  pred_probit$fit + qnorm(0.025) *
+  sqrt(pred_probit$se.fit^2 + pred_probit$residual.scale^2))
+pred$upr <- binomial(link = "probit")$linkinv(
+  pred_probit$fit + qnorm(0.975) *
+    sqrt(pred_probit$se.fit^2 + pred_probit$residual.scale^2))
+
+plot(1 - pred$pred ~ pred$temp, type = "l",
+     ylim = c(0, 1), ylab = "Probability of failure",
+     xlab = "Temp (F)")
+points(1 - pred$lwr ~ pred$temp, type = "l", lty = 2)
+points(1 - pred$upr ~ pred$temp, type = "l", lty = 2)
+points(oring_dt / oring_tot ~ temp, data = Challenger, col = "red")
+
+## Predict logit
+pred2 <- data.frame(temp = 31:81)
+pred_logit <- predict(mod_binom_logit, newdata = pred, se.fit = TRUE)
+pred2$pred <- binomial(link = "logit")$linkinv(pred_logit$fit)
+pred2$lwr <- binomial(link = "logit")$linkinv(
+  pred_logit$fit + qnorm(0.025) *
+    sqrt(pred_logit$se.fit^2 + pred_logit$residual.scale^2))
+pred2$upr <- binomial(link = "logit")$linkinv(
+  pred_logit$fit + qnorm(0.975) *
+    sqrt(pred_logit$se.fit^2 + pred_logit$residual.scale^2))
+
+points(1 - pred2$pred ~ pred2$temp, type = "l", col = 3)
+points(1 - pred2$lwr ~ pred2$temp, type = "l", lty = 2, col = 3)
+points(1 - pred2$upr ~ pred2$temp, type = "l", lty = 2, col = 3)
+```
+
+## More
+
+Since a single failure could be fatal, perhaps a binary model would make more sense!
+
+You could try to replicate the original study that excluded all the OK flights!
+
 <br>
 
 
 # Dataset: LM2GLMM::UK
 
-### Goal
+## Goal
 
 * Try to identify the influential determinants of the smoking behaviour of children.
 * Try to identify the influential determinants of bronchitis in children.
 * Try to identify the influential determinants of the variable ```backward```.
 
+## Smoking behaviour
+
+### Looking at the data
+
+```{r}
+str(UK)
+lapply(UK, summary)
+UK$cigarettes_kid_bin <- UK$cigarettes_kid != "Never" 
+table(UK$cigarettes_kid_bin, UK$cigarettes_friends)
+scatterplot(cigarettes_kid_bin ~ age + sex, data = UK)
+scatterplot(cigarettes_kid_bin ~ cigarettes + sex, data = UK)
+scatter.smooth(UK$age, UK$cigarettes, lpars = list(col = "red", lwd = 2))
+```
+
+### Fiting the model
+
+```{r}
+mod_logit <- glm(cigarettes_kid_bin ~ sex*(cigarettes + age + cigarettes_friends),
+                 family = binomial(link = "logit"), data = UK)
+mod_probit <- glm(cigarettes_kid_bin ~ sex*(cigarettes + age + cigarettes_friends),
+                  family = binomial(link = "probit"), data = UK)
+mod_cauchit <- glm(cigarettes_kid_bin ~ sex*(cigarettes + age + cigarettes_friends),
+                   family = binomial(link = "cauchit"), data = UK)
+c(AIC(mod_logit), AIC(mod_probit), AIC(mod_cauchit))
+```
+
+### Comparison to null model
+
+```{r}
+anova(mod_logit, update(mod_logit, . ~ 1, data = mod_logit$model), test = "LR")
+```
+
+### Test of the model assumptions
+
+```{r}
+resid_mod_logit <- simulateResiduals(mod_logit, refit = TRUE, n = 1000) ## slow
+plot(resid_mod_logit)
+testUniformity(resid_mod_logit)
+testTemporalAutocorrelation(resid_mod_logit, time = mod_logit$fitted.values)
+testTemporalAutocorrelation(resid_mod_logit, time = 1:nrow(mod_logit$model))
+```
+
+### Tests
+
+```{r}
+Anova(mod_logit)
+```
+
+### Predictions
+
+Using the nice feature "cond" from visreg:
+
+```{r}
+visreg(mod_logit, "cigarettes", by = "sex", scale = "response",
+       cond = list(cigarettes_friends = "None of them", age = mean(mod_logit$model$age)))
+visreg(mod_logit, "cigarettes", by = "sex", scale = "response",
+       cond = list(cigarettes_friends = "Most of them", age = mean(mod_logit$model$age)))
+visreg(mod_logit, "age", by = "sex", scale = "response",
+       cond = list(cigarettes = 0, cigarettes_friends = "None of them"))
+visreg(mod_logit, "cigarettes_friends", by = "sex", scale = "response",
+       cond = list(cigarettes = 0, age = mean(mod_logit$model$age)))
+```
+
+<br>
 
 # Dataset: HSE98women, exercise menopause
 
@@ -741,7 +911,7 @@ mod_menop_logit$model$smoked <- as.factor(mod_menop_logit$model$smoked) ## patch
 scatterplot(menopause ~ age + smoked, data = mod_menop_logit$model)
 scatterplot(menopause ~ bmi + smoked, data = mod_menop_logit$model)
 ```
-There don't seem to be any obvious interaction between the age and smoked or between BMI and smoked, so we won't consider any. We will however consider that the effect of age may depend on the BMI because while old individuals should be menopaused no matter their BMI, we may expect that obesity play a role early on.
+There don't seem to be any obvious interaction between the age and smoked or between BMI and smoked, so we won't consider any. We will however consider that the effect of age may depend on the BMI.
 
 
 ## Fitting the models
@@ -780,8 +950,10 @@ We are going to test for the effect of the interaction by Likelihood ratio test:
 mod_menop_logit_gam_no_int <- gam(menopause ~ s(age) + s(bmi) + smoked, data = HSE98women, family = binomial())
 LR <- -2 * (logLik(mod_menop_logit_gam_no_int)[[1]] - logLik(mod_menop_logit_gam)[[1]])
 DF <- (mod_menop_logit_gam$df.null - mod_menop_logit_gam$df.residual) - (mod_menop_logit_gam_no_int$df.null - mod_menop_logit_gam_no_int$df.residual)
-(PV <- 1 - pchisq(LR, DF))
+(PV <- pchisq(LR, DF, lower.tail = FALSE))
 ```
+
+Note: you can also use ```lmtest::lrtest()``` but it rounds the DF :-/
 
 The interaction between age and BMI is not significant (LRT, LR = ```r round(LR, 1)```, df = ```r round(DF, 2)```, p-value = ```r round(PV, 2)```).
 
@@ -791,7 +963,7 @@ Let's now test the effect of BMI by Likelihood ratio test:
 mod_menop_logit_gam_no_bmi <- gam(menopause ~ s(age) + smoked, data = HSE98women, family = binomial())
 LR <- -2 * (logLik(mod_menop_logit_gam_no_bmi)[[1]] - logLik(mod_menop_logit_gam)[[1]])
 DF <- (mod_menop_logit_gam$df.null - mod_menop_logit_gam$df.residual) - (mod_menop_logit_gam_no_bmi$df.null - mod_menop_logit_gam_no_bmi$df.residual)
-(PV <- 1 - pchisq(LR, DF))
+(PV <- pchisq(LR, DF, lower.tail = FALSE))
 ```
 
 The effect of BMI is strongly significant (LRT, LR = ```r round(LR, 1)```, df = ```r round(DF, 2)```, p-value < 0.001).
@@ -804,7 +976,7 @@ Let's now test the effect of age by Likelihood ratio test:
 mod_menop_logit_gam_no_age <- gam(menopause ~ s(bmi) + smoked, data = HSE98women, family = binomial())
 LR <- -2 * (logLik(mod_menop_logit_gam_no_age)[[1]] - logLik(mod_menop_logit_gam)[[1]])
 DF <- (mod_menop_logit_gam$df.null - mod_menop_logit_gam$df.residual) - (mod_menop_logit_gam_no_age$df.null - mod_menop_logit_gam_no_age$df.residual)
-(PV <- 1 - pchisq(LR, DF))
+(PV <- pchisq(LR, DF, lower.tail = FALSE))
 ```
 
 The effect of age is strongly significant (LRT, LR = ```r round(LR, 1)```, df = ```r round(DF, 2)```, p-value < 0.001).
@@ -815,7 +987,7 @@ Let's now test the effect of smoking by Likelihood ratio test:
 mod_menop_logit_gam_never_smoked <- gam(menopause ~ s(age, bmi), data = HSE98women, family = binomial())
 LR <- -2 * (logLik(mod_menop_logit_gam_never_smoked)[[1]] - logLik(mod_menop_logit_gam)[[1]])
 DF <- (mod_menop_logit_gam$df.null - mod_menop_logit_gam$df.residual) - (mod_menop_logit_gam_never_smoked$df.null - mod_menop_logit_gam_never_smoked$df.residual)
-(PV <- 1 - pchisq(LR, DF))
+(PV <- pchisq(LR, DF, lower.tail = FALSE))
 ```
 
 The effect of have smooked is also significant (LRT, LR = ```r round(LR, 1)```, df = ```r round(DF, 2)```, p-value < 0.001).
@@ -835,6 +1007,8 @@ These plots show the patterns identified by the smoothing parameters in the GAM:
 Le't us do the same plots on the scale of the response variable:
 ```{r}
 visreg(mod_menop_logit_gam, scale = "response")
+visreg2d(mod_menop_logit_gam, "age", "bmi", scale = "response")
+#visreg2d(mod_menop_logit_gam, "age", "bmi", scale = "response", plot.type = "rgl")
 ```
 
 We will now plot the predictions for the model with the logit link, the model with the cauchit link and the model with the GAM model with the logit link to explore their differences. We will predict the influence of age and consider the median BMI and smokers.
@@ -1039,4 +1213,144 @@ Although significant, the effect of smoking is rather small. Because the interac
 * Does this exponent agree with the usual expectation of 2/3?
 * How large do we expect a 1kg animal to be?
 * Rank organisms by relative brain size (i.e. controlled for body size)
-* Repeat the analysis with the dataset ```MASS::Animals```
+
+## Explore the data
+
+```{r}
+data(mammals, package = "MASS")
+head(mammals)
+str(mammals)
+plot(brain ~ body, data = mammals)
+plot(brain ~ body, data = mammals, log = "xy")
+plot(log(brain, 10) ~ log(body, 10), data = mammals, pch = ".")
+text(log(mammals$body, 10), log(mammals$brain, 10),
+     labels = rownames(mammals), cex = 0.8)
+```
+
+## Reshaping the data
+```{r}
+mammals$log10_brain <- log(mammals$brain, base = 10)
+mammals$log10_body <-  log(mammals$body, base = 10)
+```
+
+## Fitting the model
+```{r}
+mod <- lm(log10_brain ~ log10_body, data = mammals)
+plot(mod)
+influence.measures(mod)
+plot(mod, which = 4)
+summary(mod)
+mod_nohuman <- lm(log10_brain ~ log10_body, data = mammals[rownames(mammals)!="Human", ])
+plot(mod_nohuman, which = 4)
+```
+
+## Comparing to 2/3
+
+```{r}
+t <- (mod$coefficients[2] - 2/3) / sqrt(diag(vcov(mod))[2])
+2*pt(abs(t), df = mod$df.residual, lower.tail = FALSE)
+confint(mod)
+mod2 <- lm(log10_brain ~ 1 + offset(2/3*log10_body), data = mammals)
+anova(mod, mod2)
+```
+
+
+```{r}
+t <- (mod_nohuman$coefficients[2] - 2/3) / sqrt(diag(vcov(mod_nohuman))[2])
+2*pt(abs(t), df = mod_nohuman$df.residual, lower.tail = FALSE)
+confint(mod_nohuman)
+mod2_nohuman <- lm(log10_brain ~ 1 + offset(2/3*log10_body), data = mammals[rownames(mammals)!="Human", ])
+anova(mod_nohuman, mod2_nohuman)
+```
+
+We can plot the predictions from the models
+
+```{r}
+plot(log(brain, 10) ~ log(body, 10), data = mammals, pch = ".")
+text(log(mammals$body, 10), log(mammals$brain, 10),
+     labels = rownames(mammals), cex = 0.8)
+abline(mod, col = "blue", lwd = 2)
+abline(mod_nohuman, col = "blue", lwd = 2, lty = 2)
+abline(coef(mod2), 2/3, col = "red", lwd = 2)
+abline(coef(mod2_nohuman), 2/3, col = "red", lwd = 2, lty = 2)
+legend("topleft", lty = c(1, 1, 2, 2), lwd = c(2, 2, 2, 2), col = c("blue", "red", "blue", "red"),
+       legend = c("slope estimated", "slope = 2/3", "slope estimated (no human)", "slope = 2/3 (no human)"))
+```
+
+
+## Prediction of the brain size for an animal of 1Kg
+
+```{r}
+p <- predict(mod_nohuman, newdata = data.frame(log10_body = log(1, base = 10)))
+10^p
+```
+
+An animal of 1 Kg is predicted to have a brain size of ```r round(10^p, 2)``` grams.
+
+
+## Let us rank the organism by brain size controling for body size
+
+```{r}
+matrix(names(sort(resid(mod), decreasing = TRUE)), ncol = 1)
+```
+
+
+# Dataset: MASS::Animals
+
+## Goal
+
+* What is the allometric exponent for the growth of brain size with body mass?
+* Does this exponent agree with the usual expectation of 2/3?
+* How large do we expect a 1kg animal to be?
+* Rank organisms by relative brain size (i.e. controlled for body size)
+
+## Explore the data
+
+```{r}
+data(Animals, package = "MASS")
+head(Animals)
+str(Animals)
+plot(brain ~ body, data = Animals)
+plot(log(brain, 10) ~ log(body, 10), data = Animals, pch = ".")
+text(log(Animals$body, 10), log(Animals$brain, 10),
+     labels = rownames(Animals), cex = 0.8)
+```
+
+## Reshaping the data
+```{r}
+Animals$log10_brain <- log(Animals$brain, base = 10)
+Animals$log10_body <-  log(Animals$body, base = 10)
+```
+
+## Fitting the model
+```{r}
+mod <- lm(log10_brain ~ log10_body, data = Animals)
+plot(mod)
+influence.measures(mod)
+plot(mod, which = 4)
+summary(mod)
+Animals_nodino <- Animals[!rownames(Animals) %in%
+                          c("Triceratops", "Brachiosaurus", "Dipliodocus"), ]
+mod_nodino <- lm(log10_brain ~ log10_body, data = Animals_nodino)
+plot(mod_nodino)
+influence.measures(mod_nodino)
+plot(mod_nodino, which = 4)
+summary(mod_nodino)
+```
+
+## Plot
+
+```{r}
+plot(log10_brain ~ log10_body, data = Animals, col = NULL)
+text(x = Animals$log10_body, y = Animals$log10_brain,
+     labels = rownames(Animals), cex = 0.8,
+     col = ifelse( rownames(Animals) %in% c("Triceratops", "Brachiosaurus", "Dipliodocus"), "red", "black"))
+p <- predict(mod, newdata = data.frame("log10_body" = range(log(Animals$body, 10))))
+p_nodino <- predict(mod_nodino, newdata = data.frame("log10_body" = range(log(Animals$body, 10))))
+points(x = range(Animals$log10_body), y = p, col = "red", type = "l", lty = 2)
+points(x = range(Animals$log10_body), y = p_nodino, col = "blue", type = "l")
+```
+
+
+
+
