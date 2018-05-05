@@ -721,6 +721,8 @@ We could choose the logit or the probit model. It would be easier with the logit
 ```{r}
 r_probit <- simulateResiduals(mod_binom_probit, n = 1000)
 plot(r_probit)
+r_probit2 <- simulateResiduals(mod_binom_probit, n = 1000, seed = 2)
+plot(r_probit2) ## replicate with other seed
 testUniformity(r_probit)
 testTemporalAutocorrelation(r_probit, time = 1:nrow(Challenger))
 testTemporalAutocorrelation(r_probit, time = mod_binom_probit$fitted.values)
@@ -751,11 +753,9 @@ pred <- data.frame(temp = 31:81)
 pred_probit <- predict(mod_binom_probit, newdata = pred, se.fit = TRUE)
 pred$pred <- binomial(link = "probit")$linkinv(pred_probit$fit)
 pred$lwr <- binomial(link = "probit")$linkinv(
-  pred_probit$fit + qnorm(0.025) *
-  sqrt(pred_probit$se.fit^2 + pred_probit$residual.scale^2))
+  pred_probit$fit + qnorm(0.025) * pred_probit$se.fit)
 pred$upr <- binomial(link = "probit")$linkinv(
-  pred_probit$fit + qnorm(0.975) *
-    sqrt(pred_probit$se.fit^2 + pred_probit$residual.scale^2))
+  pred_probit$fit + qnorm(0.975) * pred_probit$se.fit)
 
 plot(1 - pred$pred ~ pred$temp, type = "l",
      ylim = c(0, 1), ylab = "Probability of failure",
@@ -769,11 +769,9 @@ pred2 <- data.frame(temp = 31:81)
 pred_logit <- predict(mod_binom_logit, newdata = pred, se.fit = TRUE)
 pred2$pred <- binomial(link = "logit")$linkinv(pred_logit$fit)
 pred2$lwr <- binomial(link = "logit")$linkinv(
-  pred_logit$fit + qnorm(0.025) *
-    sqrt(pred_logit$se.fit^2 + pred_logit$residual.scale^2))
+  pred_logit$fit + qnorm(0.025) * pred_logit$se.fit)
 pred2$upr <- binomial(link = "logit")$linkinv(
-  pred_logit$fit + qnorm(0.975) *
-    sqrt(pred_logit$se.fit^2 + pred_logit$residual.scale^2))
+  pred_logit$fit + qnorm(0.975) * pred_logit$se.fit)
 
 points(1 - pred2$pred ~ pred2$temp, type = "l", col = 3)
 points(1 - pred2$lwr ~ pred2$temp, type = "l", lty = 2, col = 3)
