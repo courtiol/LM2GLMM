@@ -809,7 +809,7 @@ Plot the predictions and confidence intervals for ```mod_binar``` and ```mod_bin
 
 <br>
 
-You can find the solution to all problems but the bat one 
+You can find the solution
 [here](./Exercise_GLM_intervals.html).
 
 
@@ -846,29 +846,10 @@ get_intervals(mod_gauss_spaMM, newdata = newdata, intervals = "respVar")
 ```
 
 
-## 95% PI: Poisson
+## 95% PI: non-gaussian
 
-### The residual variance is no longer constant!
-```{r pred int poiss}
-pred <- predict(mod_poiss, newdata = newdata, se.fit = TRUE)
-lwr <- pred$fit + qnorm(0.025) * sqrt(pred$se.fit^2 + poisson()$variance(poisson()$linkinv(pred$fit)))
-upr <- pred$fit + qnorm(0.975) * sqrt(pred$se.fit^2 + poisson()$variance(poisson()$linkinv(pred$fit)))
-poisson()$linkinv(cbind(lwr, upr))  ## don't forget the inverse link!
-## spaMM does not work well in this case as announced in ?predict.HLfit:
-get_intervals(mod_poiss_spaMM, newdata = newdata, intervals = "respVar")
-```
+It is not clear how to do it and if it makes sense in the first place...
 
-
-## 95% PI: Binomial
-
-### Practice
-
-Plot the predictions and prediction intervals for ```mod_binar``` and ```mod_binom``` for a number of humans eaten varying between 0 and 15.
-
-<br>
-
-You can find the solution to all problems but the bat one 
-[here](./Exercise_GLM_intervals.html).
 
 # Summary tables
 
