@@ -71,3 +71,31 @@ simulate_Aliens_GLM <- function(N = 100) {
                                 "blue_eyes" = c(intercept = -2, slope = 0.5))
   return(Aliens)
 }
+
+
+#' Function simulating the observations under a simple LMM
+#'
+#' This function creates observations under LMM.
+#'
+#' @param intercept the value for the intercept
+#' @param slope the value for the slope
+#' @param n the sample size
+#' @param group_nb the number of levels for the random effect
+#' @param var.rand the variance of the random effect
+#' @param var.error the residual error variance
+#'
+#' @return a \var{data.frame} containing the simulated data
+#' @export
+#'
+#' @examples
+#' simulate_Mix()
+#'
+simulate_Mix <- function(intercept = 50, slope = 1.5, n = 30, group_nb = 10, var.rand = 2, var.error = 0.5){
+  data <- data.frame(intercept = intercept, slope = slope, x = runif(n))
+  group_compo <- rmultinom(n = 1, size = n, prob = c(rep(1/group_nb, group_nb)))
+  data$group <- factor(rep(paste("group", 1:group_nb, sep = "_"), group_compo))
+  data$b <- rep(rnorm(group_nb, mean = 0, sd = sqrt(var.rand)), group_compo)
+  data$error <- rnorm(n, mean = 0, sd = sqrt(var.error))
+  data$y <- data$intercept + data$slope*data$x + data$b + data$error
+  return(data)
+}
