@@ -80,7 +80,6 @@ Aliens <- simulate_Mix(intercept = 50, slope = 1.5, n = 30, group_nb = 10, var.r
 
 * Estimating variance components and estimating BLUPS are the only situation in which parameters must be fitted to the data by REstricted (or REsidual) Maximum Likelihood instead of Maximum Likelihood.
 * A ML fit would lead to underestimate the variances.
-* Do not use REML to perform LRT!
 
 <br>
 
@@ -175,11 +174,11 @@ curve(dgamma(x, shape = shape, scale = scale), from = 0, to = 1, add = TRUE, lwd
 ### Model fit with ```fitme```
 
 ```{r}
-mod2_ML <- fitme(y ~ x + (1|group), data = Aliens, method = "ML")
-mod2_H0_ML <- fitme(y ~ x, data = Aliens, method = "ML")
-pchisq(2*(logLik(mod2_ML) - logLik(mod2_H0_ML)), df = 1, lower.tail = FALSE)
-mod2_H2_ML <- fitme(y ~ x + (1|group), data = Aliens, method = "ML", fixed = list(lambda = 2))
-pchisq(2*(logLik(mod2_ML) - logLik(mod2_H2_ML)), df = 1, lower.tail = FALSE)
+mod2_REML <- fitme(y ~ x + (1|group), data = Aliens, method = "REML")
+mod2_H0_REML <- fitme(y ~ x, data = Aliens, method = "REML")
+pchisq(2*(logLik(mod2_REML)[[1]] - logLik(mod2_H0_REML)[[1]]), df = 1, lower.tail = FALSE)
+mod2_H2_REML <- fitme(y ~ x + (1|group), data = Aliens, method = "REML", fixed = list(lambda = 2))
+pchisq(2*(logLik(mod2_REML)[[1]] - logLik(mod2_H2_REML)[[1]]), df = 1, lower.tail = FALSE)
 ```
 
 Note 1: this asymptotic test is poor when the variance is low.
@@ -193,10 +192,10 @@ Note 3: ```anova()``` from ```spaMM``` will not run in this case.
 ### Model fit with ```lmer```
 
 ```{r}
-mod_ML <- lmer(y ~ x + (1|group), data = Aliens, REML = FALSE)
+mod_REML <- lmer(y ~ x + (1|group), data = Aliens, REML = TRUE)
 mod_H0 <- lm(y ~ x, data = Aliens)
-pchisq(2*(logLik(mod_ML) - logLik(mod_H0)), df = 1, lower.tail = FALSE)
-anova(mod_ML, mod_H0)
+pchisq(2*(logLik(mod_REML)[[1]] - logLik(mod_H0)[[1]]), df = 1, lower.tail = FALSE)
+anova(mod_REML, mod_H0)
 ```
 
 Note: ```lme4``` does not allow for testing difference with a specific value.
@@ -218,7 +217,7 @@ test <- replicate(1000, {
 ## Reliability of the test
 
 ```{r}
-plot(ecdf(test))
+plot(ecdf(test), xlim = c(0, 0.1), ylim = c(0, 0.1))
 abline(0, 1, col = "red")
 ```
 
@@ -239,7 +238,7 @@ test2 <- replicate(1000, {
 ## Reliability 2 (small variance)
 
 ```{r, fig.width=4, fig.height=4}
-plot(ecdf(test2))
+plot(ecdf(test2), xlim = c(0, 0.1), ylim = c(0, 0.1))
 abline(0, 1, col = "red")
 ```
 
@@ -252,10 +251,10 @@ Likelihood ratio tests never work well close to parameter boundaries... (better 
 
 ```{r param boot lme4 by hand}
 set.seed(1L)
-(LRTobs <- 2*(logLik(mod_ML)[[1]] - logLik(mod_H0)[[1]]))
+(LRTobs <- 2*(logLik(mod_REML)[[1]] - logLik(mod_H0)[[1]]))
 LRTH0 <- replicate(200, {
                     Aliens$y <- simulate(mod_H0)[, 1]
-                    2*(logLik(lmer(y ~ x + (1|group), data = Aliens, REML = FALSE))[[1]] -
+                    2*(logLik(lmer(y ~ x + (1|group), data = Aliens, REML = TRUE))[[1]] -
                       logLik(lm(y ~ x, data = Aliens))[[1]])
                     })
 (sum(LRTH0 >= LRTobs) + 1) / (length(LRTH0) + 1)
@@ -270,11 +269,11 @@ Note using update creates problems here...
 
 ```{r param boot spaMM by hand}
 set.seed(1L)
-(LRTobs <- 2*(logLik(mod2_ML)[[1]] - logLik(mod2_H0_ML)[[1]]))
+(LRTobs <- 2*(logLik(mod2_REML)[[1]] - logLik(mod2_H0_REML)[[1]]))
 LRTH0_bis <- replicate(200, {
-                    Aliens$y <- simulate(mod2_H0_ML)
-                    2*(logLik(fitme(y ~ x + (1|group), data = Aliens, method = "ML"))[[1]] -
-                      logLik(fitme(y ~ x, data = Aliens, method = "ML"))[[1]])
+                    Aliens$y <- simulate(mod2_H0_REML)
+                    2*(logLik(fitme(y ~ x + (1|group), data = Aliens, method = "REML"))[[1]] -
+                      logLik(fitme(y ~ x, data = Aliens, method = "REML"))[[1]])
                     })
 (sum(LRTH0 >= LRTobs) + 1) / (length(LRTH0) + 1)
 ```
@@ -297,7 +296,7 @@ Note: there is not yet an alternative for ```spaMM``` but you can use ```boot```
 ```{r spaMM and boot, message = FALSE}
 library(boot)
 n_boot <- 1000
-newYs <- simulate(mod2_ML, type = "residual", nsim = n_boot)  ## in progress, not sure how to simulate...
+newYs <- simulate(mod2_REML, type = "residual", nsim = n_boot)  ## in progress, not sure how to simulate...
 res_sim <- sapply(1:n_boot, function(i) {
   Aliens$y <- newYs[, i]
   fitme(y ~ x + (1|group), data = Aliens, method = "REML")$lambda[[1]]}) ## lambda on new data
@@ -403,7 +402,7 @@ coplot(log_brain ~ log_body | Family, data = carnivora)
 ### Two nested random effects:
 
 ```{r}
-mod1 <- fitme(log_brain ~ log_body + (1|Family/Genus), data = carnivora)
+mod1 <- fitme(log_brain ~ log_body + (1|Family/Genus), data = carnivora, method = "REML")
 mod1
 ```
 
@@ -413,7 +412,7 @@ mod1
 ### Two nested random effects:
 
 ```{r}
-mod1bis <- fitme(log_brain ~ log_body + (1|Family) + (1|Family:Genus), data = carnivora)
+mod1bis <- fitme(log_brain ~ log_body + (1|Family) + (1|Family:Genus), data = carnivora, method = "REML")
 mod1bis
 ```
 
@@ -423,7 +422,7 @@ mod1bis
 ### Two nested random effects:
 
 ```{r}
-mod1ter <- fitme(log_brain ~ log_body + (1|Family) + (1|Genus), data = carnivora)
+mod1ter <- fitme(log_brain ~ log_body + (1|Family) + (1|Genus), data = carnivora, method = "REML")
 mod1ter
 ```
 
@@ -525,8 +524,7 @@ head(ranef(mod2_lme4))
 ## Fitting a random slope model
 
 ```{r}
-mod3 <- fitme(log_brain ~ log_body + (log_body|Family) + (1|Genus), data = carnivora)
-mod3
+(mod3 <- fitme(log_brain ~ log_body + (log_body|Family) + (1|Genus), data = carnivora, method = "REML"))
 ```
 
 
@@ -561,8 +559,8 @@ abline(mod3$fixef + ranef(mod3)$`( log_body | Family )`["Viverridae", ], col = "
 
 ### ```lme4```
 ```{r}
-mod4 <- lmer(log_brain ~ log_body + (log_body|Family) + (1|Genus), data = carnivora, REML = FALSE)
-mod4noRS <- lmer(log_brain ~ log_body + (1|Family) + (1|Genus), data = carnivora, REML = FALSE)
+mod4 <- lmer(log_brain ~ log_body + (log_body|Family) + (1|Genus), data = carnivora, REML = TRUE)
+mod4noRS <- lmer(log_brain ~ log_body + (1|Family) + (1|Genus), data = carnivora, REML = TRUE)
 anova(mod4, mod4noRS) ## count 2 DF as covariance is included... correct?
 ```
 
@@ -571,7 +569,7 @@ anova(mod4, mod4noRS) ## count 2 DF as covariance is included... correct?
 
 ### ```spaMM```
 ```{r}
-mod3noRS <- fitme(log_brain ~ log_body + (1|Family) + (1|Genus), data = carnivora)
+mod3noRS <- fitme(log_brain ~ log_body + (1|Family) + (1|Genus), data = carnivora, method = "REML")
 pchisq(2*(logLik(mod3) - logLik(mod3noRS)), df = 2, lower.tail = FALSE) ## count 2 DF to include covariance as lme4
 ```
 
