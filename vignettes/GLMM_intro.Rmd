@@ -115,7 +115,7 @@ testZeroInflation(r)
 ```
 
 
-## Binomial model
+## Binomial model (to avoid the problem)
 
 ```{r Flatwork binom}
 Flatwork$shopping_bin <- Flatwork$shopping > 0
@@ -129,14 +129,6 @@ Flatwork$shopping_bin <- Flatwork$shopping > 0
 ```{r Flatwork res 2, fig.width = 9}
 r_bin <- simulateResiduals(mod_glmm_lme4bin)
 plot(r_bin)
-```
-
-
-## Overdispersion?
-
-```{r overdisp, warning = FALSE}
-r_bin2 <- simulateResiduals(mod_glmm_lme4bin, refit = TRUE)  ## slow and convergence issues...
-testOverdispersion(r_bin2)
 ```
 
 
@@ -165,7 +157,6 @@ anova(mod_glmm_spaMMbin, mod_glmm_spaMMbin0)
 
 ## Is there an effect for the non-zeros?
 
-This is not ideal, but we will try an analysis on the truncated distribution...
 ```{r Flatwork shopping_bin}
 Flatwork_pos <- subset(Flatwork, Flatwork$shopping_bin)
 barplot(table(Flatwork_pos$shopping))
@@ -174,38 +165,42 @@ barplot(table(Flatwork_pos$shopping))
 
 ## Fitting models on truncated distributions
 
-```{r truncated fit}
-mod_glmm_lme4pos1 <- glmer(shopping ~ gender + (1|individual) + (1|month), family = poisson(),
-                        data = Flatwork_pos)
-mod_glmm_lme4pos2 <- glmer.nb(shopping ~ gender + (1|individual) + (1|month), data = Flatwork_pos)
-mod_glmm_spaMMpos1 <- fitme(shopping ~ gender + (1|individual) + (1|month), family = poisson(),
-                        data = Flatwork_pos)
-mod_glmm_spaMMpos2 <- fitme(shopping ~ gender + (1|individual) + (1|month), family = spaMM::negbin(),
-                        data = Flatwork_pos)
-mod_glmm_spaMMpos3 <- fitme(shopping ~ gender + (1|individual) + (1|month), family = COMPoisson(),
-                        data = Flatwork_pos)
-
-c(AIC(mod_glmm_lme4pos1), AIC(mod_glmm_lme4pos2))
-print(rbind(AIC(mod_glmm_spaMMpos1), AIC(mod_glmm_spaMMpos2), AIC(mod_glmm_spaMMpos3)))
+```{r truncated fit, eval = FALSE}
+mod_glmm_spaMM_truncP <- fitme(shopping ~ gender + (1|individual) + (1|month), family = Tpoisson(),
+                               data = Flatwork_pos)
+mod_glmm_spaMM_truncNB <- fitme(shopping ~ gender + (1|individual) + (1|month), family = Tnegbin(),
+                                data = Flatwork_pos)
+print(AIC(mod_glmm_spaMM_truncP))
+print(AIC(mod_glmm_spaMM_truncNB))
 ```
 
+<br>
 
-## Checking residuals
+Note: this does not seem to work at the moment...
 
-```{r Flatwork lme4 plot, fig.width = 9}
-r_pos <- simulateResiduals(mod_glmm_lme4pos2)
-plot(r_pos)
+
+## A better solution?
+
+```{r TMB}
+library(glmmTMB)
+mod_TMB_gender <- glmmTMB(shopping ~ gender + (1|individual) + (1|month), family = poisson(), data = Flatwork,
+        ziformula = ~ 1)
+mod_TMB_nogender <- glmmTMB(shopping ~ 1 + (1|individual) + (1|month), family = poisson(), data = Flatwork,
+        ziformula = ~ 1)
+anova(mod_TMB_gender, mod_TMB_nogender)
 ```
 
+<br>
 
-## Testing again the gender effect
+```glmmTMB``` is extremelly flexible. It allows for both Zero Inflation and Hurdle models (using truncated distributions), as well as modeling the residual variance!
 
-```{r Flatwork gender 2}
-mod_glmm_spaMMpos20 <- fitme(shopping ~ 1 + (1|individual) + (1|month), family = spaMM::negbin(),
-                        data = Flatwork_pos)
+## Checking model assumption
 
-anova(mod_glmm_spaMMpos20, mod_glmm_spaMMpos2)
+```{r mod_TMB_gender, fig.height = 3, fig.width = 5}
+plot(simulateResiduals(mod_TMB_gender))
 ```
+
+Note: the implementation of ```DHARMa``` for ```glmmTMB``` is currently in progress!
 
 
 ## Practice
