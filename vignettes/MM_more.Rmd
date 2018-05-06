@@ -57,7 +57,7 @@ Note:
 * Hence LM, GLM, LMM and GLMM are all particular cases of the HGLM.
 
 
-## The example of the negative binomial
+## Negative binomial as a gamma poisson mixture
 
 ```{r glm.nb}
 library(MASS)
@@ -74,7 +74,9 @@ rbind(mod_negbin$coefficients, mod_poiss_gamma$fixef)
 
 <br>
 
-Note: the equivalence is expected! In more complex models differences may appear.
+Note 1: the equivalence is expected! In more complex models differences may appear.
+
+Note 2: notice the formula which prevents the estimation of intercepts for ```Age```.
 
 
 ## The beta-binomial HGLM
