@@ -27,6 +27,7 @@ Imports:
     spaMM,
     stats,
     glm2,
+    glmmTMB,
     gtools,
     knitr,
     IsoriX,
