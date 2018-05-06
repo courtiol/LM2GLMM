@@ -30,20 +30,3 @@ rbind(deviance(mod_insect_glm),
       deviance(mod_insect_glm_quasi),
       deviance(mod_insect_glm_nb))
 
-## -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-plot(predict(mod_insect_glm, type = "response"), mod_insect_glm$model$count)
-abline(0, 1, col = "red")
-plot(predict(mod_insect_glm_quasi, type = "response"), mod_insect_glm_quasi$model$count)
-abline(0, 1, col = "red")
-plot(predict(mod_insect_glm_nb, type = "response"), mod_insect_glm_nb$model$count)
-abline(0, 1, col = "red")
-
-## -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-pred_bc <- ((predict(mod_insect_bc) * bc$lambda) + 1)^(1/bc$lambda) - 1
-(deviance_LM_bc <- sum((pred_bc - InsectSprays$count)^2))
-deviance(mod_insect)
-
-## ---- message = FALSE---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-library(lmtest)
-lrtest(mod_insect_glm_nb, mod_insect_glm)
-

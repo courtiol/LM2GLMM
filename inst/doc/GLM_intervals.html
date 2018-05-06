@@ -10,7 +10,7 @@
 
 
 
-  <meta name="date" content="2018-05-03" />
+  <meta name="date" content="2018-05-06" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -94,7 +94,7 @@
       <h1 data-config-title><!-- populated from slide_config.json --></h1>
       <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
       <p data-config-presenter><!-- populated from slide_config.json --></p>
-            <p style="margin-top: 6px; margin-left: -2px;">2018-05-03</p>
+            <p style="margin-top: 6px; margin-left: -2px;">2018-05-06</p>
           </hgroup>
   </slide>
 
@@ -977,7 +977,7 @@ exp(cbind(lwr, upr))</pre>
 
 <p><br></p>
 
-<p>You can find the solution to all problems but the bat one <a href='./Exercise_GLM_intervals.html' title=''>here</a>.</p>
+<p>You can find the solution <a href='./Exercise_GLM_intervals.html' title=''>here</a>.</p>
 
 </article></slide><slide class=""><hgroup><h2>95% CI on fitted values</h2></hgroup><article  id="ci-on-fitted-values" class="smaller ">
 
@@ -1024,35 +1024,9 @@ get_intervals(mod_gauss_spaMM, newdata = newdata, intervals = &quot;respVar&quot
 ## 1      47.73647      66.56381
 ## 2      63.54788      82.63028</pre>
 
-</article></slide><slide class=""><hgroup><h2>95% PI: Poisson</h2></hgroup><article  id="pi-poisson" class="smaller ">
+</article></slide><slide class=""><hgroup><h2>95% PI: non-gaussian</h2></hgroup><article  id="pi-non-gaussian" class="smaller ">
 
-<h3>The residual variance is no longer constant!</h3>
-
-<pre class = 'prettyprint lang-r'>pred &lt;- predict(mod_poiss, newdata = newdata, se.fit = TRUE)
-lwr &lt;- pred$fit + qnorm(0.025) * sqrt(pred$se.fit^2 + poisson()$variance(poisson()$linkinv(pred$fit)))
-upr &lt;- pred$fit + qnorm(0.975) * sqrt(pred$se.fit^2 + poisson()$variance(poisson()$linkinv(pred$fit)))
-poisson()$linkinv(cbind(lwr, upr))  ## don&#39;t forget the inverse link!</pre>
-
-<pre >##         lwr      upr
-## 1 0.1353544 4.574092
-## 2 0.1351890 9.474885</pre>
-
-<pre class = 'prettyprint lang-r'>## spaMM does not work well in this case as announced in ?predict.HLfit:
-get_intervals(mod_poiss_spaMM, newdata = newdata, intervals = &quot;respVar&quot;)</pre>
-
-<pre >##   respVar_0.025 respVar_0.975
-## 1     0.1364663      4.536825
-## 2     0.1337051      9.580036</pre>
-
-</article></slide><slide class=""><hgroup><h2>95% PI: Binomial</h2></hgroup><article  id="pi-binomial" class="smaller ">
-
-<h3>Practice</h3>
-
-<p>Plot the predictions and prediction intervals for <code>mod_binar</code> and <code>mod_binom</code> for a number of humans eaten varying between 0 and 15.</p>
-
-<p><br></p>
-
-<p>You can find the solution to all problems but the bat one <a href='./Exercise_GLM_intervals.html' title=''>here</a>.</p>
+<p>It is not clear how to do it and if it makes sense in the first place&#8230;</p>
 
 </article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Summary tables</h2></hgroup><article  id="summary-tables" class="smaller ">
 
