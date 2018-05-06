@@ -1,0 +1,232 @@
+---
+title: "GLMM: Introduction"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+vignette: >
+  %\VignetteIndexEntry{4.4 Generalized Linear Mixed-effects Models}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(LM2GLMM)
+library(spaMM)
+library(lme4)
+spaMM.options(nb_cores = 4L)
+options(width = 120)
+knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/GLMM_intro/", fig.path = "./fig_knitr/GLMM_intro/", fig.width = 5, fig.height = 5, fig.align = "center", error = FALSE)
+```
+
+## Mixed-effects models
+
+* 4.0 [Introduction to LMM](./LMM_intro.html)
+* 4.1 [Random effects](./LMM_random.html)
+* 4.2 [Solving LM problems using LMM](./LMM_solving_pb.html)
+* 4.3 [A showcase of some useful applications](./LMM_showcase.html)
+* 4.4 [Introduction to GLMM](./GLMM_intro.html)
+* 4.5 [More complex mixed models](./MM_more.html)
+
+## You will learn in this session
+
+* that GLMM are not very difficult if you already know GLM and LMM
+
+# Non gaussian response
+
+## GLMM
+
+### GLM + LMM = GLMM
+
+$$\begin{array}{lcl}
+\mu &=& g^{-1}(\eta)\\
+\mu &=& g^{-1}(\mathbf{X}\beta + \mathbf{Z}b)\\
+\end{array}
+$$
+
+with (as for GLM):
+
+* $\text{E}(\text{Y}) = \mu = g^{-1}(\eta)$
+* $\text{Var}(\text{Y}) = \phi\text{V}(\mu)$ 
+
+<br>
+
+Note:
+
+* If $g^{-1}$ is the identity function, $\phi = \sigma^2$ and $\text{V}(\mu) = 1$, we have the LMM.
+* If $\mathbf{Z}b = 0$, we have the GLM.
+* If $g^{-1}$ is the identity function, $\phi = \sigma^2$, $\text{V}(\mu) = 1$, and $\mathbf{Z}b = 0$, we have the LM.
+
+
+## The ```LM2GLMM::Flatwork``` dataset
+
+```{r Flatwork}
+Flatwork
+```
+
+
+## The ```LM2GLMM::Flatwork``` dataset
+
+```{r Flatwork str}
+str(Flatwork)
+```
+
+
+## GLMM with ```lme4```
+
+```{r Flatwork lme4}
+(mod_glmm_lme4 <- glmer(shopping ~ gender + (1|individual) + (1|month), family = poisson(),
+                        data = Flatwork))
+```
+
+
+## GLMM with ```spaMM```
+
+```{r Flatwork spaMM 2}
+(mod_glmm_spaMM <- fitme(shopping ~ gender + (1|individual) + (1|month), family = poisson(),
+                        data = Flatwork, method = "ML"))
+```
+
+
+## Checking residuals
+
+```{r Flatwork res, fig.width = 9}
+library(DHARMa)
+r <- simulateResiduals(mod_glmm_lme4)
+plot(r)
+```
+
+
+## Extra 0s?
+
+```{r Flatwork shopping}
+barplot(table(Flatwork$shopping))
+```
+
+
+## Extra 0s?
+
+```{r Flatwork zeros}
+testZeroInflation(r)
+```
+
+
+## Binomial model
+
+```{r Flatwork binom}
+Flatwork$shopping_bin <- Flatwork$shopping > 0
+(mod_glmm_lme4bin <- glmer(shopping_bin ~ gender + (1|individual) + (1|month), family = binomial(),
+                        data = Flatwork))
+```
+
+
+## Checking residuals
+
+```{r Flatwork res 2, fig.width = 9}
+r_bin <- simulateResiduals(mod_glmm_lme4bin)
+plot(r_bin)
+```
+
+
+## Overdispersion?
+
+```{r overdisp, warning = FALSE}
+r_bin2 <- simulateResiduals(mod_glmm_lme4bin, refit = TRUE)  ## slow and convergence issues...
+testOverdispersion(r_bin2)
+```
+
+
+## Testing the gender effect
+
+```{r Flatwork gender}
+mod_glmm_lme4bin0 <- glmer(shopping_bin ~ 1 + (1|individual) + (1|month), family = binomial(),
+                        data = Flatwork)
+
+anova(mod_glmm_lme4bin, mod_glmm_lme4bin0)
+```
+
+
+## Same with ```spaMM```
+
+```{r Flatwork spaMM}
+mod_glmm_spaMMbin <- fitme(shopping_bin ~ gender + (1|individual) + (1|month), family = binomial(),
+                        data = Flatwork)
+
+mod_glmm_spaMMbin0 <- fitme(shopping_bin ~ 1 + (1|individual) + (1|month), family = binomial(),
+                        data = Flatwork)
+
+anova(mod_glmm_spaMMbin, mod_glmm_spaMMbin0)
+```
+
+
+## Is there an effect for the non-zeros?
+
+This is not ideal, but we will try an analysis on the truncated distribution...
+```{r Flatwork shopping_bin}
+Flatwork_pos <- subset(Flatwork, Flatwork$shopping_bin)
+barplot(table(Flatwork_pos$shopping))
+```
+
+
+## Fitting models on truncated distributions
+
+```{r truncated fit}
+mod_glmm_lme4pos1 <- glmer(shopping ~ gender + (1|individual) + (1|month), family = poisson(),
+                        data = Flatwork_pos)
+mod_glmm_lme4pos2 <- glmer.nb(shopping ~ gender + (1|individual) + (1|month), data = Flatwork_pos)
+mod_glmm_spaMMpos1 <- fitme(shopping ~ gender + (1|individual) + (1|month), family = poisson(),
+                        data = Flatwork_pos)
+mod_glmm_spaMMpos2 <- fitme(shopping ~ gender + (1|individual) + (1|month), family = spaMM::negbin(),
+                        data = Flatwork_pos)
+mod_glmm_spaMMpos3 <- fitme(shopping ~ gender + (1|individual) + (1|month), family = COMPoisson(),
+                        data = Flatwork_pos)
+
+c(AIC(mod_glmm_lme4pos1), AIC(mod_glmm_lme4pos2))
+print(rbind(AIC(mod_glmm_spaMMpos1), AIC(mod_glmm_spaMMpos2), AIC(mod_glmm_spaMMpos3)))
+```
+
+
+## Checking residuals
+
+```{r Flatwork lme4 plot, fig.width = 9}
+r_pos <- simulateResiduals(mod_glmm_lme4pos2)
+plot(r_pos)
+```
+
+
+## Testing again the gender effect
+
+```{r Flatwork gender 2}
+mod_glmm_spaMMpos20 <- fitme(shopping ~ 1 + (1|individual) + (1|month), family = spaMM::negbin(),
+                        data = Flatwork_pos)
+
+anova(mod_glmm_spaMMpos20, mod_glmm_spaMMpos2)
+```
+
+
+## Practice
+
+<br>
+
+<center> What about gender and cleaning? </center>
+
+
+
+## What you need to remember
+
+* that GLMM are not very difficult if you already know GLM and LMM
+
+# Table of contents
+
+## Mixed-effects models
+
+* 4.0 [Introduction to LMM](./LMM_intro.html)
+* 4.1 [Random effects](./LMM_random.html)
+* 4.2 [Solving LM problems using LMM](./LMM_solving_pb.html)
+* 4.3 [A showcase of some useful applications](./LMM_showcase.html)
+* 4.4 [Introduction to GLMM](./GLMM_intro.html)
+* 4.5 [More complex mixed models](./MM_more.html)
