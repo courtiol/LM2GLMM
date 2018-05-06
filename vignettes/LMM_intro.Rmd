@@ -27,9 +27,12 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LMM_intro/", fig
 
 ## Mixed-effects models
 
-* 4.0 [Introduction](./LMM_intro.html)
-* 4.1 [More than one random effect](./LMM_multi.html)
-* 4.2 [More extensions from simple LMM](./LMM_more.html)
+* 4.0 [Introduction to LMM](./LMM_intro.html)
+* 4.1 [Random effects](./LMM_random.html)
+* 4.2 [Solving LM problems using LMM](./LMM_solving_pb.html)
+* 4.3 [A showcase of some useful applications](./LMM_showcase.html)
+* 4.4 [Introduction to GLMM](./GLMM_intro.html)
+* 4.5 [More complex mixed models](./MM_more.html)
 
 
 ## You will learn in this session
@@ -41,7 +44,6 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LMM_intro/", fig
 * what BLUPs are
 * how to make predictions at two different levels
 * how to test effects using parametric bootstraps
-* how to decide between considering a factor as fixed or random
 * how to check assumptions for a linear mixed-effects model
 
 
@@ -371,7 +373,7 @@ rbind(ranef_alex,
 
 * The numbers we obtained with ```ranef``` are BLUPs of the random effects.
 * Even if BLUPs can be estimated, they are not parameters of the statistical model!!!
-* BLUPs can be computed using ML or REML but REML is recommended (I did ML here for simplicity).
+* BLUPs can be computed using ML or REML (REML is best when BLUPs are not added to fitted values, unclear otherwise)
 
 ```{r, fig.height = 3.5, fig.width = 4}
 curve(dnorm(x, mean = 0, sd = sqrt(estimates[1, "var.group"])), -5, 5, ylab = "density", xlab = "b")
@@ -733,28 +735,6 @@ print(AIC(mod_lmm_spaMM))
 * rely on the conditional AIC if you are interested in conditional predictions.
 
 
-# To mix or not to mix?
-
-
-## Choosing between fixed and random effects
-
-The choice between considering a predictor has having fixed or random effects can be difficult; it depends on the trade-off between the pros and cons of both approaches.
-
-### Fixed effects
-
-* no assumption about the distribution of the effects associated with each level of a predictor
-* require many new datapoints for each additional levels to get reliable results
-* allow for the prediction of the effect of observed levels only (for factors)
-* simple to study
-
-### Random effects
-
-* the effects associated with each level of a predictor follow a given probability distribution
-* require at least one new datapoint for each additional levels to get reliable results (more is better)
-* allow for the prediction of the effect of both observed and unobserved levels (for factors)
-* more difficult to study
-
-
 # Assumptions
 
 ## What are the assumptions in LMM?
@@ -828,7 +808,6 @@ testTemporalAutocorrelation(r_conditional, time = 1:nrow(Oats2), plot = FALSE)
 * what BLUPs are
 * how to make predictions at two different levels
 * how to test effects using parametric bootstraps
-* how to decide between considering a factor as fixed or random
 * how to check assumptions for a linear mixed-effects model
 
 
@@ -836,6 +815,10 @@ testTemporalAutocorrelation(r_conditional, time = 1:nrow(Oats2), plot = FALSE)
 
 ## Mixed-effects models
 
-* 4.0 [Introduction](./LMM_intro.html)
-* 4.1 [More than one random effect](./LMM_multi.html)
-* 4.2 [More extensions from simple LMM](./LMM_more.html)
+* 4.0 [Introduction to LMM](./LMM_intro.html)
+* 4.1 [Random effects](./LMM_random.html)
+* 4.2 [Solving LM problems using LMM](./LMM_solving_pb.html)
+* 4.3 [A showcase of some useful applications](./LMM_showcase.html)
+* 4.4 [Introduction to GLMM](./GLMM_intro.html)
+* 4.5 [More complex mixed models](./MM_more.html)
+
