@@ -91,11 +91,11 @@ simulate_Aliens_GLM <- function(N = 100) {
 #' simulate_Mix()
 #'
 simulate_Mix <- function(intercept = 50, slope = 1.5, n = 30, group_nb = 10, var.rand = 2, var.error = 0.5){
-  data <- data.frame(intercept = intercept, slope = slope, x = runif(n))
-  group_compo <- rmultinom(n = 1, size = n, prob = c(rep(1/group_nb, group_nb)))
+  data <- data.frame(intercept = intercept, slope = slope, x = stats::runif(n))
+  group_compo <- stats::rmultinom(n = 1, size = n, prob = c(rep(1/group_nb, group_nb)))
   data$group <- factor(rep(paste("group", 1:group_nb, sep = "_"), group_compo))
-  data$b <- rep(rnorm(group_nb, mean = 0, sd = sqrt(var.rand)), group_compo)
-  data$error <- rnorm(n, mean = 0, sd = sqrt(var.error))
+  data$b <- rep(stats::rnorm(group_nb, mean = 0, sd = sqrt(var.rand)), group_compo)
+  data$error <- stats::rnorm(n, mean = 0, sd = sqrt(var.error))
   data$y <- data$intercept + data$slope*data$x + data$b + data$error
   return(data)
 }
