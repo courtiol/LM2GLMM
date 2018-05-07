@@ -545,6 +545,7 @@ Note 1: ```lme4``` does not compute assymptotic confidence interval, which is wh
 
 Note 2: ```merTools``` uses simulation so results differ slightly each time you run the function.
 
+
 ## Comparing predictions from LM and LMM
 
 ```{r, fig.width = 5, fig.height = 5, echo = FALSE}
@@ -568,6 +569,7 @@ legend("top", fill = c("black", "red", "orange"), legend = c("fix", "spaMM", "me
 ```
 
 Note: in LMM predictions are attracted toward the mean.
+
 
 ## Comparing predictions from LM and LMM
 

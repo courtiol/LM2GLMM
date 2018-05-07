@@ -293,17 +293,16 @@ Note: there is not yet an alternative for ```spaMM``` but you can use ```boot```
 
 ## Confidence interval for the variance using ```spaMM + boot```
 
-```{r spaMM and boot, message = FALSE}
+```{r spaMM and boot, message = FALSE, warnings = FALSE}
 library(boot)
 n_boot <- 1000
-newYs <- simulate(mod2_REML, type = "residual", nsim = n_boot)  ## in progress, not sure how to simulate...
+newYs <- simulate(mod2_REML, type = "marginal", nsim = n_boot)
 res_sim <- sapply(1:n_boot, function(i) {
   Aliens$y <- newYs[, i]
-  fitme(y ~ x + (1|group), data = Aliens, method = "REML")$lambda[[1]]}) ## lambda on new data
-boot.ci(boot.out = list(R = n_boot),
-        t0 = fitme(y ~ x + (1|group), data = Aliens, method = "REML")$lambda[[1]], ## original lambda
-        t  = matrix(res_sim, ncol = 1),
-        type = "basic")$basic[, 4:5]
+  log(fitme(y ~ x + (1|group), data = Aliens, method = "REML")$lambda[[1]])}) ## lambda on new data
+exp(boot.ci(boot.out = list(R = n_boot),
+        t0 = log(fitme(y ~ x + (1|group), data = Aliens, method = "REML")$lambda[[1]]), ## original lambda
+        t  = matrix(res_sim, ncol = 1), type = "basic")$basic[, 4:5])
 ```
 
 

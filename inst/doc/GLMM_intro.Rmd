@@ -165,7 +165,7 @@ barplot(table(Flatwork_pos$shopping))
 
 ## Fitting models on truncated distributions
 
-```{r truncated fit, eval = FALSE}
+```{r truncated fit}
 mod_glmm_spaMM_truncP <- fitme(shopping ~ gender + (1|individual) + (1|month), family = Tpoisson(),
                                data = Flatwork_pos)
 mod_glmm_spaMM_truncNB <- fitme(shopping ~ gender + (1|individual) + (1|month), family = Tnegbin(),
@@ -176,7 +176,7 @@ print(AIC(mod_glmm_spaMM_truncNB))
 
 <br>
 
-Note: this does not seem to work at the moment...
+Note: this only work with the development version of ```spaMM``` at the moment...
 
 
 ## A better solution?
