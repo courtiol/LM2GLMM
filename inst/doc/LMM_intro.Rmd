@@ -235,6 +235,9 @@ b \sim
 $$
 </font></center>
 
+<br>
+
+Note: the dimensions of the matrices differ: $q \times q$ vs $n \times n$
 
 # Fitting procedure
 
@@ -284,6 +287,17 @@ library(spaMM)
 ## Functions for fitting the mixed model numerically
 
 ```{r}
+log_lik_b_prod <- function(param, data, scale = 1){
+  log_lik_vec <- sapply(levels(data$group), function(level) {
+    log(integrate(lik_b, -Inf, Inf, level = level, intercept = param[1], slope = param[2],
+                  var.rand = param[3], var.error = param[4], data = data)$value)})
+  return(scale * sum(log_lik_vec))
+}
+```
+
+<br>
+
+```{r}
 lik_b <- function(b.vec, level, intercept, slope, var.rand, var.error, data, scale = 1){
   lik <- sapply(b.vec, function(b){
     sub_data <- data[which(data$group == level), ]
@@ -292,17 +306,6 @@ lik_b <- function(b.vec, level, intercept, slope, var.rand, var.error, data, sca
     return(dnorm(b, mean = 0, sd = sqrt(var.rand)) * prod(sub_data$conditional.density))
   })
   return(scale * lik)
-}
-```
-
-<br>
-
-```{r}
-log_lik_b_prod <- function(param, data, scale = 1){
-  log_lik_vec <- sapply(levels(data$group), function(level) {
-    log(integrate(lik_b, -Inf, Inf, level = level, intercept = param[1], slope = param[2],
-                  var.rand = param[3], var.error = param[4], data = data)$value)})
-  return(scale * sum(log_lik_vec))
 }
 ```
 
@@ -494,7 +497,7 @@ axis(1, at = 1:length(levels(Oats2$Block)), labels = levels(Oats2$Block)); axis(
 
 ## Marginal predictions using ```lme4```
 
-### Prediction averaged over the random variable:
+### Predictions averaged over the random variable:
 ```{r}
 data.for.pred <- expand.grid(nitro = 0.3, Variety = "Victory", Block = "new")
 p1 <- predict(mod_lmm_lme4, newdata = data.for.pred, re.form = NA)
@@ -510,7 +513,7 @@ c(fit = as.numeric(p1), lwr = lwr, upr = upr)  ## Wald CI for prediction
 
 ## Marginal predictions using ```spaMM```
 
-### Prediction averaged over the random variable:
+### Predictions averaged over the random variable:
 ```{r}
 data.for.pred <- expand.grid(nitro = 0.3, Variety = "Victory", Block = "new")
 p2 <- predict(mod_lmm_spaMM, newdata = data.for.pred, intervals = "predVar")
@@ -521,7 +524,7 @@ c(fit = p2, attr(p2, "intervals"))
 
 ## Conditional predictions using ```spaMM```
 
-### Prediction conditional on the random variable ($\mathbf{X}\widehat{\beta}+\mathbf{Z}\widehat{b}$):
+### Predictions conditional on the random variable ($\mathbf{X}\widehat{\beta}+\mathbf{Z}\widehat{b}$):
 ```{r}
 data.for.pred <- expand.grid(nitro = 0.3, Variety = "Victory", Block = levels(Oats2$Block))
 p3 <- predict(mod_lmm_spaMM, newdata = data.for.pred, intervals = "predVar")
@@ -532,7 +535,7 @@ cbind(p3, attr(p3, "intervals"))
 
 ## Conditional predictions using ```lme4 + merTools```
 
-### Prediction conditional on the random variable ($\mathbf{X}\widehat{\beta}+\mathbf{Z}\widehat{b}$):
+### Predictions conditional on the random variable ($\mathbf{X}\widehat{\beta}+\mathbf{Z}\widehat{b}$):
 ```{r, message = FALSE}
 data.for.pred <- expand.grid(nitro = 0.3, Variety = "Victory", Block = levels(Oats2$Block))
 library(merTools)
@@ -541,7 +544,7 @@ library(merTools)
 
 <br>
 
-Note 1: ```lme4``` does not compute assymptotic confidence interval, which is why we use ```merTools```.
+Note 1: ```lme4``` does not compute assymptotic confidence intervals, which is why we use ```merTools```.
 
 Note 2: ```merTools``` uses simulation so results differ slightly each time you run the function.
 
@@ -617,7 +620,7 @@ anova(mod_lmm_lme4_nitro, mod_lmm_lme4_nonitro)
 
 <br>
 
-Note: always use ML fit for testing fixed effects!
+Note: always use ML fits for testing fixed effects!
 
 
 ## Testing the reliability of the test of the LRT

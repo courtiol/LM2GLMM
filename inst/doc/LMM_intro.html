@@ -327,6 +327,10 @@ b \sim
 
 </center>
 
+<p><br></p>
+
+<p>Note: the dimensions of the matrices differ: \(q \times q\) vs \(n \times n\)</p>
+
 </article></slide><slide class="segue dark nobackground level1"><hgroup class = 'auto-fadein'><h2>Fitting procedure</h2></hgroup><article  id="fitting-procedure" class="smaller ">
 
 </article></slide><slide class=""><hgroup><h2>A simple simulation function</h2></hgroup><article  id="a-simple-simulation-function" class="smaller ">
@@ -438,6 +442,15 @@ Aliens &lt;- simulate_Mix(intercept = 50, slope = 1.5, n = 30, group_nb = 10, va
 
 </article></slide><slide class=""><hgroup><h2>Functions for fitting the mixed model numerically</h2></hgroup><article  id="functions-for-fitting-the-mixed-model-numerically" class="smaller ">
 
+<pre class = 'prettyprint lang-r'>log_lik_b_prod &lt;- function(param, data, scale = 1){
+  log_lik_vec &lt;- sapply(levels(data$group), function(level) {
+    log(integrate(lik_b, -Inf, Inf, level = level, intercept = param[1], slope = param[2],
+                  var.rand = param[3], var.error = param[4], data = data)$value)})
+  return(scale * sum(log_lik_vec))
+}</pre>
+
+<p><br></p>
+
 <pre class = 'prettyprint lang-r'>lik_b &lt;- function(b.vec, level, intercept, slope, var.rand, var.error, data, scale = 1){
   lik &lt;- sapply(b.vec, function(b){
     sub_data &lt;- data[which(data$group == level), ]
@@ -446,15 +459,6 @@ Aliens &lt;- simulate_Mix(intercept = 50, slope = 1.5, n = 30, group_nb = 10, va
     return(dnorm(b, mean = 0, sd = sqrt(var.rand)) * prod(sub_data$conditional.density))
   })
   return(scale * lik)
-}</pre>
-
-<p><br></p>
-
-<pre class = 'prettyprint lang-r'>log_lik_b_prod &lt;- function(param, data, scale = 1){
-  log_lik_vec &lt;- sapply(levels(data$group), function(level) {
-    log(integrate(lik_b, -Inf, Inf, level = level, intercept = param[1], slope = param[2],
-                  var.rand = param[3], var.error = param[4], data = data)$value)})
-  return(scale * sum(log_lik_vec))
 }</pre>
 
 </article></slide><slide class=""><hgroup><h2>Testing the functions</h2></hgroup><article  id="testing-the-functions" class="smaller ">
@@ -806,7 +810,7 @@ axis(1, at = 1:length(levels(Oats2$Block)), labels = levels(Oats2$Block)); axis(
 
 </article></slide><slide class=""><hgroup><h2>Marginal predictions using <code>lme4</code></h2></hgroup><article  id="marginal-predictions-using-lme4" class="smaller ">
 
-<h3>Prediction averaged over the random variable:</h3>
+<h3>Predictions averaged over the random variable:</h3>
 
 <pre class = 'prettyprint lang-r'>data.for.pred &lt;- expand.grid(nitro = 0.3, Variety = &quot;Victory&quot;, Block = &quot;new&quot;)
 p1 &lt;- predict(mod_lmm_lme4, newdata = data.for.pred, re.form = NA)
@@ -826,7 +830,7 @@ c(fit = as.numeric(p1), lwr = lwr, upr = upr)  ## Wald CI for prediction</pre>
 
 </article></slide><slide class=""><hgroup><h2>Marginal predictions using <code>spaMM</code></h2></hgroup><article  id="marginal-predictions-using-spamm" class="smaller ">
 
-<h3>Prediction averaged over the random variable:</h3>
+<h3>Predictions averaged over the random variable:</h3>
 
 <pre class = 'prettyprint lang-r'>data.for.pred &lt;- expand.grid(nitro = 0.3, Variety = &quot;Victory&quot;, Block = &quot;new&quot;)
 p2 &lt;- predict(mod_lmm_spaMM, newdata = data.for.pred, intervals = &quot;predVar&quot;)
@@ -842,7 +846,7 @@ sqrt(attr(p2, &quot;predVar&quot;))  ## se.predVar</pre>
 
 </article></slide><slide class=""><hgroup><h2>Conditional predictions using <code>spaMM</code></h2></hgroup><article  id="conditional-predictions-using-spamm" class="smaller ">
 
-<h3>Prediction conditional on the random variable (\(\mathbf{X}\widehat{\beta}+\mathbf{Z}\widehat{b}\)):</h3>
+<h3>Predictions conditional on the random variable (\(\mathbf{X}\widehat{\beta}+\mathbf{Z}\widehat{b}\)):</h3>
 
 <pre class = 'prettyprint lang-r'>data.for.pred &lt;- expand.grid(nitro = 0.3, Variety = &quot;Victory&quot;, Block = levels(Oats2$Block))
 p3 &lt;- predict(mod_lmm_spaMM, newdata = data.for.pred, intervals = &quot;predVar&quot;)
@@ -863,7 +867,7 @@ sqrt(attr(p3, &quot;predVar&quot;))  ## se.predVar</pre>
 
 </article></slide><slide class=""><hgroup><h2>Conditional predictions using <code>lme4 + merTools</code></h2></hgroup><article  id="conditional-predictions-using-lme4-mertools" class="smaller ">
 
-<h3>Prediction conditional on the random variable (\(\mathbf{X}\widehat{\beta}+\mathbf{Z}\widehat{b}\)):</h3>
+<h3>Predictions conditional on the random variable (\(\mathbf{X}\widehat{\beta}+\mathbf{Z}\widehat{b}\)):</h3>
 
 <pre class = 'prettyprint lang-r'>data.for.pred &lt;- expand.grid(nitro = 0.3, Variety = &quot;Victory&quot;, Block = levels(Oats2$Block))
 library(merTools)
@@ -879,7 +883,7 @@ library(merTools)
 
 <p><br></p>
 
-<p>Note 1: <code>lme4</code> does not compute assymptotic confidence interval, which is why we use <code>merTools</code>.</p>
+<p>Note 1: <code>lme4</code> does not compute assymptotic confidence intervals, which is why we use <code>merTools</code>.</p>
 
 <p>Note 2: <code>merTools</code> uses simulation so results differ slightly each time you run the function.</p>
 
@@ -948,7 +952,7 @@ anova(mod_lmm_lme4_nitro, mod_lmm_lme4_nonitro)</pre>
 
 <p><br></p>
 
-<p>Note: always use ML fit for testing fixed effects!</p>
+<p>Note: always use ML fits for testing fixed effects!</p>
 
 </article></slide><slide class=""><hgroup><h2>Testing the reliability of the test of the LRT</h2></hgroup><article  id="testing-the-reliability-of-the-test-of-the-lrt" class="smaller ">
 
