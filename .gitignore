@@ -3,6 +3,7 @@ vignettes/cache_knitr
 vignettes/fig_knitr
 vignettes/*.R
 vignettes/*.html
+vignettes/Exercise\_GLM\_Intervals\_cache
 sources/
 # MacOS and Windows generated files #
 #####################################
