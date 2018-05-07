@@ -436,7 +436,7 @@ mod1ter
 * the formula ```(1|Family) + (1|Family:Genus)```
 * the formula ```(1|Family) + (1|Genus)```
 
-are the same as long as genus are not be recycled between families!
+are the same as long as genus are not being recycled between families!
 
 
 ## Checking the random structure

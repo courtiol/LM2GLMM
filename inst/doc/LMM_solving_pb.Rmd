@@ -60,11 +60,9 @@ plot(AirPassengers)
 ## Reformating the dataset for the fit
 
 ```{r reshape airpassenger}
-air <- data.frame(passengers = as.numeric(AirPassengers),
+(air <- data.frame(passengers = as.numeric(AirPassengers),
                   year = rep(1949:1960, each = 12),
-                  month = factor(rep(1:12, 12)))
-air$time <- 1:nrow(air)
-air
+                  month = factor(rep(1:12, 12))))
 ```
 
 
@@ -92,6 +90,13 @@ plot(with(air, tapply(passengers, month, mean)) ~ I(1:12),
 
 
 ## The problem
+```{r airpassenger assumptions}
+par(mfrow = c(2, 2))
+plot(mod_air)
+```
+
+
+## The problem
 
 ```{r airpassenger residuals}
 plot(residuals(mod_air), type = "b")
@@ -115,126 +120,26 @@ acf(residuals(mod_air))
 
 ## Solution
 
-```{r airpassenger AR1, message = FALSE}
-library(nlme)
-MAR1 <- corAR1(value = 0.5, form = ~ 1|year, fixed = FALSE)
-MAR1 <- Initialize(MAR1, data = air)
-round(corMatrix(MAR1)[["1950"]], 2)
+```{r spaMM air}
+air$year_bis <- air$year - 1949
+air$time <- 1:nrow(air)
+library(spaMM)
+(mod_air_spaMM1 <- fitme(passengers ~ month * year_bis + AR1(1|time), data = air))
 ```
 
 
 ## Solution
-```{r airpassenger lme}
-(mod_air2 <- lme(passengers ~ month * year, random = ~ 1 | year, data = air,
-                 correlation = MAR1, method = "REML"))  ## confusing: correlation is modelled between months!
-```
-
-
-## Alternative code
-
-```{r airpassenger lme2}
-(mod_air2b <- lme(passengers ~ month * year, random = ~ 1 | year, data = air,
-                 correlation = corAR1(form = ~ 1|year), method = "REML"))
-```
-
-
-## Testing the temporal autocorrelation
-
-```{r airpassenger test temp autocorr}
-mod_air3 <- lme(passengers ~ month * year, random = ~ 1 | year, data = air, method = "REML")
-anova(mod_air2, mod_air3)
-```
-
-
-## Alternative autocorrelation structures
-
-```{r airpassenger corARMA}
-mod_airARMA1 <- update(mod_air2, correlation = corARMA(form = ~ 1 | year, p = 1, q = 0))
-mod_airARMA2 <- update(mod_air2, correlation = corARMA(form = ~ 1 | year, p = 4, q = 0))
-mod_airARMA3 <- update(mod_air2, correlation = corARMA(form = ~ 1 | year, p = 2, q = 2))
-
-rbind(mod_air2 = AIC(mod_air2),
-      mod_airARMA1 = AIC(mod_airARMA1),
-      mod_airARMA2 = AIC(mod_airARMA2),
-      mod_airARMA3 = AIC(mod_airARMA3))
-```
-
-<br>
-
-Note: do not compare AICs or likelihoods from ```nlme``` to those from other packages!
-
-(it seems they have failed to consider a constant term...)
-
-
-## Fitted values
-
-```{r airpassenger fitted}
-mod_air4 <- update(mod_air2, correlation = corARMA(form = ~ 1 | year, p = 4, q = 0), method = "ML")
-data.for.plot <- expand.grid(month = factor(1:12), year = 1949:1960)
-data.for.plot$obs <- air$passengers
-data.for.plot$time <- seq(1949, 1960, length = (1960 - 1949 + 1) * 12)
-data.for.plot$fit_lm <- predict(mod_air)
-data.for.plot$fit_lme <- predict(mod_air4)
-```
-
-
-## Fitted values
-
-```{r airpassenger plot fitted}
-plot(obs ~ time, data = data.for.plot, type = "l", ylim = c(0, 700), ylab = "Passengers")
-points(fit_lm ~ time, data = data.for.plot, type = "l", col = "red")
-points(fit_lme ~ time, data = data.for.plot, type = "l", col = "blue")
-```
-
-
-## Better, but good enough?
-
-```{r airpassenger final}
-plot(residuals(mod_air4), type = "l")
-abline(h = 0, lty = 2, col = "red")
-```
-
-
-
-## Dealing with temporal auto-correlation using ```spaMM```
-
-```{r spaMM air}
-library(spaMM)
-air$year_z <- scale(air$year) ## otherwise hard to fit!
-mod_air_spaMM1 <- fitme(passengers ~ month * year_z + AR1(1|time %in% year), data = air, method = "REML")
-mod_air_spaMM2 <- fitme(passengers ~ month * year_z, data = air, method = "REML")
-
-print(AIC(mod_air_spaMM1))
-print(AIC(mod_air_spaMM2))
-```
-
-
-## Examining the best model
-
-```{r air best}
-mod_air_spaMM1
-```
-
-
-## Examining the best model
-
-```{r air best2}
-mod_air_spaMM1$corrPars[[1]]
-res <- matrix(residuals(mod_air_spaMM2)[,1], ncol = 12)
-(res_autocorr <- sapply(1:11, function(month)
-  cor(res[month, ], res[(month + 1), ])
-))
-summary(res_autocorr)
-
+```{r corr values}
+ mod_air_spaMM1$corrPars[[1]]
 ```
 
 
 ## Fitted values
 
 ```{r air fitted, fig.height = 4, fig.width = 4}
-data.for.plot$pred_spaMM <- predict(mod_air_spaMM1)
-plot(obs ~ time, data = data.for.plot, type = "l", lwd = 3, ylim = c(0, 700), ylab = "Passengers")
-points(pred_spaMM ~ time, data = data.for.plot, type = "l", col = "green")
+pred_spaMM <- predict(mod_air_spaMM1)
+plot(passengers ~ time, data = air, type = "l", lwd = 3, ylim = c(0, 700), ylab = "Passengers")
+points(pred_spaMM ~ air$time, type = "l", col = "green")
 ```
 
 Note: never extrapolate using such model! The perfect fit is not unusual.
@@ -242,36 +147,10 @@ Note: never extrapolate using such model! The perfect fit is not unusual.
 
 ## Testing the effect of years
 
-### ```spaMM```
 ```{r spaMM air 2}
-mod_air_spaMM2ML <- fitme(passengers ~ month*year_z + AR1(1|time %in% year), data = air, method = "ML")
-
-mod_air_no_year <- fitme(passengers ~ month + AR1(1|time %in% year), data = air, method = "ML")
+mod_air_spaMM_no_year <- fitme(passengers ~ month + AR1(1|time), data = air)
+anova(mod_air_spaMM1, mod_air_spaMM_no_year)
 ```
-
-```{r air spaMM anova}
-anova(mod_air_spaMM2ML, mod_air_no_year)
-
-c(logLik(mod_air_spaMM2ML), logLik(mod_air_no_year))
-```
-
-
-## Testing the effect of years
-
-### ```nlme```
-
-```{r air years}
-mod_air3ML <- lme(passengers ~ month * year, random = ~ 1 | time, data = air,
-                 correlation = corAR1(), method = "ML")
-
-mod_air_no_year2 <- lme(passengers ~ month, random = ~ 1 | time, data = air,
-                 correlation = corAR1(), method = "ML")
-```
-
-```{r air years anova}
-anova(mod_air3ML, mod_air_no_year2)
-```
-
 
 
 # Temporal autocorrelation in continuous time
@@ -294,88 +173,98 @@ unique(body$Time)
 ```
 
 
-## Fitting the model
+## Fitting with the exponential correlation function
 
-```{r bodyweight lme}
-(mod_rat1 <- lme(weight ~ Diet * Time, random = ~ Time|Rat, data = body))
+```{r bodyweight fitme spaMM}
+(mod_rat_spaMM1 <- fitme(weight ~ Diet * Time + (Time|Rat) + Matern(1|Time),
+                         fixed = list(nu = 0.5),
+                         data = body, method = "REML"))
 ```
 
 
-## Checking residuals
+## Fitting with the ```Matern()``` correlation function
 
-```{r bodyweight residuals}
-plot(mod_rat1) ## there is some homoscedasticity but we will ignore it for now
+```{r bodyweight fitme spaMM 2}
+(mod_rat_spaMM2 <- fitme(weight ~ Diet * Time + (Time|Rat) + Matern(1|Time),
+                         data = body, method = "REML"))
 ```
 
 
-## Checking residuals
+## Plotting the autocorrelation functions
+```{r plot autocorr Matern prep}
+time_for_pred <- seq(0, 30, length.out = 100)
+pred_corr1 <- MaternCorr(time_for_pred,
+                         rho = mod_rat_spaMM1$corrPars[[1]]$rho,
+                         nu = mod_rat_spaMM1$corrPars[[1]]$nu)
+pred_corr2 <- MaternCorr(time_for_pred,
+                         rho = mod_rat_spaMM2$corrPars[[1]]$rho,
+                         nu = mod_rat_spaMM2$corrPars[[1]]$nu)
+```
 
-```{r bodyweight plot residuals}
-plot(residuals(mod_rat1), type = "b")
+## Plotting the autocorrelation functions
+```{r plot autocorr Matern}
+plot(pred_corr1 ~ time_for_pred, type = "l", lwd = 2, col = "red", ylim = c(0, 1), xlab="Time", ylab="Correlation")
+points(pred_corr2 ~ time_for_pred, type = "l", lwd = 2, col = "purple", ylim = c(0, 1))
 ```
 
 
-## Fitting continuous temporal autocorrelation
-
-```{r bodyweight corExp}
-(mod_rat2 <- lme(weight ~ Diet * Time, random = ~ Time|Rat, correlation = corExp(form = ~ Time), data = body))
-```
-
-
-## Model comparison using nlme
-
-```{r bodyweight anova}
-anova(mod_rat1, mod_rat2)
+## Model comparison
+```{r Matern vs AR1}
+print(AIC(mod_rat_spaMM1))
+print(AIC(mod_rat_spaMM2))
 ```
 
 <br>
 
-Note: the comparison makes sense as models are nested and fitted with REML.
+Note: the model do not look really different in their ability to fit the data.
 
 
-## Same fit with ```spaMM```
+## AR1
 
-```{r bodyweight fitme spaMM}
-(mod_rat_spaMM <- fitme(weight ~ Diet * Time + (Time|Rat) + Matern(1|Time),
-                        fixed = list(nu = 0.5),
-                        data = body, method = "REML"))
+```{r bodyweight fitme AR1 spaMM}
+(mod_rat_spaMM_AR1 <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time),
+                            data = body, method = "REML"))
+```
+
+
+## AR1 vs Matern
+```{r plot autocorr Matern 2}
+pred_corr3 <- mod_rat_spaMM_AR1$corrPars[[1]]$ARphi^time_for_pred
+plot(pred_corr1 ~ time_for_pred, type = "l", lwd = 5, col = "red", ylim = c(0, 1), xlab="Time", ylab="Correlation")
+points(pred_corr3 ~ time_for_pred, type = "l", lwd = 2, col = "green", ylim = c(0, 1))
 ```
 
 
 ## AR1 vs Matern
 
-```{r bodyweight fitme AR1 spaMM}
-mod_rat_spaMM_AR1 <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time),
-                           fixed = list(nu = 0.5),
-                           data = body, method = "REML")
-logLik(mod_rat_spaMM)
-logLik(mod_rat_spaMM_AR1)
+```{r AR1 vs Matern}
+logLik(mod_rat_spaMM1)[[1]] ## Matern nu = 0.5
+logLik(mod_rat_spaMM_AR1)[[1]] ## AR1
+round(fixef(mod_rat_spaMM1) - fixef(mod_rat_spaMM_AR1), 3)
 ```
 
 <br>
 
-Note 1: AR1 and Matern (with nu = 0.5) are equivalent if time is discrete!
+Note 1: AR1 and Matern (with nu = 0.5) are equivalent (if time is discrete)!
 
-Note 2: AR1 cannot work if time is not discrete!
-
-
-## Fitted values: ```nlme``` vs ```spaMM```
-
-```{r bodyweight spaMM plot}
-plot(predict(mod_rat_spaMM), predict(mod_rat2))
-abline(0, 1, col = "red")
-```
+Note 2: AR1 cannot work if time is not discrete.
 
 
 ## Model comparison
 
 ```{r corrHLfit spaMM2}
-mod_rat_spaMM2 <- fitme(weight ~ Diet * Time + (Time|Rat), data = body,
-                        method = "REML")
-
-print(AIC(mod_rat_spaMM))
-print(AIC(mod_rat_spaMM2))
+mod_rat_spaMM_noAR <- fitme(weight ~ Diet * Time + (Time|Rat), data = body,
+                            method = "REML")
 ```
+
+```{r corrHLfit spaMM2 2}
+print(AIC(mod_rat_spaMM1))
+print(AIC(mod_rat_spaMM_noAR))
+```
+
+<br>
+
+Note: the model accounting for the autocorrelation fits the data best!
 
 
 ## Testing the overall effect of diet
@@ -383,33 +272,11 @@ print(AIC(mod_rat_spaMM2))
 ### ```spaMM```
 
 ```{r spaMM rat}
-mod_rat_spaMM3ML <- fitme(weight ~ Diet * Time + (Time|Rat) + Matern(1|Time),
-                          fixed = list(nu = 0.5), data = body, method = "ML")
-mod_rat_no_diet <- fitme(weight ~ 1 + Time + (Time|Rat) + Matern(1|Time),
-                         fixed = list(nu = 0.5), data = body, method = "ML")
-```
-
-```{r bodyweight spaMM anova}
+mod_rat_spaMM3ML <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time),
+                          data = body, method = "ML")
+mod_rat_no_diet <- fitme(weight ~ 1 + Time + (Time|Rat) + AR1(1|Time),
+                          data = body, method = "ML")
 anova(mod_rat_spaMM3ML, mod_rat_no_diet)
-
-c(logLik(mod_rat_spaMM3ML), logLik(mod_rat_no_diet))
-```
-
-
-## Testing the overall effect of diet
-
-### ```nlme```
-
-```{r nlme rat}
-mod_rat3ML <- lme(weight ~ Diet * Time, random = ~ Time|Rat,
-                  correlation = corExp(form = ~ Time, nugget = TRUE), data = body, method = "ML")
-
-mod_rat_no_diet2 <- lme(weight ~ 1 + Time, random = ~ Time|Rat,
-                        correlation = corExp(form = ~ Time, nugget = TRUE), data = body, method = "ML")
-```
-
-```{r nlme rat anova}
-anova(mod_rat3ML, mod_rat_no_diet2)
 ```
 
 
@@ -419,22 +286,34 @@ There are more complex autocorrelation functions out there.
 
 ```spaMM```:
 ```{r spaMM full Matern}
-mod_rat_Matern <- fitme(weight ~ Diet * Time + (Time|Rat) + Matern(1|Time), data = body)
-c(logLik(mod_rat_spaMM)[[1]], logLik(mod_rat_Matern)[[1]])
+(mod_rat_Matern_nugget <- fitme(weight ~ Diet * Time + (Time|Rat) + Matern(1|Time), data = body,
+                                init = list(Nugget = 0.1)))  ## here estimated at zero but does not have to be!
 ```
+
+
+## More complex autocorrelation functions
+
+There are more complex autocorrelation functions out there.
 
 ```nlme```:
 ```{r other correlations}
-mod_rat_corExp <- update(mod_rat1, corr = corExp(form = ~ Time, nugget = TRUE))
+library(nlme)
+mod_rat1 <- lme(weight ~ Diet * Time, random = ~ Time|Rat, data = body) 
+mod_rat_AR1 <- update(mod_rat1, corr = corAR1(form = ~ Time))
+mod_rat_corExp <- update(mod_rat1, corr = corExp(form = ~ Time, nugget = FALSE))
+mod_rat_corExp_Nugget <- update(mod_rat1, corr = corExp(form = ~ Time, nugget = TRUE))
 mod_rat_corRatio <- update(mod_rat1, corr = corRatio(form = ~ Time))
 mod_rat_corSpher <- update(mod_rat1, corr = corSpher(form = ~ Time))
 mod_rat_corLin <- update(mod_rat1, corr = corLin(form = ~ Time))
 mod_rat_corGaus <- update(mod_rat1, corr = corGaus(form = ~ Time))
-c(logLik(mod_rat2)[[1]], logLik(mod_rat_corExp)[[1]], logLik(mod_rat_corRatio)[[1]], 
-  logLik(mod_rat_corSpher)[[1]], logLik(mod_rat_corLin)[[1]], logLik(mod_rat_corGaus)[[1]])
+c(AIC(mod_rat1)[[1]], AIC(mod_rat_AR1)[[1]], AIC(mod_rat_corExp)[[1]],  AIC(mod_rat_corExp_Nugget)[[1]],
+  AIC(mod_rat_corRatio)[[1]], AIC(mod_rat_corSpher)[[1]], AIC(mod_rat_corLin)[[1]], AIC(mod_rat_corGaus)[[1]])
 ```
 
-Note: do not compare likelihood across packages!
+<br>
+
+Note: do not compare AIC between ```spaMM``` and ```nlme```, as the latter seems not to account for a fixed term in the computation of the likelihood!
+
 
 # Spatial autocorrelation
 
@@ -498,9 +377,10 @@ m <- matrix(data.for.pred$predVar, ncol = length(y.for.pred))
 
 ## Prediction uncertainty
 
-```{r loaloa plot uncertainty, fig.width = 9}
+```{r loaloa plot uncertainty, fig.width = 8}
 spaMM.filled.contour(x = x.for.pred, y = y.for.pred, z = m, plot.axes = {
-  points(ndvi[, c("longitude", "latitude")])}, col = spaMM.colors(redshift = 3))
+  points(ndvi[, c("longitude", "latitude")]); axis(1); axis(2)}, col = spaMM.colors(redshift = 3),
+  plot.title = title(xlab = "Longitude", ylab = "Latitude"))
 ```
 
 
