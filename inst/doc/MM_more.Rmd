@@ -4,8 +4,8 @@ author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
 output:
   ioslides_presentation:
-    widescreen: true
-    smaller: true
+    smaller: yes
+    widescreen: yes
 vignette: >
   %\VignetteIndexEntry{4.5 More complex mixed models}
   %\VignetteEncoding{UTF-8}
@@ -77,63 +77,6 @@ rbind(mod_negbin$coefficients, mod_poiss_gamma$fixef)
 Note 1: the equivalence is expected! In more complex models differences may appear.
 
 Note 2: notice the formula which prevents the estimation of intercepts for ```Age```.
-
-
-## The beta-binomial HGLM
-
-<br>
-
-$$
-\begin{array}{lcl}
-\text{logit}(p) &=& \text{ln}\left(\frac{p}{1-p}\right) = \mathbf{X}\beta + \mathbf{Z}b\\
-\text{logit}(b) &=& \text{ln}\left(\frac{u}{1-u}\right)
-\end{array}
-$$
-
-<br>
-
-with $u$ following the beta distribution.
-
-<br>
-
-It can be useful to model heterogeneity in proportions!
-
-
-## The ```spaMM::seeds``` dataset
-
-```{r seeds data}
-data(seeds)
-seeds
-```
-
-
-## The ```spaMM::seeds``` dataset
-
-```{r seeds coplot}
-coplot(r/n ~ plate | seed + extract, data = seeds)
-```
-
-
-## Fitting the germination data using the HGLM
-
-```{r seeds spaMM}
-(mod_germ1 <- fitme(cbind(r, n - r) ~ seed * extract + (1|plate), family = binomial(), rand.family = Beta(),
-                   data = seeds, method = "REML"))
-```
-
-
-## Comparison to the binomial GLMM
-
-```{r seeds fitme}
-mod_germ2 <- fitme(cbind(r, n - r) ~ seed * extract + (1|plate), family = binomial(),
-                   data = seeds, method = "REML")
-
-print(rbind(AIC(mod_germ1), AIC(mod_germ2)))
-```
-
-<br>
-
-Ok... here it does not do much difference, but it is still worth trying.
 
 
 # An example of many difficulties combined: ```IsoriX```

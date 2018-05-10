@@ -48,7 +48,7 @@ points(p.mu$lwr ~  data.for.pred$humans_eaten, type = "l", lwd = 2, lty = 2)
 points(jitter(Aliens$eggs) ~ Aliens$humans_eaten, cex = 0.5)
 rug(x = jitter(Aliens$humans_eaten), col = "red", side = 3)
 
-## ---- message = FALSE--------------------------------------------------
+## ---- message = FALSE----------------------------------------------------
 library(effects)
 plot(allEffects(mod_poiss))
 
