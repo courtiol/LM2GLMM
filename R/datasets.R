@@ -231,3 +231,56 @@
 #' @source Privately gathered data
 "Flatwork"
 
+
+#' The Hedgehog dataset
+#'
+#' Data come from a camera trap that was set up in the same location for 2 years.
+#' The column \var{presence} indicates whether an hedgehog was observed on this day or not.
+#' All the other data correspond to measurements done in a 4-hour time frame
+#' around sunset and all values are the mean over those 4 hours. The rain measurement
+#' was a binary indicator for rain measured every hour so the values in this column
+#' are the mean of this indicator. The cloud measurements were done categorically
+#' on a scale from 0 to 8 so this is also the mean over 4 hours. Moon phase is also
+#' categorical with 4 phases.
+#'
+#' @format A data frame with 386 rows and 10 variables:
+#' \describe{
+#'   \item{time}{the date as a Date R object}
+#'   \item{presence}{A binary indicating whether an hedgehog has been observed or not}
+#'   \item{temperature}{the mean temperature during the 4-hour window}
+#'   \item{humidity}{the mean humidity during the 4-hour window}
+#'   \item{precipitation}{the precipitation amount over the 4-hour window?}
+#'   \item{rain}{the proportion of hours with rain}
+#'   \item{groud_temp}{the mean ground temperature during the 4-hour window}
+#'   \item{cloud_cover}{the mean cloud cover during the 4-hour window}
+#'   \item{moon_phase}{the phase of the moon on that night}
+#'   \item{time_rel}{the number of days since the begining of the data collection}
+#' }
+#' @source Internship from Wanja Rast, IZW Berlin???
+"Hedgehog"
+
+
+#' The second Bats dataset
+#'
+#' The dataset provide isotopic measurements from tissues sampled from different bat species.
+#'
+#' @format A data frame with 82 rows and 14 variables:
+#' \describe{
+#'   \item{location}{the location}
+#'   \item{date}{the date as a Date R object}
+#'   \item{Species}{the species name}
+#'   \item{Sex}{the sex}
+#'   \item{Age}{the age in age class: Juvenile or Adult}
+#'   \item{X15N_fur}{isotopic measurement}
+#'   \item{X13C_fur}{isotopic measurement}
+#'   \item{X15N_membrane}{isotopic measurement}
+#'   \item{X13C_membrane}{isotopic measurement}
+#'   \item{X15N_liver}{isotopic measurement}
+#'   \item{X13C_liver}{isotopic measurement}
+#'   \item{X15N_stomach_content}{isotopic measurement}
+#'   \item{X13C_stomach_content}{isotopic measurement}
+#'   \item{time_rel}{the number of days since the begining of the data collection}
+#' }
+#' @source Data collected by Cecilia Kruszynski, IZW Berlin???
+"Bats2"
+
