@@ -284,3 +284,46 @@
 #' @source Data collected by Cecilia Kruszynski, IZW Berlin???
 "Bats2"
 
+
+#' The third Bats dataset
+#'
+#' The dataset describes the vocal activity of Noctule bats in autumn time in
+#' Eastern Ukraine. Not long ago, bats were migrating to the south
+#' to get food before hibernation, but now they stay where they were born for
+#' hibernation and become sedentary. The goal is to understand which
+#' environmental variables predict their level of activity (the column "calls"
+#' which contain a number of recorded calls which bats emit in flight at the
+#' site) and the probability of feeding (the column "buzz" represent 0 and 1 of
+#' presence/absence of specific feeding calls, which confirm feeding activity at
+#' the site). However, the data could be zero-inflated and yet the probability
+#' of buzz usually will be related to the presence of vocal activity first.
+#'
+#' Land type use categories are given in square meters within plots of 1 km radius around recording points.
+#'
+#' @format A data frame with 70 rows and 21 variables:
+#' \describe{
+#'   \item{Site}{the ID of recording site}
+#'   \item{lat}{the latitude}
+#'   \item{long}{the longitude}
+#'   \item{date}{the date of recording}
+#'   \item{temp}{the temperature in C}
+#'   \item{cloud}{cloudiness in parts (max 1)}
+#'   \item{precip}{0 or 1 of rain (usually 0 as we won't expect bat activity during the rain)}
+#'   \item{light }{categorical variable 0,1,2,3 where 0 absolute absence of artificial light and 3 full illumination}
+#'   \item{time}{the time of recording}
+#'   \item{calls}{the number of recorded calls of Noctule bat}
+#'   \item{buzz}{0 and 1 of feeding buzzes}
+#'   \item{eser}{the number of calls of another bat species Serotine bat}
+#'   \item{pkuhl}{the number of calls of another bat species Kuhl's pipistrelle}
+#'   \item{farm}{the area of farmland}
+#'   \item{green}{the area of vegetation coverage}
+#'   \item{road}{the area of roads}
+#'   \item{urban}{the area of urban coverage}
+#'   \item{water}{the area of water}
+#'   \item{ndvi_mean}{the NDVI index mean for the plot}
+#'   \item{ndvi_SD}{the standard deviation of NDVI index for plot}
+#'   \item{time_rel}{the number of hours since the first collection}
+#'   }
+#' @source Data collected by Kseniia Kravchenko, IZW Berlin???
+"Bats3"
+
