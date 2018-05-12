@@ -29,7 +29,7 @@
   \item{time_rel}{the number of hours since the first collection}
   }}
 \source{
-Data collected by Kseniia Kravchenko, IZW Berlin???
+Data collected by Kseniia Kravchenko, UIEI Ukraine
 }
 \usage{
 Bats3

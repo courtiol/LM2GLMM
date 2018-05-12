@@ -324,6 +324,6 @@
 #'   \item{ndvi_SD}{the standard deviation of NDVI index for plot}
 #'   \item{time_rel}{the number of hours since the first collection}
 #'   }
-#' @source Data collected by Kseniia Kravchenko, IZW Berlin???
+#' @source Data collected by Kseniia Kravchenko, UIEI Ukraine
 "Bats3"
 
