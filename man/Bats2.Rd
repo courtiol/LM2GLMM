@@ -6,10 +6,10 @@
 \title{The second Bats dataset}
 \format{A data frame with 82 rows and 14 variables:
 \describe{
-  \item{location}{the location}
+  \item{location}{the locations were different for every mistnet}
   \item{date}{the date as a Date R object}
   \item{Species}{the species name}
-  \item{Sex}{the sex}
+  \item{Sex}{the sex, male or female}
   \item{Age}{the age in age class: Juvenile or Adult}
   \item{X15N_fur}{isotopic measurement}
   \item{X13C_fur}{isotopic measurement}
@@ -22,12 +22,15 @@
   \item{time_rel}{the number of days since the begining of the data collection}
 }}
 \source{
-Data collected by Cecilia Kruszynski, IZW Berlin???
+Data collected by Cecilia Kruszynski, Center of Nuclear Energy in Agriculture, Piracicaba, São Paulo.
 }
 \usage{
 Bats2
 }
 \description{
-The dataset provide isotopic measurements from tissues sampled from different bat species.
+The dataset provide isotopic measurements from tissues sampled from different
+bat species in different locations. Each tissue has a different turnover
+which can show the difference in the diet through time. We don't provide
+discrimination factors for each tissue.
 }
 \keyword{datasets}
