@@ -49,6 +49,7 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LMM_intro/", fig
 
 # Introduction
 
+
 ## Why Linear Mixed-effects Models?
 
 
