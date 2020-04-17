@@ -49,7 +49,6 @@ Imports:
     pbkrtest,
     pscl,
     rasterVis,
-    fastR,
     safeBinaryRegression,
     sem,
     tools,

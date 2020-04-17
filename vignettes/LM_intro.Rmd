@@ -288,7 +288,6 @@ Note: not much used by R users (because not the default) but seems more useful w
 ## Understanding factorial design
 
 ```{r factorial}
-data(poison, package = "fastR")  ##  ?fastR::poison for description
 poison$treat <- factor(poison$Treatment)
 poison$poison <- factor(poison$Poison)
 m <- model.matrix( ~ poison + treat, data = poison)

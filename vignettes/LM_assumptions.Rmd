@@ -135,7 +135,6 @@ summary(mod0b)$coef
 ## Another example of non-linearity
 
 ```{r poison}
-data(poison, package = "fastR")  ##  ?fastR::poison for description
 poison$treat <- factor(poison$Treatment)
 poison$poison <- factor(poison$Poison)
 mod_poison <- lm(Time ~ poison + treat, data = poison)
