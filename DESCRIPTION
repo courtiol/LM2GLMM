@@ -27,9 +27,7 @@ Imports:
     stats,
     glm2,
     glmmTMB,
-    gtools,
     knitr,
-    IsoriX,
     lattice,
     lme4,
     lmtest,
@@ -53,6 +51,7 @@ Imports:
     tools,
     visreg
 Suggests:
+    IsoriX,
     rmarkdown,
     rcdd,
     rgl
