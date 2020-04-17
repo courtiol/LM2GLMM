@@ -1,9 +1,9 @@
-.build_vignettes <- function(){
+.build_vignettes <- function() {
   pkg <- devtools::as.package(".")
   devtools::install_deps(pkg, "VignetteBuilder", upgrade = TRUE)
   message("Building ", pkg$package, " vignettes")
   tools::buildVignettes(dir = pkg$path, tangle = TRUE, clean = FALSE)
-  devtools:::copy_vignettes(pkg)
+  devtools:::copy_vignettes(pkg, keep_md = FALSE)
   invisible(TRUE)
 }
 
