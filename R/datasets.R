@@ -357,3 +357,27 @@
 #' of the data at OzDASL are in units of tens of hours.)
 #' @keywords datasets
 "poison"
+
+
+#' Survival of Passengers on the Titanic (from package carData)
+#'
+#' Information on the survival status, sex, age, and passenger class of 1309
+#' passengers in the Titanic disaster of 1912.
+#'
+#' This is part of a larger data set compiled by Thomas Cason.  Many additional
+#' details are given in the sources cited below.
+#'
+#' @docType data
+#' @format A data frame with 1309 observations on the following 4 variables. \describe{
+#'   \item{survived}{\code{no} or \code{yes}.} \item{sex}{\code{female} or \code{male}.}
+#'   \item{age}{in years (and for some children, fractions of a year); age is missing for
+#'   263 of the passengers.}
+#'   \item{passengerClass}{\code{1st}, \code{2nd}, or \code{3rd} class.} }
+#' @references \url{http://www.encyclopedia-titanica.org/}
+#'
+#' F. E. Harrell, Jr. (2001) \emph{Regression Modeling Strategies} New York:
+#' Springer.
+#' @source Data set \code{titanic3} from
+#' \url{http://biostat.mc.vanderbilt.edu/twiki/bin/view/Main/DataSets}.
+#' @keywords datasets
+"TitanicSurvival"

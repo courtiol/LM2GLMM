@@ -63,10 +63,9 @@ head(esoph)
 * Find out whether you should rather limit alcohol consumption or tabacco consumption in order to avoid developing an oesophageal cancer?
 
 
-## Dataset: carData::TitanicSurvival
+## Dataset: TitanicSurvival
 
 ```{r}
-data(TitanicSurvival, package = "carData")
 head(TitanicSurvival)
 ```
 

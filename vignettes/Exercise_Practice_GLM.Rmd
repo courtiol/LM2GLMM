@@ -467,7 +467,7 @@ This last model seems quite good and it allows to answer our question!
 <br>
 
 
-# Dataset: carData::TitanicSurvival
+# Dataset: TitanicSurvival
 
 ## Goal
 
@@ -475,10 +475,6 @@ This last model seems quite good and it allows to answer our question!
 * Compute the odds-ratio for survival between the two most contrasting groups of individuals. 
 
 ## Exploration of the data
-```{r}
-data(TitanicSurvival, package = "carData")
-```
-
 ```{r}
 head(TitanicSurvival)
 str(TitanicSurvival)
