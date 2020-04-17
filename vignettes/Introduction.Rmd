@@ -8,64 +8,34 @@ output:
     smaller: true
 vignette: >
   %\VignetteIndexEntry{1 Introduction}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 ```{r setup, include=FALSE}
 library(LM2GLMM)
 set.seed(1L)
+knitr::opts_chunk$set(fig.align = "center")
 ```
 
-# The exam
+## Table of content
 
-## Procedure
-
-###What?
-
-* biological questions for which the answers will require you to build liner models
-* you will answer by writing text and R code producing results including figures and/or tables 
-
-### When?
-
-* one afternoon suiting everyone, once the course will be over
-* duration for the examination: **one hour**
-
-(It should be sufficient, but you will be able to stay longer if you need to!)
-
-
-###Condition?
-
-* individually
-* you are free to look at your course and R-help files (no internet)
-
-
-## Grading
-
-###I will grade:
-
-* the correctness and clarity of the R code
-* the correctness and clarity of the answers
-
-###I will give bonuses for the quality/elegance of:
-
-* the writing
-* the code
-* the illustrations
-
-###You will be penalised if:
-
-* you cheat (looking at internet, colleagues)
-* you ask for my help because you really are stuck
+### 1. The exam
+### 2. General information
+### 3. A catalogue of most useful {base} R command for this course
 
 
 # General information
+
+## Course philosophy
 
 ## What do you need for the course?
 * a laptop
 * a computer with internet connection
 * a web browser (up-to-date)
-* R version $\geq$ 3.4
-* RStudio version $\geq$ 1.1 (recommended)
+* R version $\geq$ 3.6
+* RStudio version $\geq$ 1.2 (recommended)
 
 ## How to access the course?
 
@@ -97,8 +67,48 @@ library(package = "LM2GLMM") ## !!! Always check the version with me because I w
  #############################################
 ```
 
+# The exam
 
-# Refreshing your R skills
+## Procedure
+
+### What?
+
+* biological questions for which the answers will require you to build liner models
+* you will answer by writing text and R code producing results including figures and/or tables 
+
+### When?
+
+* half a day suiting everyone, once the course will be over
+* duration for the examination: **one hour**
+
+(It should be sufficient, but you will be able to stay longer if you need to!)
+
+
+### Condition?
+
+* individually
+* you are free to look at your course and R-help files (no internet)
+
+
+## Grading
+
+### I will grade:
+
+* the correctness and clarity of the R code
+* the correctness and clarity of the answers
+
+### I will give bonuses for the quality/elegance of:
+
+* the writing
+* the code
+* the illustrations
+
+### I will help you:
+
+* but only if you really are stuck
+
+
+# A catalogue of most useful {base} R command for this course
 
 ## Vectors: basics
 
@@ -141,9 +151,16 @@ knitr::kable(rbind(names, classes))
 ## Vectors: factors
 
 ```{r vetors factors}
-foo <-  factor(c("a", "b", "c"))
-(foo <- foo[foo != "b"]) ## Tip: the brackets force the display
-(foo <- droplevels(foo))
+(foo <-  factor(c("a", "b", "c"))) ## Tip: the brackets force the display
+```
+
+```{r vetors factors2, results='hide'}
+relevel(foo, ref = "c")                      ## change first level
+factor(foo, levels = c("c", "b", "a"))       ## control order of levels
+droplevels(foo[foo != "b"])                  ## drop empty levels
+c(factor(c("a", "b")), factor(c("b", "c")))  ## do not coerce factors with different levels!
+factor(c("a", "b"), c("b", "c"))             ## you can coerce characters
+as.character(foo)                            ## you can turn factors into characters
 ```
 
 
@@ -178,6 +195,64 @@ foo$x
 foo[, "x"]
 ```
 
+## Dataframes: combining rows
+
+```{r dataframe foo2}
+foo2 <- data.frame(
+  x = c(2, 4),
+  z = factor(c("b", "d"))
+  )
+```
+
+```{r dataframe rbind}
+rbind(foo, foo2) ## Note that the factor levels are redefined!
+```
+
+```{r vector joining factor levels}
+c(foo$z, foo2$z) ## but this is not the case for vectors!!
+```
+
+## Dataframes: combining columns
+
+```{r dataframe bar}
+bar <- data.frame(
+  x = c(1, 2, 3),
+  w = c(2, 4, 3),
+  s = factor(c("b", "d", "e"))
+  )
+```
+
+```{r dataframe cbind}
+cbind(foo, bar) ## Note that columns are not merged
+```
+
+
+## Dataframes: {dplyr} <---> {base} translation
+
+```{r dataframe dplyr, message=FALSE}
+library(dplyr)
+```
+
+```{r dataframe tibble}
+foo_tbl <- tibble(x = c(1, 3, 5),
+                  z = factor(c("a", "b", "c")))
+foo_tbl ## the display is different
+```
+
+```{r dataframe dplyr select columns, results='hide'}
+select(foo_tbl, x)          ## same as foo_tbl[, "x", drop = FALSE]
+slice(foo_tbl, 2)           ## same as foo_tbl[2, ]
+filter(foo_tbl, x == 3)     ## same as foo_tbl[foo_tbl$x == 3, ]
+```
+
+
+```{r dataframe dplyr select columns piped, results='hide'}
+foo_tbl %>% select(x)       ## same as foo_tbl[, "x", drop = FALSE]
+foo_tbl %>% slice(2)        ## same as foo_tbl[2, ]
+foo_tbl %>% filter(x == 3)  ## same as foo_tbl[foo_tbl$x == 3, ]
+```
+
+
 ## Matrices: basics
 
 ```{r matrix}
@@ -197,7 +272,6 @@ foo[2, ]
 foo[1, 2]
 ```
 
-
 ## Matrices: transposition, inversion
 
 ```{r matrix transpose}
@@ -206,7 +280,7 @@ t(foo)  ## transpose of foo
 solve(foo)  ## inverse of foo
 ```
 
-## Matrices: mutliplication
+## Matrices: multiplication
 
 ```{r matrix multiplication}
 foo %*% matrix(c(-1, 1))  ## matrix multiplication; same as foo %*% c(0, 1, -1)
@@ -222,6 +296,27 @@ foo
 foo[["foo2"]]
 foo$foo2
 ```
+
+## Sequences
+
+```{r seq}
+seq(from = 1, to = 5, by = 0.5)
+seq(from = 1, by = 0.5, length.out = 9)
+seq(from = 1, to = 5, length.out = 9)
+```
+
+
+## Pseudo-random numbers in R
+
+```{r rnorm}
+rnorm(5, mean = 2, sd = 0.1)  ## Tip: check ?Distributions for other distributions
+rnorm(5, mean = 2, sd = 0.1)
+set.seed(14353L)
+rnorm(5, mean = 2, sd = 0.1)
+set.seed(14353L)
+rnorm(5, mean = 2, sd = 0.1)
+```
+
 
 ## Functions
 
@@ -242,14 +337,31 @@ addA_B_bis <- function(a, b) a + b
 addA_B_bis(2, 3)
 ```
 
-## Using pseudo-random numbers in R
 
-```{r rnorm}
-rnorm(5, mean = 2, sd = 0.1)  ## Tip: check ?Distributions for other distributions
-rnorm(5, mean = 2, sd = 0.1)
-set.seed(14353L)
-rnorm(5, mean = 2, sd = 0.1)
-set.seed(14353L)
-rnorm(5, mean = 2, sd = 0.1)
+## Repeated operations
+
+```{r replicate}
+hello <- function(who = "alex") paste("hello", who)
+replicate(10, hello())
+```
+
+```{r sapply}
+sapply(c("alex", "olivia"), function(i) hello(who = i))
+```
+
+
+## An example: statistical power of a t-test
+
+```{r example, fig.show='hide'}
+compare_heights <- function(n_group = 10, height_difference = 5) {
+  male   <- rnorm(n = n_group, mean = 180, sd = 6)
+  female <- rnorm(n = n_group, mean = 180 - height_difference, sd = 6)
+  t_test_res <- t.test(male, female)
+  t_test_res$p.value
+}
+
+N <- seq(from = 10, to = 60, by = 2)
+power <- sapply(N, function(n) mean(replicate(100, compare_heights(n_group = n)) <= 0.05))
+plot(power ~ N)
 ```
 
