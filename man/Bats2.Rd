@@ -4,7 +4,8 @@
 \name{Bats2}
 \alias{Bats2}
 \title{The second Bats dataset}
-\format{A data frame with 82 rows and 14 variables:
+\format{
+A data frame with 82 rows and 14 variables:
 \describe{
   \item{location}{the locations were different for every mistnet}
   \item{date}{the date as a Date R object}
@@ -20,7 +21,8 @@
   \item{X15N_stomach_content}{isotopic measurement}
   \item{X13C_stomach_content}{isotopic measurement}
   \item{time_rel}{the number of days since the begining of the data collection}
-}}
+}
+}
 \source{
 Data collected by Cecilia Kruszynski, Center of Nuclear Energy in Agriculture, Piracicaba, São Paulo.
 }

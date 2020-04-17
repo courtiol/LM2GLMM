@@ -4,7 +4,8 @@
 \name{UK}
 \alias{UK}
 \title{Sample from the Ten-Year Follow-up (1980) of the 1970 British Cohort Study}
-\format{A data frame with 14875 rows and 19 variables:
+\format{
+A data frame with 14875 rows and 19 variables:
 \describe{
   \item{sex}{Child's sex}
   \item{age}{Child's age in days}
@@ -25,7 +26,8 @@
   \item{father_height}{Father's height in cm}
   \item{mother_weight}{Mother's weight in Kg}
   \item{father_weight}{Father's weight in Kg}
-}}
+}
+}
 \source{
 Study number 3723 from the BCS70: \url{https://discover.ukdataservice.ac.uk/series/?sn=200001}
 }

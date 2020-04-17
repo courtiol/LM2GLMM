@@ -4,7 +4,8 @@
 \name{Bats}
 \alias{Bats}
 \title{The Bats dataset}
-\format{A data frame with 10 variables:
+\format{
+A data frame with 10 variables:
  \describe{
    \item{log_weight}{The log body weight in grams}
    \item{Spp.y}{An identifier referring to the species}
@@ -16,7 +17,8 @@
    \item{Year}{A factor indicating the year of sampling}
    \item{Season}{A factor indicating the season of sampling}
    \item{Site.x}{A factor indicating the type of forest patch in which individuals have been captured}
- }}
+ }
+}
 \source{
 Anne Seltmann, Gábor Á. Czirják, Alexandre Courtiol, Henry Bernard,
   Matthew J. Struebig, Christian C. Voigt; Habitat disturbance results in

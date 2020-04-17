@@ -4,14 +4,16 @@
 \name{Challenger}
 \alias{Challenger}
 \title{The Challenger Space Shuttle O-Ring Dataset}
-\format{A dataframe with 5 variables:
+\format{
+A dataframe with 5 variables:
   \describe{
     \item{oring_tot}{The number of O-rings at risk on a given flight}
     \item{oring_dt}{The number experiencing thermal distress}
     \item{temp}{The launch temperature (degrees F)}
     \item{psi}{The leak-check pressure (psi)}
     \item{flight}{The temporal order of flight}
-   }}
+   }
+}
 \source{
 \url{https://archive.ics.uci.edu/ml/datasets/Challenger+USA+Space+Shuttle+O-Ring}
 

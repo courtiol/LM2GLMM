@@ -4,7 +4,8 @@
 \name{Flatwork}
 \alias{Flatwork}
 \title{Record of household effort in a flatshare (Berlin winter 2016 - spring 2017)}
-\format{A data frame with 60 rows and 7 variables:
+\format{
+A data frame with 60 rows and 7 variables:
 \describe{
  \item{individual}{identity of flatmate}
  \item{gender}{gender of flatmate}
@@ -13,7 +14,8 @@
  \item{cleaning}{number of half hours spent cleaning in respective month}
  \item{other}{number of half hours spent on tasks except shopping or cleaning}
  \item{absent}{number of days flatmate is absent in respective month}
-}}
+}
+}
 \source{
 Privately gathered data
 }

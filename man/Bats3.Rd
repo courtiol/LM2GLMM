@@ -4,7 +4,8 @@
 \name{Bats3}
 \alias{Bats3}
 \title{The third Bats dataset}
-\format{A data frame with 70 rows and 21 variables:
+\format{
+A data frame with 70 rows and 21 variables:
 \describe{
   \item{Site}{the ID of recording site}
   \item{lat}{the latitude}
@@ -27,7 +28,8 @@
   \item{ndvi_mean}{the NDVI index mean for the plot}
   \item{ndvi_SD}{the standard deviation of NDVI index for plot}
   \item{time_rel}{the number of hours since the first collection}
-  }}
+  }
+}
 \source{
 Data collected by Kseniia Kravchenko, UIEI Ukraine
 }

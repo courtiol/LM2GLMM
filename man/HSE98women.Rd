@@ -4,7 +4,8 @@
 \name{HSE98women}
 \alias{HSE98women}
 \title{Sample from the Health Survey for England Cardiovascular Disease’98}
-\format{A data frame with 4 variables:
+\format{
+A data frame with 4 variables:
 \describe{
   \item{period}{Whether still having periods}
   \item{age}{Age last birthday}
@@ -13,7 +14,8 @@
   \item{drinkPb}{Number of drinking problems experienced}
   \item{education}{Age finished education}
   \item{bmi}{Valid BMI}
-}}
+}
+}
 \source{
 UK Data Archive Study Number 4150
 }

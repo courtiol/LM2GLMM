@@ -4,7 +4,8 @@
 \name{Fungi}
 \alias{Fungi}
 \title{The Fungi dataset}
-\format{A data frame with 8 variables:
+\format{
+A data frame with 8 variables:
  \describe{
    \item{colony}{An identifier indicating the colony}
    \item{species}{An identifier referring to the species}
@@ -14,7 +15,8 @@
    \item{PT38}{A binary indicating if a pre-treatment at 38 degrees was performed}
    \item{alive}{A boolean indicating if the fungi was alive at the end of the experiment}
    \item{growth}{A quantitative measure of the growth rate}
- }}
+ }
+}
 \source{
 Bachelor thesis of Magdalena Nagel, FU Berlin.
 }

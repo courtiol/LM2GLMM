@@ -4,7 +4,8 @@
 \name{Hedgehog}
 \alias{Hedgehog}
 \title{The Hedgehog dataset}
-\format{A data frame with 386 rows and 10 variables:
+\format{
+A data frame with 386 rows and 10 variables:
 \describe{
   \item{time}{the date as a Date R object}
   \item{presence}{A binary indicating whether an hedgehog has been observed or not}
@@ -16,7 +17,8 @@
   \item{cloud_cover}{the mean cloud cover during the 4-hour window}
   \item{moon_phase}{the phase of the moon on that night}
   \item{time_rel}{the number of days since the begining of the data collection}
-}}
+}
+}
 \source{
 Internship from Wanja Rast, IZW Berlin???
 }

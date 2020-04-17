@@ -4,12 +4,14 @@
 \name{Surprise}
 \alias{Surprise}
 \title{The Surprise dataset}
-\format{A dataframe with 3 variables:
+\format{
+A dataframe with 3 variables:
   \describe{
     \item{type}{the type of gift}
     \item{price}{the price coverted in US$}
     \item{hapiness}{the continuous scale used to record the children's emotional response}
-  }}
+  }
+}
 \source{
 Justin Matejka, George Fitzmaurice, Toronto Ontario Canada. DOI: http://dx.doi.org/10.1145/3025453.3025912
 }

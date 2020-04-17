@@ -4,8 +4,14 @@
 \alias{simulate_Mix}
 \title{Function simulating the observations under a simple LMM}
 \usage{
-simulate_Mix(intercept = 50, slope = 1.5, n = 30, group_nb = 10,
-  var.rand = 2, var.error = 0.5)
+simulate_Mix(
+  intercept = 50,
+  slope = 1.5,
+  n = 30,
+  group_nb = 10,
+  var.rand = 2,
+  var.error = 0.5
+)
 }
 \arguments{
 \item{intercept}{the value for the intercept}
