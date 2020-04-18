@@ -1,5 +1,6 @@
 ---
-title: "From LM to GLMM"
+title: "Data science for biologists"
+subtitle: "Generalized Linear Modelling with R"
 author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
 output:
