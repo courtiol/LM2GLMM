@@ -7,6 +7,6 @@
 ^vignettes/cache_knitr/*$
 ^vignettes/fig_knitr/*$
 ^Rplot.pdf$
-^future_vignettes$
+^vignettes/future_vignettes/*$
 ^doc$
 ^Meta$
