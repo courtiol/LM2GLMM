@@ -21,14 +21,31 @@ knitr::opts_chunk$set(fig.align = "center")
 
 ## Table of content
 
-### 1. The exam
-### 2. General information
-### 3. A catalogue of most useful {base} R command for this course
+### 1. [General information](./Introduction.html#3)
+### 2. [The exam](./Introduction.html#7)
+### 3. [A catalogue of most useful {base} R commands for this course](./Introduction.html#10)
 
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
 
 # General information
 
 ## Course philosophy
+
+### What I want you to become:
+* autonomous (capable of doing a little, capable of learning easily)
+* capable of tackling analyses of real dataset (and not artificial problem free dataset)
+
+### How to get there?
+* I will get you to experiment things in your R console as a mean to understanding and learning
+* I will put a particular emphasis on programming -- not on mathematics
+
+### What I will not cover in this course:
+* how to use the {dplyr} and friends ({tidyr}, {tidyselect}, {forcats}...) to put data in shape
+* which packages can do X or Y in one single click
+
+
 
 ## What do you need for the course?
 * a laptop
@@ -108,7 +125,7 @@ library(package = "LM2GLMM") ## !!! Always check the version with me because I w
 * but only if you really are stuck
 
 
-# A catalogue of most useful {base} R command for this course
+# A catalogue of most useful {base} R commands for this course
 
 ## Vectors: basics
 
@@ -135,11 +152,13 @@ table(foo, useNA = "always")
 ```{r vectors classes}
 foo1 <- c(1, 5, 5, NA)
 foo2 <- c(a = 1, b = 3)
-foo3 <- foo1 > 3
+foo3 <- c(TRUE, FALSE)
 foo4 <- c("a", "b", "c")
 foo5 <- factor(foo3)
 foo6 <- c(1L, 3L, 5L)
+```
 
+```{r vectors class}
 class(foo1)
 ```
 
@@ -340,17 +359,26 @@ addA_B_bis(2, 3)
 
 ## Repeated operations
 
-```{r replicate}
+```{r hello}
 hello <- function(who = "alex") paste("hello", who)
-replicate(10, hello())
+```
+
+```{r replicate}
+replicate(10, hello())  ## returns a vector when it can
 ```
 
 ```{r sapply}
-sapply(c("alex", "olivia"), function(i) hello(who = i))
+sapply(c("alex", "olivia"), function(i) hello(who = i)) ## returns a vector when it can
+```
+
+```{r lapply}
+lapply(c("alex", "olivia"), function(i) hello(who = i)) ## returns a list
 ```
 
 
-## An example: statistical power of a t-test
+## An example combining all of the above
+
+### Investigating the statistical power of a t-test
 
 ```{r example, fig.show='hide'}
 compare_heights <- function(n_group = 10, height_difference = 5) {
@@ -365,3 +393,9 @@ power <- sapply(N, function(n) mean(replicate(100, compare_heights(n_group = n))
 plot(power ~ N)
 ```
 
+Can you understand that?
+
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
