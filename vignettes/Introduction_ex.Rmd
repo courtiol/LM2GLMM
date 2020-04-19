@@ -1,0 +1,85 @@
+---
+title: "Introduction"
+subtitle: "exercises"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+vignette: >
+  %\VignetteIndexEntry{1.0 z-------------------------------------------------------------exercises}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, include=FALSE}
+library(LM2GLMM)
+knitr::opts_chunk$set(cache = TRUE,
+                      fig.align = "center",
+                      fig.width = 4,
+                      fig.height = 4,
+                      cache.path = "./cache_knitr/LM_intro_ex/",
+                      fig.path = "./fig_knitr/LM_intro_ex/")
+options(width = 200)
+set.seed(1L)
+```
+
+## Computing with R
+
+Compute the following equation:
+
+<br>
+
+<center><font size="8"> $\sqrt{\frac{2^{3+1}}{\frac{4}{5\times{6}}}-20}$ </font></center>
+
+<br>
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
+
+
+## Data exploration
+
+Using the dataset `TitanicSurvival`, figure out: 
+
+- how many rows and columns are they in this dataset?
+- how many columns correspond to factors?
+- how many females below 20 years old survived in 2nd class, and how many did not?
+
+```{r echo = FALSE, results='hide'}
+dim(TitanicSurvival)
+str(TitanicSurvival)
+apply(TitanicSurvival, 2, function(x) any(is.na(x)))
+focus <- with(TitanicSurvival, survived[sex == "female" & !is.na(age) & age < 20 & passengerClass == "2nd"])
+table(focus, useNA = "always")
+```
+
+
+## An example of programming
+
+The following function can be used to investigate the statistical power of a t-test (i.e. the probability to detect a significant effect when they really is one = rate of true positive):
+
+```{r example, fig.show='hide'}
+compare_heights <- function(n_group = 10, height_difference = 5) {
+  male   <- rnorm(n = n_group, mean = 180, sd = 6)
+  female <- rnorm(n = n_group, mean = 180 - height_difference, sd = 6)
+  t_test_res <- t.test(male, female)
+  t_test_res$p.value
+}
+
+N <- seq(from = 10, to = 60, by = 2)
+power <- sapply(N, function(n) mean(replicate(100, compare_heights(n_group = n)) <= 0.05))
+plot(power ~ N)
+```
+
+<br>
+
+Can you run, read and understand this code?
+
+##
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
