@@ -18,22 +18,22 @@
 }
 
 
-.build_vignettes <- function() {
-  #devtools::build_vignettes(pkg = ".", dependencies = "VignetteBuilder", clean = FALSE,
-  #                          upgrade = "never", quiet = FALSE, install = TRUE,
-  #                          keep_md = TRUE)
-  pkg <- devtools::as.package(".")
-  remotes::dev_package_deps(pkg$path, dependencies = "VignetteBuilder")
-  message("Building ", pkg$package, " vignettes")
-  tools::buildVignettes(dir = pkg$path, tangle = TRUE, clean = FALSE)
-  devtools:::copy_vignettes(pkg, keep_md = FALSE)
+#' @export
+.build_vignettes <- function(quiet = TRUE) {
+  devtools::build_vignettes(pkg = ".", dependencies = "VignetteBuilder", clean = FALSE,
+                            upgrade = "never", quiet = quiet, install = TRUE,
+                            keep_md = TRUE)
+  system("mkdir -p ./inst/doc; cp ./doc/*.html ./inst/doc")
+  message("To view the vignette, Install & Rebuild, then\n browseVignettes('LM2GLMM')")
   invisible(TRUE)
 }
 
 
+#' @export
 .update_drat <- function() {
-  path <- devtools::build(binary = FALSE, vignettes = TRUE)
-  drat::insertPackage(path, repodir = "~/Boulot/Mes_projets_de_recherche/R_packages/drat", commit = TRUE)
-  drat::pruneRepo(repopath = "~/Boulot/Mes_projets_de_recherche/R_packages/drat", remove = TRUE)
-  system("cd ~/Boulot/Mes_projets_de_recherche/R_packages/drat; git add .; git commit -m 'Pruning';  git push") ## note: takes a while
+  path <- devtools::build(binary = FALSE, vignettes = FALSE)
+  drat::insertPackage(path, repodir = "../../drat", commit = TRUE)
+  drat::pruneRepo(repopath = "../../drat", remove = TRUE)
+  message("About to upload the package on GitHub, be patient...")
+  system("cd ../../drat; git add .; git commit -m 'Pruning';  git push")
 }
