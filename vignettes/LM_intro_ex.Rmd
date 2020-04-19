@@ -1,0 +1,103 @@
+---
+title: "LM: Introduction"
+subtitle: "exercises"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+vignette: >
+  %\VignetteIndexEntry{2.0 z-------------------------------------------------------------exercises}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, include=FALSE}
+library(LM2GLMM)
+knitr::opts_chunk$set(cache = TRUE,
+                      fig.align = "center",
+                      fig.width = 4,
+                      fig.height = 4,
+                      cache.path = "./cache_knitr/LM_intro_ex/",
+                      fig.path = "./fig_knitr/LM_intro_ex/")
+options(width = 200)
+set.seed(1L)
+```
+
+
+## Alternative representations of design matrices
+
+### Are these different representations of gender equivalent?
+
+* ```"boy"``` vs ```"girl"```
+* ```"male"``` vs ```"female"```
+* ```0``` vs ```1```
+* ```1``` vs ```2```
+* ```TRUE``` vs ```FALSE```
+
+<br>
+
+Create all corresponding design matrices to be sure!
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
+
+
+## Alternative representations of design matrices
+
+### If the average IQ for boys were 90 and 110 for girls, what would the parameter values be, for each of the following coding:
+
+* ```"boy"``` vs ```"girl"```
+* ```"male"``` vs ```"female"```
+* ```0``` vs ```1```
+* ```1``` vs ```2```
+* ```TRUE``` vs ```FALSE```
+
+
+## Alternative representations of design matrices
+
+### Are these different representations of ages equivalent?
+
+* ```"baby"``` vs ```"child"``` vs ```"adult"```
+* ```0``` vs ```1``` vs ```2```
+* ```1``` vs ```2``` vs ```3```
+
+## Simulating data
+
+Turn the following code into a function that takes the number of aliens to generate as an argument:
+
+```{r alien data}
+Alien <- data.frame(humans_eaten = rep(1:3, each = 2), intercept = 50, slope = 1.5)
+Alien$error <- rnorm(n = 6, mean = 0, sd = sqrt(5))
+Alien$size <- Alien$intercept + Alien$slope*Alien$humans_eaten + Alien$error
+```
+
+
+## Simulating data
+
+Adapt the following code to include an interaction.
+
+```{r Alien}
+set.seed(123)
+Alien2 <- data.frame(planet = factor(c(rep("Chambr", 2), rep("Riplyx", 2), rep("Wickor", 2))),
+                     sex = factor(rep(c("Z", "ZZ"), times = 3)),
+                     bh_trips = 6:1)
+Alien2$age <- rep(0, nrow(Alien2))
+Alien2$age[Alien2$planet == "Chambr"] <- Alien2$age[Alien2$planet == "Chambr"] + 100 
+Alien2$age[Alien2$planet == "Riplyx"] <- Alien2$age[Alien2$planet == "Riplyx"] + 1000
+Alien2$age[Alien2$planet == "Wickor"] <- Alien2$age[Alien2$planet == "Wickor"] + 10000
+Alien2$age[Alien2$sex == "Z"] <- Alien2$age[Alien2$sex == "Z"] + -20
+Alien2$age[Alien2$sex == "ZZ"] <- Alien2$age[Alien2$sex == "ZZ"] + 20
+Alien2$age <- Alien2$age + 0.5*Alien2$bh_trips
+Alien2$age <- Alien2$age + rnorm(nrow(Alien2), mean = 0, sd = 4)
+Alien2
+```
+
+##
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
+
