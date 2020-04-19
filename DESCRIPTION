@@ -1,7 +1,7 @@
 Package: LM2GLMM
 Type: Package
 Title: Advanced Statistical Applications: from LM to GLMM using R
-Version: 20200418.1
+Version: 20200419.1
 Author: Alexandre Courtiol[aut, cre], François Rousset [ctb]
 Maintainer: Alexandre Courtiol <courtiol@izw-berlin.de>
 Description: This package provides all required material for the course.
