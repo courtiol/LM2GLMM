@@ -35,12 +35,12 @@ knitr::opts_chunk$set(fig.align = "center")
 
 ### By the end of the course, my goal is for you to:
 * become autonomous with linear modelling (capable of doing a little, capable of learning a lot)
-* become capable of tackling most chalenges brought by the analyses of real dataset
+* become capable of tackling most challenges brought by the analyses of real dataset
 
 ### How to get there?
 * Learn some key concepts & some programming (but hardly any mathematics)
 * We need to dig a bit underneath the surface to understand how R does thing
-* You need to stop a little compulsive googling and copying of the code produced by random people and start trying to solve any R/stats problems like any other scientific problem: by combining observations and experiements (in your R console)
+* You need to stop a little compulsive googling and copying of the code produced by random people and start trying to solve any R/stats problems like any other scientific problem: by combining observations and experiments (in your R console)
 
 ### What I will not cover in this course:
 * how to use the {dplyr} and friends ({tidyr}, {tidyselect}, {forcats}...) to put data in shape

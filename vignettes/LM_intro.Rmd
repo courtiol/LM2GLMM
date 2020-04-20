@@ -45,6 +45,21 @@ knitr::opts_chunk$set(error = TRUE)
 
 # Definition and notations
 
+## Disclaimer
+
+There is (unfortunately) no such thing as a standard vocabulary to discuss LM.
+
+The terms I chose to use are not used by all; even simple and widespread terms such as *explanatory variables* and *residuals* can mean different things for different people.
+
+Statisticians perhaps do not need words as much as we do because they can rely on their understanding of precise mathematical definitions.
+
+As we are not statisticians, for the sake of clear communication, I will try to stick to quite precise terms which I am going to define in my own way.
+
+Keep this in mind if you are looking at other content online or in books.
+
+The important thing is for you to grasp what these words represent, more than the word themselves.
+
+
 ## What is a Linear Model (LM)?
 
 ### What is a statistical model?
@@ -65,14 +80,14 @@ knitr::opts_chunk$set(error = TRUE)
 
 * $y_i$ = the response variable / dependent variable / observations to explain
 * $\beta_j$ = the model parameters / regression coefficients
-* $x_{j,i}$ = constants derived from the explanatory variables
+* $x_{j,i}$ = regressors / constants derived from the explanatory variables
 * $\epsilon_i$ = the errors / residual errors
 
 <br>
 
 This is the notation that biologists should use in their paper/thesis to describe their model.
 
-Note: the constants derived from the explanatory variables are sometimes directly given by the columns from your dataset, but not always.
+Note: the regressors are sometimes directly given by the columns from your dataset, but not always (more on that later).
 
 
 ## Mathematical notation of LM: matrix notation
@@ -142,7 +157,7 @@ Alien
 Can you recognise:
 
 - the model parameters?
-- the explanatory variable?
+- the regressor (here = explanatory variable)?
 - the errors?
 - the response variable?
 
@@ -198,7 +213,7 @@ This is the notation that is good for talking to R and to R users, but it does n
 
 * $\hat{y_i}$ = the fitted values
 * $\hat{\beta_j}$ = the (model parameter / regression coefficient) estimates
-* $x_{j,i}$ = constants derived from the explanatory variables
+* $x_{j,i}$ = regressors / constants derived from the explanatory variables
 * $y_i - \hat{y_i} = \varepsilon_i$ = the residuals (i.e. the estimates for the errors / residual errors)
 
 <br>
@@ -391,7 +406,7 @@ Note : R uses design matrices extensively!
 
 ## The design matrix
 
-### It is the representation of the predictors
+### It is made of the regressors (= adequate representations of the predictors)
 
 ###  <span style="color:red"> You cannot interpret model parameters correctly without understanding the design matrix of a model! </span>
 
@@ -595,9 +610,6 @@ It will not change the predictions, the likelihood, the AIC, ...; only the param
 
 ## Interpreting the Helmert contrasts
 
-```{r helmert contrast 1}
-model.matrix(object = ~ x, data = somedata2, contrasts.arg = list(x = "contr.helmert"))
-```
 Average of the three levels =
 $$
 \frac{(1*\text{Int}-1*\text{x1}-1*\text{x2})+(1*\text{Int}+1*\text{x1}-1*\text{x2})+(1*\text{Int}+0*\text{x1}-2*\text{x2})}{3}=\text{Int}
@@ -650,13 +662,6 @@ for (i in 1:3) for (j in 1:3) XTX_3[i, j] <- sum(X[, i]*X[, j])
 
 identical(XTX_1, XTX_2) & identical(XTX_1, XTX_3)
 ```
--->
-
-
-<!--
-## Why make things more complex?
-
-### For technical reasons
 
 ```{r XTX}
 crossprod(DM_raw)  ## high values mean that predictors are collinear -> will be hard to fit
@@ -787,7 +792,6 @@ mean(Alien$residuals) ## residuals have a mean of 0 is the sample, while error h
 * 2.3 [Tests](./LM_tests.html)
 * 2.4 [Assumptions and Outliers](./LM_assumptions.html)
 * 2.5 [Let's practice more](./LM_practice.html)
-
 
 <br>
 
