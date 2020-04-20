@@ -22,7 +22,7 @@ knitr::opts_chunk$set(error = TRUE)
 ## The Linear Model: LM
 
 * 2.0 [Introduction](./LM_intro.html)
-* 2.1 [Point estimates](./LM_point_estimates.html)
+* 2.1 [Fitting procedure](./LM_fitting.html)
 * 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
 * 2.3 [Tests](./LM_tests.html)
 * 2.4 [Assumptions and Outliers](./LM_assumptions.html)
@@ -41,6 +41,7 @@ knitr::opts_chunk$set(error = TRUE)
 * some key vocabulary (e.g. response variable, fitted values, residuals...)
 * how to understand the meaning of parameters by investigating the design matrix
 * how to manipulate design matrices via formula and contrasts
+* how to compute predictions
 
 
 # Definition and notations
@@ -765,6 +766,36 @@ mean(Alien$residuals) ## residuals have a mean of 0 is the sample, while error h
 ```
 
 
+# Predictions
+
+## Predictions using the design matrix 
+
+Predictions are the equivalent to fitted values for future or hypothetical observations.
+
+Example: prediction for the size of Aliens having eaten 1, 1.5, 2, 2.5 and 3 humans.
+
+```{r prediction by hand}
+(new_design <- cbind(Intercept = 1, humans_eaten = seq(1, 3, by = 0.5)))
+new_design %*% coef(fit_alien_lm)
+```
+
+## Predictions using `predict()`
+
+The function `predict()` saves you the trouble of building a design matrix by hand:
+
+```{r prediction with predict}
+data_for_predict <- data.frame(humans_eaten = seq(1, 3, by = 0.5))
+predict(fit_alien_lm, newdata = data_for_predict)
+```
+
+<br>
+
+The fact that you provide predictors instead of regressors is particularly useful when you have qualitative variable (cf exercises).
+
+##
+<center> <img src="./Extrapolation.png" alt="xkcd" style="width: 300x;"/> </center>
+
+
 # Summary
 
 ## What you need to remember
@@ -774,6 +805,7 @@ mean(Alien$residuals) ## residuals have a mean of 0 is the sample, while error h
 * some key vocabulary (e.g. response variable, fitted values, residuals...)
 * how to understand the meaning of parameters by investigating the design matrix
 * how to manipulate design matrices via formula
+* how to compute predictions
 
 <br>
 
@@ -787,7 +819,7 @@ mean(Alien$residuals) ## residuals have a mean of 0 is the sample, while error h
 ## The Linear Model: LM
 
 * 2.0 [Introduction](./LM_intro.html)
-* 2.1 [Point estimates](./LM_point_estimates.html)
+* 2.1 [Fitting procedure](./LM_fitting.html)
 * 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
 * 2.3 [Tests](./LM_tests.html)
 * 2.4 [Assumptions and Outliers](./LM_assumptions.html)
