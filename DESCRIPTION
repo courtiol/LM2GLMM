@@ -52,6 +52,7 @@ Imports:
     tools,
     visreg
 Suggests:
+    devtools,
     IsoriX,
     rmarkdown,
     rcdd,
