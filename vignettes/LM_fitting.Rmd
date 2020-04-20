@@ -1,0 +1,730 @@
+---
+title: "LM: fitting procedure"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+vignette: >
+  %\VignetteIndexEntry{2.1 Fitting procedure}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+```{r setup, include=FALSE}
+library(LM2GLMM)
+options(width = 110)
+knitr::opts_chunk$set(error = TRUE,
+                      cache = FALSE,
+                      cache.path = "./cache_knitr/LM_fitting/",
+                      fig.path = "./fig_knitr/LM_fitting/")
+```
+
+## The Linear Model: LM
+
+* 2.0 [Introduction](./LM_intro.html)
+* 2.1 [Fitting procedure](./LM_fitting.html)
+* 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
+* 2.3 [Tests](./LM_tests.html)
+* 2.4 [Assumptions and Outliers](./LM_assumptions.html)
+* 2.5 [Let's practice more](./LM_practice.html)
+
+<br>
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
+
+## You will learn in this session
+
+* that the variance of residuals is a biased estimator of the error variance
+* how to extract key statistics for models fitted with `stats::lm()` & `spaMM::fitme()`
+* how to compute estimates numerically in a few lines of code
+* how ```lm()``` works
+* what the components stored within ```lm()``` objects are
+
+<!--
+<div class="columns-2">
+
+```{r alien data 2 eval, fig.align='center', fig.asp=1, fig.width=4, echo = FALSE, fig.cap="True relationship"}
+#plot(size ~ humans_eaten, data = Alien, ylab = "Alien size (cm)", xlab = "No. of humans eaten")
+#abline(a = 50, b = 1.5, col = "green", lwd = 2)
+```
+
+```{r alien data 3 eval, fig.align='center', fig.asp=1, fig.width=4, echo = FALSE, fig.cap="Inferred relationship"}
+#plot(size ~ humans_eaten, data = Alien, ylab = "Alien size (cm)", xlab = "No. of humans eaten")
+#text(x = nrow(Alien)/2, y = 82, labels = "?", cex = 5, col = "blue")
+#abline(fit_alien_lm, col = "blue", lwd = 2, lty = 2)
+```
+</div>
+-->
+
+# Back to high-school
+
+## Variance of sample and population
+
+```{r sample var}
+set.seed(1)
+bias_sample_var <- replicate(100000, {
+  observations <- rnorm(n = 20, mean = 0, sd = sqrt(5))
+  5 - sum((observations - mean(observations))^2) / 20
+})
+mean(bias_sample_var)
+```
+
+```{r pop var}
+set.seed(1)
+bias_pop_var <- replicate(100000, {
+  observations <- rnorm(n = 20, mean = 0, sd = sqrt(5))
+  5 - sum((observations - mean(observations))^2) / 19
+})
+mean(bias_pop_var)
+```
+
+This is why we have learned (a long time ago for some of us) that the denominator of the population variance estimate should be $n - p$ to correct for the bias when you estimate p parameters (here $p = 1$, the parameter is the mean). 
+
+
+
+# Data
+
+## Our toy dataset
+
+Let's simulate the size of 12 aliens using the function integrated in this LM2GLMM package:
+
+```{r Aliens}
+set.seed(123)
+(Alien <- simulate_Aliens())
+```
+
+
+# Fitting LM with `stats::lm()` & `spaMM::fitme()`
+
+## Fitting the Alien data using ```lm()```
+
+```{r fit alien lm}
+fit_alien_lm <- lm(size ~ humans_eaten, data = Alien)
+```
+
+<br>
+
+The object created stores a lot of information that you can retrieve directly or (better) indirectly using `lm()` companion functions:
+```{r fit alien lm output}
+names(fit_alien_lm)
+```
+
+
+## The R package {spaMM} can also fit LM
+
+**{spaMM}** is an R package developed by François Rousset (a population geneticist).
+
+<br>
+
+I use it a lot because:
+
+- it can fit from LM to GLMM (and more, e.g. DHGLM)
+- it can handle temporal and spatial autocorrelation
+- it allows for a straightforward computation of intervals, parametric bootstraps, and more
+- (and a little also because I work with François)
+
+
+## Fitting the Alien data using ```fitme()```
+
+```{r fit alien lm2a, message=FALSE}
+library(spaMM)
+fit_alien_lm2 <- fitme(size ~ humans_eaten, data = Alien)
+```
+
+<br>
+
+The object created also stores a lot of information that you can retrieve again directly or (better) indirectly using `fitme()` companion functions:
+```{r fit alien lm2a output}
+names(fit_alien_lm2)
+```
+
+
+## Extraction of the design matrix
+
+### From fit with `lm`()
+```{r dm lm, results='hold'}
+model.matrix(fit_alien_lm)
+```
+
+
+## Extraction of the design matrix
+
+### From fit with `fitme`()
+```{r dm spaMM}
+model.matrix(fit_alien_lm2)
+```
+
+
+## Extraction of model parameter estimates
+
+### From fit with `lm`()
+```{r fit coef, results='hold'}
+coef(fit_alien_lm) ## you can also do fit_alien_lm$coefficients but using dedicated 
+                   ## extractor (if available) is a better idea!
+```
+
+### From fit with `fitme`()
+```{r fit coef spaMM, results='hold'}
+fixef(fit_alien_lm2)
+```
+
+
+## Extraction of the error variance estimate
+
+### From fit with `lm`()
+```{r fit estimate error var}
+summary(fit_alien_lm)$sigma^2 ## we expect something close to 25
+```
+
+### From fit with `fitme`()
+```{r fit estimate error var spaMM}
+fit_alien_lm2$phi * nrow(Alien) / (nrow(model.matrix(fit_alien_lm2)) - ncol(model.matrix(fit_alien_lm2)))
+```
+
+Note: in ML fit (default setting) `phi` contains the sample residual variance, but the error variance estimate can be directly obtained from a REML fit (more on that later). `lm()` does not have this flexibility, which become particularly useful for more complex models that aim at estimating variances (mixed models).
+
+
+## Extraction of the residuals
+
+### From fit with `lm`()
+```{r fit residuals}
+residuals(fit_alien_lm)
+```
+
+### From fit with `fitme`()
+```{r fit residuals spaMM}
+residuals(fit_alien_lm2)
+```
+
+
+## Extraction of the sample residual variance
+
+### From fit with `lm`()
+```{r fit estimate residual var}
+summary(fit_alien_lm)$sigma^2 * (nrow(model.matrix(fit_alien_lm2)) - ncol(model.matrix(fit_alien_lm2))) / nrow(Alien)
+```
+
+Note: `sigma` contains the error standard deviation estimate, hence the transformation.
+
+### From fit with `fitme`()
+```{r fit estimate residual var spaMM}
+fit_alien_lm2$phi
+```
+
+
+## Extraction of the log-likelihood
+
+We will soon see what the likelihood is but for now consider that it is something quantifying how well the fit approximate the observations.
+
+### From fit with `lm`()
+```{r logLik}
+logLik(fit_alien_lm)
+```
+
+### From fit with `fitme`()
+```{r logLik spaMM}
+logLik(fit_alien_lm2)
+```
+
+
+## Extraction of the residual sum of squares
+
+This is another statistics quantifying how well the fit approximate the observations, which we will also study.
+
+### From fit with `lm`()
+```{r rss}
+anova(fit_alien_lm)[2, "Sum Sq"] ## this is the same as sum(residuals(fit_alien_lm)^2)
+```
+
+### From fit with `fitme`()
+```{r rss spaMM, results='hold'}
+sum(residuals(fit_alien_lm2)^2) ## no extractor I can think of 
+                                ## (even if in the specific case of LM you may use deviance(fit_alien_lm2))
+```
+
+
+# How fitting works?
+
+## How to fit a LM without `lm()`?
+
+### By maximum likelihood
+We want to find the $\widehat{\beta}$ (the column vector of model parameter estimates) maximizing the likelihood.
+
+The likelihood of the model given the data is equal to the probability density assumed for those data given those parameter
+values, that is: $\displaystyle {\mathcal {L}}(\theta \mid x) = P(x \mid \theta)$.
+
+<br>
+
+In the case of LM (and not GLM, LMM, GLMM), this is equivalent to performing the estimation
+
+### By ordinary least squares (OLS)
+
+We want to find the $\widehat{\beta}$ minimizing the residual sum of squares (RSS).
+
+The RSS = $\displaystyle\sum_{i=1}^{n}{\varepsilon_i^2}$.
+
+
+# Fitting LM by Ordinary Least Squares
+
+## The Residual Sum of Squares (RSS)
+
+<div class="columns-2">
+```{r alien RSS plot, fig.align='center', fig.asp=1, fig.width=5, echo = FALSE, fig.cap="Residuals on best fit"}
+par(las = 1)
+pred <- fitted.values(fit_alien_lm)
+resid <- residuals(fit_alien_lm)
+plot(size ~ humans_eaten, data = Alien, ylab = "Alien size (cm)", xlab = "No. of humans eaten", asp = 1)
+points(pred ~ humans_eaten, col = "blue", data = Alien, pch = 20)
+with(Alien, segments(x0 = humans_eaten, x1 = humans_eaten, y0 = size, y1 = pred, col = "orange"))
+legend("topleft", bty = "n", col = c("black", "blue"), pch = c(1, 20), legend = c("observation", "fitted value"))
+```
+
+```{r alien RSS plot2, fig.align='center', fig.asp=1, fig.width=5, echo = FALSE, fig.cap="Squared residuals on best fit"}
+par(las = 1)
+plot(
+  size ~ humans_eaten,
+  data = Alien,
+  ylab = "Alien size (cm)",
+  xlab = "No. of humans eaten",
+  asp = 1
+  )
+points(pred ~ humans_eaten, col = "blue", data = Alien, pch = 20)
+for (i in 1:nrow(Alien)) {
+  with(Alien, polygon(
+    x = c(
+    humans_eaten[i],
+    humans_eaten[i],
+    humans_eaten[i] + abs(resid[i]),
+    humans_eaten[i] + abs(resid[i])
+    ),
+    y = c(pred[i], size[i], size[i], pred[i]),
+    col = rgb(red = 1, green = 0, blue = 0, alpha = 0.1),
+    border = NA
+    ))
+}
+with(Alien, segments(x0 = humans_eaten, x1 = humans_eaten, y0 = size, y1 = pred, col = "orange"))
+legend("topleft", bty = "n", col = c("black", "blue"), pch = c(1, 20), legend = c("observation", "fitted value"))
+text(-4, 65, paste("RSS =", round(sum(fit_alien_lm$resid^2), 1)), col = "red")
+```
+</div>
+
+
+## The Residual Sum of Squares (RSS)
+
+<div class="columns-2">
+```{r alien RSS bad fit, fig.align='center', fig.asp=1, fig.width=5, echo = FALSE, fig.cap="Squared residuals on bad fit"}
+par(las = 1)
+plot(
+  size ~ humans_eaten,
+  data = Alien,
+  ylab = "Alien size (cm)",
+  xlab = "No. of humans eaten",
+  asp = 1
+  )
+badslope <- 0.5
+badintercept <- mean(Alien$size) - badslope * mean(Alien$humans_eaten)
+badpred <- badintercept + badslope * Alien$humans_eaten
+badresid <- Alien$size - badpred
+points(badpred ~ humans_eaten, col = "blue", data = Alien, pch = 20)
+for (i in 1:nrow(Alien)) {
+  with(Alien, polygon(
+    x = c(
+    humans_eaten[i],
+    humans_eaten[i],
+    humans_eaten[i] + abs(badresid[i]),
+    humans_eaten[i] + abs(badresid[i])
+    ),
+    y = c(badpred[i], size[i], size[i], badpred[i]),
+    col = rgb(red = 1, green = 0, blue = 0, alpha = 0.1),
+    border = NA
+    ))
+}
+with(Alien, segments(x0 = humans_eaten, x1 = humans_eaten, y0 = size, y1 = badpred, col = "orange"))
+legend("topleft", bty = "n", col = c("black", "blue"), pch = c(1, 20), legend = c("observation", "fitted value"))
+text(-4, 65, paste("RSS =", round(sum(badresid^2), 1)), col = "red")
+```
+```{r alien RSS plot2 again, fig.align='center', fig.asp=1, fig.width=5, echo = FALSE, fig.cap="Squared residuals on best fit"}
+par(las = 1)
+plot(
+  size ~ humans_eaten,
+  data = Alien,
+  ylab = "Alien size (cm)",
+  xlab = "No. of humans eaten",
+  asp = 1
+  )
+points(pred ~ humans_eaten, col = "blue", data = Alien, pch = 20)
+for (i in 1:nrow(Alien)) {
+  with(Alien, polygon(
+    x = c(
+    humans_eaten[i],
+    humans_eaten[i],
+    humans_eaten[i] + abs(resid[i]),
+    humans_eaten[i] + abs(resid[i])
+    ),
+    y = c(pred[i], size[i], size[i], pred[i]),
+    col = rgb(red = 1, green = 0, blue = 0, alpha = 0.1),
+    border = NA
+    ))
+}
+with(Alien, segments(x0 = humans_eaten, x1 = humans_eaten, y0 = size, y1 = pred, col = "orange"))
+legend("topleft", bty = "n", col = c("black", "blue"), pch = c(1, 20), legend = c("observation", "fitted value"))
+text(-4, 65, paste("RSS =", round(sum(fit_alien_lm$resid^2), 1)), col = "red")
+```
+
+</div>
+
+
+## The Residual Sum of Squares (RSS)
+
+<div class="columns-2">
+```{r alien RSS true, fig.align='center', fig.asp=1, fig.width=5, echo = FALSE, fig.cap="Squared residuals on TRUE relationship"}
+par(las = 1)
+plot(
+  size ~ humans_eaten,
+  data = Alien,
+  ylab = "Alien size (cm)",
+  xlab = "No. of humans eaten",
+  asp = 1
+  )
+badslope <- 1.5
+badintercept <- 50
+badpred <- badintercept + badslope * Alien$humans_eaten
+badresid <- Alien$size - badpred
+points(badpred ~ humans_eaten, col = "green", data = Alien, pch = 20)
+for (i in 1:nrow(Alien)) {
+  with(Alien, polygon(
+    x = c(
+    humans_eaten[i],
+    humans_eaten[i],
+    humans_eaten[i] + abs(badresid[i]),
+    humans_eaten[i] + abs(badresid[i])
+    ),
+    y = c(badpred[i], size[i], size[i], badpred[i]),
+    col = rgb(red = 1, green = 0, blue = 0, alpha = 0.1),
+    border = NA
+    ))
+}
+with(Alien, segments(x0 = humans_eaten, x1 = humans_eaten, y0 = size, y1 = badpred, col = "orange"))
+legend("topleft", bty = "n", col = c("black", "green"), pch = c(1, 20), legend = c("observation", "mean response value"))
+text(-4, 65, paste("RSS =", round(sum(badresid^2), 1)), col = "red")
+```
+
+```{r alien RSS plot2 again again, fig.align='center', fig.asp=1, fig.width=5, echo = FALSE, fig.cap="Squared residuals on best fit"}
+par(las = 1)
+plot(
+  size ~ humans_eaten,
+  data = Alien,
+  ylab = "Alien size (cm)",
+  xlab = "No. of humans eaten",
+  asp = 1
+  )
+points(pred ~ humans_eaten, col = "blue", data = Alien, pch = 20)
+for (i in 1:nrow(Alien)) {
+  with(Alien, polygon(
+    x = c(
+    humans_eaten[i],
+    humans_eaten[i],
+    humans_eaten[i] + abs(resid[i]),
+    humans_eaten[i] + abs(resid[i])
+    ),
+    y = c(pred[i], size[i], size[i], pred[i]),
+    col = rgb(red = 1, green = 0, blue = 0, alpha = 0.1),
+    border = NA
+    ))
+}
+with(Alien, segments(x0 = humans_eaten, x1 = humans_eaten, y0 = size, y1 = pred, col = "orange"))
+legend("topleft", bty = "n", col = c("black", "blue"), pch = c(1, 20), legend = c("observation", "fitted value"))
+text(-4, 65, paste("RSS =", round(sum(fit_alien_lm$resid^2), 1)), col = "red")
+```
+
+</div>
+
+
+## Home made LM fitting by Ordinary Least Squares
+
+We compute a function that compute the RSS given the parameter estimates, the formula and the data:
+
+```{r def compute_rss_Alien}
+compute_rss <- function(vector.param, formula, data) {
+  useful.data <- model.frame(formula = formula, data = data) ## ditch useless data and flag response
+  X <- model.matrix(object = formula, data = useful.data) ## create the design matrix
+  fitted_values <- X %*% matrix(vector.param) ## compute the fitted values given the coef
+  response <- model.response(useful.data) ## extract the response
+  sum((response - fitted_values)^2) ## compute and output the RSS
+}
+```
+
+We can test that the function works by comparing the RSS for parameters set using `lm()`:
+```{r def compute_rss_Alien test}
+compute_rss(vector.param = coef(fit_alien_lm), formula = size ~ humans_eaten, data = Alien)
+anova(fit_alien_lm)[2, "Sum Sq"] ## value for reference
+```
+
+
+## Home made LM fitting by Ordinary Least Squares
+
+We can now feed this function to an optimisation procedure that will find parameter values minimising the output by trying many combination of parameters:
+
+```{r optim by rss}
+res_optim_rss <- optim(par = c("intercept" = 0, "slope" = 1), ## the starting values for the parameters
+                       fn = compute_rss, ## the function computing the output that must be minimised
+                       formula = size ~ humans_eaten, ## any additional arguments for "fn"
+                       data = Alien)
+```
+
+Let's compare what we obtained from what `lm()` produced:
+```{r optim by rss output}
+res_optim_rss$par - coef(fit_alien_lm) ## very close to what is produced by lm() :-) !!!
+res_optim_rss$value - sum(fit_alien_lm$residuals^2) ## very close to what is produced by lm() :-) !!!
+```
+
+
+# Fitting LM by Maximum (log-)Likelihood
+
+## The maximum (log-)likelihood
+
+```{r alien loglik}
+Alien$fitted_values <- fitted.values(fit_alien_lm)
+Alien$residuals <- residuals(fit_alien_lm)
+Alien$sample_residual_var <- sum(Alien$residuals^2) / nrow(Alien)
+Alien$density <- dnorm(x = Alien$size, mean = Alien$fitted_values, sd = sqrt(Alien$sample_residual_var))
+Alien[1, ]
+```
+
+<div class="columns-2">
+
+```{r alien lik plot, fig.align='center', fig.asp=1, fig.width=3.5, echo = FALSE}
+par(mar = c(4, 4, 1, 1), las = 1)
+curve(dnorm(x, mean = Alien[1, "fitted_values"],
+            sd = sqrt(Alien$sample_residual_var[1])),
+      from = 30, to = 30 + Alien[1, "fitted_values"],
+      ylab = "Probability density", xlab = "size")
+abline(h = 0, lty = 2)
+abline(v = Alien[1, "fitted_values"], lty = 2, col = "blue")
+points(x = Alien[1, "fitted_values"], y = 0, pch = 20, col = "blue")
+points(x = Alien[1, "size"], y = 0)
+segments(x0 = Alien[1, "fitted_values"], x1 = Alien[1, "size"], y0 = 0, y1 = 0, col = "orange")
+segments(x0 = Alien[1, "size"], x1 = Alien[1, "size"], y0 = 0, y1 = Alien[1, "density"], col = "purple")
+arrows(x0 = Alien[1, "size"], x1 = 30, y0 = Alien[1, "density"], y1 = Alien[1, "density"], col = "purple", length = 0.1)
+```
+
+We can test that the function works by comparing the logLik for parameters set using `lm()`:
+```{r alien log density}
+sum(log(Alien$density)) ## same as the log of the product!
+logLik(fit_alien_lm)[1]
+```
+
+</div>
+
+
+## Home made LM fitting by Maximum Likelihood
+
+```{r def comput_logLik_Alien}
+compute_logLik <- function(vector.param, formula, data) {
+  useful.data <- model.frame(formula = formula, data = data) ## ditch useless data and flag response
+  X <- model.matrix(object = formula, data = useful.data) ## create the design matrix
+  fitted_values <- X %*% matrix(vector.param) ## compute the fitted values given the coef
+  response <- model.response(useful.data) ## extract the response
+  sample_residual_var <- sum((response - fitted_values)^2) / nrow(useful.data)  ## compute the sample residual var
+  sum(dnorm(response, mean = fitted_values, sd = sqrt(sample_residual_var), log = TRUE))
+}
+```
+
+We can test that the function works by comparing the logLik to that produced by `lm()`:
+```{r def comput_logLik_Alien test}
+compute_logLik(vector.param = coef(fit_alien_lm), formula = size ~ humans_eaten, data = Alien)
+logLik(fit_alien_lm)[1] ## value for reference
+```
+
+
+## Home made LM fitting by Maximum Likelihood
+
+We can now feed this function to an optimisation procedure that will find parameter values maximising the output:
+
+```{r def logLik Alien computation}
+res_optim_ML <- optim(par = c("intercept" = 0, "slope" = 1),
+                      fn = compute_logLik,
+                      formula = size ~ humans_eaten,
+                      data = Alien,
+                      control = list(fnscale = -1)) ## to indicate to maximise and not minimise
+```
+
+Let's compare what we obtained from what `lm()` produced:
+```{r optim by ML output}
+res_optim_ML$par - coef(fit_alien_lm) ## coef are very close!
+res_optim_ML$value - logLik(fit_alien_lm)[1] ## logLiks are very close!
+```
+
+
+# Fitting methods comparison
+
+## Comparing the three methods on a REAL dataset
+
+```{r computation time}
+time1 <- system.time(
+  fit_test_lm <- lm(height ~ weight*sex + cigarettes + drink, data = UK))
+
+time2 <- system.time(
+  fit_test_homemade_RSS <- optim(par = rep(0, 8),
+                                 fn = compute_rss,
+                                 formula = height ~ weight*sex + cigarettes + drink,
+                                 data = UK,
+                                 method = "BFGS")) ## better optim method (default is getting lost...)
+
+time3 <- system.time(
+  fit_test_homemade_ML <- optim(par = rep(0, 8),
+                                fn = compute_logLik,
+                                formula = height ~ weight*sex + cigarettes + drink, data = UK,
+                                control = list(fnscale = -1), method = "BFGS"))
+```
+
+
+## Comparing the three methods on a REAL dataset
+
+```{r computation time results}
+round(rbind(c(coef(fit_test_lm), time1[1]),
+            c(fit_test_homemade_RSS$par, time2[1]),
+            c(fit_test_homemade_ML$par, time3[1])), 2)
+```
+
+<br>
+
+So our methods work, but the are hugely inefficient!
+
+
+# Fitting LM analytically
+
+## What the statistical textbooks tell us
+
+<center><font size = 8> $\widehat{\beta} = (X^\text{T}X)^{-1}X^\text{T}Y$ </font></center>
+
+This gives best estimates **directly** (no need for optimisation / trials and errors):
+```{r lin algebra}
+Y <- matrix(Alien$size)
+X <- model.matrix(fit_alien_lm)
+solve(t(X) %*% X) %*% t(X) %*% Y  ## Tip: solve(x) returns the inverse of the matrix x
+```
+
+... but ```lm()``` does not even do that because it is still (somewhat) inefficient.
+
+<br>
+
+Geek note: $\widehat{Y} = X \widehat{\beta} = X (X^TX)^{-1}X^TY=HY$, and $H$ is called the hat matrix (it is a projection matrix).
+
+
+## `lm()`-like fitting using QR decomposition
+
+The goal is simply to decompose the design matrix into a product of two new matrices that present nice properties for doing maths super efficiently.
+
+```{r QR}
+qr_list <- qr(X)  ## same as fit_alien_lm$qr
+Q <- qr.Q(qr_list, complete = TRUE)  ## orthogonal matrix n * n (transpose = inverse)
+R <- qr.R(qr_list, complete = TRUE)  ## upper triangular matrix n * p
+```
+```{r QR2, eval = FALSE}
+all.equal(Q %*% R, X, check.attributes = FALSE)  ## TRUE: Q %*% R is equal to X!!
+```
+
+```{r QR 3}
+QTY <- t(Q) %*% Y ## same as fit_alien_lm$effects
+backsolve(R, QTY) ## RB = QTY, solve B for triangular matrix (more efficient than solve(R[1:2, 1:2], QTY[1:2]))
+```
+
+* Note 1: $Q^\text{T}Y$ is also used to compute sum of squares efficiently in e.g. ```anova()```.
+<!--Factor sum of squares is given by the first elements of QTY, it seems to depend on the design matrix. E.g. sum(QTY[1:2]^2) or just sum(QTY[2]^2). The, the residual sum of square would be given by sum(QTY[-c(1:2)]^2)```-->
+* Note 2: other decompositions are sometimes used in other packages or other type of linear models (e.g. Cholesky).
+
+
+## Actual `lm()` fitting procedure
+
+First, `lm()` processes information for `lm.fit()`. Here are the important steps:
+```{r lm guts, eval = FALSE}
+lm(size ~ humans_eaten, data = Alien)
+mf <- model.frame(size ~ humans_eaten, data = Alien)
+Y  <- model.response(mf)
+X  <- model.matrix(~ humans_eaten, data = Alien)
+lm.fit(X, Y)
+```
+
+Then, `lm.fit()` calls a C function (Cdqrls) that calls a Fortran function (dqrls, which will compute estimates after QR) calling another Fortran function (dqrdc2, which performs the QR decomposition).
+
+```
+C     Dqrdc2 is a *modification* of Linpack's dqrdc ('DQRDC') for R
+c
+c     dqrdc2 uses householder transformations to compute the qr
+c     factorization of an n by p matrix x.  a limited column
+c     pivoting strategy based on the 2-norms of the reduced columns
+c     moves columns with near-zero norm to the right-hand edge of
+c     the x matrix.  this strategy means that sequential one
+c     degree-of-freedom effects can be computed in a natural way.
+c
+c     i am very nervous about modifying linpack code in this way.
+c     if you are a computational linear algebra guru and you really
+c     understand how to solve this problem please feel free to
+c     suggest improvements to this code.
+```
+
+<!--
+It calls .Call(stats:::C_Cdqrls, X, Y, tol = 1e-7, TRUE)
+The last logical only activates some checks about the input.
+This function is defined in src/library/stats/src/lm.c
+as SEXP Cdqrls(SEXP x, SEXP y, SEXP tol, SEXP chk).
+It then calls
+F77_CALL(dqrls)(REAL(qr), &n, &p, REAL(y), &ny, &rtol,
+    REAL(coefficients), REAL(residuals), REAL(effects),
+    &rank, INTEGER(pivot), REAL(qraux), work).
+This fortan function is defined in src/appl/dqrls.f
+as subroutine dqrls(x,n,p,y,ny,tol,b,rsd,qty,k,jpvt,qraux,work).
+It is documented.
+This then calls dqrdc2(x,n,n,p,tol,k,qraux,jpvt,work)
+which is itself defined in the file src/appl/dqrdc2.f
+as subroutine dqrdc2(x,ldx,n,p,tol,k,qraux,jpvt,work).
+-->
+
+
+## Dissecting the output from `lm()`
+
+```{r lm output}
+names(fit_alien_lm)
+```
+We have already seen all non-trivial components!
+
+We have not yet seen:
+
+* ```rank```: the number of columns that are linearly independent in the design matrix.
+* ```assign```: it comes from ```attr(X, "assign")```; it indicates which parameters belong to each covariate.
+* ```df.residuals```: nrow(Alien) - rank.
+* ```xlevels```: here, empty.
+* ```call```: the clean function call to ```lm()```.
+* ```terms```: an object of class terms; i.e. the formula with many attributes (```?terms.object```).
+* ```model```: it comes from ```model.frame()```; it gives the data used for the fit.
+
+
+## What you need to remember
+
+* that the variance of residuals is a biased estimator of the error variance
+* how to extract key statistics for models fitted with `stats::lm()` & `spaMM::fitme()`
+* how to compute estimates numerically in a few lines of code
+
+
+# Table of contents
+
+## The Linear Model: LM
+
+* 2.0 [Introduction](./LM_intro.html)
+* 2.1 [Fitting procedure](./LM_fitting.html)
+* 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
+* 2.3 [Tests](./LM_tests.html)
+* 2.4 [Assumptions and Outliers](./LM_assumptions.html)
+* 2.5 [Let's practice more](./LM_practice.html)
+
+<br>
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
