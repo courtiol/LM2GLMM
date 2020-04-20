@@ -770,6 +770,12 @@ mean(Alien$residuals) ## residuals have a mean of 0 is the sample, while error h
 * how to understand the meaning of parameters by investigating the design matrix
 * how to manipulate design matrices via formula
 
+<br>
+
+<div align="right">
+[Exercises](./LM_intro_ex.html)
+</div>
+
 
 # Table of contents
 

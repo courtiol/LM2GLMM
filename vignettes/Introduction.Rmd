@@ -406,5 +406,11 @@ lapply(c("alex", "olivia"), function(i) hello(who = i)) ## returns a list
 ##
 
 <div align="right">
+[Exercises](./Introduction_ex.html)
+</div>
+
+<br>
+
+<div align="right">
 [Back to main menu](./Title.html#2)
 </div>
