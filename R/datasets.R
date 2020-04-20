@@ -251,7 +251,7 @@
 #'   \item{humidity}{the mean humidity during the 4-hour window}
 #'   \item{precipitation}{the precipitation amount over the 4-hour window?}
 #'   \item{rain}{the proportion of hours with rain}
-#'   \item{groud_temp}{the mean ground temperature during the 4-hour window}
+#'   \item{ground_temp}{the mean ground temperature during the 4-hour window}
 #'   \item{cloud_cover}{the mean cloud cover during the 4-hour window}
 #'   \item{moon_phase}{the phase of the moon on that night}
 #'   \item{time_rel}{the number of days since the begining of the data collection}
