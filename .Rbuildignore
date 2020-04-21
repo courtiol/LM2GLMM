@@ -10,3 +10,4 @@
 ^vignettes/future_vignettes/*$
 ^doc$
 ^Meta$
+^Course_notes.*$
