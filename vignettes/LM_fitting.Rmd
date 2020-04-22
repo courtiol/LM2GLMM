@@ -61,29 +61,45 @@ knitr::opts_chunk$set(error = TRUE,
 </div>
 -->
 
-# Back to high-school
+# High-school reminiscence
 
-## Variance of sample and population
+## Sample and population variance
 
-```{r sample var}
+Do you remember that?
+
+### Population variance
+
+<center><font size = 5>
+$$\frac{\displaystyle\sum^n_{i = 1}(x_i - \bar{x})^2}{n}$$
+</font></center>
+
+### Sample variance
+
+<center><font size = 5>
+$$\frac{\displaystyle\sum^n_{i = 1}(x_i - \bar{x})^2}{n\color{red}{-1}}$$
+</font></center>
+
+
+## Sample and population variance
+
+```{r vars}
 set.seed(1)
-bias_sample_var <- replicate(100000, {
+bias_vars_list <- replicate(100000, {
   observations <- rnorm(n = 20, mean = 0, sd = sqrt(5))
-  5 - sum((observations - mean(observations))^2) / 20
-})
-mean(bias_sample_var)
+  numerator <- sum((observations - mean(observations))^2)
+  c(bias_pop_var   = (numerator/20) - 5,
+    bias_sample_var = (numerator/19) - 5)
+}, simplify = FALSE)
+bias_vars_df <- data.frame(do.call("rbind", bias_vars_list)) ## to turn the output as a clean dataframe
 ```
 
-```{r pop var}
-set.seed(1)
-bias_pop_var <- replicate(100000, {
-  observations <- rnorm(n = 20, mean = 0, sd = sqrt(5))
-  5 - sum((observations - mean(observations))^2) / 19
-})
-mean(bias_pop_var)
+```{r vars2}
+apply(bias_vars_df, 2, mean)
 ```
 
-This is why we have learned (a long time ago for some of us) that the denominator of the population variance estimate should be $n - p$ to correct for the bias when you estimate p parameters (here $p = 1$, the parameter is the mean). 
+The bias corresponds to an underestimation stemming from looking at the variation around the mean estimate: the variation around the mean estimate is always smaller that the variation around the true mean in the population. This is because by construction the estimate of the mean is the value generally the closest to all **sampled** points.
+
+The bias can be removed by considering $n - p$ in the denominator to correct for the bias when you estimate $p$ parameters ($p = 1$, when there is only one mean). 
 
 
 
@@ -95,11 +111,41 @@ Let's simulate the size of 12 aliens using the function integrated in this LM2GL
 
 ```{r Aliens}
 set.seed(123)
-(Alien <- simulate_Aliens())
+(Alien <- simulate_Aliens()) ## by default, N = 12, intercept = 50, slope = 1.5 and sigma2 = 25
 ```
 
 
 # Fitting LM with `stats::lm()` & `spaMM::fitme()`
+
+## A note on `package::fn`
+
+In R, when you call a function it looks for it in the global environment (i.e. where your object are stored) and in all the packages attached to the so-called search list:
+
+```{r search list}
+search()
+```
+
+The packages there are those that have been attached by the system or by you (e.g. using `library()`).
+
+Using the syntax `package::fn()` allows for you to access a function from an installed package that has not been attached which can be useful if you don't want to load a package and save one line of code (e.g. as when we do `drat::addRepo("courtiol")`.
+
+Importantly, it is also a way to be explicit about where a function is coming from.
+
+So `stats::lm()` means that `lm()` comes from the build-in package **{stats}** and `spaMM::fitme()` means that `fitme()` comes from the optional package **{spaMM}**.
+
+
+## A note on the R package **{spaMM}**
+
+**{spaMM}** is an R package developed by François Rousset (a population geneticist from Montpellier, France).
+
+<br>
+
+We will use it a lot because it is very flexible and powerful:
+
+- it can fit from LM to GLMM (and more, e.g. DHGLM)
+- it can handle temporal and spatial autocorrelation
+- it allows for a straightforward computation of intervals, parametric bootstraps, and more
+
 
 ## Fitting the Alien data using ```lm()```
 
@@ -113,20 +159,6 @@ The object created stores a lot of information that you can retrieve directly or
 ```{r fit alien lm output}
 names(fit_alien_lm)
 ```
-
-
-## The R package {spaMM} can also fit LM
-
-**{spaMM}** is an R package developed by François Rousset (a population geneticist).
-
-<br>
-
-I use it a lot because:
-
-- it can fit from LM to GLMM (and more, e.g. DHGLM)
-- it can handle temporal and spatial autocorrelation
-- it allows for a straightforward computation of intervals, parametric bootstraps, and more
-- (and a little also because I work with François)
 
 
 ## Fitting the Alien data using ```fitme()```
@@ -186,7 +218,7 @@ summary(fit_alien_lm)$sigma^2 ## we expect something close to 25
 fit_alien_lm2$phi * nrow(Alien) / (nrow(model.matrix(fit_alien_lm2)) - ncol(model.matrix(fit_alien_lm2)))
 ```
 
-Note: in ML fit (default setting) `phi` contains the sample residual variance, but the error variance estimate can be directly obtained from a REML fit (more on that later). `lm()` does not have this flexibility, which become particularly useful for more complex models that aim at estimating variances (mixed models).
+Note: in ML fit (default setting) `phi` contains the population residual variance (that is, it considers the sample as being the full population: denominator = $n$, not $n-p$), but the error variance estimate can be directly obtained from a REML fit (more on that later). The ability to switch between ML and REML fitting methods becomes particularly useful for more complex models that aim at estimating variances (mixed models). `lm()` does not have this flexibility.
 
 
 ## Extraction of the residuals
@@ -202,7 +234,7 @@ residuals(fit_alien_lm2)
 ```
 
 
-## Extraction of the sample residual variance
+## Extraction of the population residual variance
 
 ### From fit with `lm`()
 ```{r fit estimate residual var}
@@ -252,7 +284,9 @@ sum(residuals(fit_alien_lm2)^2) ## no extractor I can think of
 
 ## How to fit a LM without `lm()`?
 
-### By maximum likelihood
+In general, by:
+
+### Maximum Likelihood (ML)
 We want to find the $\widehat{\beta}$ (the column vector of model parameter estimates) maximizing the likelihood.
 
 The likelihood of the model given the data is equal to the probability density assumed for those data given those parameter
@@ -260,11 +294,11 @@ values, that is: $\displaystyle {\mathcal {L}}(\theta \mid x) = P(x \mid \theta)
 
 <br>
 
-In the case of LM (and not GLM, LMM, GLMM), this is equivalent to performing the estimation
+In the case of LM (and not GLM, LMM, GLMM), this is equivalent to performing the fit by:
 
-### By ordinary least squares (OLS)
+### Ordinary Least Squares (OLS)
 
-We want to find the $\widehat{\beta}$ minimizing the residual sum of squares (RSS).
+We want to find the $\widehat{\beta}$ minimizing the Residual Sum of Squares (RSS).
 
 The RSS = $\displaystyle\sum_{i=1}^{n}{\varepsilon_i^2}$.
 
@@ -459,7 +493,7 @@ compute_rss <- function(vector.param, formula, data) {
 }
 ```
 
-We can test that the function works by comparing the RSS for parameters set using `lm()`:
+We can test that the function works by comparing the RSS at parameter values estimated with `lm()`:
 ```{r def compute_rss_Alien test}
 compute_rss(vector.param = coef(fit_alien_lm), formula = size ~ humans_eaten, data = Alien)
 anova(fit_alien_lm)[2, "Sum Sq"] ## value for reference
@@ -474,7 +508,7 @@ We can now feed this function to an optimisation procedure that will find parame
 res_optim_rss <- optim(par = c("intercept" = 0, "slope" = 1), ## the starting values for the parameters
                        fn = compute_rss, ## the function computing the output that must be minimised
                        formula = size ~ humans_eaten, ## any additional arguments for "fn"
-                       data = Alien)
+                       data = Alien)                  ## any additional arguments for "fn"
 ```
 
 Let's compare what we obtained from what `lm()` produced:
@@ -491,9 +525,9 @@ res_optim_rss$value - sum(fit_alien_lm$residuals^2) ## very close to what is pro
 ```{r alien loglik}
 Alien$fitted_values <- fitted.values(fit_alien_lm)
 Alien$residuals <- residuals(fit_alien_lm)
-Alien$sample_residual_var <- sum(Alien$residuals^2) / nrow(Alien)
-Alien$density <- dnorm(x = Alien$size, mean = Alien$fitted_values, sd = sqrt(Alien$sample_residual_var))
-Alien[1, ]
+Alien$population_residual_var <- sum(Alien$residuals^2) / nrow(Alien)
+Alien$density <- dnorm(x = Alien$size, mean = Alien$fitted_values, sd = sqrt(Alien$population_residual_var))
+Alien[1, ] ## we look in details at the first row, but you can look at all of them 
 ```
 
 <div class="columns-2">
@@ -501,7 +535,7 @@ Alien[1, ]
 ```{r alien lik plot, fig.align='center', fig.asp=1, fig.width=3.5, echo = FALSE}
 par(mar = c(4, 4, 1, 1), las = 1)
 curve(dnorm(x, mean = Alien[1, "fitted_values"],
-            sd = sqrt(Alien$sample_residual_var[1])),
+            sd = sqrt(Alien$population_residual_var[1])),
       from = 30, to = 30 + Alien[1, "fitted_values"],
       ylab = "Probability density", xlab = "size")
 abline(h = 0, lty = 2)
@@ -513,7 +547,7 @@ segments(x0 = Alien[1, "size"], x1 = Alien[1, "size"], y0 = 0, y1 = Alien[1, "de
 arrows(x0 = Alien[1, "size"], x1 = 30, y0 = Alien[1, "density"], y1 = Alien[1, "density"], col = "purple", length = 0.1)
 ```
 
-We can test that the function works by comparing the logLik for parameters set using `lm()`:
+We can test that the function works by comparing the logLik at parameter values estimated with `lm()`:
 ```{r alien log density}
 sum(log(Alien$density)) ## same as the log of the product!
 logLik(fit_alien_lm)[1]
@@ -530,8 +564,8 @@ compute_logLik <- function(vector.param, formula, data) {
   X <- model.matrix(object = formula, data = useful.data) ## create the design matrix
   fitted_values <- X %*% matrix(vector.param) ## compute the fitted values given the coef
   response <- model.response(useful.data) ## extract the response
-  sample_residual_var <- sum((response - fitted_values)^2) / nrow(useful.data)  ## compute the sample residual var
-  sum(dnorm(response, mean = fitted_values, sd = sqrt(sample_residual_var), log = TRUE))
+  population_residual_var <- sum((response - fitted_values)^2) / nrow(useful.data)  ## var for the normal distrib
+  sum(dnorm(response, mean = fitted_values, sd = sqrt(population_residual_var), log = TRUE))
 }
 ```
 
@@ -565,36 +599,45 @@ res_optim_ML$value - logLik(fit_alien_lm)[1] ## logLiks are very close!
 
 ## Comparing the three methods on a REAL dataset
 
-```{r computation time}
-time1 <- system.time(
-  fit_test_lm <- lm(height ~ weight*sex + cigarettes + drink, data = UK))
+```{r computation 3 methods}
+fit_test_lm <- lm(height ~ weight*sex + cigarettes + drink, data = UK)
 
-time2 <- system.time(
-  fit_test_homemade_RSS <- optim(par = rep(0, 8),
-                                 fn = compute_rss,
-                                 formula = height ~ weight*sex + cigarettes + drink,
-                                 data = UK,
-                                 method = "BFGS")) ## better optim method (default is getting lost...)
+fit_test_homemade_OLS <- optim(par = rep(0, 8),
+                               fn = compute_rss,
+                               formula = height ~ weight*sex + cigarettes + drink,
+                               data = UK,
+                               method = "BFGS") ## better optim method (default is getting lost...)
 
-time3 <- system.time(
-  fit_test_homemade_ML <- optim(par = rep(0, 8),
-                                fn = compute_logLik,
-                                formula = height ~ weight*sex + cigarettes + drink, data = UK,
-                                control = list(fnscale = -1), method = "BFGS"))
+
+fit_test_homemade_ML <- optim(par = rep(0, 8),
+                              fn = compute_logLik,
+                              formula = height ~ weight*sex + cigarettes + drink, data = UK,
+                              control = list(fnscale = -1), method = "BFGS")
+```
+```{r computation 3 methods results}
+round(rbind(lm = coef(fit_test_lm), OLS = fit_test_homemade_OLS$par, ML = fit_test_homemade_ML$par), 3)
 ```
 
 
 ## Comparing the three methods on a REAL dataset
 
-```{r computation time results}
-round(rbind(c(coef(fit_test_lm), time1[1]),
-            c(fit_test_homemade_RSS$par, time2[1]),
-            c(fit_test_homemade_ML$par, time3[1])), 2)
+Let's now perform a bench mark to compare the computational efficiency of the 3 fitting methods:
+```{r computation 3 methods bench, warning=FALSE}
+UKsmall <- UK[1:500, ] ## we reduce the sample size for saving time
+microbenchmark::microbenchmark(
+  lm = lm(height ~ weight*sex + cigarettes + drink, data = UKsmall),
+  OLS = optim(par = rep(0, 8),
+              fn = compute_rss,
+              formula = height ~ weight*sex + cigarettes + drink,
+              data = UKsmall,
+              method = "BFGS"),
+  ML = optim(par = rep(0, 8),
+             fn = compute_logLik,
+             formula = height ~ weight*sex + cigarettes + drink, data = UKsmall,
+             control = list(fnscale = -1), method = "BFGS"),
+  times = 10)
 ```
-
-<br>
-
-So our methods work, but the are hugely inefficient!
+So our homemade functions work, but they are hugely inefficient!
 
 
 # Fitting LM analytically
@@ -632,17 +675,18 @@ all.equal(Q %*% R, X, check.attributes = FALSE)  ## TRUE: Q %*% R is equal to X!
 
 ```{r QR 3}
 QTY <- t(Q) %*% Y ## same as fit_alien_lm$effects
-backsolve(R, QTY) ## RB = QTY, solve B for triangular matrix (more efficient than solve(R[1:2, 1:2], QTY[1:2]))
+backsolve(R, QTY) ## solve B from RB = QTY
 ```
+<!-- using backsolve works on triangular matrix and is more efficient than solve(R[1:2, 1:2], QTY[1:2])) -->
 
-* Note 1: $Q^\text{T}Y$ is also used to compute sum of squares efficiently in e.g. ```anova()```.
-<!--Factor sum of squares is given by the first elements of QTY, it seems to depend on the design matrix. E.g. sum(QTY[1:2]^2) or just sum(QTY[2]^2). The, the residual sum of square would be given by sum(QTY[-c(1:2)]^2)```-->
-* Note 2: other decompositions are sometimes used in other packages or other type of linear models (e.g. Cholesky).
+* Note 1: `QTY` is a useful term that is also used by R to compute sum of squares efficiently (e.g. in `anova()`).
+<!--Factor sum of squares is given by the first elements of QTY, it seems to depend on the design matrix. E.g. sum(QTY[1:2]^2) or just sum(QTY[2]^2). The residual sum of square would be given by sum(QTY[-c(1:2)]^2)```-->
+* Note 2: other decompositions are sometimes used in other packages or other type of linear models (e.g. Cholesky decomposition).
 
 
 ## Actual `lm()` fitting procedure
 
-First, `lm()` processes information for `lm.fit()`. Here are the important steps:
+First, `lm()` processes information for `lm.fit()`. It is quite a difficult function to read but are the important steps:
 ```{r lm guts, eval = FALSE}
 lm(size ~ humans_eaten, data = Alien)
 mf <- model.frame(size ~ humans_eaten, data = Alien)
@@ -709,7 +753,7 @@ We have not yet seen:
 
 * that the variance of residuals is a biased estimator of the error variance
 * how to extract key statistics for models fitted with `stats::lm()` & `spaMM::fitme()`
-* how to compute estimates numerically in a few lines of code
+* how maximum likelihood estimations work
 
 
 # Table of contents
