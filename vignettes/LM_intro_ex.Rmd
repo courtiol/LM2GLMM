@@ -29,7 +29,7 @@ set.seed(1L)
 
 ## Alternative representations of design matrices
 
-If the average IQ for boys were 90 and 110 for girls, what would the parameter values be, for each of the following coding:
+If the average IQ for boys were 90 and 110 for girls, what would the parameter values be, for each of the following coding (using treatment contrasts):
 
 * ```"boy"``` vs ```"girl"```
 * ```"male"``` vs ```"female"```
@@ -68,7 +68,7 @@ Alien$size <- Alien$intercept + Alien$slope*Alien$humans_eaten + Alien$error
 
 ## Simulating interactions
 
-Adapt the following code to include an interaction.
+Adapt the following code to include an interaction between `sex` and `bh_trips`.
 
 ```{r Alien}
 set.seed(123)
@@ -87,27 +87,17 @@ Alien2
 ```
 
 
-# Interpreting model parameter estimates
+# Model parameter estimates
 
 ## The UK dataset
+
+For informaton on this dataset, check the details section in `?UK`.
 
 ```{r UK data}
 head(UK)
 fit_UK1 <- lm(height ~ drink + sex*weight, data = UK)
 ```
 
-## Model parameter estimates of `fit_UK1`
-```{r UK coef}
-data.frame(coef(fit_UK1))
-```
-<br>
-
-What do each of these estimates really mean?
-
-(If you struggle interpreting parameter estimates, look at the fitted values)
-
-
-# Predictions
 
 ## Predictions with `fit_UK1`
 
@@ -138,7 +128,18 @@ predict(fit_UK1, newdata = newdata1)
 ```
 
 
-## Practice
+## Model parameter estimates of `fit_UK1`
+```{r UK coef}
+data.frame(coef(fit_UK1))
+```
+<br>
+
+What do each of these estimates really mean?
+
+(If you struggle interpreting parameter estimates, look at the fitted values)
+
+
+## More predictions with `fit_UK1`
 
 Predict and plot the influence of the weight of girls on their height! 
 
