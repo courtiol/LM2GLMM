@@ -626,16 +626,44 @@ You can use the same idea to show that the first coefficient corresponds to the 
 model.matrix(object =  ~ planet, data = Alien2, contrasts.arg = list(planet = "contr.sum"))
 ```
 
-Average of the three levels =
 $$
-\frac{(1\times\text{Int}+1\times\text{plt1}+0\times\text{plt2})+(1\times\text{Int}+0\times\text{plt1}+1\times\text{plt2})+(1\times\text{Int}-1\times\text{plt1}-1\times\text{plt2})}{3}=\text{Int}
+\frac{(\text{Int}+\text{plt1})+(\text{Int}+\text{plt2})+(\text{Int}-\text{plt1}-\text{plt2})}{3}=\text{Int}
+$$
+
+* The intercept thus represents the mean of the mean responses of all groups.
+
+
+## The example of "sum contrasts"
+
+```{r contr.sum 2}
+model.matrix(object =  ~ planet, data = Alien2, contrasts.arg = list(planet = "contr.sum"))
+```
+
+$$
+(\text{Int} + \text{plt1}) - \frac{(\text{Int}+\text{plt1})+(\text{Int}+\text{plt2})+(\text{Int}-\text{plt1}-\text{plt2})}{3}=\text{plt1}
 $$
 
 * The intercept thus represents the mean of the mean responses of all groups.
 * `planet1` represents the mean response of the first group minus the intercept.
-* `planet2` represents the mean of the second group minus the intercept.
+
+
+## The example of "sum contrasts"
+
+```{r contr.sum 3}
+model.matrix(object =  ~ planet, data = Alien2, contrasts.arg = list(planet = "contr.sum"))
+```
+
+$$
+(\text{Int} + \text{plt2}) - \frac{(\text{Int}+\text{plt1})+(\text{Int}+\text{plt2})+(\text{Int}-\text{plt1}-\text{plt2})}{3}=\text{plt2}
+$$
+
+* The intercept thus represents the mean of the mean responses of all groups.
+* `planet1` represents the mean response of the first group minus the intercept.
+* `planet2` represents the mean response of the second group minus the intercept.
 
 Note: not much used by R users (because not the default) but useful when there is no clear control.
+
+
 
 
 ## Example of estimates under different contrasts
