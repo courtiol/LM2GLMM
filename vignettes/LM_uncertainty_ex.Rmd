@@ -1,0 +1,61 @@
+---
+title: "LM: Uncertainty in point estimates"
+subtitle: "exercises"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+vignette: >
+  %\VignetteIndexEntry{2.2 z-------------------------------------------------------------exercises}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, include=FALSE}
+library(LM2GLMM)
+knitr::opts_chunk$set(cache = FALSE,
+                      fig.align = "center",
+                      fig.width = 4,
+                      fig.height = 4,
+                      cache.path = "./cache_knitr/LM_uncertainty_ex/",
+                      fig.path = "./fig_knitr/LM_uncertainty_ex/")
+options(width = 110)
+set.seed(1L)
+```
+
+# Distributions of point estimates
+
+## Theoretical vs actual distribution and sample size
+
+Adapt this example from the course using to compare the match between the theoretical and the actual distribution of the slope for different values of $n$. What do you notice?
+
+```{r redraw samples, eval = FALSE}
+set.seed(123)
+Alien <- simulate_Aliens()
+fit_stats <- lm(size ~ humans_eaten, data = Alien)
+new_beta_estimates <- t(replicate(1000, coef(update(fit_stats, data = simulate_Aliens()))))
+```
+
+```{r plot ecdf intercept, fig.align = "center", fig.height = 3.5, fig.width = 3.5, eval = FALSE}
+curve(pnorm(x, mean = coef(fit_stats)[1],
+    sd = sqrt(vcov(fit_stats)[[1]])),
+    from = 30, to = 70, ylab = "cdf", lwd = 3)
+plot(ecdf(new_beta_estimates[, 1]), col = "red",
+     add = TRUE)
+```
+
+
+# Confidence intervals 
+
+## CI on point estimates
+
+Compare the CI on the estimate of the slope for `humans_eaten` using:
+
+- the asymptotic method
+- non-parametric bootstrap
+- likelihood profiling
+
+
+
