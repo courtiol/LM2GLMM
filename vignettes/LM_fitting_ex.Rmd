@@ -1,0 +1,34 @@
+---
+title: "LM: fitting procedures"
+subtitle: "exercises"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+  widescreen: true
+smaller: true
+vignette: >
+  %\VignetteIndexEntry{2.1 z-------------------------------------------------------------exercises}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, include=FALSE}
+library(LM2GLMM)
+knitr::opts_chunk$set(cache = FALSE,
+                      fig.align = "center",
+                      fig.width = 4,
+                      fig.height = 4,
+                      cache.path = "./cache_knitr/LM_fitting_ex/",
+                      fig.path = "./fig_knitr/LM_fitting_ex/")
+options(width = 110)
+set.seed(1L)
+```
+
+
+
+##
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
