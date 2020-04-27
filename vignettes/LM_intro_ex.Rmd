@@ -91,7 +91,7 @@ Alien2
 
 ## The UK dataset
 
-For informaton on this dataset, check the details section in `?UK`.
+For information on this dataset, check the details section in `?UK`.
 
 ```{r UK data}
 head(UK)
@@ -101,9 +101,7 @@ fit_UK1 <- lm(height ~ drink + sex*weight, data = UK)
 
 ## Predictions with `fit_UK1`
 
-Compute the following predictions by:
-- creating a design matrix by hand
-- using the function predict()
+Compute the following predictions by (1) creating a design matrix by hand & (2) using the function `predict()`:
 
 * height of a 30 Kg boy whose mum drank most days?
 * height of a 30 Kg girl whose mum drank most days?

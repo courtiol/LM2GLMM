@@ -1,5 +1,5 @@
 ---
-title: "LM: Uncertainty in point estimates"
+title: "LM: Intervals"
 subtitle: "exercises"
 author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
@@ -19,8 +19,8 @@ knitr::opts_chunk$set(cache = FALSE,
                       fig.align = "center",
                       fig.width = 4,
                       fig.height = 4,
-                      cache.path = "./cache_knitr/LM_uncertainty_ex/",
-                      fig.path = "./fig_knitr/LM_uncertainty_ex/")
+                      cache.path = "./cache_knitr/LM_intervals_ex/",
+                      fig.path = "./fig_knitr/LM_intervals_ex/")
 options(width = 110)
 set.seed(1L)
 ```

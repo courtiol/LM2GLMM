@@ -23,9 +23,9 @@ knitr::opts_chunk$set(error = TRUE)
 
 * 2.0 [Introduction](./LM_intro.html)
 * 2.1 [Fitting procedure](./LM_fitting.html)
-* 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
-* 2.3 [Tests](./LM_tests.html)
-* 2.4 [Assumptions and Outliers](./LM_assumptions.html)
+* 2.2 [Tests & Intervals](./LM_test_intervals.html)
+* 2.3 [Assumptions & Outliers](./LM_assumptions.html)
+* 2.4 [Let's practice](./LM_practice.html)
 
 <br>
 
@@ -848,10 +848,9 @@ The fact that you provide predictors instead of regressors is particularly usefu
 
 * 2.0 [Introduction](./LM_intro.html)
 * 2.1 [Fitting procedure](./LM_fitting.html)
-* 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
-* 2.3 [Tests](./LM_tests.html)
-* 2.4 [Assumptions and Outliers](./LM_assumptions.html)
-* 2.5 [Let's practice more](./LM_practice.html)
+* 2.2 [Tests & Intervals](./LM_test_intervals.html)
+* 2.3 [Assumptions & Outliers](./LM_assumptions.html)
+* 2.4 [Let's practice](./LM_practice.html)
 
 <br>
 
