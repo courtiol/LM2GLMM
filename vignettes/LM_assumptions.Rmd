@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{2.4 Assumptions and Outliers}
+  %\VignetteIndexEntry{2.3 Assumptions and Outliers}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -25,11 +25,17 @@ set.seed(1L)
 ## The Linear Model: LM
 
 * 2.0 [Introduction](./LM_intro.html)
-* 2.1 [Point estimates](./LM_point_estimates.html)
-* 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
-* 2.3 [Tests](./LM_tests.html)
-* 2.4 [Assumptions and Outliers](./LM_assumptions.html)
-* 2.5 [Let's practice more](./LM_practice.html)
+* 2.1 [Fitting procedure](./LM_fitting.html)
+* 2.2 [Tests & Intervals](./LM_test_intervals.html)
+* 2.3 [Assumptions & Outliers](./LM_assumptions.html)
+* 2.4 [Let's practice](./LM_practice.html)
+
+<br>
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
+
 
 
 ## You will learn in this session
@@ -117,30 +123,39 @@ plot(size ~ humans_eaten, data = Alien0, pch = 3, col = "red")
 abline(mod0a, col = "blue", lwd = 2)
 ```
 
+
 ## A simple example of non-linearity
 
 Solution for continuous design matrix column vectors: plot the residuals against them!
 ```{r simple non linear2}
-plot(rstandard(mod0a) ~ model.matrix(mod0a)[,2])  ## using standardized residuals
+plot(residuals(mod0a) ~ model.matrix(mod0a)[,2])
 abline(h = 0, col = "red", lty = 2)
 ```
+
 
 ## A simple example of non-linearity
 
 ```{r simple non linear3}
+mod0b <- lm(size ~ poly(humans_eaten, 2, raw = FALSE), data = Alien0)
+summary(mod0b)$coef
+```
+
+```{r simple non linear3 raw}
 mod0b <- lm(size ~ poly(humans_eaten, 2, raw = TRUE), data = Alien0)
 summary(mod0b)$coef
 ```
+
 
 ## Another example of non-linearity
 
 ```{r poison}
 poison$treat <- factor(poison$Treatment)
 poison$poison <- factor(poison$Poison)
-mod_poison <- lm(Time ~ poison + treat, data = poison)
-plot(residuals(mod_poison) ~ fitted(mod_poison), xlab = "fitted values", ylab = "residuals")
+fit_poison <- lm(Time ~ poison + treat, data = poison)
+plot(residuals(fit_poison) ~ fitted(fit_poison), xlab = "fitted values", ylab = "residuals")
 abline(h = 0, col = "red", lty = 2)
 ```
+
 
 ## The Box-Cox transformation (Box & Cox 1964)
 
@@ -163,35 +178,37 @@ abline(h = 0, col = "red", lty = 2)
 ## The Box-Cox transformation (Box & Cox 1964)
 
 ```{r boxcox, message = FALSE}
-library(car)
-boxCox(mod_poison)  ## makes logLik profile!
+car::boxCox(fit_poison)  ## makes logLik profile!
 ```
+
 
 ## The Box-Cox transformation (Box & Cox 1964)
 
 ```{r boxcox 2}
-summary(bc <- powerTransform(mod_poison))
-testTransform(bc, lambda = -1)
+summary(bc <- car::powerTransform(fit_poison))
+car::testTransform(bc, lambda = -1)
 ```
 
 <br>
 
 We will consider -1 instead of ```r round(bc$lambda[[1]], 2)``` as it is close enough and easier to interpret!
 
+
 ## Poison example linearised
 
 ```{r poison bc}
-mod_poison2 <- update(mod_poison, bcPower(Time, lambda = -1) ~ .)
-plot(residuals(mod_poison2) ~ fitted(mod_poison2), xlab = "fitted values", ylab = "residuals")
+fit_poison_bc <- update(fit_poison, car::bcPower(Time, lambda = -1) ~ .)
+plot(residuals(fit_poison_bc) ~ fitted(fit_poison_bc), xlab = "fitted values", ylab = "residuals")
 abline(h = 0, col = "red", lty = 2)
 ```
+
 
 ## Poison example linearised
 
 ### Predictions
 ```{r poison pred}
 data.for.pred <- expand.grid(treat = levels(poison$treat), poison = levels(poison$poison))
-(pred <- cbind(data.for.pred, predict(mod_poison2, newdata = data.for.pred, interval = "confidence")))
+(pred <- cbind(data.for.pred, predict(fit_poison_bc, newdata = data.for.pred, interval = "confidence")))
 ```
 
 There are in the Box-Cox scales. In this case, it represents the survival rate, but you can always get back to the original scale:
@@ -200,17 +217,20 @@ There are in the Box-Cox scales. In this case, it represents the survival rate, 
 lambda <- -1; (pred$fit * lambda + 1)^(1/lambda)
 ```
 
+
 ## Comparison of tests
 
 ```{r poison summary}
-summary(mod_poison) ## the original model
+summary(fit_poison) ## the original model
 ```
+
 
 ## Comparison of tests
 
 ```{r poison bc summary}
-summary(mod_poison2) ## the boxcoxed model
+summary(fit_poison_bc) ## the boxcoxed model
 ```
+
 
 # Lack of perfect multicollinearity
 
@@ -234,22 +254,23 @@ Caused by having less data than parameters or when there is linear dependence be
 
 * none
 
+
 ## Degenerated design matrix: ```n < p```
 ```{r degenerated n too small, error = TRUE}
 set.seed(1L)
-N <- 3
-Alien <- data.frame(humans_eaten = 1:N,
-                    flowers_eaten = round(runif(N, min = 1, max = 15)),
-                    cactus_eaten =  round(runif(N, min = 1, max = 10)))
+n <- 3
+Alien <- data.frame(humans_eaten = 1:n,
+                    flowers_eaten = round(runif(n, min = 1, max = 15)),
+                    cactus_eaten =  round(runif(n, min = 1, max = 10)))
 
 Alien$size <- rnorm(n = nrow(Alien),
   mean = 50 + 0.2 * Alien$humans_eaten + 0.9 * Alien$flowers_eaten + 0.1 * Alien$cactus_eaten,
   sd = sqrt(25))
 
-mod_alien1a <- lm(size ~  cactus_eaten + humans_eaten + flowers_eaten, data = Alien)
-coef(mod_alien1a)
-mod_alien1b <- lm(size ~  humans_eaten + flowers_eaten + cactus_eaten, data = Alien)
-coef(mod_alien1b)
+fit_alien1a <- lm(size ~  cactus_eaten + humans_eaten + flowers_eaten, data = Alien)
+coef(fit_alien1a)
+fit_alien1b <- lm(size ~  humans_eaten + flowers_eaten + cactus_eaten, data = Alien)
+coef(fit_alien1b)
 ```
 
 
@@ -259,11 +280,12 @@ coef(mod_alien1b)
 set.seed(1L)
 Alien2 <- simulate_Aliens()
 Alien2$half_humans_eaten <-  0.5 * Alien2$humans_eaten
-mod_alien2 <- lm(size ~ humans_eaten + half_humans_eaten, data = Alien2)
-coef(mod_alien2)
-det(crossprod(model.matrix(mod_alien2)))  ## when det(XTX) <= 0, XTX has no inverse!
-mod_alien2$rank  == ncol(model.matrix(mod_alien2))
+fit_alien2 <- lm(size ~ humans_eaten + half_humans_eaten, data = Alien2)
+coef(fit_alien2)
+det(crossprod(model.matrix(fit_alien2)))  ## when det(XTX) <= 0, XTX has no inverse!
+fit_alien2$rank  == ncol(model.matrix(fit_alien2))
 ```
+
 
 ## Degenerated design matrix: miscellaneous
 
@@ -274,77 +296,60 @@ Alien3 <- data.frame(humans_eaten = 1:12,
                      cactus_eaten = 0)
 Alien3$food_units <- 1.2*Alien3$humans_eaten + 0.6*Alien3$flowers_eaten
 Alien3$size <- rnorm(n = 12, mean = 50 + 1*Alien3$food_units, sd = sqrt(25))
-mod_alien3 <- lm(size ~ food_units + humans_eaten + flowers_eaten + cactus_eaten, data = Alien3)
-coef(mod_alien3)
-caret::findLinearCombos(model.matrix(mod_alien3))  ## Tip: help to see what creates the issue
+fit_alien3 <- lm(size ~ food_units + humans_eaten + flowers_eaten + cactus_eaten, data = Alien3)
+coef(fit_alien3)
+caret::findLinearCombos(model.matrix(fit_alien3))  ## Tip: help to see what creates the issue
 ```
 
-## Challenge: analysing the Fungi dataset
-
-```{r fungi}
-head(Fungi)
-```
-
-<br>
-
-### Goal:
-
-quantifying the average growth rate of alive fungi for each species,
-in each experimental condition, using a single linear model.
-
-([solution](./Exercise_Multicollinearity.html))
 
 ## Non-perfect multicollinearity
 
 ### Sometimes assumptions are met, but problems can still occur
 
 ```{r USA}
-summary(mod_US  <- lm(Rape ~ Assault + Murder, data = USArrests))$coef
-summary(mod_US2 <- lm(Rape ~ Murder, data = USArrests))$coef
+summary(fit_US  <- lm(Rape ~ Assault + Murder, data = USArrests))$coef
+summary(fit_US2 <- lm(Rape ~ Murder, data = USArrests))$coef
 ```
 
 <br>
 
 It is a problem to infer causal inference, not so much for predictions!
 
+
 ## Non-perfect  multicollinearity: why?
 ```{r USA plot}
 pairs(USArrests)
 ```
 
-## Non-perfect  multicollinearity: why?
-
-```{r USA 2}
-crossprod(model.matrix(mod_US))  ## remember: high values show collinearity
-cor(USArrests$Assault, USArrests$Murder)
-```
 
 ## Non-perfect  multicollinearity: why?
 
 ```{r USA 3}
-cor(model.matrix(mod_US))  ## direct measure of correlation in the design matrix
-cov2cor(vcov(mod_US))  ## direct measure of correlation between parameter estimates
+cor(model.matrix(fit_US))  ## direct measure of correlation in the design matrix
+cov2cor(vcov(fit_US))  ## direct measure of correlation between parameter estimates
 ```
 
 <br>
 
 In more complex models, the numbers do not necessarily match, so it is good practice to check both matrices.
 
+
 ## Non-perfect  multicollinearity: why?
 
 ### Often diagnosed using the Variance Inflation Factor
 
 ```{r USA 4}
-vif(mod_US)
+car::vif(fit_US)
 R2 <- summary(lm(Assault ~ Murder, data = USArrests))$r.squared  ## works too if more variables
 1/(1 - R2)
 ```
 
 <br>
 
-Note: the model here considers the relationship between the predictors (the response variable of ```mod_US``` was ```rape```).
+Note: the model here considers the relationship between the predictors (the response variable of ```fit_US``` was ```rape```).
 
 The VIF tells you by how much the variance in the uncertainty in parameter estimates increases due to multicollinearity.
+
 
 ## Non-perfect  multicollinearity: solution?
 
@@ -354,9 +359,8 @@ The VIF tells you by how much the variance in the uncertainty in parameter estim
 ```{r pca}
 pca <- prcomp(~ Assault + Murder, data = USArrests, scale. = TRUE)
 USArrests$PC1 <- pca$x[, 1]
-summary(mod_US3 <- lm(Rape ~ PC1, data = USArrests))
+summary(fit_US3 <- lm(Rape ~ PC1, data = USArrests))
 ```
-
 
 
 # Predictor variables have fixed values
@@ -393,21 +397,21 @@ Alien4$humans_eaten_err <- Alien4$humans_eaten + rnorm(nrow(Alien4), sd = 10)
 summary(lm(size ~ humans_eaten_err, data = Alien4))$coef
 ```
 
+
 ## Accounting for errors-in-variables using ```sem```
 
-### Seems to work here... (despite strange value for phi)
+### Structural equation modelling
 
-```{r sem}
-library(sem)
-eqns <- specifyEquations(text = "
+```{r sem, message=FALSE}
+eqns <- sem::specifyEquations(text = "
                         size = alpha*Intercept + slope*humans_eaten
                         humans_eaten = 1*humans_eaten_err
                         V(size) = sigma
                         V(humans_eaten) = 1
-                        V(humans_eaten_err) = phi
+                        V(humans_eaten_err) = 1
                         ")
-fitted.mod <- sem(eqns, data = Alien4, raw = TRUE, fixed.x = "Intercept")
-summary(fitted.mod, analytic.se = FALSE)$coef  ## use analytic.se = FALSE (uses z as consider variance known)
+fit_sem <- sem::sem(eqns, data = Alien4, raw = TRUE, fixed.x = "Intercept")
+summary(fit_sem, analytic.se = FALSE)$coef  ## use analytic.se = FALSE (uses z as consider variance known)
 ```
 
 Other solutions are possible using mixed models.
@@ -424,7 +428,7 @@ The errors (not the residuals) are uncorrelated: $\text{cov}(\epsilon_i, \epsilo
 
 ### Causes and consequences of violation
 
-A lack of independence (serial autocorrelation) in the residuals can appear if there is a departure from linearity, if data have been sampled non-randomly (e.g. spatial or temporal series), or if there is an overarching structure (e.g. repeated measures within individuals, families, species, ...). Lack of independence increases the risk of false positive (sometimes a lot).
+A lack of independence (serial autocorrelation) in the residuals can appear if there is a departure from linearity, if data have been sampled non-randomly (e.g. spatial or temporal series), or if there is an overarching structure (e.g. repeated measures within individuals, families, species, ...). The lack of independence increases the risk of false positive (sometimes a lot).
 
 
 ### Solution
@@ -447,10 +451,10 @@ We can use the Durbin-Watson test: D-W [0; 4]
 * D-W >>2 negative autocorrelation
 
 ```{r DW}
-library(car)
 set.seed(1L)
-durbinWatsonTest(modConv <- lm(fconvict ~ tfr + partic + degrees + mconvict, data = Hartnagel), max.lag = 3)
+car::durbinWatsonTest(modConv <- lm(fconvict ~ tfr + partic + degrees + mconvict, data = Hartnagel), max.lag = 3)
 ```
+
 
 ## Testing for independence
 
@@ -462,12 +466,13 @@ pacf(modConv$residuals)
 
 but mind that the CI plotted here are very aproximative.
 
+
 ## Testing for independence induced by a specific variable
 
 ```{r DW 2, message = FALSE}
-library(lmtest)
-dwtest(modConv, order.by = modConv$model$degrees)
+lmtest::dwtest(modConv, order.by = modConv$model$degrees)
 ```
+
 
 ## Testing for independence by eye
 
@@ -478,6 +483,7 @@ plot(residuals(modConv) ~ fitted(modConv))
 abline(h = 0, lty = 2, col = "red")
 ```
 
+
 ## Testing for independence by eye
 
 ### The origin of the problem is here the time!
@@ -487,6 +493,7 @@ plot(residuals(modConv) ~ Hartnagel$year, type = "o")
 abline(h = 0, lty = 2, col = "red")
 ```
 
+
 # Constant variance (homoscedasticity)
 
 ## Homos(c/k)edasticity in brief
@@ -494,7 +501,7 @@ abline(h = 0, lty = 2, col = "red")
 ### Assumption
 
 The variance of the error (not residuals) is constant: $\text{var}(\epsilon_j) = \sigma^2$ for all $j$.
-With matrix notation: if $\epsilon^\text{T}$ is the vector of all $\epsilon_j$, then we assume $\text{cov}(\epsilon, \epsilon) = \text{E}(\epsilon \epsilon^\text{T}) = \sigma^2I_n$, where $I_n$ is the $n \times n$ identity matrix. 
+With matrix notation: if $\epsilon^\text{T}$ is the vector of all $\epsilon_j$, then we assume $\text{cov}(\epsilon, \epsilon) = \text{E}(\epsilon \epsilon^\text{T}) = \sigma^2I_n$, where $I_n$ is the $n \times n$ identity matrix.
 
 ### Causes and consequences of violation
 
@@ -508,7 +515,7 @@ Heteros(c/k)edasticity can emerge when there is a mean - variance relationship, 
 ### Alternative
 
 * Generalized Linear Models (GLM)
-* mixed models modeling the variance
+* heteroscedastic models
 
 
 ## Example of heteroscedasticity
@@ -517,40 +524,44 @@ Heteros(c/k)edasticity can emerge when there is a mean - variance relationship, 
 set.seed(1L)
 Alien5 <- simulate_Aliens(N = 100)
 Alien5$eggs <- rpois(100, lambda = 2 + 1 * Alien5$humans_eaten)
-mod_alien5 <- lm(eggs ~ humans_eaten, data = Alien5)
-summary(mod_alien5)$coef
-bptest(mod_alien5)
+fit_alien5 <- lm(eggs ~ humans_eaten, data = Alien5)
+summary(fit_alien5)$coef
+bptest(fit_alien5)
 ```
 
 The Breusch-Pagan test follows a Chi-square distribution (thus stat | H0 = df).
+
 
 ## Testing for heteroscedasticity by eye
 
 Residuals must be standardized as raw residuals always have some (minor) heteroscedasticity.
 
 ```{r plot heterosced}
-plot(abs(rstandard(mod_alien5)) ~ fitted(mod_alien5))
+plot(abs(rstandard(fit_alien5)) ~ fitted(fit_alien5))
 ```
+
 
 ## Post-hoc correction (not optimal)
 
 ```{r rpois correction}
-vcov(mod_alien5)
-hccm(mod_alien5)  ## correct the covariance matrix of parameter estimates
-estimates <- coef(mod_alien5)
-std.errors <- sqrt(diag(hccm(mod_alien5)))
+vcov(fit_alien5)
+car::hccm(fit_alien5)  ## correct the covariance matrix of parameter estimates
+estimates <- coef(fit_alien5)
+std.errors <- sqrt(diag(car::hccm(fit_alien5)))
 t.values <- estimates/std.errors
-p.values <- 2*pt(abs(t.values), df = mod_alien5$df.residual, lower.tail = FALSE)
+p.values <- 2*pt(abs(t.values), df = fit_alien5$df.residual, lower.tail = FALSE)
 cbind(estimates, std.errors, t.values, p.values)
 ```
+
 
 ## Post-hoc correction (not optimal)
 
 Same using ```Anova```:
 ```{r}
-Anova(mod_alien5, white.adjust = TRUE)  ## vcov = hccm
-37.111144^2  ## t^2 from previous slide
+car::Anova(fit_alien5, white.adjust = TRUE)  ## vcov = hccm
+35.2490945224257^2  ## t^2 from previous slide
 ```
+
 
 # Normality
 
@@ -574,6 +585,7 @@ The distribution of residuals can be skewed, this is often caused by the presenc
 * robust regressions
 * GLM
 
+
 ## Testing normality
 
 ### There are many tests for normality out there...
@@ -581,33 +593,35 @@ The distribution of residuals can be skewed, this is often caused by the presenc
 Example: the Lilliefors (Kolmogorov-Smirnov) test for normality, Shapiro-Wilk Normality Test...
 
 ```{r norm test}
-library(nortest)
-lillie.test(mod_poison$residuals)   ## stat = 0 when normal
-shapiro.test(mod_poison$residuals)  ## stat = 1 when normal
+nortest::lillie.test(fit_poison$residuals)   ## stat = 0 when normal
+shapiro.test(fit_poison$residuals)  ## stat = 1 when normal
 ```
+
 
 ## Testing normality by eye
 
 <div class=columns-2>
 
 ```{r norm by eye}
-qqnorm(mod_poison$residuals)
-qqline(mod_poison$residuals, col = 2, lty = 2)
+qqnorm(residuals(fit_poison))
+qqline(residuals(fit_poison), col = 2, lty = 2)
 ```
 
 ```{r norm by eye 2}
-qqnorm(mod_poison2$residuals)
-qqline(mod_poison2$residuals, col = 2, lty = 2)
+qqnorm(residuals(fit_poison_bc))  ## the BoxCoxed fit
+qqline(residuals(fit_poison_bc), col = 2, lty = 2)
 ```
 
 </div>
+
 
 ## Testing all assumptions on the errors at once
 
 ```{r plot mod, fig.height = 5, fig.width = 5}
 par(mfrow = c(2, 2))
-plot(mod_poison)
+plot(fit_poison)
 ```
+
 
 # Outliers
 
@@ -627,31 +641,34 @@ It depends... but never trash them blindly.
 
 If you have very good reasons to take them out, do mention it in the paper!
 
-## Example
+
+## Example of outlier
 
 <div class=columns-2>
 
-```{r Davis}
-data(Davis)
-mod_davis <- lm(weight ~ height, data = Davis)
+```{r Davis, fig.width = 3.5, fig.height = 3.5}
+fit_davis <- lm(weight ~ height, data = Davis)
 plot(weight ~ height, data = Davis)
-abline(mod_davis, col = "red", lwd = 2)
+abline(fit_davis, col = "red", lwd = 2)
 ```
 
-```{r Davis 2}
-# with(Davis, identify(height, weight, 
-#   row.names(Davis))) # click and escape
-mod_davis2 <- update(mod_davis, data = Davis[-12, ])
+```{r Davis 2, fig.width = 3.5, fig.height = 3.5}
+fit_davis2 <- update(fit_davis, data = Davis[-12, ])
 plot(weight ~ height, data = Davis[-12, ])
-abline(mod_davis2, col = "blue", lwd = 2)
+abline(fit_davis2, col = "blue", lwd = 2)
 ```
+
 </div>
 
-## Many ways to be an outlier
+Note: to identify a given point on the plot, call `with(Davis, identify(height, weight, row.names(Davis)))`, then click close to the point and press escape.
+
+
+## There are many ways to identify an outlier
 
 ```{r influence.measures 0}
-influence.measures(mod_davis)  ## In the next slides we will see all that in details!
+influence.measures(fit_davis)  ## In the next slides we will see all that in details!
 ```
+
 
 ## Leverage vs Influence
 
@@ -659,11 +676,13 @@ A regression outlier is an observation that has an unusual value of the dependen
 
 Regression outliers may not look at outliers on any Y or X variables.
 
+
 ### Leverage
 
 The leverage quantifies how unusual on observation is in terms of X values.
 
 A high leverage is not necessarily a bad thing.
+
 
 ### Influence
 
@@ -686,72 +705,85 @@ Recall: $\widehat{Y} = HY$
 * mean : k/n
 
 ```{r hat}
-head(sort(hatvalues(mod_davis), decreasing = TRUE))
-X <- model.matrix(mod_davis)
-head(sort(diag(X %*% solve(crossprod(X)) %*% t(X)), decreasing = TRUE))
+head(sort(hatvalues(fit_davis), decreasing = TRUE))
 ```
 
+<!--
+```{r hat complex}
+X <- model.matrix(fit_davis)
+head(sort(diag(X %*% solve(crossprod(X)) %*% t(X)), decreasing = TRUE))
+```
+-->
+
 For some computations and plots the leverage are rescaled as $\frac{h_{i,i}}{1-h_{i,i}}$, but it does not change the reasoning.
+
 
 ## Measuring the leverage
 
 ```{r hat plot}
-plot(mod_davis, which = 5)
+plot(fit_davis, which = 5)
 ```
+
 
 ## Measuring the influence on predictions
 
 ```{r influence}
-head(sort(dffits(mod_davis), decreasing = TRUE))
-head(sort(cooks.distance(mod_davis), decreasing = TRUE))
+head(sort(dffits(fit_davis), decreasing = TRUE))
+head(sort(cooks.distance(fit_davis), decreasing = TRUE))
 ```
 
-Both the DFFITS measure and the Cook distance (aka Cook's D) are two relative measures of the extent to which the predicted y-values changes if a given observation is dropped. DFFITS measures it scaled by the standard deviation of the fit at the point, Cook's D in the value of a F statistics comparing simultaneously the changes in all estimates when the observation is dropped or not.
+Both the DFFITS statistics and the Cook distance (aka Cook's D) are two relative measures of the extent to which the predicted y-values changes if a given observation is dropped. The DFFITS measure is scaled by the standard deviation of the fit at the point. The Cook's D is based on a F statistics comparing simultaneously the changes in all estimates when the observation is dropped or not.
 
 A high value is obtained when the observation is associated to high leverage, high residual or both.
+
 
 ## Measuring the influence on predictions
 
 ```{r influence2}
-plot(dffits(mod_davis2), cooks.distance(mod_davis2), xlab = "DFFITS", ylab = "Cook's distance")
+plot(dffits(fit_davis2), cooks.distance(fit_davis2), xlab = "DFFITS", ylab = "Cook's distance")
 ```
+
 
 ## Measuring the influence on predictions
 
 ```{r influence3, fig.width = 10}
 par(mfrow = c(1, 3))
-plot(mod_davis, which = 4:6)
+plot(fit_davis, which = 4:6)
 ```
+
 
 ## Measuring the influence on predictions with another example
 
 ```{r influence4, fig.width = 10}
-mod_UK <- lm(height ~ sex * milk, data = UK[1:20, ])
+fit_UK <- lm(height ~ sex * milk, data = UK[1:20, ])
 par(mfrow = c(1, 3))
-plot(mod_UK, which = 4:6)
+plot(fit_UK, which = 4:6)
 ```
+
 
 ## Measuring the influence on predictions with another example bis
 
 ```{r influence5, fig.width = 10}
-mod_UK2 <- lm(height ~ sex * milk, data = UK)
+fit_UK2 <- lm(height ~ sex * milk, data = UK)
 par(mfrow = c(1, 3))
-plot(mod_UK2, which = 4:6)
+plot(fit_UK2, which = 4:6)
 ```
+
 
 ## Measuring the influence on each parameter estimates
 
 ```{r dfbetas}
-head(dfbeta(mod_davis), n = 3)
-coef(mod_davis) - coef(update(mod_davis, data = Davis[-1, ]))
-head(dfbetas(mod_davis), n = 3) ## same in SE units
+head(dfbeta(fit_davis), n = 3)
+coef(fit_davis) - coef(update(fit_davis, data = Davis[-1, ]))
+head(dfbetas(fit_davis), n = 3) ## same in SE units of the coef
 ```
+
 
 ## Measuring the influence on the estimation of the covariance matrix
 
 ```{r cov}
-head(sort(covratio(mod_davis), decreasing = TRUE))
-det(vcov(update(mod_davis, data = Davis[-19, ]))) / det(vcov(mod_davis))
+head(sort(covratio(fit_davis), decreasing = TRUE))
+det(vcov(update(fit_davis, data = Davis[-19, ]))) / det(vcov(fit_davis))
 
 ```
 
@@ -761,7 +793,7 @@ det(vcov(update(mod_davis, data = Davis[-19, ]))) / det(vcov(mod_davis))
 Note: don't trust much rule of thumbs to identify outliers "automatically". If you still want to know some of them, you can look at the beginning of the code of the function ```influence.measures()```.
 
 ```{r influence.measures}
-influence.measures(mod_davis)  ## stars are just there to attract your attention, there is no proper tests!
+influence.measures(fit_davis)  ## stars are just there to attract your attention, there is no proper tests!
 ```
 <!- The dfbetas are shown for each parameter! -->
 
@@ -781,9 +813,15 @@ influence.measures(mod_davis)  ## stars are just there to attract your attention
 ## The Linear Model: LM
 
 * 2.0 [Introduction](./LM_intro.html)
-* 2.1 [Point estimates](./LM_point_estimates.html)
-* 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
-* 2.3 [Tests](./LM_tests.html)
-* 2.4 [Assumptions and Outliers](./LM_assumptions.html)
-* 2.5 [Let's practice more](./LM_practice.html)
+* 2.1 [Fitting procedure](./LM_fitting.html)
+* 2.2 [Tests & Intervals](./LM_test_intervals.html)
+* 2.3 [Assumptions & Outliers](./LM_assumptions.html)
+* 2.4 [Let's practice](./LM_practice.html)
+
+<br>
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
+
 
