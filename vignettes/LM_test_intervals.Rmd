@@ -87,7 +87,7 @@ fit_spaMM_AL1_REML <- fitme(size ~ humans_eaten, data = Alien, method = "REML")
 fit_spaMM_AL1_REML
 ```
 
-Note: the REML fit is needed for whenever we are using the estimate of the error.
+Note: the REML fit is needed for whenever we are using the estimate of the error variance.
 
 
 ## Brits fitted with `stats::lm()`
@@ -182,7 +182,7 @@ This is because, in the case of LM, regression coefficients are normally distrib
 
 ```{r estimate normal, fig.width=4, fig.asp=1, fig.align='center'}
 set.seed(123)
-new_beta_estimates <- t(replicate(1000, coef(update(fit_lm_AL1, data = simulate_Aliens(n = 100)))))
+new_beta_estimates <- t(replicate(1000, coef(update(fit_lm_AL1, data = simulate_Aliens(N = 100)))))
 qqnorm(new_beta_estimates[, 2])  ## draw a qqplot
 qqline(new_beta_estimates[, 2], col = "red")  ## draw line of normality
 ```
@@ -273,7 +273,7 @@ for example:
 
 <br>
 
-In the case of LM the method based on the Student is best but we will see the alternative methods because they will become useful for more complex models and it is easier to start seeing them in the context of simple models.
+In the case of LM the method based on the Student's t distribution is best but we will see the alternative methods because they will become useful for more complex models and it is easier to start seeing them in the context of simple models.
 
 
 # Confidence intervals on regression coefficients
@@ -289,8 +289,8 @@ confint(fit_lm_AL1)
 It is easy to compute the same thing by hand:
 ```{r CI student hand}
 
-cbind(coef(fit_lm_AL1) + qt(0.025, 10) * sqrt(diag(vcov(fit_lm_AL1))),
-      coef(fit_lm_AL1) + qt(0.975, 10) * sqrt(diag(vcov(fit_lm_AL1))))
+cbind(coef(fit_lm_AL1) + qt(0.025, 10) * sqrt(diag(vcov(fit_lm_AL1))),  ## 10 = n - p
+      coef(fit_lm_AL1) + qt(0.975, 10) * sqrt(diag(vcov(fit_lm_AL1))))  ## 10 = n - p
 ```
 
 Note: `qt()` is used to extract the quantiles from the Student's t distribution.
@@ -415,7 +415,7 @@ for (i in 1:nrow(candidates)) { ## could use sapply here too
 par(las = 1)
 with(candidates, contour(candidate_intercepts, candidate_slopes,
   matrix(candidates$logLik, nrow = length(candidate_intercepts)), nlevels = 15,
-  xlab = "slope", ylab = "intercept"))
+  ylab = "slope", xlab = "intercept"))
 points(fit_spaMM_AL1_ML$fixef["(Intercept)"], fit_spaMM_AL1_ML$fixef["humans_eaten"],
         col = "blue", pch = 4, lwd = 2, cex = 3)
 points(50, 1.5, col = "green", pch = 4, lwd = 2, cex = 3)
@@ -587,7 +587,7 @@ Sometimes theory helps, but sometimes there is no clear answer. Again, you can u
 Statistical tests should meet 2 properties: the rate of false negatives should be as small as possible, and more importantly, the rate of false positives must be close to the nominal level. You can test the latter by checking if the test produces a uniform distribution of p-values under the null hypothesis (it should!):
 
 ```{r testing variances}
-simu <- function(n, sigma2) simulate_Aliens(n = n, sigma2 = sigma2)
+simu <- function(n, sigma2) simulate_Aliens(N = n, sigma2 = sigma2)
 
 tests_var_under_H0 <- function(fit, sigma2_true = 25, n = 12) {
   d <- simu(n, sigma2_true)
@@ -742,9 +742,7 @@ Note: that we obtained a negative value is not great since variances cannot be n
 
 ## Which method is best to build a CI?
 
-Here we know: the one using the $\chi^2$ distribution, but sometime it is unclear (either because you don't know, because it is not known, or because there is no general answer) what the best method is. 
-
-In such cases, you can always test for yourself by investigating the coverage of different methods by simulating data close to yours (as we did it earlier for Student's based CI).
+Here we know: the one using the $\chi^2$ distribution, but sometime it is unclear (either because you don't know, because it is not known, or because there is no general answer) what the best method is. In such cases, you can always test for yourself by investigating the coverage of different methods by simulating data close to yours (as we did it earlier for Student's based CI).
 
 Here, we will check the coverage for all 4 methods we have just mentioned:
 
@@ -753,7 +751,7 @@ Here, we will check the coverage for all 4 methods we have just mentioned:
 ```{r coverage Gamma}
 set.seed(123)
 mean(replicate(1000,
-  sum(findInterval(confint_sigma2(update(fit_lm_AL1, data = simulate_Aliens())), 25)) == 1))  ## for lm fit
+  sum(findInterval(confint_sigma2_chi2(update(fit_lm_AL1, data = simulate_Aliens())), 25)) == 1))  ## for lm fit
 ```
 
 2- CI using the $\Gamma$
@@ -761,7 +759,7 @@ mean(replicate(1000,
 ```{r coverage Gamma chi2}
 set.seed(123)
 mean(replicate(1000,
-  sum(findInterval(confint_sigma2_chi2(update(fit_lm_AL1, data = simulate_Aliens())), 25)) == 1))  ## for lm fit
+  sum(findInterval(confint_sigma2(update(fit_lm_AL1, data = simulate_Aliens())), 25)) == 1))  ## for lm fit
 ```
 
 
@@ -880,7 +878,7 @@ Notes:
 - `anova(..., test = "LRT")` exists for mode fitted with `lm()` but it does not really do a proper LRT (strange!)
 
 
-## Comparing models to test a quantitative variable
+## Comparing models to test a qualitative variable
 
 Testing the overall effect cannot be done with `summary()` because it would only give you test outputs separately for each factor level. Instead, you should rely on model comparison for this purpose:
 
@@ -952,7 +950,7 @@ In the case of LM, it is also given by the last row produced by `summary()`!
 
 ## Simulate nothingness
 
-To study what happens when simulating many things, we will simulate predictors with no effect:
+To study what happens when testing many things, we will first simulate predictors with no effect:
 
 ```{r simu_null}
 simu_null <- function(n, p) {
@@ -994,7 +992,7 @@ mean(replicate(200, min(car::Anova(lm(y ~ ., data = simu_null(n = 1000, p = 50))
 
 ## Why not do backward selection?
 
-Some scientists (with poor knowledge in statistics) rely on so-called backward selection to discard predictors. This is a terrible thing if you want to do inference (i.e. test things).
+Some scientists (with poor knowledge in statistics) rely on so-called backward selection to discard predictors. This is a terrible thing if you want to do inference (i.e. test things). Backward stepwise selection is evil, even when you compare the minimal "adequate" fit to a null fit.
 
 Here is why:
 
@@ -1045,7 +1043,7 @@ mean(replicate(1000, {
 
 ```
 
-* Always test the qualitative variable as a whole before comparing levels
+* Always test each qualitative variable as a whole before comparing levels
 * Correct for multiple testing when comparing the different levels of a factor
 
 
@@ -1082,8 +1080,9 @@ You can also test specific hypotheses instead of testing all combinations (it in
 ```{r specific posthoc}
 UK$drink2 <- factor(gsub(" ", "_", UK$drink))  ## removes space in levels to avoid issues in multcomp
 fit_lm_UK1bis <- lm(height ~ drink2 + sex*weight, data = UK)
-summary(multcomp::glht(fit_lm_UK1bis, linfct = multcomp::mcp(drink2 = c("Most_days - Not_at_all = 0",
-                                                                        "Most_days = 0"))))
+summary(multcomp::glht(fit_lm_UK1bis, linfct = multcomp::mcp(drink2 = c("Not_at_all - Once_a_week_or_less == 0",
+                                                                        "Not_at_all == 0",  ## compare to intercept as no param for 2_to_3... 
+                                                                        "Not_at_all - Most_days == 0"))))
 ```
 
 
@@ -1098,7 +1097,7 @@ summary(lm(height ~ drink3 + sex*weight, data = UK))$coefficients
 
 <br>
 
-Note: although this is an established practice, it does not correct for multiple testing. 
+Note: although this is an established practice, it does not correct for multiple testing (which is why the p-values are smaller than on the previous slide). 
 
 
 # Comparing non-nested models
