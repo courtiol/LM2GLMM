@@ -1,0 +1,42 @@
+---
+title: "LM: Assumptions and Outliers"
+subtitle: "exercises"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+vignette: >
+  %\VignetteIndexEntry{2.3 z-------------------------------------------------------------exercises}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, include=FALSE}
+library(LM2GLMM)
+knitr::opts_chunk$set(cache = FALSE,
+                      fig.align = "center",
+                      fig.width = 4,
+                      fig.height = 4,
+                      cache.path = "./cache_knitr/LM_assumption_ex/",
+                      fig.path = "./fig_knitr/LM_assumption_ex/")
+options(width = 110)
+set.seed(1L)
+```
+
+
+## Challenge: analysing the Fungi dataset
+
+```{r fungi}
+head(Fungi)
+```
+
+<br>
+
+### Goal:
+
+quantifying the average growth rate of alive fungi for each species,
+in each experimental condition, using a single linear model.
+
+([solution](./Exercise_Multicollinearity.html))
