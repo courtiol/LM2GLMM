@@ -538,7 +538,7 @@ data.frame(fitted_poly = fitted.values(fit_poly_alien),
 
 <br>
 
-In case you are curious, the default polynomial formulation for the design matrix produces columns in the design matrix which are orthogonal (no correlation), which presents better numerical properties for linear algebra.
+In case you are curious: the default polynomial formulation for the design matrix produces columns in the design matrix which are orthogonal (no correlation), which presents better numerical properties for linear algebra, and which makes tests on them more informative. E.g. `poly1` provides information on whether considering a linear relationship is useful or not, irrespective of if there is a quadratic signal or not. Yet, the interpretation of parameter values is easier when polynomials are expressed under their raw form.
 
 
 ## (Galactic) Interlude
