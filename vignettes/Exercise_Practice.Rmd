@@ -1,5 +1,6 @@
 ---
-title: "Answers to Exercises: Let's practice more LMs"
+title: "LM: Let's practice!"
+subtitle: "solutions"
 author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
 output: 
@@ -7,7 +8,7 @@ output:
     toc: true
 vignette: >
   %\VignetteEncoding{UTF-8}
-  %\VignetteIndexEntry{2.X Answers to Exercises: Let's practice more LMs}
+  %\VignetteIndexEntry{2.4 z-------------------------------------------------------------solutions}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
@@ -15,7 +16,7 @@ editor_options:
 ```{r setup, include=FALSE}
 library(LM2GLMM)
 library(car)
-knitr::opts_chunk$set(cache = TRUE, fig.align = "center", fig.width = 6, fig.height = 6,
+knitr::opts_chunk$set(cache = FALSE, fig.align = "center", fig.width = 6, fig.height = 6,
                       cache.path = "./cache_knitr/Exo_LM_solution/", fig.path = "./fig_knitr/Exo_LM_solution/")
 ```
 
@@ -42,17 +43,7 @@ plot(weight ~ feed, data = chickwts)
 
 I don't know much about chicken but the values seem alright.
 
-
-We can also check the structure of the experimental design using the cross product of the design matrix we are planing to use for the fitting procedure:
-
-```{r}
-crossprod(model.matrix( ~ feed - 1, data = chickwts))
-```
-
-Removing the intercept when there is only one qualitative predictor gives the counts directly.
-
-Here, because there is only one factor involved, we could also have directly used the following:
-
+We look at the distribution of chicken among the sources of feed:
 ```{r}
 table(chickwts$feed)
 ```
@@ -76,7 +67,7 @@ We fit the model:
 ## Checking the assumptions
 
 * linearity cannot be an issue here as we only have one qualitative predictor.
-* multicollinearity is not an issue either has each chick has received a different feeding treatment (see cross-product above).
+* multicollinearity is not an issue either as each chick has received a different feeding treatment.
 * fixed values for the predictor: unless the diet has not been recorded correctly, there should not been any problem.
 
 Let's have a look at the residuals of the model:
@@ -92,7 +83,7 @@ Everything looks very good. The errors should thus be independent, homoscedastic
 ## Testing the effect of diet
 
 ```{r}
-anova(mod_chick)
+anova(mod_chick)  ## here anova() is sufficient because type I and II are the same with a single predictor
 ```
 
 The diet seems to influence significantly the growth of chicken (F = ```r round(anova(mod_chick)$F[1], 2)```, df1 = ```r anova(mod_chick)$Df[1]```, df2 = ```r anova(mod_chick)$Df[2]```, p-value < 0.001).
@@ -101,8 +92,9 @@ The diet seems to influence significantly the growth of chicken (F = ```r round(
 
 ```{r}
 pred <- predict(mod_chick, newdata = data.frame(feed = levels(chickwts$feed)),
-        interval = "confidence")
-rownames(pred) <- levels(chickwts$feed)
+                interval = "confidence")
+pred <- as.data.frame(pred)
+pred$feed <- levels(chickwts$feed)
 pred
 ```
 
@@ -128,6 +120,26 @@ The plot shows the predicted mean weight of chicken for each diet (black) with a
 
 To make the plot even better we could have sorted the diet by increasing order of their effects.
 
+We can also use **{ggplot2}** if you prefer (which we load through **{tidyverse}** as we will use other tidy packages below)):
+```{r plot ggplot chicken}
+library(tidyverse)
+ggplot() +
+  geom_point(aes(y = weight, x = feed),
+             shape = 1,
+             position = position_nudge(x = -0.1),
+             data = chickwts) +
+  geom_point(aes(y = fit, x = feed),
+             position = position_nudge(x = 0.1),
+             data = pred) +
+  geom_errorbar(aes(ymin = lwr, ymax = upr, x = feed),
+                width = 0.2,
+                position = position_nudge(x = 0.1),
+                data = pred) +
+  labs(y = "Chicken weight (gr)", x = "Diet") +
+  theme_minimal()
+```
+
+
 ## Testing which diet differs from each others
 
 ```{r, message = FALSE, fig.width = 8}
@@ -151,9 +163,9 @@ freq_more300 <- pnorm(q = 300,
                       mean = pred2$fit[, "fit"],
                       sd = se.pred, lower.tail = FALSE)
 
-output <- cbind(pred2$fit, "%>300gr" = round(freq_more300, 2))
+output <- as.data.frame(cbind(pred2$fit, "%>300gr" = round(freq_more300, 2)))
 
-rownames(output) <- levels(chickwts$feed)
+output$feed <- levels(chickwts$feed)
 
 output
 ```
@@ -161,7 +173,19 @@ output
 We can plot this: 
 
 ```{r, fig.width = 8}
-barplot(sort(output[, "%>300gr"]), ylim = c(0, 1), ylab = "Predicted proportion of chicken larger than 300 gr")
+barplot(sort(output$`%>300gr`), names.arg = output$feed[order(output$`%>300gr`)],
+        ylim = c(0, 1), ylab = "Predicted proportion of chicken larger than 300 gr")
+```
+
+or using tidy packages:
+
+```{r, fig.width = 8}
+output$feed2 <- fct_reorder(output$feed, output$`%>300gr`)
+
+ggplot(output) +
+    geom_col(aes(x = feed2, y = `%>300gr`)) +
+    labs(y = "Predicted proportion of chicken larger than 300 gr") +
+    theme_minimal()
 ```
 
 We clean the session for the next exercise:
@@ -252,13 +276,13 @@ lmtest::dwtest(mod_insect_bc)
 car::durbinWatsonTest(mod_insect_bc)
 ```
 
-Although surprising differences between the two implementation of this test, independence is not rejected.
+Independence is not rejected, irrespective of whether doing a unilateral or bilateral test.
 
 The normality looked good on the plots but we could also test it:
 
 ```{r}
-nortest::lillie.test(mod_insect_bc$residuals)
-shapiro.test(mod_insect_bc$residuals)
+nortest::lillie.test(residuals(mod_insect_bc))
+shapiro.test(residuals(mod_insect_bc))
 ```
 Again, no issue here.
 
@@ -313,7 +337,7 @@ mod_swiss <- lm(Fertility ~ ., data = swiss)
 
 ### Linearity
 
-Let's examine the linearity assumption by plotting the residuals against each column of the design matrix (but the intercept):
+Let's examine the linearity assumption by plotting the (standardised) residuals against each column of the design matrix (but the intercept):
 
 ```{r}
 for (col in 2:ncol(model.matrix(mod_swiss))) {
@@ -365,7 +389,7 @@ plot(mod_swiss)
 plot(mod_swiss_bis)
 ```
 
-Both models look alright.
+Both model fits look alright.
 
 ## Comparison to the null model
 

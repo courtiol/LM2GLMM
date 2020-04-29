@@ -32,6 +32,13 @@ str(Fungi)
 FungiAlive <- subset(Fungi, alive == TRUE)
 ```
 
+or
+```{r create data tidy}
+library(dplyr)
+Fungi %>%
+  filter(alive) -> FungiAlive
+```
+
 ## Silly attempt
 
 ```{r silly, error=TRUE}
@@ -41,13 +48,10 @@ coef(mod_silly <- lm(growth ~ species* (T36 + T38 + PT36 + PT38), data = FungiAl
 ## Looking at the data structure to figure out the issue (ignoring species for now)
 
 ```{r crossprod}
-with(FungiAlive, table(T36, T38, PT36, PT38))  ## cumbersome
-(XTX <- crossprod(model.matrix(~ T36 + T38 + PT36 + PT38, data = FungiAlive))) ## more efficient
-det(XTX)
+FungiAlive %>%
+  count(T36, T38, PT36, PT38) ## base R function table() is not great with many dimensions
 ```
 
-The determinant close to zero shows that the matrix is not invertible.
-This is because of the multicollinearity between the different levels of pre-treatments and treatments.
 
 ## Creating the pre-treatment variable
 
@@ -70,15 +74,14 @@ table(FungiAlive$T, FungiAlive$species)
 ```
 
 
-## Fitting the model and predicting the effects: solution 1
+## The revised dataset
 
-```{r pred 1}
-X <- model.matrix(~ PT + T, data = FungiAlive)
-(XTX <- crossprod(X))
-det(XTX)
+```{r look at revised data}
+FungiAlive
 ```
 
-That looks much better!
+
+## Fitting the model and predicting the effects: solution 1
 
 ```{r newdata}
 mod <- lm(growth ~ species * (PT + T), data = FungiAlive)
@@ -88,6 +91,7 @@ newdata <- data.frame(PT = c("36", "38", "no", "no", "36", "38", "no", "no"),
 newdata$pred <- predict(mod, newdata = newdata)
 newdata
 ```
+
 
 ```{r plot pred 1}
 plot(newdata[newdata$species == "M_A", "pred"],
@@ -115,10 +119,6 @@ FungiAlive$condition <-
 
 You can in fact directly get the estimates for each treatment by simply removing the intercept:
 ```{r pred 2}
-X <- model.matrix(~ -1 + condition, data = FungiAlive)
-(XTX <- crossprod(X))
-det(XTX)
-
 mod2 <- lm(growth ~ -1 + condition, data = FungiAlive)
 data.frame(coef(mod2))
 newdata2 <- data.frame(condition = levels(FungiAlive$condition))

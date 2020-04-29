@@ -1,5 +1,5 @@
 ---
-title: "LM: Let's practice more!"
+title: "LM: Let's practice!"
 author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
 output:
@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{2.5 Let's practice more LMs}
+  %\VignetteIndexEntry{2.4 Let's practice}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
@@ -23,11 +23,16 @@ set.seed(1L)
 ## The Linear Model: LM
 
 * 2.0 [Introduction](./LM_intro.html)
-* 2.1 [Point estimates](./LM_point_estimates.html)
-* 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
-* 2.3 [Tests](./LM_tests.html)
-* 2.4 [Assumptions and Outliers](./LM_assumptions.html)
-* 2.5 [Let's practice more](./LM_practice.html)
+* 2.1 [Fitting procedure](./LM_fitting.html)
+* 2.2 [Tests & Intervals](./LM_test_intervals.html)
+* 2.3 [Assumptions & Outliers](./LM_assumptions.html)
+* 2.4 [Let's practice](./LM_practice.html)
+
+<br>
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
 
 
 # Exercises
@@ -130,8 +135,13 @@ Give it a good try before checking how I did it!
 ## The Linear Model: LM
 
 * 2.0 [Introduction](./LM_intro.html)
-* 2.1 [Point estimates](./LM_point_estimates.html)
-* 2.2 [Uncertainty in point estimates](./LM_uncertainty.html)
-* 2.3 [Tests](./LM_tests.html)
-* 2.4 [Assumptions and Outliers](./LM_assumptions.html)
-* 2.5 [Let's practice more](./LM_practice.html)
+* 2.1 [Fitting procedure](./LM_fitting.html)
+* 2.2 [Tests & Intervals](./LM_test_intervals.html)
+* 2.3 [Assumptions & Outliers](./LM_assumptions.html)
+* 2.4 [Let's practice](./LM_practice.html)
+
+<br>
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
