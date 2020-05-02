@@ -218,6 +218,23 @@ lambda <- -1; (pred$fit * lambda + 1)^(1/lambda)
 ```
 
 
+## Poison example linearised
+
+Relationship between the Box-Cox with $\lambda = -1$ and survival (in discrete time):
+
+With $t$ the time to death and $s$ the survival rate, we have:
+
+$$
+\begin{array}
+\text{new.y} & = & \frac{t^{-1} - 1}{-1}\\
+& = & 1- t^{-1}\\
+& = & 1- \frac{1}{t}\\
+& = & s
+\end{array}
+$$
+
+
+
 ## Comparison of tests
 
 ```{r poison summary}
@@ -238,7 +255,7 @@ summary(fit_poison_bc) ## the boxcoxed model
 
 ### Assumption
 
-The design matrix must have full rank. That means that the number of parameters to be estimated must be equal to the rank of the design matrix.
+The design matrix must have *full rank*. That means that the number of parameters to be estimated must be equal to the number of independent columns (i.e. *rank*) of the design matrix.
 
 ### Causes and consequences of violation
 
@@ -403,6 +420,8 @@ summary(lm(size ~ humans_eaten_err, data = Alien4))$coef
 ### Structural equation modelling
 
 ```{r sem, message=FALSE}
+Alien5 <- Alien4
+Alien5$human_eaten <- NULL ## we remove the original variable
 eqns <- sem::specifyEquations(text = "
                         size = alpha*Intercept + slope*humans_eaten
                         humans_eaten = 1*humans_eaten_err
@@ -410,7 +429,7 @@ eqns <- sem::specifyEquations(text = "
                         V(humans_eaten) = 1
                         V(humans_eaten_err) = 1
                         ")
-fit_sem <- sem::sem(eqns, data = Alien4, raw = TRUE, fixed.x = "Intercept")
+fit_sem <- sem::sem(eqns, data = Alien5, raw = TRUE, fixed.x = "Intercept")
 summary(fit_sem, analytic.se = FALSE)$coef  ## use analytic.se = FALSE (uses z as consider variance known)
 ```
 
@@ -461,7 +480,7 @@ car::durbinWatsonTest(modConv <- lm(fconvict ~ tfr + partic + degrees + mconvict
 We can also compute the partial autocorrelations for the residuals serie,
 
 ```{r pacf}
-pacf(modConv$residuals)
+pacf(residuals(modConv))
 ```
 
 but mind that the CI plotted here are very aproximative.
@@ -593,8 +612,8 @@ The distribution of residuals can be skewed, this is often caused by the presenc
 Example: the Lilliefors (Kolmogorov-Smirnov) test for normality, Shapiro-Wilk Normality Test...
 
 ```{r norm test}
-nortest::lillie.test(fit_poison$residuals)   ## stat = 0 when normal
-shapiro.test(fit_poison$residuals)  ## stat = 1 when normal
+nortest::lillie.test(residuals(fit_poison))   ## stat = 0 when normal
+shapiro.test(residuals(fit_poison))  ## stat = 1 when normal
 ```
 
 
@@ -629,7 +648,7 @@ plot(fit_poison)
 
 ### What are they?
 
-They are observation that seem not to belong to the others.
+They are observations that seem not to belong to the others.
 
 ### Why do they matter?
 
