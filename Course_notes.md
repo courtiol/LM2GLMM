@@ -17,3 +17,7 @@ It tooks ~ 3 hours (I think, cannot remember for sure). We did exercise the rema
 ## Session LM_test_intervals
 
 It took 5 hours to get to just before CI for mean responses. No exercises.
+
+## Session LM_assumptions
+
+It took less than 5 hours to finish LM_test_intervals, do the whole of LM_assumptions, and start exercises
