@@ -540,7 +540,7 @@ The working weights (not the prior weights) are inversely proportional to the va
 
 The algorithm fixes these weights, determines the parameter values that minimize the weighted sum of squared residuals, then updates the weights and repeats the process until the weights stabilize (it usually happens in very few iterations).
 
-This algorithm is thus called IRLS for iteratively reweighted least squares, it is also sometimes called Fisher's scoring as it has been proposed by Fisher (in a context more general than GLM).
+This algorithm is thus called IRLS for iteratively reweighted least squares, it is also related to sometimes called Fisher's scoring which has been proposed by Fisher (in a context more general than GLM).
 
 
 ## A toy function using IRLS
