@@ -1,5 +1,5 @@
 ---
-title: "GLM: Let's practice"
+title: "GLM: Let's practice!"
 author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
 output:
@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{3.3  Let's practice more GLMs}
+  %\VignetteIndexEntry{3.1  Let's practice}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
@@ -15,18 +15,21 @@ vignette: >
 ```{r setup, include=FALSE}
 library(LM2GLMM)
 options(width = 100)
-knitr::opts_chunk$set(cache = TRUE, fig.width = 5, fig.height = 5, fig.align = "center",
+knitr::opts_chunk$set(cache = FALSE, fig.width = 5, fig.height = 5, fig.align = "center",
                       cache.path = "./cache_knitr/Exo_GLM/", fig.path = "./fig_knitr/Exo_GLM/")
 ```
 
 ## The Generalized Linear Model: GLM
 
 * 3.0 [Introduction](./GLM_intro.html)
-* 3.1 [Intervals & Tests](./GLM_intervals.html)
-* 3.2 [Residuals & Assumptions](./GLM_assumptions.html)
-* 3.3 [Let's practice more](./GLM_practice.html)
+* 3.1 [Let's practice](./GLM_practice.html)
 
-# Exercises
+<br>
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
+
 
 ## Dataset: InsectSprays
 
@@ -42,7 +45,7 @@ levels(InsectSprays$spray)
 * Compare results between the LM approach (with and without BoxCox transformation) and the GLM approach.
 
 
-## Dataset: LM2GLMM::Surprise
+## Dataset: Surprise
 
 ```{r}
 head(Surprise)
@@ -75,7 +78,7 @@ head(TitanicSurvival)
 * Compute the odds-ratio for survival between the two most contrasting groups of individuals. 
 
 
-## Dataset: LM2GLMM::Challenger
+## Dataset: Challenger
 
 ```{r}
 head(Challenger)
@@ -86,7 +89,7 @@ head(Challenger)
 * What was the probability of O-ring failure when the space shuttle Challenger took off on the 28th of January 1986 by 31 degrees F?
 
 
-## Dataset: LM2GLMM::UK
+## Dataset: UK
 
 ```{r}
 UK[1:2, ]
@@ -99,7 +102,7 @@ UK[1:2, ]
 * Try to identify the influential determinants of the variable ```backward```.
 
 
-## Dataset: LM2GLMM::HSE98women
+## Dataset: HSE98women
 
 ```{r}
 head(HSE98women)
@@ -136,11 +139,16 @@ You can find the solution to all problems [here](./Exercise_Practice_GLM.html).
 
 Give it a good try before checking how I did it!
 
+
 # Table of contents
 
 ## The Generalized Linear Model: GLM
 
 * 3.0 [Introduction](./GLM_intro.html)
-* 3.1 [Intervals & Tests](./GLM_intervals.html)
-* 3.2 [Residuals & Assumptions](./GLM_assumptions.html)
-* 3.3 [Let's practice more](./GLM_practice.html)
+* 3.1 [Let's practice](./GLM_practice.html)
+
+<br>
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
