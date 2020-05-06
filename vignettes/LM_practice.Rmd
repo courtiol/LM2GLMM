@@ -79,7 +79,7 @@ head(swiss)
 * Plot the influence of potential determinant of fertility variation between Swiss provinces.
 
 
-## Dataset: trees (difficulty = 3/5)
+## Dataset: trees (difficulty = 4/5)
 
 ```{r trees}
 head(trees)
@@ -104,6 +104,21 @@ head(stackloss)
 ### Goal
 
 * Find out if the acid concentration influences the loss of ammonia by the plants.
+
+
+## Dataset: mammals (difficulty = 3/5)
+
+```{r}
+head(mammals)
+```
+
+### Goal
+
+* What is the allometric exponent for the growth of brain size with body mass?
+* Does this exponent agree with the usual expectation of 2/3?
+* How large do we expect a 1kg animal to be?
+* Rank organisms by relative brain size (i.e. controlled for body size)
+* Repeat the analysis with the dataset `Animals`
 
 
 ## Dataset: Bats (difficulty = 5/5)

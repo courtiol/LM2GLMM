@@ -749,3 +749,152 @@ vif(fit_stack_int)
 The goodness of fit is not significantly better and there are huge multicollinearity issues, so let's not go there.
 
 That is all for now!
+
+<br>
+
+
+# Dataset: mammals
+
+## Goal
+
+* What is the allometric exponent for the growth of brain size with body mass?
+* Does this exponent agree with the usual expectation of 2/3?
+* How large do we expect the brain of a 1kg animal to be?
+* Rank organisms by relative brain size (i.e. controlled for body size)
+
+## Explore the data
+
+```{r}
+head(mammals)
+str(mammals)
+plot(brain ~ body, data = mammals)
+plot(log(brain) ~ log(body), data = mammals, pch = 20, col = "blue")
+text(log(mammals$body), log(mammals$brain) + 0.4,
+     labels = rownames(mammals), cex = 0.8)
+```
+
+## Reshaping the data
+```{r}
+mammals$log_brain <- log(mammals$brain)
+mammals$log_body <-  log(mammals$body)
+```
+
+## Fitting the model
+```{r}
+fit <- lm(log_brain ~ log_body, data = mammals)
+plot(fit)
+influence.measures(fit)
+plot(fit, which = 4)
+summary(fit)
+fit_nohuman <- lm(log_brain ~ log_body, data = mammals[rownames(mammals) != "Human", ])
+plot(fit_nohuman, which = 4)
+```
+
+## Comparing to 2/3
+
+```{r}
+t <- (fit$coefficients[2] - 2/3) / sqrt(diag(vcov(fit))[2])
+2*pt(abs(t), df = fit$df.residual, lower.tail = FALSE)
+confint(fit)
+fit2 <- lm(log_brain ~ 1 + offset(2/3*log_body), data = mammals)
+anova(fit2, fit)
+```
+
+
+```{r}
+t <- (fit_nohuman$coefficients[2] - 2/3) / sqrt(diag(vcov(fit_nohuman))[2])
+2*pt(abs(t), df = fit_nohuman$df.residual, lower.tail = FALSE)
+confint(fit_nohuman)
+fit2_nohuman <- lm(log_brain ~ 1 + offset(2/3*log_body), data = mammals[rownames(mammals) != "Human", ])
+anova(fit2_nohuman, fit_nohuman)
+```
+
+We can plot the predictions from the models
+
+```{r}
+plot(log_brain ~ log_body, data = mammals, col = "blue")
+text(mammals$log_body, mammals$log_brain + 0.5,
+     labels = rownames(mammals), cex = 0.8)
+abline(fit, col = "blue", lwd = 2)
+abline(fit_nohuman, col = "blue", lwd = 2, lty = 2)
+abline(coef(fit2), 2/3, col = "red", lwd = 2)
+abline(coef(fit2_nohuman), 2/3, col = "red", lwd = 2, lty = 2)
+legend("topleft", lty = c(1, 1, 2, 2), lwd = c(2, 2, 2, 2), col = c("blue", "red", "blue", "red"),
+       legend = c("slope estimated", "slope = 2/3", "slope estimated (no human)", "slope = 2/3 (no human)"))
+```
+
+
+## Prediction of the brain size for an animal of 1Kg
+
+```{r}
+p <- predict(fit_nohuman, newdata = data.frame(log_body = log(1)))
+exp(p)
+```
+
+An animal of 1 Kg is predicted to have a brain size of ```r round(exp(p), 2)``` grams.
+
+
+## Let us rank the organism by brain size controling for body size
+
+```{r}
+matrix(names(sort(resid(fit), decreasing = TRUE)), ncol = 1)
+```
+
+
+# Dataset: Animals
+
+## Goal
+
+* What is the allometric exponent for the growth of brain size with body mass?
+* Does this exponent agree with the usual expectation of 2/3?
+* How large do we expect a 1kg animal to be?
+* Rank organisms by relative brain size (i.e. controlled for body size)
+
+## Explore the data
+
+```{r}
+head(Animals)
+str(Animals)
+plot(brain ~ body, data = Animals)
+plot(log(brain) ~ log(body), data = Animals, col = "blue",
+     ylim = c(min(log(brain)), max(log(brain)) + 0.5))
+text(log(Animals$body), log(Animals$brain) + 0.5,
+     labels = rownames(Animals), cex = 0.8)
+```
+
+## Reshaping the data
+```{r}
+Animals$log_brain <- log(Animals$brain)
+Animals$log_body <-  log(Animals$body)
+```
+
+## Fitting the model
+```{r}
+fit <- lm(log_brain ~ log_body, data = Animals)
+plot(fit)
+influence.measures(fit)
+plot(fit, which = 4)
+summary(fit)
+Animals_nodino <- Animals[!rownames(Animals) %in%
+                          c("Triceratops", "Brachiosaurus", "Dipliodocus"), ]
+fit_nodino <- lm(log_brain ~ log_body, data = Animals_nodino)
+plot(fit_nodino)
+influence.measures(fit_nodino)
+plot(fit_nodino, which = 4)
+summary(fit_nodino)
+```
+
+## Plot
+
+```{r}
+plot(log_brain ~ log_body, data = Animals, col = NULL)
+text(x = Animals$log_body, y = Animals$log_brain,
+     labels = rownames(Animals), cex = 0.8,
+     col = ifelse( rownames(Animals) %in% c("Triceratops", "Brachiosaurus", "Dipliodocus"), "red", "black"))
+p <- predict(fit, newdata = data.frame("log_body" = range(log(Animals$body))))
+p_nodino <- predict(fit_nodino, newdata = data.frame("log_body" = range(log(Animals$body))))
+points(x = range(Animals$log_body), y = p, col = "red", type = "l", lty = 2)
+points(x = range(Animals$log_body), y = p_nodino, col = "blue", type = "l")
+```
+
+

@@ -113,22 +113,6 @@ head(HSE98women)
 * Study the influences of age, body mass index and smoking status upon the probability of being menopaused
 * Estimate the proportion of menopaused women in the population, depending on their age (40, 45, 50, 55, 60 yrs)
 
-## Dataset: MASS::mammals
-
-```{r}
-data(mammals, package = "MASS")
-head(mammals)
-```
-
-### Goal
-
-* What is the allometric exponent for the growth of brain size with body mass?
-* Does this exponent agree with the usual expectation of 2/3?
-* How large do we expect a 1kg animal to be?
-* Rank organisms by relative brain size (i.e. controlled for body size)
-* Repeat the analysis with the dataset ```MASS::Animals```
-
-
 # Solutions
 
 ## Answers to Exercises
