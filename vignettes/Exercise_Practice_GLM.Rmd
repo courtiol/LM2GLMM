@@ -1,5 +1,6 @@
 ---
-title: "Answers to Exercises: Let's practice more GLMs"
+title: "GLM: Let's practice!"
+subtitle: "Solutions"
 author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
 output:
@@ -7,14 +8,13 @@ output:
     toc: true
 vignette: >
   %\VignetteEncoding{UTF-8}
-  %\VignetteIndexEntry{3.X Answers to Exercises: Let's practice more GLMs}
+  %\VignetteIndexEntry{3.1 z-------------------------------------------------------------solutions}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
 ---
 ```{r setup, include=FALSE}
 library(LM2GLMM)
-library(car)
 knitr::opts_chunk$set(cache = TRUE, fig.align = "center", fig.width = 6, fig.height = 6,
                       cache.path = "./cache_knitr/Exo_GLM_solution/", fig.path = "./fig_knitr/Exo_GLM_solution/")
 options(width = 200)
@@ -24,6 +24,8 @@ options(width = 200)
 
 In this vignette I illustrate the key steps required to solve the exercises. By no means I am trying to provide a detailed report of the analysis of each dataset. I am trying to put emphasis on different things you could do in the different exercise. Any final real report would need additional analyses and results would have to be written in good English, not in telegraphic style or lines of codes. I have also written this vignette very quickly, so double check I did not mess anything up...
 
+
+<br>
 
 # Dataset: InsectSprays
 
@@ -41,23 +43,23 @@ Note: I will not check the assumptions for LM, nor detail the dataset (and plott
 We fit the LM:
 
 ```{r}
-mod_insect <- lm(count ~ spray, data = InsectSprays)
+fit_insect <- lm(count ~ spray, data = InsectSprays)
 ```
 
 We fit the LM on the BoxCox transformed response:
 
 ```{r}
 InsectSprays$count_bis <- InsectSprays$count + 1
-mod_insect_bis <- update(mod_insect, count_bis ~ .)
-bc <- car::powerTransform(mod_insect_bis)
+fit_insect_bis <- update(fit_insect, count_bis ~ .)
+bc <- car::powerTransform(fit_insect_bis)
 InsectSprays$count_bc <- car::bcPower(InsectSprays$count_bis, bc$lambda)
-mod_insect_bc <- update(mod_insect_bis, count_bc ~ .)
+fit_insect_bc <- update(fit_insect_bis, count_bc ~ .)
 ```
 
 We fit the GLM:
 
 ```{r}
-mod_insect_glm <- glm(count ~ spray, data = InsectSprays, family = poisson())
+fit_insect_glm <- glm(count ~ spray, data = InsectSprays, family = poisson())
 ```
 
 ## Checking the assumptions for GLM
@@ -67,29 +69,29 @@ All assumptions about model structure have been checked before (see exercises fo
 We still have to test for lack of serial auto-correlation and independance:
 
 ```{r insect_glm_resid}
-plot(residuals(mod_insect_glm, type = "pearson"))
 library(DHARMa)
-insect_glm_resid <- simulateResiduals(mod_insect_glm, refit = TRUE, n = 1000)
+insect_glm_resid <- simulateResiduals(fit_insect_glm, n = 1000)
 plot(insect_glm_resid)
 testUniformity(insect_glm_resid)
-plot(insect_glm_resid, asFactor = TRUE)
-testTemporalAutocorrelation(insect_glm_resid, time = insect_glm_resid$fitted)
+plot(insect_glm_resid)
+testTemporalAutocorrelation(insect_glm_resid, time = fitted(insect_glm_resid))
 ```
 
 All look good. We also have to test for the goodness of fit:
 
 ```{r over}
-testOverdispersion(insect_glm_resid, alternative = "both")
+testOverdispersion(insect_glm_resid, alternative = "two.sided")
 ```
 
 There seem to be slight overdispersion :-(
+
 
 ## Solving the overdispersion issue
 
 Is the overdispersion caused by two many zeros?
 
 ```{r}
-table(mod_insect_glm$model$count)
+table(fit_insect_glm$model$count)
 testZeroInflation(insect_glm_resid)
 ```
 
@@ -98,62 +100,49 @@ nope...
 Let's try to fit alternative models to account for the overdispersion:
 
 ```{r}
-mod_insect_glm_quasi <- glm(count ~ spray, data = InsectSprays, family = quasipoisson())
-library(MASS)
-mod_insect_glm_nb <- glm.nb(count ~ spray, data = InsectSprays)
-rbind(deviance(mod_insect_glm),
-      deviance(mod_insect_glm_quasi),
-      deviance(mod_insect_glm_nb))
+fit_insect_glm_quasi <- glm(count ~ spray, data = InsectSprays, family = quasipoisson())
+library(spaMM)
+fit_insect_glm_nb <- fitme(count ~ spray, data = InsectSprays, family = spaMM::negbin())
+rbind(deviance(fit_insect_glm),
+      deviance(fit_insect_glm_quasi),
+      deviance(fit_insect_glm_nb))
 ```
 
 Note that the prediction are the same:
 
 ```{r}
-plot(predict(mod_insect_glm, type = "response"), mod_insect_glm$model$count)
-abline(0, 1, col = "red")
-plot(predict(mod_insect_glm_quasi, type = "response"), mod_insect_glm_quasi$model$count)
-abline(0, 1, col = "red")
-plot(predict(mod_insect_glm_nb, type = "response"), mod_insect_glm_nb$model$count)
-abline(0, 1, col = "red")
+plot(predict(fit_insect_glm, type = "response"), fit_insect_glm$model$count, col = "red", lwd = 6)
+abline(0, 1, col = "red", lwd = 6)
+points(predict(fit_insect_glm_quasi, type = "response"), fit_insect_glm_quasi$model$count, col = "blue", lwd = 4)
+abline(0, 1, col = "blue", lwd = 4)
+points(predict(fit_insect_glm_nb), fit_insect_glm_nb$data$count, col = "green")
+abline(0, 1, col = "green")
 ```
 
 The only thing that differ is the variance around those predictions.
 
 Note also that the gaussian models have deviance expressed on another scale, which makes the comparison between all models particularly difficult.
 
-```{r}
-pred_bc <- ((predict(mod_insect_bc) * bc$lambda) + 1)^(1/bc$lambda) - 1
-(deviance_LM_bc <- sum((pred_bc - InsectSprays$count)^2))
-deviance(mod_insect)
-```
-
-We can compare the poisson model with the negative binomial one very simply:
-
-```{r, message = FALSE}
-library(lmtest)
-lrtest(mod_insect_glm_nb, mod_insect_glm)
-```
-
 Let us stick to the negative binomial model as our best GLM!
 
 ## Retesting assumptions on the negative binomial model
 
 ```{r insect_glm_nb_resid, warning = FALSE}
-insect_glm_nb_resid   <- simulateResiduals(mod_insect_glm_nb, refit = TRUE, n = 1000)
+insect_glm_nb_resid   <- simulateResiduals(fit_insect_glm_nb, n = 1000)
 testUniformity(insect_glm_nb_resid)
 testTemporalAutocorrelation(insect_glm_nb_resid)
-testOverdispersion(insect_glm_nb_resid, alternative = "both")
+testOverdispersion(insect_glm_nb_resid, alternative = "two.sided")
 testZeroInflation(insect_glm_nb_resid)
 ```
 
-Everything looks very good!
+Everything looks great!
 
 ## Tests comparing the fitted models to their respective null models
 ```{r}
-anova(mod_insect, update(mod_insect, . ~ 1))
-anova(mod_insect_bc, update(mod_insect_bc, . ~ 1))
-anova(mod_insect_glm, update(mod_insect_glm, . ~ 1), test = "LR")
-anova(mod_insect_glm_nb, update(mod_insect_glm_nb, . ~ 1))
+anova(fit_insect, update(fit_insect, . ~ 1))  ## F-test as lm
+anova(fit_insect_bc, update(fit_insect_bc, . ~ 1))  ## F-test as gaussian
+anova(fit_insect_glm, update(fit_insect_glm, . ~ 1), test = "LR") ## LRT using stats
+anova(fit_insect_glm_nb, update(fit_insect_glm_nb, . ~ 1)) ## LRT using spaMM
 ```
 
 No matter the model the effect of the insecticed is detected!
@@ -164,18 +153,17 @@ We now compare the predictions and CI between the different models:
 
 ```{r}
 data.for.pred <- data.frame(spray = levels(InsectSprays$spray))
-pred_lm <- predict(mod_insect, newdata = data.for.pred, interval = "confidence")
-pred_bc <- predict(mod_insect_bc, newdata = data.for.pred, interval = "confidence")
+pred_lm <- predict(fit_insect, newdata = data.for.pred, interval = "confidence")
+pred_bc <- predict(fit_insect_bc, newdata = data.for.pred, interval = "confidence")
 unboxcox <- function(x, lambda) (x*lambda + 1)^(1/lambda)
 pred_bc_unboxcox <- unboxcox(x = pred_bc, lambda = bc$lambda) - 1  ## we remove one as we added one so to be able to do the BoxCox
-pred_glm_eta <- predict(mod_insect_glm, newdata = data.for.pred, se.fit = TRUE)
+pred_glm_eta <- predict(fit_insect_glm, newdata = data.for.pred, se.fit = TRUE)
 pred_glm_table <- data.frame(fit = exp(pred_glm_eta$fit))
 pred_glm_table$lwr <- exp(pred_glm_eta$fit + qnorm(0.025)*pred_glm_eta$se.fit)
 pred_glm_table$upr <- exp(pred_glm_eta$fit + qnorm(0.975)*pred_glm_eta$se.fit)
-pred_glm_nb_eta <- predict(mod_insect_glm_nb, newdata = data.for.pred, se.fit = TRUE)
-pred_glm_nb_table <- data.frame(fit = spaMM::negbin()$linkinv(pred_glm_eta$fit))
-pred_glm_nb_table$lwr <- spaMM::negbin()$linkinv(pred_glm_nb_eta$fit + qnorm(0.025)*pred_glm_nb_eta$se.fit)
-pred_glm_nb_table$upr <- spaMM::negbin()$linkinv(pred_glm_nb_eta$fit + qnorm(0.975)*pred_glm_nb_eta$se.fit)
+pred_glm_nb_table <- cbind(predict(fit_insect_glm_nb, newdata = data.for.pred),
+                           get_intervals(fit_insect_glm_nb, newdata = data.for.pred, intervals = "predVar"))
+colnames(pred_glm_nb_table) <- c("fit", "lwr", "upr")
 ```
 
 Observe carefully the results:
@@ -211,53 +199,6 @@ arrows(x0 = 0.2 + 1:6, x1 = 0.2 + 1:6, y0 = pred_glm_nb_table[, "lwr"],
 legend("top", fill = c("blue", "green", "red", "orange"), legend = c("LM", "LM + BoxCox", "GLM Poisson", "GLM Negative Binomial"), bty = "n")
 ```
 
-## Testing properly if BoxCox model is better than NegBin one
-
-```{r boot param, warning = FALSE}
-set.seed(1L)
-logLik_diff_H0 <- replicate(1000, {
-  new.y <- round(((simulate(mod_insect_bc)[, 1] * bc$lambda) + 1)^(1/bc$lambda) - 1)
-  new.y_plus <- new.y + abs(min(new.y)) - min(new.y + abs(min(new.y)))
-  new.y_plus1 <- new.y_plus + 1
-  mod_insect_bis <- lm(new.y_plus1 ~ spray, data = InsectSprays)
-  bc_new <- car::powerTransform(mod_insect_bis)
-  new.y_plus1_bc <- car::bcPower(new.y_plus1, bc_new$lambda)
-  mod_insect_bc_new <- lm(new.y_plus1_bc ~ spray, data = InsectSprays)
-  mod_insect_glm_nb_new <- glm.nb(new.y_plus ~ spray, data = InsectSprays)
-  logLik(mod_insect_bc_new)[[1]] - logLik(mod_insect_glm_nb_new)[[1]]
-  })
-(logLik_diff_obs <- logLik(mod_insect_bc)[[1]] - logLik(mod_insect_glm_nb)[[1]])
-(sum(logLik_diff_obs < (logLik_diff_H0)) + 1) / (length(logLik_diff_H0) + 1)
-hist(logLik_diff_H0, nclass = 10)
-abline(v = logLik_diff_obs, col = "red", lwd = 2, lty = 2)
-```
-
-
-## Testing properly if NegBin model is better than BoxCox one
-
-```{r boot param 2, warning = FALSE}
-set.seed(1L)
-logLik_diff_H0 <- replicate(1000, {
-  new.y <- simulate(mod_insect_glm_nb)[, 1]
-  new.y_plus <- new.y + abs(min(new.y)) - min(new.y + abs(min(new.y)))
-  new.y_plus1 <- new.y_plus + 1
-  mod_insect_bis <- lm(new.y_plus1 ~ spray, data = InsectSprays)
-  bc_new <- car::powerTransform(mod_insect_bis)
-  new.y_plus1_bc <- car::bcPower(new.y_plus1, bc_new$lambda)
-  mod_insect_bc_new <- lm(new.y_plus1_bc ~ spray, data = InsectSprays)
-  mod_insect_glm_nb_new <- glm.nb(new.y ~ spray, data = InsectSprays)
-  logLik(mod_insect_bc_new)[[1]] - logLik(mod_insect_glm_nb_new)[[1]]
-  })
-(logLik_diff_obs <- logLik(mod_insect_bc)[[1]] - logLik(mod_insect_glm_nb)[[1]])
-(sum(logLik_diff_obs < (logLik_diff_H0)) + 1) / (length(logLik_diff_H0) + 1)
-hist(logLik_diff_H0, nclass = 10)
-abline(v = logLik_diff_obs, col = "red", lwd = 2, lty = 2)
-```
-
-The two models do not differ, we could choose either!
-
-This is not a general results. On other data LM on BoxCoxed data and a negative binomial fit of the data may greatly differ!!!
-
 <br>
 
 
@@ -269,7 +210,9 @@ This is not a general results. On other data LM on BoxCoxed data and a negative 
 
 ## Solution
 
-Try figuring out this one on your own! It's all in the title.
+```{r, Surprise}
+# coplot(happiness ~ price | type, data = Surprise)
+```
 
 <br>
 
@@ -315,25 +258,26 @@ coplot(cancer_freq ~ alcgp_f | agegp_f, data = esoph)
 ## We fit the models
 
 ```{r}
-mod_esoph_logit <- glm(cbind(ncases, ncontrols) ~ agegp_f + alcgp_f + tobgp_f, data = esoph,
+fit_esoph_logit <- glm(cbind(ncases, ncontrols) ~ agegp_f + alcgp_f + tobgp_f, data = esoph,
                        family = binomial(link = "logit"))
-mod_esoph_cauchit <- glm(cbind(ncases, ncontrols) ~ agegp_f + alcgp_f + tobgp_f, data = esoph,
+fit_esoph_cauchit <- glm(cbind(ncases, ncontrols) ~ agegp_f + alcgp_f + tobgp_f, data = esoph,
                          family = binomial(link = "cauchit"))
-mod_esoph_probit <- glm(cbind(ncases, ncontrols) ~ agegp_f + alcgp_f + tobgp_f, data = esoph,
+fit_esoph_probit <- glm(cbind(ncases, ncontrols) ~ agegp_f + alcgp_f + tobgp_f, data = esoph,
                         family = binomial(link = "probit"))
-AIC(mod_esoph_logit)
-AIC(mod_esoph_cauchit)
-AIC(mod_esoph_probit)
+AIC(fit_esoph_logit)
+AIC(fit_esoph_cauchit)
+AIC(fit_esoph_probit)
 ```
 
 The probit model fits the data best.
 
+
 ## Comparison to null model
 
 ```{r}
-mod_esoph_probit_H0 <- glm(cbind(ncases, ncontrols) ~ 1, data = esoph,
+fit_esoph_probit_H0 <- glm(cbind(ncases, ncontrols) ~ 1, data = esoph,
                            family = binomial(link = "probit"))
-anova(mod_esoph_probit, mod_esoph_probit_H0, test = "LR")
+anova(fit_esoph_probit_H0, fit_esoph_probit, test = "LR")
 ```
 
 The model is much better than a null model!
@@ -341,34 +285,34 @@ The model is much better than a null model!
 ## Testing the model assumptions
 
 ```{r resid_esoph_probit}
-esoph_probit_resid <- simulateResiduals(mod_esoph_probit, refit = TRUE, n = 1000)
+esoph_probit_resid <- simulateResiduals(fit_esoph_probit, n = 1000)
 plot(esoph_probit_resid)
 testUniformity(esoph_probit_resid)
 testTemporalAutocorrelation(esoph_probit_resid, time = 1:nrow(esoph))
-testTemporalAutocorrelation(esoph_probit_resid, time = mod_esoph_probit$fitted.values)
+testTemporalAutocorrelation(esoph_probit_resid, time = fitted(fit_esoph_probit))
 testZeroInflation(esoph_probit_resid)
-testOverdispersion(esoph_probit_resid, alternative = "both")
+testOverdispersion(esoph_probit_resid, alternative = "two.sided")
 ```
 
 ## Testing the model effects
 
 ```{r}
-Anova(mod_esoph_probit)
+car::Anova(fit_esoph_probit)
 ```
 
 ## Plotting the effects
 
 ```{r}
 library(effects)
-plot(allEffects(mod_esoph_probit))
-plot(allEffects(mod_esoph_probit, transformation = list(link = NULL, inverse = NULL)))
+plot(allEffects(fit_esoph_probit)) ## response scale
+plot(allEffects(fit_esoph_probit, transformation = list(link = NULL, inverse = NULL))) ## linear scale
 ```
 
 ```{r}
 library(visreg)
-visreg(mod_esoph_probit, scale = "response")
-visreg2d(mod_esoph_probit, "alcgp_f", "tobgp_f", plot.type = "image", scale = "response")
-visreg2d(mod_esoph_probit, "alcgp_f", "tobgp_f", plot.type = "persp", scale = "response")
+visreg(fit_esoph_probit, scale = "response")
+visreg2d(fit_esoph_probit, "alcgp_f", "tobgp_f", plot.type = "image", scale = "response")
+visreg2d(fit_esoph_probit, "alcgp_f", "tobgp_f", plot.type = "persp", scale = "response")
 ```
 
 Note: the two packages differ in how they compute predictions. The package effects seems to here compute the average effect of the non focal factor by weighing them by their sample size. The package visreg seems to here select the level with the highest number of observation for the non focal factor. I am not sure what it does when there are equalities in sample size... Doing predictions yourself is perhaps the easiest way to know what is actually happening!
@@ -381,7 +325,7 @@ Let us compare extreme situations
 newdata_esoph_young <- expand.grid(agegp_f = c("25-34"),
                                    alcgp_f = c("0-39g/day", "120+"),
                                    tobgp_f = c("0-9g/day", "30+"))
-pred_esoph_young <- predict(mod_esoph_probit, newdata = newdata_esoph_young, type = "link", se.fit = TRUE)
+pred_esoph_young <- predict(fit_esoph_probit, newdata = newdata_esoph_young, type = "link", se.fit = TRUE)
 newdata_esoph_young$pred <- binomial(link = "probit")$linkinv(pred_esoph_young$fit)
 newdata_esoph_young$lwr <- binomial(link = "probit")$linkinv(pred_esoph_young$fit + qnorm(0.025)*pred_esoph_young$se.fit)
 newdata_esoph_young$upr <- binomial(link = "probit")$linkinv(pred_esoph_young$fit + qnorm(0.975)*pred_esoph_young$se.fit)
@@ -392,14 +336,14 @@ newdata_esoph_young
 newdata_esoph_old <- expand.grid(agegp_f = c("75+"),
                                  alcgp_f = c("0-39g/day", "120+"),
                                  tobgp_f = c("0-9g/day", "30+"))
-pred_esoph_old <- predict(mod_esoph_probit, newdata = newdata_esoph_old, type = "link", se.fit = TRUE)
+pred_esoph_old <- predict(fit_esoph_probit, newdata = newdata_esoph_old, type = "link", se.fit = TRUE)
 newdata_esoph_old$pred <- binomial(link = "probit")$linkinv(pred_esoph_old$fit)
 newdata_esoph_old$lwr <- binomial(link = "probit")$linkinv(pred_esoph_old$fit + qnorm(0.025)*pred_esoph_old$se.fit)
 newdata_esoph_old$upr <- binomial(link = "probit")$linkinv(pred_esoph_old$fit + qnorm(0.975)*pred_esoph_old$se.fit)
 newdata_esoph_old
 ```
 
-So alcool seems to be a bit worse than smoking but we are extrapolating a bit since very few individuals correspond to the predicted conditions! (see ```table()``` call above)
+So alcool seems to be a bit worse than smoking but we are extrapolating a bit since very few individuals correspond to the predicted conditions! (see `table()` call above)
 
 One thing is clear, not smoking and not drinking seems to be the way to avoid these cancers.
 
@@ -407,18 +351,18 @@ One thing is clear, not smoking and not drinking seems to be the way to avoid th
 
 ```{r}
 esoph$drink_smoke <- factor(paste(esoph$alcgp_f, esoph$tobgp_f, sep = "_"))
-mod_esoph_probit2 <- glm(cbind(ncases, ncontrols) ~ agegp_f + drink_smoke, data = esoph,
+fit_esoph_probit2 <- glm(cbind(ncases, ncontrols) ~ agegp_f + drink_smoke, data = esoph,
                         family = binomial(link = "probit"))
-Anova(mod_esoph_probit2)
-summary(mod_esoph_probit2)
+car::Anova(fit_esoph_probit2)
+summary(fit_esoph_probit2)
 ```
 
 Ideally we should again check all assumptions (you should do it!).
 
 Let us do the minimum here:
 
-```{r mod_esoph_probit2 resid, warning = FALSE}
-plot(simulateResiduals(mod_esoph_probit2, refit = TRUE, n = 1000))
+```{r fit_esoph_probit2 resid, warning = FALSE}
+plot(simulateResiduals(fit_esoph_probit2, n = 1000))
 ```
 
 Let us now compare the alcool and drink effects.
@@ -433,7 +377,7 @@ contr[levels(esoph$drink_smoke) == "0-39g/day_30+"] <- -1
 colnames(contr) <- levels(esoph$drink_smoke)
 rownames(contr) <- "alcool - smoke"
 contr
-posthoc <- glht(mod_esoph_probit2, linfct = mcp(drink_smoke = contr))
+posthoc <- glht(fit_esoph_probit2, linfct = mcp(drink_smoke = contr))
 par(oma = c(1, 5, 1, 1))
 plot(posthoc)
 confint(posthoc)
@@ -447,14 +391,14 @@ We have compared two different situations, using a posthoc approach.
 ```{r}
 esoph$alc_num <- unclass(esoph$alcgp)
 esoph$tob_num <- unclass(esoph$tobgp)
-mod_esoph_probit3 <- glm(cbind(ncases, ncontrols) ~ agegp_f + alc_num + tob_num, data = esoph,
+fit_esoph_probit3 <- glm(cbind(ncases, ncontrols) ~ agegp_f + alc_num + tob_num, data = esoph,
                          family = binomial(link = "probit"))
-plot(simulateResiduals(mod_esoph_probit3, refit = TRUE, n = 1000))
-crPlots(mod_esoph_probit3)
-AIC(mod_esoph_probit)
-AIC(mod_esoph_probit2)
-AIC(mod_esoph_probit3)
-confint(mod_esoph_probit3)
+plot(simulateResiduals(fit_esoph_probit3, n = 1000))
+car::crPlots(fit_esoph_probit3) ## partial residuals
+AIC(fit_esoph_probit)
+AIC(fit_esoph_probit2)
+AIC(fit_esoph_probit3)
+confint(fit_esoph_probit3)
 ```
 
 This last model seems quite good and it allows to answer our question!
@@ -508,23 +452,23 @@ table(TitanicSurvival$age_f)
 We fit a serie of models with different links and considering age as factor or continuous:
 
 ```{r}
-mod_logit <- glm(surv ~ age_f+passengerClass+sex, data = TitanicSurvival, family = binomial(link = "logit"))
-mod_probit <- glm(surv ~ age_f+passengerClass+sex, data = TitanicSurvival, family = binomial(link = "probit"))
-mod_cauchit <- glm(surv ~ age_f+passengerClass+sex, data = TitanicSurvival, family = binomial(link = "cauchit"))
+fit_logit <- glm(surv ~ age_f+passengerClass+sex, data = TitanicSurvival, family = binomial(link = "logit"))
+fit_probit <- glm(surv ~ age_f+passengerClass+sex, data = TitanicSurvival, family = binomial(link = "probit"))
+fit_cauchit <- glm(surv ~ age_f+passengerClass+sex, data = TitanicSurvival, family = binomial(link = "cauchit"))
 
-mod_logit2 <- glm(surv ~ age+passengerClass+sex, data = TitanicSurvival,
+fit_logit2 <- glm(surv ~ age+passengerClass+sex, data = TitanicSurvival,
                  family = binomial(link = "logit"))
-mod_probit2 <- glm(surv ~ age+passengerClass+sex, data = TitanicSurvival,
+fit_probit2 <- glm(surv ~ age+passengerClass+sex, data = TitanicSurvival,
                   family = binomial(link = "probit"))
-mod_cauchit2 <- glm(surv ~ age+passengerClass+sex, data = TitanicSurvival,
+fit_cauchit2 <- glm(surv ~ age+passengerClass+sex, data = TitanicSurvival,
                    family = binomial(link = "cauchit"))
 
-rbind(AIC(mod_logit),
-      AIC(mod_probit),
-      AIC(mod_cauchit),
-      AIC(mod_logit2),
-      AIC(mod_probit2),
-      AIC(mod_cauchit2))
+rbind(AIC(fit_logit),
+      AIC(fit_probit),
+      AIC(fit_cauchit),
+      AIC(fit_logit2),
+      AIC(fit_probit2),
+      AIC(fit_cauchit2))
 ```
 
 The cauchit model with age as a factor provides a much better fit than other models.
@@ -534,10 +478,10 @@ The cauchit model with age as a factor provides a much better fit than other mod
 
 ```{r resid_Titanic}
 library(DHARMa)
-resid_Titanic <- simulateResiduals(mod_cauchit, refit = TRUE, n = 1000)
+resid_Titanic <- simulateResiduals(fit_cauchit, n = 1000)
 plot(resid_Titanic)
-testTemporalAutocorrelation(resid_Titanic, time = mod_cauchit$fitted.values)
-testTemporalAutocorrelation(resid_Titanic, time = 1:nrow(mod_cauchit$model))
+testTemporalAutocorrelation(resid_Titanic, time = order(fitted(fit_cauchit)))
+testTemporalAutocorrelation(resid_Titanic, time = 1:nrow(fit_cauchit$model))
 ```
 
 No need to test for overdispersion in a binary model!
@@ -548,7 +492,7 @@ No need to test for overdispersion in a binary model!
 ```{r}
 data.for.pred <- with(data = TitanicSurvival,
                  expand.grid(age_f = levels(age_f), passengerClass = levels(passengerClass), sex = levels(sex)))
-pred <- predict(mod_cauchit, newdata = data.for.pred, type = "link")
+pred <- predict(fit_cauchit, newdata = data.for.pred, type = "link")
 data.to.plot <- cbind(data.for.pred, pred = pred)
 coplot(pred ~ unclass(age_f) | passengerClass + sex, data = data.to.plot)
 library(lattice) ## same, more fancy
@@ -561,8 +505,8 @@ Another way to cope with the non-linearity of the age effect would be to do a GA
 
 ```{r}
 library(mgcv)
-mod_cauchit_gam <- gam(surv ~ s(age) + passengerClass + sex, data = TitanicSurvival, family = binomial(link = "cauchit"))
-AIC(mod_cauchit_gam)
+fit_cauchit_gam <- gam(surv ~ s(age) + passengerClass + sex, data = TitanicSurvival, family = binomial(link = "cauchit"))
+AIC(fit_cauchit_gam)
 ```
 
 The model is a bit better, we could use it.
@@ -570,15 +514,15 @@ The model is a bit better, we could use it.
 ## GAM model assumptions:
 
 ```{r cauchit_gam_resid}
-cauchit_gam_resid <- simulateResiduals(mod_cauchit_gam)
+cauchit_gam_resid <- simulateResiduals(fit_cauchit_gam)
 plot(cauchit_gam_resid)
-scatter.smooth(mod_cauchit_gam$model$age, cauchit_gam_resid$scaledResiduals, col = 2) ## linearity
+scatter.smooth(fit_cauchit_gam$model$age, cauchit_gam_resid$scaledResiduals, col = 2) ## linearity
 ```
 
 ## Tests
 ```{r}
-Anova(mod_cauchit)
-anova(mod_cauchit_gam)
+Anova(fit_cauchit)
+anova(fit_cauchit_gam)
 ```
 
 ## Predictions
@@ -593,8 +537,8 @@ data.for.pred2$age[data.for.pred2$age_f == "(25,35]"] <- (25 + 35)/2
 data.for.pred2$age[data.for.pred2$age_f == "(35,50]"] <- (35 + 50)/2
 data.for.pred2$age[data.for.pred2$age_f == "(50,81]"] <- (50 + 81)/2
 
-pred_age_f <- predict(mod_cauchit, newdata = data.for.pred2, type = "response")
-pred_age_gam <- predict(mod_cauchit_gam, newdata = data.for.pred2, type = "response")
+pred_age_f <- predict(fit_cauchit, newdata = data.for.pred2, type = "response")
+pred_age_gam <- predict(fit_cauchit_gam, newdata = data.for.pred2, type = "response")
 data.to.plot2 <- cbind(data.for.pred2, pred_age_f = pred_age_f, pred_age_gam = pred_age_gam)
 
 pred_f_1 <- subset(data.to.plot2, sex == "female" & passengerClass == "1st")
@@ -656,7 +600,6 @@ p2 <- pred_m_3[pred_m_3$age == 5, "pred_age_gam"]
 p1 <- pred_f_1[pred_f_1$age == 65.5, "pred_age_gam"]
 p2 <- pred_m_3[pred_m_3$age == 65.5, "pred_age_gam"]
 (p1/(1 - p1)) / (p2/(1 - p2))
-
 ```
 
 Note: the differences between the two models are at the extrems for which have few observations.
@@ -669,7 +612,7 @@ with(subset(TitanicSurvival, age_f == "(50,81]"), table(passengerClass, sex))
 <br>
 
 
-# Dataset: LM2GLMM::Challenger
+# Dataset: Challenger
 
 ### Goal
 
@@ -689,7 +632,7 @@ table(nb_orings = Challenger$oring_tot, nb_pb_orings = Challenger$oring_dt)
 ```{r}
 plot(jitter(oring_dt, factor = 0.3) ~ temp, data = Challenger)
 ```
-Notice the user of jitter!
+Notice the use of jitter!
 
 ## We recode the data
 
@@ -700,53 +643,45 @@ Challenger$oring_fine <- Challenger$oring_tot - Challenger$oring_dt
 ## We fit the models
 
 ```{r}
-mod_binom_logit <- glm(cbind(oring_fine, oring_dt) ~ temp, data = Challenger,
+fit_binom_logit <- glm(cbind(oring_fine, oring_dt) ~ temp, data = Challenger,
                        family = binomial(link = "logit"))
-mod_binom_probit <- glm(cbind(oring_fine, oring_dt) ~ temp, data = Challenger,
+fit_binom_probit <- glm(cbind(oring_fine, oring_dt) ~ temp, data = Challenger,
                         family = binomial(link = "probit"))
-mod_binom_cauchit <- glm(cbind(oring_fine, oring_dt) ~ temp, data = Challenger,
+fit_binom_cauchit <- glm(cbind(oring_fine, oring_dt) ~ temp, data = Challenger,
                          family = binomial(link = "cauchit"))
-AIC(mod_binom_logit)
-AIC(mod_binom_probit)
-AIC(mod_binom_cauchit)
+AIC(fit_binom_logit)
+AIC(fit_binom_probit)
+AIC(fit_binom_cauchit)
 ```
 
 We could choose the logit or the probit model. It would be easier with the logit to interprete the estimates but we do not need this here, so let us consider the probit model since it is best.
 
 ## Let's check assumptions
 ```{r}
-r_probit <- simulateResiduals(mod_binom_probit, n = 1000)
+r_probit <- simulateResiduals(fit_binom_probit, n = 1000)
 plot(r_probit)
-r_probit2 <- simulateResiduals(mod_binom_probit, n = 1000, seed = 2)
+r_probit2 <- simulateResiduals(fit_binom_probit, n = 1000, seed = 2)
 plot(r_probit2) ## replicate with other seed
 testUniformity(r_probit)
 testTemporalAutocorrelation(r_probit, time = 1:nrow(Challenger))
-testTemporalAutocorrelation(r_probit, time = mod_binom_probit$fitted.values)
-testTemporalAutocorrelation(r_probit, time = Challenger$temp)
-testZeroInflation(r_probit)  ## does not work (fix in progress)
-table(Challenger$oring_fine == 0)
+testTemporalAutocorrelation(r_probit, time = order(fitted(fit_binom_probit)))
+testTemporalAutocorrelation(r_probit, time = order(Challenger$temp))
 ```
-
-Let us try to check the zero-inflation differently:
-
-```{r}
-test <- replicate(1000, sum(simulate(mod_binom_probit, 1)[[1]][, 2] < 1))
-hist(test)
-abline(v = sum(Challenger$oring_dt < 1), col = "red", lwd = 2)
-```
+There are some problems about the autocorrelation.
+One thing that may help is to consider non linear effects for the temperature, but we don't have much data and we want to extrapolate and polynomials are terrible for that, so we will stick to what we have.
 
 ## Tests
 
 ```{r}
-Anova(mod_binom_probit)
-summary(mod_binom_probit)
+Anova(fit_binom_probit)
+summary(fit_binom_probit)
 ```
 
 ## Predictions
 
 ```{r}
 pred <- data.frame(temp = 31:81)
-pred_probit <- predict(mod_binom_probit, newdata = pred, se.fit = TRUE)
+pred_probit <- predict(fit_binom_probit, newdata = pred, se.fit = TRUE)
 pred$pred <- binomial(link = "probit")$linkinv(pred_probit$fit)
 pred$lwr <- binomial(link = "probit")$linkinv(
   pred_probit$fit + qnorm(0.025) * pred_probit$se.fit)
@@ -762,7 +697,7 @@ points(oring_dt / oring_tot ~ temp, data = Challenger, col = "red")
 
 ## Predict logit
 pred2 <- data.frame(temp = 31:81)
-pred_logit <- predict(mod_binom_logit, newdata = pred, se.fit = TRUE)
+pred_logit <- predict(fit_binom_logit, newdata = pred, se.fit = TRUE)
 pred2$pred <- binomial(link = "logit")$linkinv(pred_logit$fit)
 pred2$lwr <- binomial(link = "logit")$linkinv(
   pred_logit$fit + qnorm(0.025) * pred_logit$se.fit)
@@ -783,7 +718,7 @@ You could try to replicate the original study that excluded all the OK flights!
 <br>
 
 
-# Dataset: LM2GLMM::UK
+# Dataset: UK
 
 ## Goal
 
@@ -808,35 +743,35 @@ scatter.smooth(UK$age, UK$cigarettes, lpars = list(col = "red", lwd = 2))
 ### Fiting the model
 
 ```{r}
-mod_logit <- glm(cigarettes_kid_bin ~ sex*(cigarettes + age + cigarettes_friends),
+fit_logit <- glm(cigarettes_kid_bin ~ sex*(cigarettes + age + cigarettes_friends),
                  family = binomial(link = "logit"), data = UK)
-mod_probit <- glm(cigarettes_kid_bin ~ sex*(cigarettes + age + cigarettes_friends),
+fit_probit <- glm(cigarettes_kid_bin ~ sex*(cigarettes + age + cigarettes_friends),
                   family = binomial(link = "probit"), data = UK)
-mod_cauchit <- glm(cigarettes_kid_bin ~ sex*(cigarettes + age + cigarettes_friends),
+fit_cauchit <- glm(cigarettes_kid_bin ~ sex*(cigarettes + age + cigarettes_friends),
                    family = binomial(link = "cauchit"), data = UK)
-c(AIC(mod_logit), AIC(mod_probit), AIC(mod_cauchit))
+c(AIC(fit_logit), AIC(fit_probit), AIC(fit_cauchit))
 ```
 
 ### Comparison to null model
 
 ```{r}
-anova(mod_logit, update(mod_logit, . ~ 1, data = mod_logit$model), test = "LR")
+anova(update(fit_logit, . ~ 1, data = fit_logit$model), fit_logit, test = "LR")
 ```
 
 ### Test of the model assumptions
 
 ```{r}
-resid_mod_logit <- simulateResiduals(mod_logit, refit = TRUE, n = 1000) ## slow
-plot(resid_mod_logit)
-testUniformity(resid_mod_logit)
-testTemporalAutocorrelation(resid_mod_logit, time = mod_logit$fitted.values)
-testTemporalAutocorrelation(resid_mod_logit, time = 1:nrow(mod_logit$model))
+resid_fit_logit <- simulateResiduals(fit_logit, n = 1000)
+plot(resid_fit_logit)
+testUniformity(resid_fit_logit)
+testTemporalAutocorrelation(resid_fit_logit, time = order(fitted(fit_logit)))
+testTemporalAutocorrelation(resid_fit_logit, time = 1:nrow(fit_logit$model))
 ```
 
 ### Tests
 
 ```{r}
-Anova(mod_logit)
+Anova(fit_logit)
 ```
 
 ### Predictions
@@ -844,14 +779,14 @@ Anova(mod_logit)
 Using the nice feature "cond" from visreg:
 
 ```{r}
-visreg(mod_logit, "cigarettes", by = "sex", scale = "response",
-       cond = list(cigarettes_friends = "None of them", age = mean(mod_logit$model$age)))
-visreg(mod_logit, "cigarettes", by = "sex", scale = "response",
-       cond = list(cigarettes_friends = "Most of them", age = mean(mod_logit$model$age)))
-visreg(mod_logit, "age", by = "sex", scale = "response",
+visreg(fit_logit, "cigarettes", by = "sex", scale = "response",
+       cond = list(cigarettes_friends = "None of them", age = mean(fit_logit$model$age)))
+visreg(fit_logit, "cigarettes", by = "sex", scale = "response",
+       cond = list(cigarettes_friends = "Most of them", age = mean(fit_logit$model$age)))
+visreg(fit_logit, "age", by = "sex", scale = "response",
        cond = list(cigarettes = 0, cigarettes_friends = "None of them"))
-visreg(mod_logit, "cigarettes_friends", by = "sex", scale = "response",
-       cond = list(cigarettes = 0, age = mean(mod_logit$model$age)))
+visreg(fit_logit, "cigarettes_friends", by = "sex", scale = "response",
+       cond = list(cigarettes = 0, age = mean(fit_logit$model$age)))
 ```
 
 <br>
@@ -876,15 +811,15 @@ HSE98women$menopause <-  HSE98women$period == FALSE
 We fit a first model to help us easily exploring the data used for fitting and not all data (there are many missing values in the dataset).
 
 ```{r}
-mod_menop_logit <- glm(menopause ~ age + bmi + smoked, data = HSE98women, family = binomial())
+fit_menop_logit <- glm(menopause ~ age + bmi + smoked, data = HSE98women, family = binomial())
 nrow(HSE98women) ## original number of observations
-nrow(mod_menop_logit$model)  ## number of observations considered in the model
+nrow(fit_menop_logit$model)  ## number of observations considered in the model
 ```
 
 We compare the variables before and after filtering to see if any obvious biais is introduced by the observations we discared:
 ```{r}
 summary(HSE98women[, c("menopause", "age", "bmi", "smoked")])
-summary(mod_menop_logit$model)
+summary(fit_menop_logit$model)
 ```
 
 The only big discrepancy between the two datasets is that the minimal age is now 18 yrs old while the original dataset also contains children. That suggests that girls too young to have periods are not being considered, which will greatly help us to model menopause.
@@ -893,17 +828,15 @@ Let's check the correlation between our two continuous predictor:
 
 ```{r}
 cor.test(HSE98women$age, HSE98women$bmi)
-cor.test(mod_menop_logit$model$age, mod_menop_logit$model$bmi)
+cor.test(fit_menop_logit$model$age, fit_menop_logit$model$bmi)
 ```
 
 The correlation is not very high, especially in the dataset that is used for the fit, so multicollinearity should not be an issue.
 
 We visualise the relationship between the predictor and the response:
 ```{r}
-library(car)
-mod_menop_logit$model$smoked <- as.factor(mod_menop_logit$model$smoked) ## patch to solve bug in car 3.0
-scatterplot(menopause ~ age + smoked, data = mod_menop_logit$model)
-scatterplot(menopause ~ bmi + smoked, data = mod_menop_logit$model)
+scatterplot(menopause ~ age + smoked, data = fit_menop_logit$model)
+scatterplot(menopause ~ bmi + smoked, data = fit_menop_logit$model)
 ```
 There don't seem to be any obvious interaction between the age and smoked or between BMI and smoked, so we won't consider any. We will however consider that the effect of age may depend on the BMI.
 
@@ -911,27 +844,26 @@ There don't seem to be any obvious interaction between the age and smoked or bet
 ## Fitting the models
 
 ```{r}
-mod_menop_logit   <- glm(menopause ~ age * bmi + smoked, data = HSE98women, family = binomial())
-mod_menop_probit  <- glm(menopause ~ age * bmi + smoked, data = HSE98women, family = binomial(link = "probit"))
-mod_menop_cauchit <- glm(menopause ~ age * bmi + smoked, data = HSE98women, family = binomial(link = "cauchit"))
+fit_menop_logit   <- glm(menopause ~ age * bmi + smoked, data = HSE98women, family = binomial(link = "logit"))
+fit_menop_probit  <- glm(menopause ~ age * bmi + smoked, data = HSE98women, family = binomial(link = "probit"))
+fit_menop_cauchit <- glm(menopause ~ age * bmi + smoked, data = HSE98women, family = binomial(link = "cauchit"))
 ```
 
 Because it is very difficult to explore the shape of the relationship between the age and bmi upon the probability of being menopaused, we will also fit general additive models (GAM), which allows parameters to vary along the predictors.
 
 ```{r, message=FALSE}
-library(mgcv)
-mod_menop_logit_gam   <- gam(menopause ~ s(age, bmi) + smoked, data = HSE98women, family = binomial())
-mod_menop_probit_gam  <- gam(menopause ~ s(age, bmi) + smoked, data = HSE98women, family = binomial(link = "probit"))
-mod_menop_cauchit_gam <- gam(menopause ~ s(age, bmi) + smoked, data = HSE98women, family = binomial(link = "cauchit"))
+fit_menop_logit_gam   <- gam(menopause ~ s(age, bmi) + smoked, data = HSE98women, family = binomial(link = "logit"))
+fit_menop_probit_gam  <- gam(menopause ~ s(age, bmi) + smoked, data = HSE98women, family = binomial(link = "probit"))
+fit_menop_cauchit_gam <- gam(menopause ~ s(age, bmi) + smoked, data = HSE98women, family = binomial(link = "cauchit"))
 ```
 
 ```{r}
-cbind(logit = AIC(mod_menop_logit),
-      probit = AIC(mod_menop_probit),
-      cauchit = AIC(mod_menop_cauchit),
-      logit_GAM = AIC(mod_menop_logit_gam),
-      probit_GAM = AIC(mod_menop_probit_gam),
-      cauchit_GAM = AIC(mod_menop_cauchit_gam)
+rbind(logit = AIC(fit_menop_logit),
+      probit = AIC(fit_menop_probit),
+      cauchit = AIC(fit_menop_cauchit),
+      logit_GAM = AIC(fit_menop_logit_gam),
+      probit_GAM = AIC(fit_menop_probit_gam),
+      cauchit_GAM = AIC(fit_menop_cauchit_gam)
       )
 ```
 
@@ -939,93 +871,75 @@ The GAM logit model seems to be the best model, which will prevent us to express
 
 ## Tests
 
+The best practices for testing effects in GAM are not quite established.
+
 We are going to test for the effect of the interaction by Likelihood ratio test:
 ```{r}
-mod_menop_logit_gam_no_int <- gam(menopause ~ s(age) + s(bmi) + smoked, data = HSE98women, family = binomial())
-LR <- -2 * (logLik(mod_menop_logit_gam_no_int)[[1]] - logLik(mod_menop_logit_gam)[[1]])
-DF <- (mod_menop_logit_gam$df.null - mod_menop_logit_gam$df.residual) - (mod_menop_logit_gam_no_int$df.null - mod_menop_logit_gam_no_int$df.residual)
-(PV <- pchisq(LR, DF, lower.tail = FALSE))
+fit_menop_logit_gam_no_int <- gam(menopause ~ s(age) + s(bmi) + smoked, family = binomial(), data = fit_menop_logit_gam$model)
+anova(fit_menop_logit_gam_no_int, fit_menop_logit_gam, test = "Chisq")
 ```
-
-Note: you can also use ```lmtest::lrtest()``` but it rounds the DF :-/
-
-The interaction between age and BMI is not significant (LRT, LR = ```r round(LR, 1)```, df = ```r round(DF, 2)```, p-value = ```r round(PV, 2)```).
+Note that models with GAM have non-integer degrees of freedom. This is normal.
 
 Let's now test the effect of BMI by Likelihood ratio test:
 
 ```{r}
-mod_menop_logit_gam_no_bmi <- gam(menopause ~ s(age) + smoked, data = HSE98women, family = binomial())
-LR <- -2 * (logLik(mod_menop_logit_gam_no_bmi)[[1]] - logLik(mod_menop_logit_gam)[[1]])
-DF <- (mod_menop_logit_gam$df.null - mod_menop_logit_gam$df.residual) - (mod_menop_logit_gam_no_bmi$df.null - mod_menop_logit_gam_no_bmi$df.residual)
-(PV <- pchisq(LR, DF, lower.tail = FALSE))
+fit_menop_logit_gam_no_bmi <- gam(menopause ~ s(age) + smoked, family = binomial(), data = fit_menop_logit_gam$model)
+anova(fit_menop_logit_gam_no_bmi, fit_menop_logit_gam, test = "Chisq")
 ```
-
-The effect of BMI is strongly significant (LRT, LR = ```r round(LR, 1)```, df = ```r round(DF, 2)```, p-value < 0.001).
-
-Note that models with GAM have non integer degrees of freedom. This is normal.
 
 Let's now test the effect of age by Likelihood ratio test:
 
 ```{r}
-mod_menop_logit_gam_no_age <- gam(menopause ~ s(bmi) + smoked, data = HSE98women, family = binomial())
-LR <- -2 * (logLik(mod_menop_logit_gam_no_age)[[1]] - logLik(mod_menop_logit_gam)[[1]])
-DF <- (mod_menop_logit_gam$df.null - mod_menop_logit_gam$df.residual) - (mod_menop_logit_gam_no_age$df.null - mod_menop_logit_gam_no_age$df.residual)
-(PV <- pchisq(LR, DF, lower.tail = FALSE))
+fit_menop_logit_gam_no_age <- gam(menopause ~ s(bmi) + smoked, family = binomial(), data = fit_menop_logit_gam$model)
+anova(fit_menop_logit_gam_no_age, fit_menop_logit_gam, test = "Chisq")
 ```
-
-The effect of age is strongly significant (LRT, LR = ```r round(LR, 1)```, df = ```r round(DF, 2)```, p-value < 0.001).
 
 Let's now test the effect of smoking by Likelihood ratio test:
 
 ```{r}
-mod_menop_logit_gam_never_smoked <- gam(menopause ~ s(age, bmi), data = HSE98women, family = binomial())
-LR <- -2 * (logLik(mod_menop_logit_gam_never_smoked)[[1]] - logLik(mod_menop_logit_gam)[[1]])
-DF <- (mod_menop_logit_gam$df.null - mod_menop_logit_gam$df.residual) - (mod_menop_logit_gam_never_smoked$df.null - mod_menop_logit_gam_never_smoked$df.residual)
-(PV <- pchisq(LR, DF, lower.tail = FALSE))
+fit_menop_logit_gam_never_smoked <- gam(menopause ~ s(age, bmi), family = binomial(), data = fit_menop_logit_gam$model)
+anova(fit_menop_logit_gam_never_smoked, fit_menop_logit_gam, test = "Chisq")
 ```
-
-The effect of have smooked is also significant (LRT, LR = ```r round(LR, 1)```, df = ```r round(DF, 2)```, p-value < 0.001).
 
 
 ## Predictions
 
-Let's first explore the model output with the pacakge ```visreg```, which also works on GAM models:
+Let's first explore the model output with the pacakge **{visreg}**, which also works on GAM models:
 
 ```{r}
-library(visreg)
-visreg(mod_menop_logit_gam)
+visreg(fit_menop_logit_gam)
 ```
 
 These plots show the patterns identified by the smoothing parameters in the GAM: the effect of age seems to change after 40 yrs and the effect of BMI seem to be changing between 23 and 32 yrs. It is difficult to account for such threshold effects by polynoms, so we will have to stick to GAM here...
 
 Le't us do the same plots on the scale of the response variable:
 ```{r}
-visreg(mod_menop_logit_gam, scale = "response")
-visreg2d(mod_menop_logit_gam, "age", "bmi", scale = "response")
-#visreg2d(mod_menop_logit_gam, "age", "bmi", scale = "response", plot.type = "rgl")
+visreg(fit_menop_logit_gam, scale = "response")
+visreg2d(fit_menop_logit_gam, "age", "bmi", scale = "response")
+#visreg2d(fit_menop_logit_gam, "age", "bmi", scale = "response", plot.type = "rgl")
 ```
 
 We will now plot the predictions for the model with the logit link, the model with the cauchit link and the model with the GAM model with the logit link to explore their differences. We will predict the influence of age and consider the median BMI and smokers.
 
 ```{r}
-age.for.pred <- seq(min(mod_menop_cauchit_gam$model$age), max(mod_menop_cauchit_gam$model$age), length = 100)
+age.for.pred <- seq(min(fit_menop_cauchit_gam$model$age), max(fit_menop_cauchit_gam$model$age), length = 100)
 data.for.pred <- expand.grid(
   age = age.for.pred,
-  bmi = median(mod_menop_cauchit_gam$model$bmi),
+  bmi = median(fit_menop_cauchit_gam$model$bmi),
   smoked = TRUE
   )
 
-  gam.p <- predict(mod_menop_logit_gam, newdata = data.for.pred, se.fit = TRUE)
+gam.p <- predict(fit_menop_logit_gam, newdata = data.for.pred, se.fit = TRUE)
 gam.upr <- binomial(link = "logit")$linkinv(gam.p$fit + qnorm(0.975) * gam.p$se.fit)
 gam.lwr <- binomial(link = "logit")$linkinv(gam.p$fit + qnorm(0.025) * gam.p$se.fit)
 gam.fit <- binomial(link = "logit")$linkinv(gam.p$fit)
 
-cauchit.p <- predict(mod_menop_cauchit, newdata = data.for.pred, se.fit = TRUE)
+cauchit.p <- predict(fit_menop_cauchit, newdata = data.for.pred, se.fit = TRUE)
 cauchit.upr <- binomial(link = "cauchit")$linkinv(cauchit.p$fit + qnorm(0.975) * cauchit.p$se.fit)
 cauchit.lwr <- binomial(link = "cauchit")$linkinv(cauchit.p$fit + qnorm(0.025) * cauchit.p$se.fit)
 cauchit.fit <- binomial(link = "cauchit")$linkinv(cauchit.p$fit)
 
-logit.p <- predict(mod_menop_logit, newdata = data.for.pred, se.fit = TRUE)
+logit.p <- predict(fit_menop_logit, newdata = data.for.pred, se.fit = TRUE)
 logit.upr <- binomial(link = "logit")$linkinv(logit.p$fit + qnorm(0.975) * logit.p$se.fit)
 logit.lwr <- binomial(link = "logit")$linkinv(logit.p$fit + qnorm(0.025) * logit.p$se.fit)
 logit.fit <- binomial(link = "logit")$linkinv(logit.p$fit)
@@ -1054,17 +968,17 @@ data.for.pred <- expand.grid(
   smoked = TRUE
   )
 
-gam.skiny.p <- predict(mod_menop_logit_gam, newdata = subset(data.for.pred, bmi == 18.5), se.fit = TRUE)
+gam.skiny.p <- predict(fit_menop_logit_gam, newdata = subset(data.for.pred, bmi == 18.5), se.fit = TRUE)
 gam.skiny.upr <- binomial(link = "logit")$linkinv(gam.skiny.p$fit + qnorm(0.975) * gam.skiny.p$se.fit)
 gam.skiny.lwr <- binomial(link = "logit")$linkinv(gam.skiny.p$fit + qnorm(0.025) * gam.skiny.p$se.fit)
 gam.skiny.fit <- binomial(link = "logit")$linkinv(gam.skiny.p$fit)
 
-gam.overweight.p <- predict(mod_menop_logit_gam, newdata = subset(data.for.pred, bmi == 25), se.fit = TRUE)
+gam.overweight.p <- predict(fit_menop_logit_gam, newdata = subset(data.for.pred, bmi == 25), se.fit = TRUE)
 gam.overweight.upr <- binomial(link = "logit")$linkinv(gam.overweight.p$fit + qnorm(0.975) * gam.overweight.p$se.fit)
 gam.overweight.lwr <- binomial(link = "logit")$linkinv(gam.overweight.p$fit + qnorm(0.025) * gam.overweight.p$se.fit)
 gam.overweight.fit <- binomial(link = "logit")$linkinv(gam.overweight.p$fit)
 
-gam.obese.p <- predict(mod_menop_logit_gam, newdata = subset(data.for.pred, bmi == 30), se.fit = TRUE)
+gam.obese.p <- predict(fit_menop_logit_gam, newdata = subset(data.for.pred, bmi == 30), se.fit = TRUE)
 gam.obese.upr <- binomial(link = "logit")$linkinv(gam.obese.p$fit + qnorm(0.975) * gam.obese.p$se.fit)
 gam.obese.lwr <- binomial(link = "logit")$linkinv(gam.obese.p$fit + qnorm(0.025) * gam.obese.p$se.fit)
 gam.obese.fit <- binomial(link = "logit")$linkinv(gam.obese.p$fit)
@@ -1094,7 +1008,7 @@ data.for.pred <- expand.grid(
   bmi = c(21.75, 30),
   smoked = TRUE
   )
-pred_normal <- predict(mod_menop_logit_gam, newdata = subset(data.for.pred, bmi == 21.75), se.fit = TRUE)
+pred_normal <- predict(fit_menop_logit_gam, newdata = subset(data.for.pred, bmi == 21.75), se.fit = TRUE)
 tab_normal <- cbind(
   predict = plogis(pred_normal$fit),
   lwr.CI = plogis(pred_normal$fit + qnorm(0.025)*pred_normal$se.fit),
@@ -1107,7 +1021,7 @@ round(tab_normal, 2)
 This gives the information for individuals for normal BMI. Let's now look at the corresponding proportion for the obeses:
 
 ```{r}
-pred_obses <- predict(mod_menop_logit_gam, newdata = subset(data.for.pred, bmi == 30), se.fit = TRUE)
+pred_obses <- predict(fit_menop_logit_gam, newdata = subset(data.for.pred, bmi == 30), se.fit = TRUE)
 tab_obses <- cbind(
   predict = plogis(pred_obses$fit),
   lwr.CI = plogis(pred_obses$fit + qnorm(0.025)*pred_obses$se.fit),
@@ -1123,9 +1037,9 @@ For the sake of comparion, let's compare the first table to what we would have p
 
 ```{r}
 data.for.pred <- expand.grid(age = c(40, 45, 50, 55, 60), bmi = 21.75, smoked = TRUE)
-pred_GAM <- predict(mod_menop_logit_gam, newdata = subset(data.for.pred, bmi == 21.75), se.fit = TRUE)
-pred_logit <- predict(mod_menop_logit, newdata = subset(data.for.pred, bmi == 21.75), se.fit = TRUE)
-pred_cauchit <- predict(mod_menop_cauchit, newdata = subset(data.for.pred, bmi == 21.75), se.fit = TRUE)
+pred_GAM <- predict(fit_menop_logit_gam, newdata = subset(data.for.pred, bmi == 21.75), se.fit = TRUE)
+pred_logit <- predict(fit_menop_logit, newdata = subset(data.for.pred, bmi == 21.75), se.fit = TRUE)
+pred_cauchit <- predict(fit_menop_cauchit, newdata = subset(data.for.pred, bmi == 21.75), se.fit = TRUE)
 tab <- cbind(
   logit_GAM = plogis(pred_GAM$fit),
   logit_GLM = plogis(pred_logit$fit),
@@ -1173,11 +1087,11 @@ Selecting the best model, let's now look at the effect of BMI, still using smoke
 ```{r}
 data.for.pred.nosmoke <- expand.grid(
   age = age.for.pred,
-  bmi = median(mod_menop_cauchit_gam$model$bmi),
+  bmi = median(fit_menop_cauchit_gam$model$bmi),
   smoked = FALSE
   )
 
-gam.p.nosmoke <- predict(mod_menop_logit_gam, newdata = data.for.pred.nosmoke, se.fit = TRUE)
+gam.p.nosmoke <- predict(fit_menop_logit_gam, newdata = data.for.pred.nosmoke, se.fit = TRUE)
 gam.upr.nosmoke <- binomial(link = "logit")$linkinv(gam.p.nosmoke$fit + qnorm(0.975) * gam.p.nosmoke$se.fit)
 gam.lwr.nosmoke <- binomial(link = "logit")$linkinv(gam.p.nosmoke$fit + qnorm(0.025) * gam.p.nosmoke$se.fit)
 gam.fit.nosmoke <- binomial(link = "logit")$linkinv(gam.p.nosmoke$fit)
@@ -1195,156 +1109,4 @@ legend("topleft", fill = c("green", "red"), legend = c("non-smoker", "smoker"), 
 ```
 
 Although significant, the effect of smoking is rather small. Because the interaction between the smoking status and the BMI was not significant, we won't draw predictions to explore that.
-
-<br>
-
-
-# Dataset: MASS::mammals
-
-## Goal
-
-* What is the allometric exponent for the growth of brain size with body mass?
-* Does this exponent agree with the usual expectation of 2/3?
-* How large do we expect a 1kg animal to be?
-* Rank organisms by relative brain size (i.e. controlled for body size)
-
-## Explore the data
-
-```{r}
-data(mammals, package = "MASS")
-head(mammals)
-str(mammals)
-plot(brain ~ body, data = mammals)
-plot(brain ~ body, data = mammals, log = "xy")
-plot(log(brain, 10) ~ log(body, 10), data = mammals, pch = ".")
-text(log(mammals$body, 10), log(mammals$brain, 10),
-     labels = rownames(mammals), cex = 0.8)
-```
-
-## Reshaping the data
-```{r}
-mammals$log10_brain <- log(mammals$brain, base = 10)
-mammals$log10_body <-  log(mammals$body, base = 10)
-```
-
-## Fitting the model
-```{r}
-mod <- lm(log10_brain ~ log10_body, data = mammals)
-plot(mod)
-influence.measures(mod)
-plot(mod, which = 4)
-summary(mod)
-mod_nohuman <- lm(log10_brain ~ log10_body, data = mammals[rownames(mammals)!="Human", ])
-plot(mod_nohuman, which = 4)
-```
-
-## Comparing to 2/3
-
-```{r}
-t <- (mod$coefficients[2] - 2/3) / sqrt(diag(vcov(mod))[2])
-2*pt(abs(t), df = mod$df.residual, lower.tail = FALSE)
-confint(mod)
-mod2 <- lm(log10_brain ~ 1 + offset(2/3*log10_body), data = mammals)
-anova(mod, mod2)
-```
-
-
-```{r}
-t <- (mod_nohuman$coefficients[2] - 2/3) / sqrt(diag(vcov(mod_nohuman))[2])
-2*pt(abs(t), df = mod_nohuman$df.residual, lower.tail = FALSE)
-confint(mod_nohuman)
-mod2_nohuman <- lm(log10_brain ~ 1 + offset(2/3*log10_body), data = mammals[rownames(mammals)!="Human", ])
-anova(mod_nohuman, mod2_nohuman)
-```
-
-We can plot the predictions from the models
-
-```{r}
-plot(log(brain, 10) ~ log(body, 10), data = mammals, pch = ".")
-text(log(mammals$body, 10), log(mammals$brain, 10),
-     labels = rownames(mammals), cex = 0.8)
-abline(mod, col = "blue", lwd = 2)
-abline(mod_nohuman, col = "blue", lwd = 2, lty = 2)
-abline(coef(mod2), 2/3, col = "red", lwd = 2)
-abline(coef(mod2_nohuman), 2/3, col = "red", lwd = 2, lty = 2)
-legend("topleft", lty = c(1, 1, 2, 2), lwd = c(2, 2, 2, 2), col = c("blue", "red", "blue", "red"),
-       legend = c("slope estimated", "slope = 2/3", "slope estimated (no human)", "slope = 2/3 (no human)"))
-```
-
-
-## Prediction of the brain size for an animal of 1Kg
-
-```{r}
-p <- predict(mod_nohuman, newdata = data.frame(log10_body = log(1, base = 10)))
-10^p
-```
-
-An animal of 1 Kg is predicted to have a brain size of ```r round(10^p, 2)``` grams.
-
-
-## Let us rank the organism by brain size controling for body size
-
-```{r}
-matrix(names(sort(resid(mod), decreasing = TRUE)), ncol = 1)
-```
-
-
-# Dataset: MASS::Animals
-
-## Goal
-
-* What is the allometric exponent for the growth of brain size with body mass?
-* Does this exponent agree with the usual expectation of 2/3?
-* How large do we expect a 1kg animal to be?
-* Rank organisms by relative brain size (i.e. controlled for body size)
-
-## Explore the data
-
-```{r}
-data(Animals, package = "MASS")
-head(Animals)
-str(Animals)
-plot(brain ~ body, data = Animals)
-plot(log(brain, 10) ~ log(body, 10), data = Animals, pch = ".")
-text(log(Animals$body, 10), log(Animals$brain, 10),
-     labels = rownames(Animals), cex = 0.8)
-```
-
-## Reshaping the data
-```{r}
-Animals$log10_brain <- log(Animals$brain, base = 10)
-Animals$log10_body <-  log(Animals$body, base = 10)
-```
-
-## Fitting the model
-```{r}
-mod <- lm(log10_brain ~ log10_body, data = Animals)
-plot(mod)
-influence.measures(mod)
-plot(mod, which = 4)
-summary(mod)
-Animals_nodino <- Animals[!rownames(Animals) %in%
-                          c("Triceratops", "Brachiosaurus", "Dipliodocus"), ]
-mod_nodino <- lm(log10_brain ~ log10_body, data = Animals_nodino)
-plot(mod_nodino)
-influence.measures(mod_nodino)
-plot(mod_nodino, which = 4)
-summary(mod_nodino)
-```
-
-## Plot
-
-```{r}
-plot(log10_brain ~ log10_body, data = Animals, col = NULL)
-text(x = Animals$log10_body, y = Animals$log10_brain,
-     labels = rownames(Animals), cex = 0.8,
-     col = ifelse( rownames(Animals) %in% c("Triceratops", "Brachiosaurus", "Dipliodocus"), "red", "black"))
-p <- predict(mod, newdata = data.frame("log10_body" = range(log(Animals$body, 10))))
-p_nodino <- predict(mod_nodino, newdata = data.frame("log10_body" = range(log(Animals$body, 10))))
-points(x = range(Animals$log10_body), y = p, col = "red", type = "l", lty = 2)
-points(x = range(Animals$log10_body), y = p_nodino, col = "blue", type = "l")
-```
-
-
-
 
