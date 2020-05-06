@@ -99,6 +99,7 @@ pred <- predict(fit_chick, newdata = data.frame(feed = levels(chickwts$feed)),
                 interval = "confidence")
 pred <- as.data.frame(pred)
 pred$feed <- levels(chickwts$feed)
+rownames(pred) <- pred$feed ## for automatic names in barplot
 pred
 ```
 
@@ -212,7 +213,7 @@ rm(list = ls())
 str(InsectSprays)
 range(InsectSprays$count)
 table(InsectSprays$spray)
-boxplot(count ~ spray, data = InsectSprays)
+plot(count ~ spray, data = InsectSprays)
 any(is.na(InsectSprays))
 ```
 
@@ -431,12 +432,12 @@ plot(visreg::visreg(fit_swiss_bis))
 Both models predict the same overall trends. To illustrate the difference in predicted values between the two models, one would have to do the plot manually instead of using some easy package. Let's do that to illustrate how the prediction for the mean effect of education differ between models:
 
 ```{r}
-data.for.pred <- expand.grid("Agriculture" = mean(swiss$Agriculture), 
-                       "Examination" = mean(swiss$Examination),
-                       "Education" = seq(min(swiss$Education), max(swiss$Education), length = 30),
-                       "Catholic" = mean(swiss$Catholic),
-                       "Infant.Mortality" = mean(swiss$Infant.Mortality)
-                       )
+data.for.pred <- data.frame("Agriculture" = mean(swiss$Agriculture), 
+                            "Examination" = mean(swiss$Examination),
+                            "Education" = seq(min(swiss$Education), max(swiss$Education), length = 30),
+                             "Catholic" = mean(swiss$Catholic),
+                             "Infant.Mortality" = mean(swiss$Infant.Mortality)
+                             )
 pred1 <- predict(fit_swiss, newdata = data.for.pred, interval = "confidence")
 pred2 <- predict(fit_swiss_bis, newdata = data.for.pred, interval = "confidence")
 pred1_df_temp <- as.data.frame(pred1) ## to turn the matrix into a data frame
