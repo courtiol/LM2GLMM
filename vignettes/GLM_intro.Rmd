@@ -61,7 +61,7 @@ with:
 We call:
 
 * $\eta$ the linear predictor
-* $g$ the link function ($g^{-1}$ is sometimes called the mean function)
+* $g$ the link function ($g^{-1}$ is the inverse link function)
 * $\text{V}$ the variance function
 * $\phi$ is the dispersion parameter
 
@@ -425,7 +425,7 @@ c(binomial(link = "log")$linkfun(0.9), log(0.9))
 c(binomial(link = "cloglog")$linkfun(0.9), log(-log(1 - 0.9)))
 -->
 
-## The inverse link function (```linkinv```)
+## The inverse link function (`linkinv`)
 
 The inverse link function converts the values of the linear predictor back into the scale of the response.
 
@@ -1904,8 +1904,6 @@ Note: this is far from the uniform distribution we aim at...
 
 We can again use **{DHARMa}** for that:
 
-A better way:
-
 ```{r sim overdisp}
 r <- simulateResiduals(fit_poissMix, n = 1000)
 testDispersion(r) # stat = squared pearson residuals compared to that obtained by simulation
@@ -1922,7 +1920,7 @@ testDispersion(r) # stat = squared pearson residuals compared to that obtained b
 ```{r inter}
 fit_poissMix2 <- glm(eggs ~ pop*humans_eaten, family = poisson(), data = AliensMix)
 r2 <- simulateResiduals(fit_poissMix2, n = 1000)
-testDispersion(r2)  ## you can change options to test for underdispersion
+testDispersion(r2, plot = FALSE)  ## you can change options to test for underdispersion
 ```
 
 ## Potential solutions

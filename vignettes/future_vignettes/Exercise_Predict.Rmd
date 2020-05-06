@@ -1,5 +1,6 @@
 ---
-title: "Answers to Exercises: Predictions in LM"
+title: "LM: Let's practice!"
+subtitle: "Solutions"
 author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
 output:
