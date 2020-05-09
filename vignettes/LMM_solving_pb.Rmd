@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{4.2 Solving LM problems using LMM}
+  %\VignetteIndexEntry{4.1 Solving LM problems using LMM}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -25,12 +25,15 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LMM_solving_pb/"
 
 ## Mixed-effects models
 
-* 4.0 [Introduction to LMM](./LMM_intro.html)
-* 4.1 [Random effects](./LMM_random.html)
-* 4.2 [Solving LM problems using LMM](./LMM_solving_pb.html)
-* 4.3 [A showcase of some useful applications](./LMM_showcase.html)
-* 4.4 [Introduction to GLMM](./GLMM_intro.html)
-* 4.5 [More complex mixed models](./MM_more.html)
+* 4.0 [Introduction to LMM & GLMM](./LMM_intro.html)
+* 4.1 [Solving LM problems using LMM](./LMM_solving_pb.html)
+* 4.2 [A showcase of some useful applications](./LMM_showcase.html)
+
+<br>
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
 
 
 ## You will learn in this session
@@ -85,21 +88,21 @@ plot(with(air, tapply(passengers, month, mean)) ~ I(1:12),
 ## Simple fit
 
 ```{r airpassenger simple fit}
-(mod_air <- lm(passengers ~ year * month, data = air))
+(fit_air <- lm(passengers ~ year * month, data = air))
 ```
 
 
 ## The problem
 ```{r airpassenger assumptions}
 par(mfrow = c(2, 2))
-plot(mod_air)
+plot(fit_air)
 ```
 
 
 ## The problem
 
 ```{r airpassenger residuals}
-plot(residuals(mod_air), type = "b")
+plot(residuals(fit_air), type = "b")
 abline(h = 0, lty = 2, col = "red")
 ```
 
@@ -107,14 +110,14 @@ abline(h = 0, lty = 2, col = "red")
 ## The problem
 
 ```{r airpassenger dw test}
-lmtest::dwtest(mod_air)
+lmtest::dwtest(fit_air)
 ```
 
 
 ## The problem
 
 ```{r airpassenger acf}
-acf(residuals(mod_air))
+acf(residuals(fit_air))
 ```
 
 
@@ -124,20 +127,20 @@ acf(residuals(mod_air))
 air$year_bis <- air$year - 1949
 air$time <- 1:nrow(air)
 library(spaMM)
-(mod_air_spaMM1 <- fitme(passengers ~ month * year_bis + AR1(1|time), data = air))
+(fit_air_spaMM1 <- fitme(passengers ~ month * year_bis + AR1(1|time), data = air))
 ```
 
 
 ## Solution
 ```{r corr values}
- mod_air_spaMM1$corrPars[[1]]
+ fit_air_spaMM1$corrPars[[1]]
 ```
 
 
 ## Fitted values
 
 ```{r air fitted, fig.height = 4, fig.width = 4}
-pred_spaMM <- predict(mod_air_spaMM1)
+pred_spaMM <- predict(fit_air_spaMM1)
 plot(passengers ~ time, data = air, type = "l", lwd = 3, ylim = c(0, 700), ylab = "Passengers")
 points(pred_spaMM ~ air$time, type = "l", col = "green")
 ```
@@ -148,45 +151,34 @@ Note: never extrapolate using such model! The perfect fit is not unusual.
 ## Testing the effect of years
 
 ```{r spaMM air 2}
-mod_air_spaMM_no_year <- fitme(passengers ~ month + AR1(1|time), data = air)
-anova(mod_air_spaMM1, mod_air_spaMM_no_year)
+fit_air_spaMM_no_year <- fitme(passengers ~ month + AR1(1|time), data = air)
+anova(fit_air_spaMM1, fit_air_spaMM_no_year)
 ```
 
 
 # Temporal autocorrelation in continuous time
 
-## The ```nlme::BodyWeight``` dataset
+## The `bodyweight` dataset
 
 ```{r bodyweight data, fig.width = 10}
-data("BodyWeight", package = "nlme")
-plot(BodyWeight)
-```
-
-
-## The ```nlme::BodyWeight``` dataset
-
-```{r bodyweight reshape}
-body <- as.data.frame(BodyWeight)
-body$Rat <- factor(body$Rat, levels = 1:16, order = FALSE)
-str(body)
-unique(body$Time)
+plot(bodyweight)
 ```
 
 
 ## Fitting with the exponential correlation function
 
 ```{r bodyweight fitme spaMM}
-(mod_rat_spaMM1 <- fitme(weight ~ Diet * Time + (Time|Rat) + Matern(1|Time),
+(fit_rat_spaMM1 <- fitme(weight ~ Diet * Time + (Time|Rat) + Matern(1|Time),
                          fixed = list(nu = 0.5),
-                         data = body, method = "REML"))
+                         data = bodyweight, method = "REML"))
 ```
 
 
 ## Fitting with the ```Matern()``` correlation function
 
 ```{r bodyweight fitme spaMM 2}
-(mod_rat_spaMM2 <- fitme(weight ~ Diet * Time + (Time|Rat) + Matern(1|Time),
-                         data = body, method = "REML"))
+(fit_rat_spaMM2 <- fitme(weight ~ Diet * Time + (Time|Rat) + Matern(1|Time),
+                         data = bodyweight, method = "REML"))
 ```
 
 
@@ -194,42 +186,43 @@ unique(body$Time)
 ```{r plot autocorr Matern prep}
 time_for_pred <- seq(0, 30, length.out = 100)
 pred_corr1 <- MaternCorr(time_for_pred,
-                         rho = mod_rat_spaMM1$corrPars[[1]]$rho,
-                         nu = mod_rat_spaMM1$corrPars[[1]]$nu)
+                         rho = fit_rat_spaMM1$corrPars[[1]]$rho,
+                         nu = fit_rat_spaMM1$corrPars[[1]]$nu)
 pred_corr2 <- MaternCorr(time_for_pred,
-                         rho = mod_rat_spaMM2$corrPars[[1]]$rho,
-                         nu = mod_rat_spaMM2$corrPars[[1]]$nu)
+                         rho = fit_rat_spaMM2$corrPars[[1]]$rho,
+                         nu = fit_rat_spaMM2$corrPars[[1]]$nu)
 ```
 
 ## Plotting the autocorrelation functions
-```{r plot autocorr Matern}
+```{r plot autocorr Matern, fig.width=3.5, fig.height=3.5}
 plot(pred_corr1 ~ time_for_pred, type = "l", lwd = 2, col = "red", ylim = c(0, 1), xlab="Time", ylab="Correlation")
 points(pred_corr2 ~ time_for_pred, type = "l", lwd = 2, col = "purple", ylim = c(0, 1))
 ```
+Note: this is not OK, the full Matern model badly converged...
 
 
 ## Model comparison
 ```{r Matern vs AR1}
-print(AIC(mod_rat_spaMM1))
-print(AIC(mod_rat_spaMM2))
+print(AIC(fit_rat_spaMM1))
+print(AIC(fit_rat_spaMM2))
 ```
 
 <br>
 
-Note: the model do not look really different in their ability to fit the data.
+Note: the model should not look really different in their ability to fit the data (but there is currently a problem with **{spaMM}** here... I will fix it ASAP).
 
 
 ## AR1
 
 ```{r bodyweight fitme AR1 spaMM}
-(mod_rat_spaMM_AR1 <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time),
-                            data = body, method = "REML"))
+(fit_rat_spaMM_AR1 <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time),
+                            data = bodyweight, method = "REML"))
 ```
 
 
 ## AR1 vs Matern
 ```{r plot autocorr Matern 2}
-pred_corr3 <- mod_rat_spaMM_AR1$corrPars[[1]]$ARphi^time_for_pred
+pred_corr3 <- fit_rat_spaMM_AR1$corrPars[[1]]$ARphi^time_for_pred
 plot(pred_corr1 ~ time_for_pred, type = "l", lwd = 5, col = "red", ylim = c(0, 1), xlab="Time", ylab="Correlation")
 points(pred_corr3 ~ time_for_pred, type = "l", lwd = 2, col = "green", ylim = c(0, 1))
 ```
@@ -238,9 +231,9 @@ points(pred_corr3 ~ time_for_pred, type = "l", lwd = 2, col = "green", ylim = c(
 ## AR1 vs Matern
 
 ```{r AR1 vs Matern}
-logLik(mod_rat_spaMM1)[[1]] ## Matern nu = 0.5
-logLik(mod_rat_spaMM_AR1)[[1]] ## AR1
-round(fixef(mod_rat_spaMM1) - fixef(mod_rat_spaMM_AR1), 3)
+logLik(fit_rat_spaMM1)[[1]] ## Matern nu = 0.5
+logLik(fit_rat_spaMM_AR1)[[1]] ## AR1
+round(fixef(fit_rat_spaMM1) - fixef(fit_rat_spaMM_AR1), 3)
 ```
 
 <br>
@@ -253,13 +246,13 @@ Note 2: AR1 cannot work if time is not discrete.
 ## Model comparison
 
 ```{r corrHLfit spaMM2}
-mod_rat_spaMM_noAR <- fitme(weight ~ Diet * Time + (Time|Rat), data = body,
+fit_rat_spaMM_noAR <- fitme(weight ~ Diet * Time + (Time|Rat), data = bodyweight,
                             method = "REML")
 ```
 
 ```{r corrHLfit spaMM2 2}
-print(AIC(mod_rat_spaMM1))
-print(AIC(mod_rat_spaMM_noAR))
+print(AIC(fit_rat_spaMM1))
+print(AIC(fit_rat_spaMM_noAR))
 ```
 
 <br>
@@ -272,11 +265,11 @@ Note: the model accounting for the autocorrelation fits the data best!
 ### ```spaMM```
 
 ```{r spaMM rat}
-mod_rat_spaMM3ML <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time),
-                          data = body, method = "ML")
-mod_rat_no_diet <- fitme(weight ~ 1 + Time + (Time|Rat) + AR1(1|Time),
-                          data = body, method = "ML")
-anova(mod_rat_spaMM3ML, mod_rat_no_diet)
+fit_rat_spaMM3ML <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time),
+                          data = bodyweight, method = "ML")
+fit_rat_no_diet <- fitme(weight ~ 1 + Time + (Time|Rat) + AR1(1|Time),
+                          data = bodyweight, method = "ML")
+anova(fit_rat_spaMM3ML, fit_rat_no_diet)
 ```
 
 
@@ -284,9 +277,9 @@ anova(mod_rat_spaMM3ML, mod_rat_no_diet)
 
 There are more complex autocorrelation functions out there.
 
-```spaMM```:
+**{spaMM}**:
 ```{r spaMM full Matern}
-(mod_rat_Matern_nugget <- fitme(weight ~ Diet * Time + (Time|Rat) + Matern(1|Time), data = body,
+(fit_rat_Matern_nugget <- fitme(weight ~ Diet * Time + (Time|Rat) + Matern(1|Time), data = bodyweight,
                                 init = list(Nugget = 0.1)))  ## here estimated at zero but does not have to be!
 ```
 
@@ -295,19 +288,19 @@ There are more complex autocorrelation functions out there.
 
 There are more complex autocorrelation functions out there.
 
-```nlme```:
+**{nlme}**:
 ```{r other correlations}
 library(nlme)
-mod_rat1 <- lme(weight ~ Diet * Time, random = ~ Time|Rat, data = body) 
-mod_rat_AR1 <- update(mod_rat1, corr = corAR1(form = ~ Time))
-mod_rat_corExp <- update(mod_rat1, corr = corExp(form = ~ Time, nugget = FALSE))
-mod_rat_corExp_Nugget <- update(mod_rat1, corr = corExp(form = ~ Time, nugget = TRUE))
-mod_rat_corRatio <- update(mod_rat1, corr = corRatio(form = ~ Time))
-mod_rat_corSpher <- update(mod_rat1, corr = corSpher(form = ~ Time))
-mod_rat_corLin <- update(mod_rat1, corr = corLin(form = ~ Time))
-mod_rat_corGaus <- update(mod_rat1, corr = corGaus(form = ~ Time))
-c(AIC(mod_rat1)[[1]], AIC(mod_rat_AR1)[[1]], AIC(mod_rat_corExp)[[1]],  AIC(mod_rat_corExp_Nugget)[[1]],
-  AIC(mod_rat_corRatio)[[1]], AIC(mod_rat_corSpher)[[1]], AIC(mod_rat_corLin)[[1]], AIC(mod_rat_corGaus)[[1]])
+fit_rat1 <- lme(weight ~ Diet * Time, random = ~ Time|Rat, data = bodyweight) 
+fit_rat_AR1 <- update(fit_rat1, corr = corAR1(form = ~ Time))
+fit_rat_corExp <- update(fit_rat1, corr = corExp(form = ~ Time, nugget = FALSE))
+fit_rat_corExp_Nugget <- update(fit_rat1, corr = corExp(form = ~ Time, nugget = TRUE))
+fit_rat_corRatio <- update(fit_rat1, corr = corRatio(form = ~ Time))
+fit_rat_corSpher <- update(fit_rat1, corr = corSpher(form = ~ Time))
+fit_rat_corLin <- update(fit_rat1, corr = corLin(form = ~ Time))
+fit_rat_corGaus <- update(fit_rat1, corr = corGaus(form = ~ Time))
+c(AIC(fit_rat1)[[1]], AIC(fit_rat_AR1)[[1]], AIC(fit_rat_corExp)[[1]],  AIC(fit_rat_corExp_Nugget)[[1]],
+  AIC(fit_rat_corRatio)[[1]], AIC(fit_rat_corSpher)[[1]], AIC(fit_rat_corLin)[[1]], AIC(fit_rat_corGaus)[[1]])
 ```
 
 <br>
@@ -345,21 +338,21 @@ pairs(ndvi)
 ## Fitting the model
 
 ```{r mod ndvi}
-(mod_ndvi1 <- fitme(maxNDVI ~ 1 + Matern(1|longitude + latitude), data = ndvi, method = "REML"))
+(fit_ndvi1 <- fitme(maxNDVI ~ 1 + Matern(1|longitude + latitude), data = ndvi, method = "REML"))
 ```
 
 
 ## Predictions
 
 ```{r mapMM 1, fig.width = 9}
-mapMM(mod_ndvi1, add.map = TRUE, plot.title = title(xlab = "Longitude", ylab = "Latitude"))
+mapMM(fit_ndvi1, add.map = TRUE, plot.title = title(xlab = "Longitude", ylab = "Latitude"))
 ```
 
 
 ## Predictions
 
 ```{r mapMM 2, fig.width = 9}
-filled.mapMM(mod_ndvi1, add.map = TRUE, plot.title = title(xlab = "Longitude", ylab = "Latitude"))
+filled.mapMM(fit_ndvi1, add.map = TRUE, plot.title = title(xlab = "Longitude", ylab = "Latitude"))
 ```
 
 
@@ -369,7 +362,7 @@ filled.mapMM(mod_ndvi1, add.map = TRUE, plot.title = title(xlab = "Longitude", y
 x.for.pred <- seq(min(ndvi$longitude), max(ndvi$longitude), length.out = 100)
 y.for.pred <- seq(min(ndvi$latitude), max(ndvi$latitude), length.out = 50)
 data.for.pred <- expand.grid(longitude = x.for.pred, latitude = y.for.pred)
-gridpred <- predict(mod_ndvi1, newdata = data.for.pred, variances = list(predVar = TRUE))
+gridpred <- predict(fit_ndvi1, newdata = data.for.pred, variances = list(predVar = TRUE))
 data.for.pred$predVar <- attr(gridpred, "predVar")
 m <- matrix(data.for.pred$predVar, ncol = length(y.for.pred))
 ```
@@ -398,24 +391,24 @@ Do not mix-up random variance components from residual ones: remember that in th
 ## Let's revisit the rats
 
 ```{r rat hetero}
-mod_rat_spaMM <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time), data = body,
+fit_rat_spaMM <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time), data = bodyweight,
                             method = "REML")
 ```
 
 ```{r rat hetero plot}
-coplot(residuals(mod_rat_spaMM) ~ I(1:nrow(body)) | body$Diet, show.given = FALSE)
+coplot(residuals(fit_rat_spaMM) ~ I(1:nrow(bodyweight)) | bodyweight$Diet, show.given = FALSE)
 ```
 
 
 ## Let's revisit the rats
 
 ```{r rat hetero 2}
-mod_rat_hetero <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time), data = body,
+fit_rat_hetero <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time), data = bodyweight,
                         method = "REML", resid.model = ~ Diet)
 ```
 
 ```{r rat summary, results="hide"}
-summary.tables <- summary(mod_rat_hetero)
+summary.tables <- summary(fit_rat_hetero)
 ```
 
 ```{r rat phi}
@@ -423,21 +416,21 @@ summary.tables$phi_table
 ```
 
 ```{r rat AIC spaMM}
-print(rbind(AIC(mod_rat_spaMM),
-            AIC(mod_rat_hetero)))
+print(rbind(AIC(fit_rat_spaMM),
+            AIC(fit_rat_hetero)))
 ```
 
 
 ## Let's re-test the overal effect of the diet
 
 ```{r hetero 3}
-mod_rat_hetero <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time), data = body,
+fit_rat_hetero <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time), data = bodyweight,
                            method = "ML", resid.model = ~ Diet)
 
-mod_rat_hetero0 <- fitme(weight ~ Time + (Time|Rat) + AR1(1|Time), data = body,
+fit_rat_hetero0 <- fitme(weight ~ Time + (Time|Rat) + AR1(1|Time), data = bodyweight,
                            method = "ML", resid.model = ~ Diet)
 
-anova(mod_rat_hetero, mod_rat_hetero0)
+anova(fit_rat_hetero, fit_rat_hetero0)
 ```
 
 
@@ -452,7 +445,7 @@ d <- data.frame(y = c(rnorm(100, mean = 10, sd = sqrt(10)),
                 group = factor(c(rep("A", 100), rep("B", 100))))
 
 m <- fitme(y ~ group, resid.model = ~ group, data = d, method = "REML")
-unique(m$phi)
+unique(get_residVar(m))
 ```
 
 
@@ -466,9 +459,12 @@ unique(m$phi)
 
 ## Mixed-effects models
 
-* 4.0 [Introduction to LMM](./LMM_intro.html)
-* 4.1 [Random effects](./LMM_random.html)
-* 4.2 [Solving LM problems using LMM](./LMM_solving_pb.html)
-* 4.3 [A showcase of some useful applications](./LMM_showcase.html)
-* 4.4 [Introduction to GLMM](./GLMM_intro.html)
-* 4.5 [More complex mixed models](./MM_more.html)
+* 4.0 [Introduction to LMM & GLMM](./LMM_intro.html)
+* 4.1 [Solving LM problems using LMM](./LMM_solving_pb.html)
+* 4.2 [A showcase of some useful applications](./LMM_showcase.html)
+
+<br>
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
