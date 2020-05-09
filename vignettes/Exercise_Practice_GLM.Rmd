@@ -74,7 +74,7 @@ insect_glm_resid <- simulateResiduals(fit_insect_glm, n = 1000)
 plot(insect_glm_resid)
 testUniformity(insect_glm_resid)
 plot(insect_glm_resid)
-testTemporalAutocorrelation(insect_glm_resid, time = fitted(insect_glm_resid))
+testTemporalAutocorrelation(insect_glm_resid, time = order(fitted(fit_insect_glm)))
 ```
 
 All look good. We also have to test for the goodness of fit:
@@ -130,7 +130,7 @@ Let us stick to the negative binomial model as our best GLM!
 ```{r insect_glm_nb_resid, warning = FALSE}
 insect_glm_nb_resid   <- simulateResiduals(fit_insect_glm_nb, n = 1000)
 testUniformity(insect_glm_nb_resid)
-testTemporalAutocorrelation(insect_glm_nb_resid)
+testTemporalAutocorrelation(insect_glm_nb_resid, time = order(fitted(fit_insect_glm_nb)))
 testOverdispersion(insect_glm_nb_resid, alternative = "two.sided")
 testZeroInflation(insect_glm_nb_resid)
 ```
