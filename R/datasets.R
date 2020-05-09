@@ -633,5 +633,5 @@
 #'  Venables, W. N. and Ripley, B. D. (2002) \emph{Modern Applied
 #'    Statistics with S. (4th ed)}, Springer, New York.
 #'
-"oats"
+"oatsyield"
 #'
