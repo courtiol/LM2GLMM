@@ -21,18 +21,16 @@ library(lme4)
 library(car)
 spaMM.options(nb_cores = 4L)
 options(width = 120)
-knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LMM_showcase/", fig.path = "./fig_knitr/LMM_showcase/", fig.width = 5, fig.height = 5, fig.align = "center")
+knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LMM_showcase/", fig.path = "./fig_knitr/LMM_showcase/", fig.width = 5, fig.height = 5, fig.align = "center", error = TRUE)
 ```
 
 
 ## Mixed-effects models
 
-* 4.0 [Introduction to LMM](./LMM_intro.html)
-* 4.1 [Random effects](./LMM_random.html)
-* 4.2 [Solving LM problems using LMM](./LMM_solving_pb.html)
-* 4.3 [A showcase of some useful applications](./LMM_showcase.html)
-* 4.4 [Introduction to GLMM](./GLMM_intro.html)
-* 4.5 [More complex mixed models](./MM_more.html)
+* 4.0 [Introduction to LMM & GLMM](./LMM_intro.html)
+* 4.1 [Solving LM problems using LMM](./LMM_solving_pb.html)
+* 4.2 [A showcase of some useful applications](./LMM_showcase.html)
+
 
 
 ## You will learn in this session
@@ -377,10 +375,8 @@ forest(mod4)
 
 ## Mixed-effects models
 
-* 4.0 [Introduction to LMM](./LMM_intro.html)
-* 4.1 [Random effects](./LMM_random.html)
-* 4.2 [Solving LM problems using LMM](./LMM_solving_pb.html)
-* 4.3 [A showcase of some useful applications](./LMM_showcase.html)
-* 4.4 [Introduction to GLMM](./GLMM_intro.html)
-* 4.5 [More complex mixed models](./MM_more.html)
+* 4.0 [Introduction to LMM & GLMM](./LMM_intro.html)
+* 4.1 [Solving LM problems using LMM](./LMM_solving_pb.html)
+* 4.2 [A showcase of some useful applications](./LMM_showcase.html)
+
 
