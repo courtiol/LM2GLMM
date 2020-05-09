@@ -164,7 +164,7 @@ attributes(Aliens)$param.eta$blue_eyes  ## to get back the parameters
 ## Fitting the models
 
 ```{r pv, message=FALSE}
-fit_lm    <- lm(size  ~ humans_eaten, data = Aliens)
+fit_gauss_lm <- lm(size  ~ humans_eaten, data = Aliens)
 
 fit_gauss <- glm(size  ~ humans_eaten, family = gaussian(), data = Aliens)
 fit_poiss <- glm(eggs  ~ humans_eaten, family = poisson(),  data = Aliens)
@@ -585,7 +585,7 @@ foo <- glm(eggs ~ humans_eaten, data = Aliens, family = poisson(), control = lis
 Check other options for the iterative procedure in `?glm.control`
 
 
-## A toy mockup of `glm.fit()` (for geeks)
+## A `glm.fit()` mockup (for geeks)
 
 ```{r}
 my_glm3 <- function(formula, data, family, weights = NULL) {
@@ -929,7 +929,7 @@ And the odds ratios can also be directly deduced from the parameter estimates:
 exp(coef(fit_binom)[2])
 ```
 
-Eating one additional human increases the **odd** of aliens having blue eyes by ```r exp(fit_binom$coefficients[2])``` times.
+Eating one additional human increases the **odd** of aliens having blue eyes by ```r round(exp(fit_binom$coefficients[2]), 2)``` times.
 
 
 ## Estimates and the Binomial with logit link
@@ -1051,7 +1051,7 @@ summary(fit_gauss)
 ### Just like LM!
 ```{r  summary lm2 gauss2}
 summary(fit_gauss)$coefficients
-summary(fit_lm)$coef
+summary(fit_gauss_lm)$coef
 ```
 
 
@@ -1320,7 +1320,7 @@ Note: you cannot use `type = "response"` in `predict()` because transformations 
 It is much easier with **{spaMM}**:
 
 ```{r conf fitted poiss spaMM}
-get_intervals(fit_poiss_spaMM_ML, newdata = newdata, intervals = "predVar")  ## log to get eta!
+get_intervals(fit_poiss_spaMM_ML, newdata = newdata, intervals = "fixefVar")  ## log to get eta!
 ```
 
 
@@ -1990,7 +1990,7 @@ Note: only the Conway-Maxwell-Poisson can handle underdispersion.
 fit_poissMix_spaMM   <- fitme(eggs ~ humans_eaten, family = poisson(), data = AliensMix)
 fit_poissMixNB_spaMM <- fitme(eggs ~ humans_eaten, family = spaMM::negbin(), data = AliensMix) ## namespace needed!
 summary(fit_poissMixNB_spaMM)
-c(AIC(fit_poissMix_spaMM), AIC(fit_poissMixNB_spaMM), logLik(fit_poissMixNB_spaMM))
+c(AIC(fit_poissMix_spaMM), AIC(fit_poissMixNB_spaMM))
 ```
 
 <!--
@@ -2020,15 +2020,15 @@ Note: here we estimate nu, so it can take (much) longer time to fit!
 
 ```{r comp COMPoiss, echo = FALSE, warning = FALSE, fig.height = 6, fig.width = 6}
 d <- data.frame(humans_eaten = seq(0, 15, length = 1000))
-p <- predict(fit_poissMix_spaMM, newdata = d, intervals = "predVar")
+p <- predict(fit_poissMix_spaMM, newdata = d, intervals = "fixefVar")
 plot(p ~ d$humans_eaten, ylim = range(fit_poissMix_spaMM$data$eggs), type = "l", lwd = 3)
 points(attr(p, "interval")[, 1] ~ d$humans_eaten, lty = 2, type = "l")
 points(attr(p, "interval")[, 2] ~ d$humans_eaten, lty = 2, type = "l")
-p <- predict(fit_poissMixNB_spaMM, newdata = d, intervals = "predVar")
+p <- predict(fit_poissMixNB_spaMM, newdata = d, intervals = "fixefVar")
 points(p ~ d$humans_eaten, type = "l", col = "red", lwd = 3)
 points(attr(p, "interval")[, 1] ~ d$humans_eaten, lty = 2, type = "l", col = "red")
 points(attr(p, "interval")[, 2] ~ d$humans_eaten, lty = 2, type = "l", col = "red")
-p <- predict(fit_poissMixCP_spaMM, newdata = d, intervals = "predVar")
+p <- predict(fit_poissMixCP_spaMM, newdata = d, intervals = "fixefVar")
 points(p ~ d$humans_eaten, type = "l", col = "blue", lwd = 3)
 points(attr(p, "interval")[, 1] ~ d$humans_eaten, lty = 2, type = "l", col = "blue")
 points(attr(p, "interval")[, 2] ~ d$humans_eaten, lty = 2, type = "l", col = "blue")
