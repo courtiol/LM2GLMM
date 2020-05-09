@@ -369,15 +369,7 @@ Let us now compare the alcool and drink effects.
 
 ```{r, message = FALSE}
 library(multcomp)
-table(esoph$drink_smoke)
-contr_base <- matrix(c(1, rep(0, 15)), nrow = 1) ## define the desing matrix for the posthoc test
-contr <- contr_base
-contr[levels(esoph$drink_smoke) == "120+_0-9g/day"] <- 1
-contr[levels(esoph$drink_smoke) == "0-39g/day_30+"] <- -1
-colnames(contr) <- levels(esoph$drink_smoke)
-rownames(contr) <- "alcool - smoke"
-contr
-posthoc <- glht(fit_esoph_probit2, linfct = mcp(drink_smoke = contr))
+posthoc <- glht(fit_esoph_probit2, linfct = c("`drink_smoke120+_0-9g/day` - `drink_smoke0-39g/day_30+` == 0"))
 par(oma = c(1, 5, 1, 1))
 plot(posthoc)
 confint(posthoc)
