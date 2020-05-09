@@ -547,3 +547,91 @@
 #'  \emph{Modern Applied Statistics with S-PLUS.} Third
 #'  Edition. Springer.
 "Animals"
+
+
+#' Rat weight over time for different diets (adapted from package nlme)
+#'
+#' The \code{BodyWeight} data frame has 176 rows and 4 columns.
+#'
+#'  Hand and Crowder (1996) describe data on the body weights of rats
+#'  measured over 64 days.  These data also appear in Table 2.4 of
+#'  Crowder and Hand (1990).  The body weights of the rats (in grams)
+#'  are measured on day 1 and every seven days thereafter until day 64,
+#'  with an extra measurement on day 44. The experiment started several
+#'  weeks before ``day 1.''  There are three groups of rats, each on a
+#'  different diet.
+#'
+#' @format
+#' This data frame contains the following columns:
+#' \describe{
+#'     \item{weight}{
+#'         a numeric vector giving the body weight of the rat (grams).
+#'     }
+#'     \item{Time}{
+#'         a numeric vector giving the time at which the measurement is
+#'         made (days).
+#'     }
+#'     \item{Rat}{
+#'         an factor identifying the rat whose weight is measured.
+#'     }
+#'     \item{Diet}{
+#'         a factor with levels \code{1} to \code{3} indicating the diet that the rat receives.
+#'     }
+#' }
+#'
+#' @source
+#'   Pinheiro, J. C. and Bates, D. M. (2000), \emph{Mixed-Effects Models in S
+#'       and S-PLUS}, Springer, New York. (Appendix A.3)
+#'
+#'   Crowder, M. and Hand, D. (1990), \emph{Analysis of Repeated
+#'       Measures}, Chapman and Hall, London.
+#'
+#'   Hand, D. and Crowder, M. (1996), \emph{Practical Longitudinal Data
+#'       Analysis}, Chapman and Hall, London.
+#'
+"bodyweight"
+
+
+#' Split-plot Experiment on Varieties of Oats (adapted from package nlme)
+#'
+#' The \code{Oats} data frame has 72 rows and 4 columns.
+#'
+#'  These data have been introduced by Yates (1935) as an example of a
+#'  split-plot design. The treatment structure used in the experiment was
+#'  a \eqn{3 \times 4}{3 x 4} full factorial, with three varieties of oats
+#'  and four concentrations of nitrogen. The experimental units were
+#'  arranged into six blocks, each with three whole-plots subdivided into
+#'  four subplots. The varieties of oats were assigned randomly to the
+#'  whole-plots and the concentrations of nitrogen to the subplots.  All
+#'  four concentrations of nitrogen were used on each whole-plot.
+#'
+#' @format
+#' This data frame contains the following columns:
+#'  \describe{
+#'    \item{Block}{
+#'      an ordered factor with levels
+#'      \code{VI} < \code{V} < \code{III} < \code{IV} < \code{II} < \code{I}
+#'    }
+#'    \item{Variety}{
+#'      a factor with levels
+#'      \code{Golden Rain}
+#'      \code{Marvellous}
+#'      \code{Victory}
+#'    }
+#'    \item{nitro}{
+#'      a numeric vector
+#'    }
+#'    \item{yield}{
+#'      a numeric vector
+#'    }
+#'  }
+#'
+#' @source
+#'  Pinheiro, J. C. and Bates, D. M. (2000), \emph{Mixed-Effects Models in S
+#'    and S-PLUS}, Springer, New York.  (Appendix A.15)
+#'
+#'  Venables, W. N. and Ripley, B. D. (2002) \emph{Modern Applied
+#'    Statistics with S. (4th ed)}, Springer, New York.
+#'
+"oats"
+#'
