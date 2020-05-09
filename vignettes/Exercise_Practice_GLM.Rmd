@@ -125,7 +125,7 @@ Note also that the gaussian models have deviance expressed on another scale, whi
 
 Let us stick to the negative binomial model as our best GLM!
 
-## Retesting assumptions on the negative binomial model
+## Re-testing assumptions on the negative binomial model
 
 ```{r insect_glm_nb_resid, warning = FALSE}
 insect_glm_nb_resid   <- simulateResiduals(fit_insect_glm_nb, n = 1000)
