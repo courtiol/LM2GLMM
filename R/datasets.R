@@ -634,4 +634,32 @@
 #'    Statistics with S. (4th ed)}, Springer, New York.
 #'
 "oatsyield"
+
+#' Carnivora body sizes and life history traits (adapted from package ape)
 #'
+#' Dataset adapted from Gittleman (1986), including 2 morphological variables (body and brain sizes),  8 life history traits variables and 4 taxonomic variables.
+#'
+#'@format
+#'  A data frame with 112 observations on 7 variables.
+#'
+#'  \tabular{rlll}{
+#'    [,1]  \tab Order       \tab factor  \tab Carnivora order \cr
+#'    [,2]  \tab SuperFamily \tab factor  \tab Super family (Caniformia or Feliformia) \cr
+#'    [,3]  \tab Family      \tab factor  \tab Carnivora family \cr
+#'    [,4]  \tab Genus       \tab factor  \tab Carnivora genus \cr
+#'    [,5]  \tab Species     \tab factor  \tab Carnivora species \cr
+#'    [,6]  \tab Brain       \tab numeric \tab Average brain weight of adult male and adult female (g) \cr
+#'    [,7]  \tab Weight      \tab numeric \tab Average body weight of adult male and adult female (kg) \cr
+#'  }
+#'
+#'@source
+#'  Gittleman, J. L. (1986) Carnivore life history patterns: allometric,
+#'  phylogenetic and ecological associations. \emph{American Naturalist},
+#'  \bold{127}: 744--771.
+#'
+#' @references
+#'   Paradis E. & Schliep K. 2018. ape 5.0: an environment for modern phylogenetics
+#'   and evolutionary analyses in R. Bioinformatics 35: 526-528.
+#'
+"carnivora"
+
