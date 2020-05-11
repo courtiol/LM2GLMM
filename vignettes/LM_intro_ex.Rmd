@@ -1,5 +1,5 @@
 ---
-title: "GLM"
+title: "GLM: Introduction"
 subtitle: "exercises"
 author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
@@ -28,7 +28,7 @@ set.seed(1L)
 
 ## 95% CI on fitted values: Binomial
 
-Compute the predictions and confidence intervals for `fit_binar` and `fit_binom` for a number of humans eaten varying between 0 and 15.
+Compute the predictions and confidence intervals for `fit_binar`, `fit_binom` & `fit_poiss` for a number of humans eaten varying between 0 and 15.
 
 <br>
 
