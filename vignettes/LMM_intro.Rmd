@@ -697,7 +697,7 @@ detach(package:lmerTest)  ## to restore original lmer
 
 Note: here you must use a ML fit (not automatic here, and the results would change if you don't!).
 
-The method relies on the so-called Satterthwaite's degrees of freedom method.
+The method relies on the so-called Satterthwaite's degrees of freedom method, which correct the degrees of freedom to account for the facts that the design is not always ballanced.
 
 <!--
 ## Testing ```lme4 + lmerTest``` summary table
