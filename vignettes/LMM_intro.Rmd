@@ -778,7 +778,7 @@ lattice::qqmath(lme4::ranef(fit_lmm_lme4))
 ## Plotting residuals with **{spaMM}**
 
 ```{r, fig.width = 4, fig.height = 4}
-#plot(fit_lmm_spaMM)  ## broken at the moment... fix in progress!
+plot(fit_lmm_spaMM)
 ```
 
 
