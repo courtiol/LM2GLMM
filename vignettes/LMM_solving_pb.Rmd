@@ -44,8 +44,6 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LMM_solving_pb/"
 
 # Temporal autocorrelation
 
-# Temporal autocorrelation in discrete (equaly spaced) time steps
-
 ## The ```AirPassengers``` data
 
 ```{r airpassenger data}
@@ -85,24 +83,24 @@ plot(with(air, tapply(passengers, month, mean)) ~ I(1:12),
 ```
 
 
-## Simple fit
+## Simple LM fit
 
 ```{r airpassenger simple fit}
-(fit_air <- lm(passengers ~ year * month, data = air))
+(fit_air_LM <- lm(passengers ~ year * month, data = air))
 ```
 
 
 ## The problem
 ```{r airpassenger assumptions}
 par(mfrow = c(2, 2))
-plot(fit_air)
+plot(fit_air_LM)
 ```
 
 
 ## The problem
 
 ```{r airpassenger residuals}
-plot(residuals(fit_air), type = "b")
+plot(residuals(fit_air_LM), type = "b")
 abline(h = 0, lty = 2, col = "red")
 ```
 
@@ -110,37 +108,50 @@ abline(h = 0, lty = 2, col = "red")
 ## The problem
 
 ```{r airpassenger dw test}
-lmtest::dwtest(fit_air)
+lmtest::dwtest(fit_air_LM)
 ```
 
 
 ## The problem
 
 ```{r airpassenger acf}
-acf(residuals(fit_air))
+acf(residuals(fit_air_LM))
 ```
 
 
-## Solution
+## Autoregressive fit using **{spaMM}**
 
-```{r spaMM air}
-air$year_bis <- air$year - 1949
+```{r spaMM air, message = FALSE}
 air$time <- 1:nrow(air)
 library(spaMM)
-(fit_air_spaMM1 <- fitme(passengers ~ month * year_bis + AR1(1|time), data = air))
+(fit_air_spaMM <- fitme(passengers ~ month * year + AR1(1|time), data = air))
 ```
 
 
-## Solution
+## Autoregressive fit using **{glmmTMB}**
+
+```{r glmmTMB air, message = FALSE}
+library(glmmTMB)
+air$group <- factor("A")
+air$Year <- air$year - 1949 ## remove 1949 to help with convergence
+air$Time <- numFactor(air$time)
+(fit_air_glmmTMB <- glmmTMB(passengers ~ month * Year + ar1(Time + 0|group), data = air))
+```
+
+
+## Autocorrelation estimate
+
+You can extract the autocorrelation estimate:
 ```{r corr values}
- fit_air_spaMM1$corrPars[[1]]
+ fit_air_spaMM$corrPars[[1]]
+ get_cor(getME(fit_air_glmmTMB, "theta")[2])
 ```
 
 
 ## Fitted values
 
 ```{r air fitted, fig.height = 4, fig.width = 4}
-pred_spaMM <- predict(fit_air_spaMM1)
+pred_spaMM <- predict(fit_air_spaMM)
 plot(passengers ~ time, data = air, type = "l", lwd = 3, ylim = c(0, 700), ylab = "Passengers")
 points(pred_spaMM ~ air$time, type = "l", col = "green")
 ```
@@ -152,10 +163,16 @@ Note: never extrapolate using such model! The perfect fit is not unusual.
 
 ```{r spaMM air 2}
 fit_air_spaMM_no_year <- fitme(passengers ~ month + AR1(1|time), data = air)
-anova(fit_air_spaMM1, fit_air_spaMM_no_year)
+anova(fit_air_spaMM, fit_air_spaMM_no_year)
+```
+
+```{r TMB air 2}
+fit_air_TMB_no_year <- glmmTMB(passengers ~ month + ar1(Time + 0|group), data = air)
+anova(fit_air_glmmTMB, fit_air_TMB_no_year)
 ```
 
 
+<!--
 # Temporal autocorrelation in continuous time
 
 ## The `bodyweight` dataset
@@ -272,7 +289,9 @@ fit_rat_no_diet <- fitme(weight ~ 1 + Time + (Time|Rat) + AR1(1|Time),
 anova(fit_rat_spaMM3ML, fit_rat_no_diet)
 ```
 
+-->
 
+<!--
 ## More complex autocorrelation functions
 
 There are more complex autocorrelation functions out there.
@@ -282,12 +301,17 @@ There are more complex autocorrelation functions out there.
 (fit_rat_Matern_nugget <- fitme(weight ~ Diet * Time + (Time|Rat) + Matern(1|Time), data = bodyweight,
                                 init = list(Nugget = 0.1)))  ## here estimated at zero but does not have to be!
 ```
-
+-->
 
 ## More complex autocorrelation functions
 
 There are more complex autocorrelation functions out there.
 
+The package **{nlme}** used to be the only option out there, but this package is problematic in many ways.
+
+Instead, I would now dig further into **{glmmTMB}** and **{spaMM}** which allows for already quite a lot of possibilities and more autocorrelation will probably be added as these packages develop.
+
+<!--
 **{nlme}**:
 ```{r other correlations}
 library(nlme)
@@ -306,7 +330,7 @@ c(AIC(fit_rat1)[[1]], AIC(fit_rat_AR1)[[1]], AIC(fit_rat_corExp)[[1]],  AIC(fit_
 <br>
 
 Note: do not compare AIC between ```spaMM``` and ```nlme```, as the latter seems not to account for a fixed term in the computation of the likelihood!
-
+-->
 
 # Spatial autocorrelation
 
@@ -377,6 +401,18 @@ spaMM.filled.contour(x = x.for.pred, y = y.for.pred, z = m, plot.axes = {
 ```
 
 
+## Spatial fit in **{glmmTMB}**
+
+You can also use **{glmmTMB}**, but it is considerable slower than **{spaMM}** with a Matern correlation function, and it does not seem quite ready yet (status = "experimental/untested").
+
+Here is what seems to be the correct syntax (not yet properly documented):
+```{r mod ndvi TMB, warning=FALSE}
+ndvi$group <- factor("A")
+ndvi$coord <- numFactor(ndvi$latitude, ndvi$longitude)
+fit_ndvi1_TMB <- glmmTMB(maxNDVI ~ 1 + mat(0 + coord|group), data = ndvi, REML = TRUE)
+```
+
+
 # Heteroscedasticity
 
 ## Heteroscedasticity
@@ -436,7 +472,7 @@ anova(fit_rat_hetero, fit_rat_hetero0)
 
 ## Heteroscedasticity in LM
 
-### Just do the same!
+Just do the same:
 
 ```{r hetero simple}
 set.seed(1L)
@@ -444,8 +480,14 @@ d <- data.frame(y = c(rnorm(100, mean = 10, sd = sqrt(10)),
                       rnorm(100, mean = 20, sd = sqrt(20))),
                 group = factor(c(rep("A", 100), rep("B", 100))))
 
-m <- fitme(y ~ group, resid.model = ~ group, data = d, method = "REML")
-unique(get_residVar(m))
+fit_hetero_spaMM <- fitme(y ~ group, resid.model = ~ group, data = d, method = "REML")
+unique(get_residVar(fit_hetero_spaMM))
+```
+
+Once again **{glmmTMB}** does that too:
+```{r hetero simple glmmTMB}
+fit_hetero_glmmTMB <- glmmTMB(y ~ group, dispformula = ~ group, data = d, REML = TRUE)
+exp(cumsum(fit_hetero_glmmTMB$fit$par[1:2]))
 ```
 
 
