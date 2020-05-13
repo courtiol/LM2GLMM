@@ -31,3 +31,7 @@ It took less than 5 hours to finish LM_test_intervals, do the whole of LM_assump
 ## Session GLM_intro
 
 It took around 4 hours, we finished it at the end of week 3, without doing GLM exercises.
+
+## Session LMM_intro
+
+It took 3 hours.
