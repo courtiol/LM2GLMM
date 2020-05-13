@@ -272,7 +272,7 @@ Aliens
 
 ## Fitting the model with **{lme4}**
 
-```{r}
+```{r, message=FALSE}
 library(lme4)
 (fit_lme4 <- lmer(y ~ x + (1|group), data = Aliens)) ## REML fit by default!
 print(VarCorr(fit_lme4), comp = "Variance") ## extract REML variance estimates
@@ -281,7 +281,7 @@ print(VarCorr(fit_lme4), comp = "Variance") ## extract REML variance estimates
 
 ## Fitting the model with **{spaMM}**
 
-```{r}
+```{r, message=FALSE}
 library(spaMM)
 (fit_spaMM <- fitme(y ~ x + (1|group), data = Aliens, method = "REML"))
 ```
@@ -356,7 +356,7 @@ colnames(estimates) <- c("intercept", "slope", "var.group", "var.error")
 rownames(estimates) <- c("numeric", "spaMM")
 estimates
 
-c(logLik.num = -1 * opt$objective, logLik.spaMM = logLik(fit_spaMM)[[1]])
+c(logLik.num = -1 * opt$objective, logLik.spaMM = logLik(fit_spaMM_ML)[[1]])
 ```
 
 
@@ -472,7 +472,7 @@ ranef(fit_lmm_spaMM)  ## b estimates
 
 ```{r}
 fit_lm <- lm(yield ~ nitro + Variety + Block, data = oatsyield)
-data.for.pred <- expand.grid(nitro = 0.3, Variety = "Victory", Block = levels(oatsyield$Block))
+data.for.pred <- data.frame(nitro = 0.3, Variety = "Victory", Block = levels(oatsyield$Block))
 (p <- predict(fit_lm, newdata = data.for.pred, interval = "confidence", se.fit = TRUE))
 ```
 
@@ -492,7 +492,7 @@ axis(1, at = 1:length(levels(oatsyield$Block)), labels = levels(oatsyield$Block)
 In LMM (but not in GLMM), you can obtain predictions averaged over the random variable (i.e. marginal prediction), by considering a realisation of the random effects equals to 0:
 
 ```{r}
-data.for.pred <- expand.grid(nitro = 0.3, Variety = "Victory", Block = "new")
+data.for.pred <- data.frame(nitro = 0.3, Variety = "Victory", Block = "new")
 p <- predict(fit_lmm_lme4, newdata = data.for.pred, re.form = NA)
 X <- matrix(c(1, 0.3, 0, 1), nrow = 1)
 se.fit <- sqrt(X %*% vcov(fit_lmm_lme4) %*% t(X))
@@ -526,7 +526,7 @@ Note: we use `intervals = "predVar"` and not `intervals = "fixefVar"` to account
 Predictions conditional on the random variable ($\mathbf{X}\widehat{\beta}+\mathbf{Z}\widehat{b}$):
 
 ```{r}
-data.for.pred.with.b <- expand.grid(nitro = 0.3, Variety = "Victory", Block = levels(oatsyield$Block))
+data.for.pred.with.b <- data.frame(nitro = 0.3, Variety = "Victory", Block = levels(oatsyield$Block))
 predict(fit_lmm_spaMM, newdata = data.for.pred.with.b)
 get_intervals(fit_lmm_spaMM, newdata = data.for.pred.with.b, intervals = "predVar")
 ```
@@ -537,7 +537,7 @@ get_intervals(fit_lmm_spaMM, newdata = data.for.pred.with.b, intervals = "predVa
 Predictions conditional on the random variable ($\mathbf{X}\widehat{\beta}+\mathbf{Z}\widehat{b}$):
 
 ```{r, message = FALSE}
-data.for.pred <- expand.grid(nitro = 0.3, Variety = "Victory", Block = levels(oatsyield$Block))
+data.for.pred <- data.frame(nitro = 0.3, Variety = "Victory", Block = levels(oatsyield$Block))
 library(merTools)
 predictInterval(fit_lmm_lme4, newdata = data.for.pred, include.resid.var = FALSE)
 ```
@@ -742,7 +742,7 @@ Note: **{lme4}** does not offer this possibility and only returns the marginal A
 
 Same as LM (except for independence) +
 
-* given the fixed effects and the realized values of the random effects, the residuals must be independent 
+* given the fixed effects and the realized values of the random effects, the errors must be independent 
 * the random effects must follow the assumed distribution
 * the levels of the factorial variable for which random effects are estimated must be representative from the whole population
 
