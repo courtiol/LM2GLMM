@@ -1,5 +1,5 @@
 ---
-title: "LMM: A showcase of some useful applications"
+title: "LMM & GLMM: A showcase of some useful applications"
 author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
 output:
@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{4.3 A showcase of some useful applications of mixed models}
+  %\VignetteIndexEntry{4.2 A showcase of some useful applications of mixed models (BROKEN FOR NOW)}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options:
@@ -17,7 +17,7 @@ editor_options:
 ```{r setup, include=FALSE}
 library(LM2GLMM)
 library(doSNOW)
-spaMM::spaMM.options(nb_cores = 4L)
+spaMM::spaMM.options(nb_cores = 4L, barstyle = FALSE)
 options(width = 120)
 knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LMM_showcase/", fig.path = "./fig_knitr/LMM_showcase/", fig.width = 5, fig.height = 5, fig.align = "center", error = TRUE)
 ```
@@ -29,6 +29,11 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LMM_showcase/", 
 * 4.1 [Solving LM problems using LMM](./LMM_solving_pb.html)
 * 4.2 [A showcase of some useful applications](./LMM_showcase.html)
 
+<br>
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
 
 
 ## You will learn in this session
@@ -43,7 +48,7 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LMM_showcase/", 
 
 ## The animal model
 
-### Nothing but a simple LMM:
+Nothing but a simple LMM:
 
 $$ y_i = \mu + a_i + e_i$$
 
@@ -77,7 +82,7 @@ The additive genetic covariance between two individuals = $\text{A}V_\text{A}$, 
 
 ## Building the matrix A
 
-```{r}
+```{r, message = FALSE}
 tail(Gryphon$pedigree)
 library(nadiv)
 A <- as(makeA(Gryphon$pedigree), "matrix")
@@ -85,41 +90,45 @@ colnames(A) <- rownames(A) <- Gryphon$pedigree$ID
 A[1305:1309, 1296:1309]
 ```
 
-## Fiting a simple Animal Model
+## Fitting a simple Animal Model
 
-```{r animal model}
+```{r animal model, message=FALSE}
 library(spaMM)
 system.time(mod1 <- fitme(BWT ~ 1 + corrMatrix(1|ID), corrMatrix = A, data = Gryphon$data, method = "REML"))
 (h2 <- as.numeric(mod1$lambda / (mod1$lambda + mod1$phi)))
 ```
 
+<br>
 
-## Fiting a more complex Animal Model
+So `r round(100*h2,1)` % of the variation in birth weight is due to inheritance!
 
-```{r animal model 2}
+
+## Fitting a more complex Animal Model
+
+```{r animal model 2, message=FALSE}
 Gryphon$data$sex    <- factor(Gryphon$data$SEX)
 Gryphon$data$year   <- factor(Gryphon$data$BYEAR)
 Gryphon$data$mother <- factor(Gryphon$data$MOTHER)
 
 system.time(
-  mod2 <- fitme(BWT ~ sex + (1|year) + (1|mother) + corrMatrix(1|ID), corrMatrix = A,
+  fit2 <- fitme(BWT ~ sex + (1|year) + (1|mother) + corrMatrix(1|ID), corrMatrix = A,
                 data = Gryphon$data, method = "REML")
 )
 
-h2 <- as.numeric(mod2$lambda["ID"]     / (sum(mod2$lambda) + mod2$phi))
-m2 <- as.numeric(mod2$lambda["mother"] / (sum(mod2$lambda) + mod2$phi))
+h2 <- as.numeric(fit2$lambda[3] / (sum(fit2$lambda) + fit2$phi)) ## ID
+m2 <- as.numeric(fit2$lambda[2] / (sum(fit2$lambda) + fit2$phi)) ## mother
 
-round(rbind("heritability" = h2, "maternal effect size" = m2), 3)
+round(c("heritability (without maternal effect)" = h2, "maternal effect" = m2), 3)
 ```
 
 
 ## Predicting the breeding values ($a_i$)
 
 ```{r, fig.height=3.5, fig.width=4}
-curve(dnorm(x, sd = sqrt(as.numeric(mod2$lambda["ID"]))), from = -3, to = 3, las = 1,
+curve(dnorm(x, sd = sqrt(as.numeric(fit2$lambda[3]))), from = -3, to = 3, las = 1,
       ylab = "pdf", xlab = "predicted breeding value")
-BLUPs <- ranef(mod2)$"corrMatrix(1 | ID)"
-points(dnorm(BLUPs, sd = sqrt(as.numeric(mod2$lambda["ID"]))) ~ BLUPs, col = "blue", type = "h", lwd = 0.1)
+BLUPs <- ranef(fit2)$"corrMatrix(1 | ID)"
+points(dnorm(BLUPs, sd = sqrt(as.numeric(fit2$lambda[3]))) ~ BLUPs, col = "blue", type = "h", lwd = 0.1)
 ```
 
 Never do statistics on BLUPs! Neglecting the uncertainty associated to these predictions is wrong.
@@ -129,7 +138,7 @@ Since BLUPs are here not added to fitted values, REML fit is the proper way to g
 ## Predicting the breeding values ($a_i$)
 
 ```{r}
-plot(BLUPs ~ scale(mod2$data$BWT), ylab = "Predicted breeding values", xlab = "Scaled phenotypic values")
+plot(BLUPs ~ scale(fit2$data$BWT), ylab = "Predicted breeding values", xlab = "Scaled phenotypic values")
 ```
 
 
@@ -165,35 +174,39 @@ plot(tree, cex = 0.3)
 
 ```{r}
 carni70$tab$sp <- factor(rownames(corrM))
-(mod_carni <- fitme(range ~ size + corrMatrix(1|sp), corrMatrix = corrM, data = carni70$tab))
+(fit_carni <- fitme(range ~ size + corrMatrix(1|sp), corrMatrix = corrM, data = carni70$tab))
 ```
 
 
 ## Testing the fixed effects
 
+Here we test the effect of the body size on the geographic range of the species accounting for the phylogeny:
+
 ```{r}
-mod_carni_no_size <- fitme(range ~ 1 + corrMatrix(1|sp), corrMatrix = corrM, data = carni70$tab)
-anova(mod_carni, mod_carni_no_size)
+fit_carni_no_size <- fitme(range ~ 1 + corrMatrix(1|sp), corrMatrix = corrM, data = carni70$tab)
+anova(fit_carni, fit_carni_no_size)
 ```
 
+Note: **{spaMM}** does not allow (out-of-the-box) for using a correlation function that is dependent on a parameter (unless such correlation is implemented in **{spaMM}**). So we cannot use all the possibilites offered by **{ape}**.
 
-## Comparison with the traditional ```gls``` fit
+
+## Comparison with the traditional **{gls}** fit
 
 ```{r, message = FALSE}
 library(nlme)
 rownames(carni70$tab) <- rownames(corrM)
-(mod_carni2 <- gls(range ~ size, correlation = corBrownian(1, phy = tree), method = "ML", data = carni70$tab))
+(fit_carni2 <- gls(range ~ size, correlation = corBrownian(1, phy = tree), method = "ML", data = carni70$tab))
 ```
 
-A benefit of using a proper (G)LMM instead of the Generalized Least Squares is that we could also consider other random effects and model a non gaussian response (GLMM).
+A key benefit of using a proper (G)LMM instead of the Generalized Least Squares is that we could also consider other random effects and model a non gaussian response (GLMM).
 The function ```fitme()``` does that, but ```gls()``` cannot.
 
 
-## Comparison with the traditional ```gls``` fit
+## Comparison with the traditional **{gls}** fit
 
 ```{r}
-mod_carni2_no_size <- gls(range ~ 1, correlation = corBrownian(1, tree), method = "ML", data = carni70$tab)
-anova(mod_carni2, mod_carni2_no_size)
+fit_carni2_no_size <- gls(range ~ 1, correlation = corBrownian(1, tree), method = "ML", data = carni70$tab)
+anova(fit_carni2, fit_carni2_no_size)
 ```
 
 <br>
@@ -204,7 +217,7 @@ Note: differences between LMM and GLS are expected.
 
 ## Example: The ```metafor::dat.bcg``` dataset
 
-### Studies on the effectiveness of the BCG vaccine against Tuberculosis
+Studies on the effectiveness of the BCG vaccine against Tuberculosis
 
 ```{r, message = FALSE}
 library(metafor)
@@ -214,7 +227,7 @@ dat.bcg
 
 ## We compute an effect size
 
-### Let's compute the relative risks and associated sampling variances:
+ Let's compute the relative risks and associated sampling variances:
 ```{r}
 dat.bcg$RR  <- with(dat.bcg, log((tpos/(tpos + tneg)) / (cpos/(cpos + cneg))))
 dat.bcg$sampling.var <- with(dat.bcg, 1/tpos - 1/tneg + 1/cpos - 1/cneg)
@@ -222,18 +235,18 @@ dat.bcg
 ```
 
 
-## We fit the model with ```metafor```
+## We fit the model with **{metafor}**
 
 ```{r}
-(mod <- rma(yi = RR ~ factor(alloc) + year + ablat, vi = sampling.var, data = dat.bcg, method = "REML"))
+(fit <- rma(yi = RR ~ factor(alloc) + year + ablat, vi = sampling.var, data = dat.bcg, method = "REML"))
 ```
 
 
-## We fit the model with ```spaMM```
+## We fit the model with **{spaMM}**
 
 ```{r}
 dat.bcg$study <- factor(dat.bcg$trial)
-(mod_spaMM <- fitme(RR ~ factor(alloc) + year + ablat + (1|study), data = dat.bcg,
+(fit_spaMM <- fitme(RR ~ factor(alloc) + year + ablat + (1|study), data = dat.bcg,
                     fixed = list(phi = dat.bcg$sampling.var), method = "REML"))
 ```
 
@@ -241,19 +254,22 @@ dat.bcg$study <- factor(dat.bcg$trial)
 ## Comparing outputs
 
 ```{r}
-round(c(tau2_metafor = mod$tau2, lambda_spaMM = mod_spaMM$lambda[[1]]), 4)  ## heterogeneity between studies
+round(c(tau2_metafor = fit$tau2, lambda_spaMM = fit_spaMM$lambda[[1]]), 4)  ## heterogeneity between studies
 
-mod_spaMMRE <- fitme(RR ~ 1 + (1|study), data = dat.bcg,
+fit_spaMMRE <- fitme(RR ~ 1 + (1|study), data = dat.bcg,
                      fixed = list(phi = dat.bcg$sampling.var), method = "REML")
 
-R2_spaMM <- 100 * (mod_spaMMRE$lambda[[1]] - mod_spaMM$lambda[[1]]) / mod_spaMMRE$lambda[[1]]
-round(c(R2_metafor = mod$R2, R2_spaMM = R2_spaMM), 4)  ## amount of heterogeneity accounted for by fixed effects
+R2_spaMM <- 100 * (fit_spaMMRE$lambda[[1]] - fit_spaMM$lambda[[1]]) / fit_spaMMRE$lambda[[1]]
+round(c(R2_metafor = fit$R2, R2_spaMM = R2_spaMM), 4)  ## amount of heterogeneity accounted for by fixed effects
 ```
 
-## Comparing outputs
+Conclusion: if you know a general and flexible package like **{spaMM}** you can reproduce what many specialised packages do. Here, we use **{spaMM}** to perform a meta-analysis exactly as the specialised package **{metafor}** does it. **{spaMM}** can consider complexities that **{metafor}** cannot handle, but the reverse is also true.
+
+
+## Comparing outputs (more)
 
 ```{r}
-c(mod$I2, mod$H2, mod$QE) ## from metafor, see ?print.rma.uni for details
+c(fit$I2, fit$H2, fit$QE) ## from metafor, see ?print.rma.uni for details
 
 get_meta_metrics <- function(model, vi) {
   wi <- 1/vi  ## weights = inverse of sampling variance
@@ -270,34 +286,32 @@ get_meta_metrics <- function(model, vi) {
   return(c(I2 = I2, H2 = H2, QE = QE, vi.avg = vi.avg))
 }
 
-get_meta_metrics(mod_spaMM, dat.bcg$sampling.var) ## add vi.avg: weighted mean within study sampling variance
+get_meta_metrics(fit_spaMM, dat.bcg$sampling.var) ## add vi.avg: weighted mean within study sampling variance
 ```
 
 
-## Nice plots with ```metafor```
+## Nice plots with **{metafor}**
 
 ```{r, fig.width = 6, fig.height = 5.5}
-metafor::plot.rma.uni(mod)  ## or just plot(mod)
+metafor::plot.rma.uni(fit)  ## or just plot(fit)
 ```
 
 
 ## Can we do abstraction of fixed effects?
 
 ```{r}
-mod_spaMM2    <- fitme(RR ~ factor(alloc) + year + ablat + (1|study), data = dat.bcg,
+fit_spaMM2    <- fitme(RR ~ factor(alloc) + year + ablat + (1|study), data = dat.bcg,
                        fixed = list(phi = dat.bcg$sampling.var))
-mod_spaMM2_H0 <- fitme(RR ~ 1 + (1|study), data = dat.bcg, fixed = list(phi = dat.bcg$sampling.var))
-anova(mod_spaMM2, mod_spaMM2_H0)
+fit_spaMM2_H0 <- fitme(RR ~ 1 + (1|study), data = dat.bcg, fixed = list(phi = dat.bcg$sampling.var))
+anova(fit_spaMM2, fit_spaMM2_H0)
 ```
 
 
 ## Can we do abstraction of fixed effects?
 
-```{r test for metafor}
-res.boot <- anova(mod_spaMM2, mod_spaMM2_H0, boot.repl = 1000)
+```{r test for metafor, results = "hide"}
+res.boot <- anova(fit_spaMM2, fit_spaMM2_H0, boot.repl = 1000)
 ```
-
-## Can we do abstraction of fixed effects?
 
 ```{r}
 res.boot
@@ -307,14 +321,14 @@ res.boot
 ## Can we do abstraction of fixed effects?
 
 ```{r}
-(mod2 <- rma(yi = RR ~ factor(alloc) + year + ablat, vi = sampling.var, data = dat.bcg, method = "ML"))
+(fit2 <- rma(yi = RR ~ factor(alloc) + year + ablat, vi = sampling.var, data = dat.bcg, method = "ML"))
 ```
 
 
 ## Can we do abstraction of fixed effects?
 
 ```{r}
-(mod3 <- rma(yi = RR ~ factor(alloc) + year + ablat, vi = sampling.var, data = dat.bcg, method = "ML",
+(fit3 <- rma(yi = RR ~ factor(alloc) + year + ablat, vi = sampling.var, data = dat.bcg, method = "ML",
              test = "knha"))
 ```
 
@@ -322,16 +336,16 @@ res.boot
 ## Does vaccination work?
 
 ```{r}
-mod_spaMM3    <- fitme(RR ~ 1 + (1|study), data = dat.bcg, fixed = list(phi = dat.bcg$sampling.var))
-mod_spaMM3_H0 <- fitme(RR ~ 0 + (1|study), data = dat.bcg, fixed = list(phi = dat.bcg$sampling.var))
-anova(mod_spaMM3, mod_spaMM3_H0)
+fit_spaMM3    <- fitme(RR ~ 1 + (1|study), data = dat.bcg, fixed = list(phi = dat.bcg$sampling.var))
+fit_spaMM3_H0 <- fitme(RR ~ 0 + (1|study), data = dat.bcg, fixed = list(phi = dat.bcg$sampling.var))
+anova(fit_spaMM3, fit_spaMM3_H0)
 ```
 
 
 ## Does vaccination work?
 
-```{r test for metafor 2}
-res.boot2 <- anova(mod_spaMM3, mod_spaMM3_H0, boot.repl = 1000)
+```{r test for metafor 2, results = "hide"}
+res.boot2 <- anova(fit_spaMM3, fit_spaMM3_H0, boot.repl = 1000)
 ```
 
 
@@ -345,22 +359,19 @@ res.boot2
 ## Does vaccination work?
 
 ```{r}
-mod_spaMM3$fixef
-get_intervals(mod_spaMM3, re.form = NA, intervals = "predVar")[1, ]
+fit_spaMM3$fixef
+get_intervals(fit_spaMM3, re.form = NA, intervals = "predVar")[1, ]
 ```
 
 
 ## Does vaccination work?
 
 ```{r}
-(mod4 <- rma(yi = RR ~ 1, vi = sampling.var, data = dat.bcg, method = "ML"))
+(fit4 <- rma(yi = RR ~ 1, vi = sampling.var, data = dat.bcg, method = "ML"))
 ```
 
-
-## Does vaccination work?
-
 ```{r}
-forest(mod4)
+forest(fit4)
 ```
 
 
@@ -376,5 +387,11 @@ forest(mod4)
 * 4.0 [Introduction to LMM & GLMM](./LMM_intro.html)
 * 4.1 [Solving LM problems using LMM](./LMM_solving_pb.html)
 * 4.2 [A showcase of some useful applications](./LMM_showcase.html)
+
+<br>
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
 
 
