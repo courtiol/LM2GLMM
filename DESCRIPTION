@@ -1,6 +1,6 @@
 Package: LM2GLMM
 Type: Package
-Title: Data science for biologists: from LM to GLMM using R
+Title: Data science for biologists: Generalized linear modelling with R
 Version: 20220522.1
 Author: Alexandre Courtiol [aut, cre], François Rousset [ctb]
 Maintainer: Alexandre Courtiol <courtiol@izw-berlin.de>
@@ -10,7 +10,7 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.0
 Depends:
-    R (>= 3.3.0)
+    R (>= 4.1.0)
 Imports:
     ade4,
     ape,
@@ -26,6 +26,7 @@ Imports:
     ellipse,
     spaMM,
     stats,
+    glm2,
     glmmTMB,
     knitr,
     lattice,
@@ -37,6 +38,7 @@ Imports:
     merTools,
     metafor,
     mgcv,
+    mgcViz,
     microbenchmark,
     multcomp,
     mvtnorm,
@@ -47,6 +49,8 @@ Imports:
     pbkrtest,
     pscl,
     rasterVis,
+    rgl,
+    ROI.plugin.glpk,
     safeBinaryRegression,
     sem,
     tools,
