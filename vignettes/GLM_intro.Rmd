@@ -18,7 +18,7 @@ library(LM2GLMM)
 library(doSNOW) ## for load balancing in spaMM
 options(width = 120)
 knitr::opts_chunk$set(cache = FALSE, cache.path = "./cache_knitr/GLM_intro/", fig.path = "./fig_knitr/GLM_intro/", fig.width = 5, fig.height = 5, fig.align = "center", error = TRUE)
-spaMM::spaMM.options(nb_cores = 3L)
+spaMM::spaMM.options(nb_cores = parallel::detectCores() - 1L)
 ```
 
 ## The Generalized Linear Model: GLM
