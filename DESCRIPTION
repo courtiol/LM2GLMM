@@ -1,8 +1,8 @@
 Package: LM2GLMM
 Type: Package
 Title: Data science for biologists: from LM to GLMM using R
-Version: 20200513.1
-Author: Alexandre Courtiol[aut, cre], François Rousset [ctb]
+Version: 20220522.1
+Author: Alexandre Courtiol [aut, cre], François Rousset [ctb]
 Maintainer: Alexandre Courtiol <courtiol@izw-berlin.de>
 Description: This package provides all required material for the course.
 License: GPL (>= 2)
