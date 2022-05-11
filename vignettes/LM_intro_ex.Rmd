@@ -1,5 +1,5 @@
 ---
-title: "GLM: Introduction"
+title: "LM: Introduction"
 subtitle: "exercises"
 author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
@@ -8,7 +8,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{3.0 z-------------------------------------------------------------exercises}
+  %\VignetteIndexEntry{2.0 z-------------------------------------------------------------exercises}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
@@ -19,22 +19,127 @@ knitr::opts_chunk$set(cache = FALSE,
                       fig.align = "center",
                       fig.width = 4,
                       fig.height = 4,
-                      cache.path = "./cache_knitr/GLM_ex/",
-                      fig.path = "./fig_knitr/GLM_ex/")
+                      cache.path = "./cache_knitr/LM_intro_ex/",
+                      fig.path = "./fig_knitr/LM_intro_ex/")
 options(width = 110)
 set.seed(1L)
 ```
 
+# Design matrix
 
-## 95% CI on fitted values: Binomial
+## Alternative representations of design matrices
 
-Compute the predictions and confidence intervals for `fit_binar`, `fit_binom` & `fit_poiss` for a number of humans eaten varying between 0 and 15.
+If the average IQ for boys were 90 and 110 for girls, what would the parameter values be, for each of the following coding (using treatment contrasts):
+
+* ```"boy"``` vs ```"girl"```
+* ```"male"``` vs ```"female"```
+* ```0``` vs ```1```
+* ```1``` vs ```2```
+* ```TRUE``` vs ```FALSE```
 
 <br>
 
-You can find the solution
-[here](./Exercise_GLM_intervals.html).
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
 
+
+## Alternative representations of design matrices
+
+Are these different representations of ages equivalent?
+
+* ```"baby"``` vs ```"child"``` vs ```"adult"```
+* ```0``` vs ```1``` vs ```2```
+* ```1``` vs ```2``` vs ```3```
+
+
+# Simulating data
+
+## Turning script into function
+
+Turn the following code into a function that takes the number of aliens to generate as an argument:
+
+```{r alien data}
+Alien <- data.frame(humans_eaten = rep(1:3, each = 2), intercept = 50, slope = 1.5)
+Alien$error <- rnorm(n = 6, mean = 0, sd = sqrt(5))
+Alien$size <- Alien$intercept + Alien$slope*Alien$humans_eaten + Alien$error
+```
+
+
+## Simulating interactions
+
+Adapt the following code to include an interaction between `sex` and `bh_trips`.
+
+```{r Alien}
+set.seed(123)
+Alien2 <- data.frame(planet = factor(c(rep("Chambr", 2), rep("Riplyx", 2), rep("Wickor", 2))),
+                     sex = factor(rep(c("Z", "ZZ"), times = 3)),
+                     bh_trips = 6:1)
+Alien2$age <- rep(0, nrow(Alien2))
+Alien2$age[Alien2$planet == "Chambr"] <- Alien2$age[Alien2$planet == "Chambr"] + 100 
+Alien2$age[Alien2$planet == "Riplyx"] <- Alien2$age[Alien2$planet == "Riplyx"] + 1000
+Alien2$age[Alien2$planet == "Wickor"] <- Alien2$age[Alien2$planet == "Wickor"] + 10000
+Alien2$age[Alien2$sex == "Z"] <- Alien2$age[Alien2$sex == "Z"] + -20
+Alien2$age[Alien2$sex == "ZZ"] <- Alien2$age[Alien2$sex == "ZZ"] + 20
+Alien2$age <- Alien2$age + 0.5*Alien2$bh_trips
+Alien2$age <- Alien2$age + rnorm(nrow(Alien2), mean = 0, sd = 4)
+Alien2
+```
+
+
+# Model parameter estimates
+
+## The UK dataset
+
+For information on this dataset, check the details section in `?UK`.
+
+```{r UK data}
+head(UK)
+fit_UK1 <- lm(height ~ drink + sex*weight, data = UK)
+```
+
+
+## Predictions with `fit_UK1`
+
+Compute the following predictions by (1) creating a design matrix by hand & (2) using the function `predict()`:
+
+* height of a 30 Kg boy whose mum drank most days?
+* height of a 30 Kg girl whose mum drank most days?
+* height of a 35 Kg boy whose mum drank 2 to 3 times a week?
+
+```{r example predict, echo = FALSE, results='hide'}
+newX <- matrix(
+  c(1, 1, 0, 0, 0, 30, 0,
+    1, 1, 0, 0, 1, 30, 30,
+    1, 0, 0, 0, 0, 35, 0),
+  nrow = 3, byrow = TRUE)
+colnames(newX) <- names(coef(fit_UK1))
+newX %*% coef(fit_UK1)
+```
+
+```{r example predict 3, echo = FALSE, results='hide'}
+newdata1 <- data.frame(
+  drink = c("Most days", "Most days", "2 to 3 times a week"),
+  sex = c("Boy", "Girl", "Boy"),
+  weight = c(30, 30, 35))
+predict(fit_UK1, newdata = newdata1)
+```
+
+
+## Model parameter estimates of `fit_UK1`
+```{r UK coef}
+data.frame(coef(fit_UK1))
+```
+<br>
+
+What do each of these estimates really mean?
+
+(If you struggle interpreting parameter estimates, look at the fitted values)
+
+
+## More predictions with `fit_UK1`
+
+Predict and plot the influence of the weight of girls on their height! 
 
 
 ##
@@ -42,4 +147,3 @@ You can find the solution
 <div align="right">
 [Back to main menu](./Title.html#2)
 </div>
-
