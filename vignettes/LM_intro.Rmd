@@ -400,7 +400,7 @@ all.equal(as.numeric(size_fitted3), Alien$size_fitted)
 
 <br>
 
-Note : R uses design matrices extensively!
+Note : R uses design matrices extensively (internally)!
 
 
 # The design matrix
@@ -417,8 +417,8 @@ Characteristics:
 
 * multi-dimensional: $n \times p$ with $n > p$
 * deduced from the predictors
-* known and measured without error
-* columns must be linearly independent
+* known and measured without error (more on that later)
+* columns must be linearly independent (more on that later)
 
 
 ## The design matrix
@@ -462,7 +462,7 @@ The term `~ humans_eaten` is a *formula* despite not having a response variable 
 
 The formula tells `model.matrix()` (direclty or via `lm()`) how to create a design matrix from the dataset.
 
-Turning a biological problem into a linear model is nothing more that figuring out which design matrix you need and thus which formula to write!
+Turning a biological problem into a linear model is nothing more that figuring out which design matrix you need and thus which formula to write when calling `lm()`!
 
 
 ## A design matrix without intercept
@@ -565,7 +565,7 @@ Alien2
 ## A design matrix with a factor
 
 ```{r factor 1}
-model.matrix(object =  ~ planet, data = Alien2)
+model.matrix(object = ~ planet, data = Alien2)
 ```
 
 <br>
@@ -585,7 +585,7 @@ model.matrix(object =  ~ planet, data = Alien2)
 * ```planetRiplyx``` represents the mean response value for ```"Riplyx"``` minus the mean of the baseline.
 * ```planetWickor``` represents the mean response value for ```"Wickor"``` minus the mean of the baseline.
 
-Note: in R the default level of reference is always the first level of a factor (which level is first [can be changed](./Introduction.html#4)).
+Note: in base R the default level of reference is always the first level of a factor. Which level comes first can be changed, but by default it is the first level when ranked by alphabetical order given the locale (mind that `forcats::as_factor()` behave differently than `as.factor()`; the forcats function follows order in which level appear).
 
 
 ## A design matrix with a factor
@@ -603,7 +603,7 @@ model.matrix(object =  ~ planet, data = Alien2, contrasts.arg = list(planet = "c
 
 <br>
 
-Alternative parametrizations of the contrast matrix can ease convergence in GLM(M) (for continuous variable) and can allow for testing specific hypotheses or fit particular experimental design (for qualitative variables). 
+Alternative parametrizations of the contrasts can ease convergence in GLM(M) (for continuous variable) and can allow for testing specific hypotheses or fit particular experimental design (for qualitative variables). 
 
 It will not change the predictions, the likelihood, the AIC, ...; only the parameter values and their interpretation!
 
@@ -630,7 +630,7 @@ $$
 \frac{(\text{Int}+\text{plt1})+(\text{Int}+\text{plt2})+(\text{Int}-\text{plt1}-\text{plt2})}{3}=\text{Int}
 $$
 
-* The intercept thus represents the mean of the mean responses of all groups.
+* The intercept thus represents the mean of the mean responses across all groups.
 
 
 ## The example of "sum contrasts"
@@ -702,7 +702,7 @@ zapsmall(crossprod(DM_ortho))  ## 0 means that predictors are orthogonal -> will
 It produces a symmetric diagonal matrix. Those are particularly maths friendly.
 -->
 
-## A design matrix with interactions with > 1 factors
+## A design matrix with > 1 factors
 
 ```{r factorial}
 model.matrix(object = ~ planet + sex, data = Alien2)
@@ -790,7 +790,7 @@ cor(Alien$residuals, Alien$error)
 ```
 
 ```{r error vs residals 3}
-mean(Alien$residuals) ## residuals have a mean of 0 is the sample, while error have a mean 0 in the population
+mean(Alien$residuals) ## residuals have a mean of 0 in the sample, while error have a mean 0 in the population
 ```
 
 
@@ -818,7 +818,7 @@ predict(fit_alien_lm, newdata = data_for_predict)
 
 <br>
 
-The fact that you provide predictors instead of regressors is particularly useful when you have qualitative variable (cf exercises).
+The fact that you provide predictors instead of regressors is particularly useful when you have qualitative variable (see exercises).
 
 ##
 <center> <img src="./Extrapolation.png" alt="xkcd" style="width: 300x;"/> </center>

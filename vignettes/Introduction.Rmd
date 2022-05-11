@@ -40,19 +40,20 @@ knitr::opts_chunk$set(fig.align = "center")
 ### How to get there?
 * Learn some key concepts & some programming (but hardly any mathematics)
 * We need to dig a bit underneath the surface to understand how R does thing
-* You need to stop a little compulsive googling and copying of the code produced by random people and start trying to solve any R/stats problems like any other scientific problem: by combining observations and experiments (in your R console)
+* You need to refrain yourself from compulsive googling and compulsive copy/pasting of the code produced by random people.
+* You should instead start trying to solve any R/stats problems like any other scientific problem: by combining observations and experiments (in your R console)
 
 ### What I will not cover in this course:
 * how to use the {dplyr} and friends ({tidyr}, {tidyselect}, {forcats}...) to put data in shape
-* which packages can do X or Y in one single click
+* which packages can do X or Y in a single click
 
 
 ## What do you need for the course?
 * a laptop
 * a computer with internet connection
 * a web browser (up-to-date)
-* R version $\geq$ 3.6
-* RStudio version $\geq$ 1.2 (recommended)
+* R version $\geq$ 4.1
+* RStudio version $\geq$ 2022.01.1
 
 
 ## How to access the course?
@@ -180,8 +181,7 @@ knitr::kable(rbind(names, classes))
 relevel(foo, ref = "c")                      ## change first level
 factor(foo, levels = c("c", "b", "a"))       ## control order of levels
 droplevels(foo[foo != "b"])                  ## drop empty levels
-c(factor(c("a", "b")), factor(c("b", "c")))  ## do not coerce factors with different levels!
-factor(c("a", "b"), c("b", "c"))             ## you can coerce characters
+c(factor(c("a", "b")), factor(c("b", "c")))  ## R >= 4.1 can coerce factors with different levels
 as.character(foo)                            ## you can turn factors into characters
 ```
 
@@ -201,7 +201,7 @@ seq(from = 1, to = 5, by = 0.5) ## more arguments possible
 ```{r rnorm}
 rnorm(5, mean = 2, sd = 0.1)  ## Tip: check ?Distributions for other distributions
 rnorm(5, mean = 2, sd = 0.1)
-set.seed(14353L)
+set.seed(14353L) # fixing the seed allows for you to get reproducible results
 rnorm(5, mean = 2, sd = 0.1)
 set.seed(14353L)
 rnorm(5, mean = 2, sd = 0.1)
@@ -235,10 +235,10 @@ dimnames(foo) ## Tip: try rownames() and colnames()
 ## Dataframes: indexing
 
 ```{r dataframe indexing}
-foo[2, ]
-foo[, 2]
-foo$x
-foo[, "x"]
+foo[2, ]    ## get row 2
+foo[, 2]    ## get column 2
+foo$x       ## get column x
+foo[, "x"]  ## get column x
 ```
 
 
@@ -252,11 +252,7 @@ foo2 <- data.frame(
 ```
 
 ```{r dataframe rbind}
-rbind(foo, foo2) ## Note that the factor levels are redefined!
-```
-
-```{r vector joining factor levels}
-c(foo$z, foo2$z) ## but this is not the case for vectors!!
+rbind(foo, foo2)
 ```
 
 
@@ -335,6 +331,14 @@ foo[2, ]
 foo[1, 2]
 ```
 
+## Matrices: transposition, inversion
+
+```{r matrix transpose}
+foo
+t(foo)  ## transpose of foo
+solve(foo)  ## inverse of foo
+```
+
 
 ## Matrices: multiplication
 
@@ -342,15 +346,6 @@ foo[1, 2]
 foo %*% matrix(c(-1, 1)) ## = [1 * -1 + 2 * -1][3 * -1 + 4 * 1]
 foo %*% solve(foo)       ## a matrix times its inverse equals the identity matrix
 foo * solve(foo)         ## NOT MATRIX MULTIPLICATION! (element by element multiplication)
-```
-
-
-## Matrices: transposition, inversion
-
-```{r matrix transpose}
-foo
-t(foo)  ## transpose of foo
-solve(foo)  ## inverse of foo
 ```
 
 
@@ -367,7 +362,7 @@ foo$foo2
 ## Functions
 
 ```{r function}
-addA_B <- function(a = 0, b = 0) {
+addA_B <- function(a = 0, b = 0) { ## setting values for argument makes them default values
   c <- a + b
   return(c)
   }
