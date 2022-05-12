@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{4.2 A showcase of some useful applications of mixed models (BROKEN FOR NOW)}
+  %\VignetteIndexEntry{4.2 A showcase of some useful applications of mixed models}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options:
@@ -310,12 +310,14 @@ anova(fit_spaMM2, fit_spaMM2_H0)
 ## Can we do abstraction of fixed effects?
 
 ```{r test for metafor, results = "hide"}
-res.boot <- anova(fit_spaMM2, fit_spaMM2_H0, boot.repl = 1000)
+res.boot <- anova(fit_spaMM2, fit_spaMM2_H0, boot.repl = 1000, fit_env = list(dat.bcg = dat.bcg))
 ```
 
-```{r}
+```{r, cache = FALSE}
 res.boot
 ```
+
+Yes we can! (but only just)
 
 
 ## Can we do abstraction of fixed effects?
@@ -345,15 +347,14 @@ anova(fit_spaMM3, fit_spaMM3_H0)
 ## Does vaccination work?
 
 ```{r test for metafor 2, results = "hide"}
-res.boot2 <- anova(fit_spaMM3, fit_spaMM3_H0, boot.repl = 1000)
+res.boot2 <- anova(fit_spaMM3, fit_spaMM3_H0, boot.repl = 1000, fit_env = list(dat.bcg = dat.bcg))
 ```
 
-
-## Does vaccination work?
-
-```{r}
+```{r, cache = FALSE}
 res.boot2
 ```
+
+Yes it does!
 
 
 ## Does vaccination work?
@@ -369,6 +370,9 @@ get_intervals(fit_spaMM3, re.form = NA, intervals = "predVar")[1, ]
 ```{r}
 (fit4 <- rma(yi = RR ~ 1, vi = sampling.var, data = dat.bcg, method = "ML"))
 ```
+
+
+## Does vaccination work?
 
 ```{r}
 forest(fit4)
