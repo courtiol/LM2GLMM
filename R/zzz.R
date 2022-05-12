@@ -31,8 +31,11 @@
 
 #' @export
 .update_drat <- function() {
+  message("Building package (without rebuilding vignettes)...")
   path <- devtools::build(binary = FALSE, vignettes = FALSE)
+  message("Adding [package]kg to drat repo...")
   drat::insertPackage(path, repodir = "../../drat", commit = TRUE)
+  message("Removing old pkg version from drat repo...")
   drat::pruneRepo(repopath = "../../drat", remove = TRUE)
   message("About to upload the package on GitHub, be patient...")
   system("cd ../../drat; git add .; git commit -m 'Pruning';  git push")
