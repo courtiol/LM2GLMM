@@ -1,0 +1,45 @@
+---
+title: "GLM: Introduction"
+subtitle: "exercises"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+vignette: >
+  %\VignetteIndexEntry{3.0 z-------------------------------------------------------------exercises}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, include=FALSE}
+library(LM2GLMM)
+knitr::opts_chunk$set(cache = FALSE,
+                      fig.align = "center",
+                      fig.width = 4,
+                      fig.height = 4,
+                      cache.path = "./cache_knitr/GLM_ex/",
+                      fig.path = "./fig_knitr/GLM_ex/")
+options(width = 110)
+set.seed(1L)
+```
+
+
+## 95% CI on fitted values: Binomial
+
+Compute the predictions and confidence intervals for `fit_binar`, `fit_binom` & `fit_poiss` for a number of humans eaten varying between 0 and 15.
+
+<br>
+
+You can find the solution
+[here](./Exercise_GLM_intervals.html).
+
+
+
+##
+
+<div align="right">
+[Back to main menu](./Title.html#2)
+</div>
+
