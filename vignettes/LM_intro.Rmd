@@ -50,7 +50,7 @@ knitr::opts_chunk$set(error = TRUE)
 
 There is (unfortunately) no such thing as a standard vocabulary to discuss LM.
 
-The terms I chose to use are not used by all; even simple and widespread terms such as *explanatory variables* and *residuals* can mean different things for different people.
+The terms I chose to use are not used by all; even simple and widespread terms such as *predictor variables* and *residuals* can mean different things for different people.
 
 Statisticians perhaps do not need words as much as we do because they can rely on their understanding of precise mathematical definitions.
 
@@ -81,14 +81,14 @@ The important thing is for you to grasp what these words represent, more than th
 
 * $y_i$ = the response variable / dependent variable / observations to explain
 * $\beta_j$ = the model parameters / regression coefficients
-* $x_{j,i}$ = regressors / constants derived from the explanatory variables
+* $x_{j,i}$ = regressors / constants derived from the predictor variables (aka predictors for short)
 * $\epsilon_i$ = the errors / residual errors
 
 <br>
 
 This is the notation that biologists should use in their paper/thesis to describe their model.
 
-Note: the regressors are sometimes directly given by the columns from your dataset, but not always (more on that later).
+Note: the regressors are sometimes directly given by the columns from your dataset (i.e. the predictors), but not always (more on that later).
 
 
 ## Mathematical notation of LM: matrix notation
@@ -158,7 +158,7 @@ Alien
 Can you recognise:
 
 - the model parameters?
-- the regressor (here = explanatory variable)?
+- the regressor (here = predictor)?
 - the errors?
 - the response variable?
 
@@ -197,7 +197,7 @@ legend("topleft", fill = c("green", "blue"), legend = c("TRUE", "fitted"), bty =
 * `somedata` the data used for the fitting procedure
 * `var_obs ~ var_a + var_b + ... + var_p` the model formula
 * `var_obs` = the name (not quoted) of the column with the observations for the response variable
-* `var_a, var_b, ..., var_p` = the names (not quoted) of the columns with the observations for the explanatory ( = independent = predictor) variables
+* `var_a, var_b, ..., var_p` = the names (not quoted) of the columns with the observations for the predictor (= independent or explanatory variables)
 
 <br>
 
@@ -214,7 +214,7 @@ This is the notation that is good for talking to R and to R users, but it does n
 
 * $\hat{y_i}$ = the fitted values
 * $\hat{\beta_j}$ = the (model parameter / regression coefficient) estimates
-* $x_{j,i}$ = regressors / constants derived from the explanatory variables
+* $x_{j,i}$ = regressors / constants derived from the predictors
 * $y_i - \hat{y_i} = \varepsilon_i$ = the residuals (i.e. the estimates for the errors / residual errors)
 
 <br>
@@ -818,11 +818,11 @@ predict(fit_alien_lm, newdata = data_for_predict)
 
 <br>
 
-The fact that you provide predictors instead of regressors is particularly useful when you have qualitative variable (see exercises).
+The fact that you provide predictors instead of regressors is particularly useful when you have qualitative variable (see [exercises](./LM_intro_ex.html)).
 
-## Predictions with several explanatory variables
+## Predictions with several predictors
 
-When several explanatory variables are involved, predictions can be computed differently...
+When several predictors are involved, predictions can be computed differently...
 
 Option 1: you can set non-focal variable to 0 for quantitative variables (or to the control group for qualitative variables):
 
@@ -833,9 +833,9 @@ fit_apb <- lm(age ~ planet * bh_trips, data = Alien2)
 (pred0 <- predict(fit_apb, newdata = newd0))
 ```
 
-## Predictions with several explanatory variables
+## Predictions with several predictors
 
-When several explanatory variables are involved, predictions can be computed differently...
+When several predictors are involved, predictions can be computed differently...
 
 Option 2: you can set non-focal variable to their mean (for quantitative variables) or mode (for qualitative variables) within the set of all sampled observations:
 
@@ -847,11 +847,11 @@ fit_apb <- lm(age ~ planet * bh_trips, data = Alien2)
 ```
 
 
-## Predictions with several explanatory variables
+## Predictions with several predictors
 
-When several explanatory variables are involved, predictions can be computed differently...
+When several predictors are involved, predictions can be computed differently...
 
-Option 3: you can set non-focal variable to their mean (for quantitative variables) or mode (for qualitative variables) within the set of observations matching each given value for the focal explanatory variable(s):
+Option 3: you can set non-focal variable to their mean (for quantitative variables) or mode (for qualitative variables) within the set of observations matching each given value for the focal predictor:
 
 ```{r, predictions_multiple_pred3}
 fit_apb <- lm(age ~ planet * bh_trips, data = Alien2)
@@ -860,9 +860,9 @@ fit_apb <- lm(age ~ planet * bh_trips, data = Alien2)
 (pred_conditional <- predict(fit_apb, newdata = newd_conditional))
 ```
 
-## Predictions with several explanatory variables
+## Predictions with several predictors
 
-When several explanatory variables are involved, predictions can be computed differently...
+When several predictors are involved, predictions can be computed differently...
 
 And this can make a big difference:
 
