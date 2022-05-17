@@ -1,0 +1,110 @@
+---
+title: "Introduction"
+subtitle: "Solutions"
+author: "Alexandre Courtiol"
+date: "`r Sys.Date()`"
+output:
+  html_vignette:
+    toc: true
+vignette: >
+  %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{1.0 z-------------------------------------------------------------solutions}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options:
+  chunk_output_type: console
+---
+```{r setup, include=FALSE}
+library(LM2GLMM)
+knitr::opts_chunk$set(cache = TRUE, fig.align = "center", fig.width = 6, fig.height = 6,
+                      cache.path = "./cache_knitr/Exo_Intro_solution/", fig.path = "./fig_knitr/Exo_Intro_solution/")
+options(width = 90)
+```
+
+## Computing with R
+
+Compute the following equation:
+
+<br>
+
+<center><font size="8"> $\sqrt{\frac{2^{3+1}}{\frac{4}{5\times{6}}}-20}$ </font></center>
+
+<br>
+
+The idea is to do things step by step and always check that things are OK before they get too complex:
+
+```{r equation}
+3+1
+(3+1)
+2^(3+1)
+(2^(3+1)) / 4
+(2^(3+1)) / (4 / (5*6))
+((2^(3+1)) / (4 / (5*6))) - 20
+sqrt(((2^(3+1)) / (4 / (5*6))) - 20)
+```
+
+
+## Data exploration
+
+Using the dataset `TitanicSurvival`, figure out: 
+
+- how many rows and columns are they in this dataset?
+
+
+```{r}
+dim(TitanicSurvival)
+```
+We see that there are `r nrow(TitanicSurvival)` rows and `r ncol(TitanicSurvival)` columns.
+
+<br>
+
+- how many columns correspond to factors?
+
+```{r}
+str(TitanicSurvival)
+```
+We see that there are 3 factors.
+
+<br>
+
+- how many females below 20 years old survived in 2nd class, and how many did not?
+
+```{r}
+test <- TitanicSurvival$survived == "yes" & 
+        TitanicSurvival$sex == "female" &
+        TitanicSurvival$age < 20 &
+        TitanicSurvival$passengerClass == "2nd"
+sum(test, na.rm = TRUE)
+```
+Many other ways are possible, such as:
+
+```{r, message=FALSE}
+library(dplyr)
+TitanicSurvival |>
+  filter(survived == "yes", sex == "female", age < 20, passengerClass == "2nd") |>
+  count()
+```
+
+
+
+## An example of programming
+
+The following function can be used to investigate the statistical power of a t-test (i.e. the probability to detect a significant effect when they really is one = rate of true positive):
+
+```{r example, fig.show='hide'}
+compare_heights <- function(n_group = 10, height_difference = 5) {
+  male   <- rnorm(n = n_group, mean = 180, sd = 6)
+  female <- rnorm(n = n_group, mean = 180 - height_difference, sd = 6)
+  t_test_res <- t.test(male, female)
+  t_test_res$p.value
+}
+
+N <- seq(from = 10, to = 60, by = 2)
+power <- sapply(N, function(n) mean(replicate(100, compare_heights(n_group = n)) <= 0.05))
+plot(power ~ N)
+```
+
+<br>
+
+Can you run, read and understand this code?
+
+I cannot really correct that one here. Ask if you don't get it.
