@@ -364,7 +364,7 @@ Alien
 
 ## The fitted values
 
-There are the estimations for of the mean responses produced by the fit of the model:
+There are the estimations for of the mean response values produced by the fit of the model:
 
 ```{r alien fitted values}
 Alien$size_fitted <- fitted.values(fit_alien_lm)
@@ -819,6 +819,62 @@ predict(fit_alien_lm, newdata = data_for_predict)
 <br>
 
 The fact that you provide predictors instead of regressors is particularly useful when you have qualitative variable (see exercises).
+
+## Predictions with several explanatory variables
+
+When several explanatory variables are involved, predictions can be computed differently...
+
+Option 1: you can set non-focal variable to 0 for quantitative variables (or to the control group for qualitative variables):
+
+```{r, predictions_multiple_pred1}
+fit_apb <- lm(age ~ planet * bh_trips, data = Alien2)
+(newd0 <- data.frame(planet = c("Chambr", "Riplyx", "Wickor"),
+                     bh_trips = 0))
+(pred0 <- predict(fit_apb, newdata = newd0))
+```
+
+## Predictions with several explanatory variables
+
+When several explanatory variables are involved, predictions can be computed differently...
+
+Option 2: you can set non-focal variable to their mean (for quantitative variables) or mode (for qualitative variables) within the set of all sampled observations:
+
+```{r, predictions_multiple_pred2}
+fit_apb <- lm(age ~ planet * bh_trips, data = Alien2)
+(newd_marginal <- data.frame(planet = c("Chambr", "Riplyx", "Wickor"),
+                             bh_trips = mean(Alien2$bh_trips)))
+(pred_marginal <- predict(fit_apb, newdata = newd_marginal))
+```
+
+
+## Predictions with several explanatory variables
+
+When several explanatory variables are involved, predictions can be computed differently...
+
+Option 3: you can set non-focal variable to their mean (for quantitative variables) or mode (for qualitative variables) within the set of observations matching each given value for the focal explanatory variable(s):
+
+```{r, predictions_multiple_pred3}
+fit_apb <- lm(age ~ planet * bh_trips, data = Alien2)
+(newd_conditional <- data.frame(planet = c("Chambr", "Riplyx", "Wickor"),
+                                bh_trips = tapply(Alien2$bh_trips, Alien2$planet, mean)))
+(pred_conditional <- predict(fit_apb, newdata = newd_conditional))
+```
+
+## Predictions with several explanatory variables
+
+When several explanatory variables are involved, predictions can be computed differently...
+
+And this can make a big difference:
+
+```{r, predictions_all}
+cbind(data.frame(planet = c("Chambr", "Riplyx", "Wickor"), method = c("0", "marginal", "conditional")),
+      pred0, pred_marginal, pred_conditional)
+```
+
+Nothing is incorrect, the different predictions simply represent answers to different questions!
+
+Note: it could be difficult to identify what packages computing (or plotting) automatically predictions actually do.
+
 
 ##
 <center> <img src="./Extrapolation.png" alt="xkcd" style="width: 300x;"/> </center>
