@@ -36,7 +36,7 @@ knitr::opts_chunk$set(error = TRUE,
 [Back to main menu](./Title.html#2)
 </div>
 
-## You will learn in this session `r emojifont::emoji("mortar_board")`
+## You will learn in this session `r .emo("info")`
 
 * that the variance of residuals is a biased estimator of the error variance
 * how to extract key statistics for models fitted with `stats::lm()` & `spaMM::fitme()`
@@ -62,7 +62,7 @@ knitr::opts_chunk$set(error = TRUE,
 
 # High-school reminiscence
 
-## Sample and population variance `r emojifont::emoji("mortar_board")`
+## Sample and population variance `r .emo("info")`
 
 Do you remember that?
 
@@ -79,7 +79,7 @@ $$\frac{\displaystyle\sum^n_{i = 1}(x_i - \bar{x})^2}{n\color{red}{-1}}$$
 </font></center>
 
 
-## Sample and population variance `r emojifont::emoji("eyeglasses")`
+## Sample and population variance `r .emo("proof")`
 
 ```{r vars}
 set.seed(1)
@@ -104,7 +104,7 @@ The bias can be removed by considering $n - p$ in the denominator to correct for
 
 # Data
 
-## Our toy dataset `r emojifont::emoji("alien")`
+## Our toy dataset `r .emo("alien")`
 
 Let's simulate the size of 12 aliens using the function integrated in this LM2GLMM package:
 
@@ -116,7 +116,7 @@ set.seed(123)
 
 # Fitting LM with `stats::lm()` & `spaMM::fitme()`
 
-## A note on `package::fn` `r emojifont::emoji("mortar_board")`
+## A note on `package::fn` `r .emo("info")`
 
 In R, when you call a function it looks for it in the global environment (i.e. where your objects are stored) and in all the packages attached to the so-called search list:
 
@@ -133,7 +133,7 @@ Importantly, it is also a way to be explicit about where a function is coming fr
 So `stats::lm()` means that `lm()` comes from the build-in package **{stats}** and `spaMM::fitme()` means that `fitme()` comes from the optional package **{spaMM}**.
 
 
-## A note on the R package **{spaMM}** `r emojifont::emoji("mortar_board")`
+## A note on the R package **{spaMM}** `r .emo("info")`
 
 **{spaMM}** is an R package developed by François Rousset (a population geneticist from Montpellier, France).
 
@@ -146,7 +146,7 @@ We will use it a lot because it is very flexible and powerful:
 - it allows for a straightforward computation of intervals, parametric bootstraps, and more
 
 
-## Fitting the Alien data using ```lm()``` `r emojifont::emoji("wrench")`
+## Fitting the Alien data using ```lm()``` `r .emo("practice")`
 
 ```{r fit alien lm}
 fit_alien_lm <- lm(size ~ humans_eaten, data = Alien)
@@ -165,7 +165,7 @@ Many functions can take such an object as input and thus will use its inner comp
 head(methods(class = class(fit_alien_lm)), n = 18) ## shows first 18 elements (items depend on packages attached)
 ```
 
-## Fitting the Alien data using ```fitme()``` `r emojifont::emoji("wrench")`
+## Fitting the Alien data using ```fitme()``` `r .emo("practice")`
 
 ```{r fit alien lm2a, message=FALSE}
 library(spaMM)
@@ -180,7 +180,7 @@ names(fit_alien_lm2)
 ```
 
 
-## Extraction of the design matrix `r emojifont::emoji("wrench")`
+## Extraction of the design matrix `r .emo("practice")`
 
 ### From fit with `lm`()
 ```{r dm lm, results='hold'}
@@ -188,7 +188,7 @@ model.matrix(fit_alien_lm)
 ```
 
 
-## Extraction of the design matrix `r emojifont::emoji("wrench")`
+## Extraction of the design matrix `r .emo("practice")`
 
 ### From fit with `fitme`()
 ```{r dm spaMM}
@@ -196,7 +196,7 @@ model.matrix(fit_alien_lm2)
 ```
 
 
-## Extraction of model parameter estimates `r emojifont::emoji("wrench")`
+## Extraction of model parameter estimates `r .emo("practice")`
 
 ### From fit with `lm`()
 ```{r fit coef, results='hold'}
@@ -210,7 +210,7 @@ fixef(fit_alien_lm2)
 ```
 
 
-## Extraction of the error variance estimate `r emojifont::emoji("wrench")`
+## Extraction of the error variance estimate `r .emo("practice")`
 
 ### From fit with `lm`()
 ```{r fit estimate error var}
@@ -225,7 +225,7 @@ fit_alien_lm2$phi * nrow(Alien) / (nrow(model.matrix(fit_alien_lm2)) - ncol(mode
 Note: in ML fit (default setting) `phi` contains the population residual variance (that is, it considers the sample as being the full population: denominator = $n$, not $n-p$), but the error variance estimate can be directly obtained from a REML fit (more on that later). The ability to switch between ML and REML fitting methods becomes particularly useful for more complex models that aim at estimating variances (mixed models). `lm()` does not have this flexibility.
 
 
-## Extraction of the residuals `r emojifont::emoji("wrench")`
+## Extraction of the residuals `r .emo("practice")`
 
 ### From fit with `lm`()
 ```{r fit residuals}
@@ -238,7 +238,7 @@ residuals(fit_alien_lm2)
 ```
 
 
-## Extraction of the population residual variance `r emojifont::emoji("wrench")`
+## Extraction of the population residual variance `r .emo("practice")`
 
 ### From fit with `lm`()
 ```{r fit estimate residual var}
@@ -253,7 +253,7 @@ fit_alien_lm2$phi
 ```
 
 
-## Extraction of the log-likelihood `r emojifont::emoji("wrench")`
+## Extraction of the log-likelihood `r .emo("practice")`
 
 We will soon see what the likelihood is but for now consider that it is something quantifying how well the fit approximate the observations.
 
@@ -268,7 +268,7 @@ logLik(fit_alien_lm2)
 ```
 
 
-## Extraction of the residual sum of squares `r emojifont::emoji("wrench")`
+## Extraction of the residual sum of squares `r .emo("practice")`
 
 This is another statistics quantifying how well the fit approximate the observations, which we will also study.
 
@@ -286,7 +286,7 @@ sum(residuals(fit_alien_lm2)^2) ## no extractor I can think of
 
 # How fitting works?
 
-## How to fit a LM without `lm()`? `r emojifont::emoji("mortar_board")`
+## How to fit a LM without `lm()`? `r .emo("info")`
 
 In general, by:
 
@@ -309,7 +309,7 @@ The RSS = $\displaystyle\sum_{i=1}^{n}{\varepsilon_i^2}$.
 
 # Fitting LM by Ordinary Least Squares (OLS)
 
-## The Residual Sum of Squares (RSS) `r emojifont::emoji("mortar_board")`
+## The Residual Sum of Squares (RSS) `r .emo("info")`
 
 <div class="columns-2">
 ```{r alien RSS plot, fig.align='center', fig.asp=1, fig.width=5, echo = FALSE, fig.cap="Residuals on best fit"}
@@ -352,7 +352,7 @@ text(-4, 65, paste("RSS =", round(sum(fit_alien_lm$resid^2), 1)), col = "red")
 </div>
 
 
-## The Residual Sum of Squares (RSS) `r emojifont::emoji("mortar_board")`
+## The Residual Sum of Squares (RSS) `r .emo("info")`
 
 <div class="columns-2">
 ```{r alien RSS bad fit, fig.align='center', fig.asp=1, fig.width=5, echo = FALSE, fig.cap="Squared residuals on bad fit"}
@@ -417,7 +417,7 @@ text(-4, 65, paste("RSS =", round(sum(fit_alien_lm$resid^2), 1)), col = "red")
 </div>
 
 
-## The Residual Sum of Squares (RSS) `r emojifont::emoji("mortar_board")`
+## The Residual Sum of Squares (RSS) `r .emo("info")`
 
 <div class="columns-2">
 ```{r alien RSS true, fig.align='center', fig.asp=1, fig.width=5, echo = FALSE, fig.cap="Squared residuals on TRUE relationship"}
@@ -483,7 +483,7 @@ text(-4, 65, paste("RSS =", round(sum(fit_alien_lm$resid^2), 1)), col = "red")
 </div>
 
 
-## Home made LM fitting by OLS `r emojifont::emoji("eyeglasses")`
+## Home made LM fitting by OLS `r .emo("proof")`
 
 We compute a function that compute the RSS given the parameter estimates, the formula and the data:
 
@@ -504,7 +504,7 @@ anova(fit_alien_lm)[2, "Sum Sq"] ## value for reference
 ```
 
 
-## Home made LM fitting by OLS `r emojifont::emoji("eyeglasses")`
+## Home made LM fitting by OLS `r .emo("proof")`
 
 We can now feed this function to an optimisation procedure that will find parameter values minimising the output by trying many combination of parameters:
 
@@ -524,7 +524,7 @@ res_optim_rss$value -anova(fit_alien_lm)[2, "Sum Sq"] ## very close to what is p
 
 # Fitting LM by Maximum (log-)Likelihood (ML)
 
-## The maximum (log-)likelihood (ML) `r emojifont::emoji("mortar_board")`
+## The maximum (log-)likelihood (ML) `r .emo("info")`
 
 ```{r alien loglik}
 Alien$fitted_values <- fitted.values(fit_alien_lm)
@@ -560,7 +560,7 @@ logLik(fit_alien_lm)[1]
 </div>
 
 
-## Home made LM fitting by ML `r emojifont::emoji("eyeglasses")`
+## Home made LM fitting by ML `r .emo("proof")`
 
 ```{r def comput_logLik_Alien}
 compute_logLik <- function(vector.param, formula, data) {
@@ -580,7 +580,7 @@ logLik(fit_alien_lm)[1] ## value for reference
 ```
 
 
-## Home made LM fitting by ML `r emojifont::emoji("eyeglasses")`
+## Home made LM fitting by ML `r .emo("proof")`
 
 We can now feed this function to an optimisation procedure that will find parameter values maximising the output:
 
@@ -601,7 +601,7 @@ res_optim_ML$value - logLik(fit_alien_lm)[1] ## logLiks are very close!
 
 # Fitting methods comparison
 
-## Comparing the 3 methods on a REAL dataset `r emojifont::emoji("mortar_board")`
+## Comparing the 3 methods on a REAL dataset `r .emo("info")`
 
 ```{r computation 3 methods}
 fit_test_lm <- lm(height ~ weight*sex + cigarettes + drink, data = UK)
@@ -623,7 +623,7 @@ round(rbind(lm = coef(fit_test_lm), OLS = fit_test_homemade_OLS$par, ML = fit_te
 ```
 
 
-## Comparing the 3 methods on a REAL dataset `r emojifont::emoji("mortar_board")`
+## Comparing the 3 methods on a REAL dataset `r .emo("info")`
 
 Let's now perform a benchmark to compare the computational efficiency of the 3 fitting methods:
 ```{r computation 3 methods bench, warning=FALSE}
@@ -646,7 +646,7 @@ So our homemade functions work, but they are hugely inefficient!
 
 # Fitting LM analytically
 
-## What the statistical textbooks tell us `r emojifont::emoji("mortar_board")`
+## What the statistical textbooks tell us `r .emo("info")`
 
 <center><font size = 8> $\widehat{\beta} = (X^\text{T}X)^{-1}X^\text{T}Y$ </font></center>
 
@@ -664,7 +664,7 @@ solve(t(X) %*% X) %*% t(X) %*% Y  ## Tip: solve(x) returns the inverse of the ma
 Geek note: $\widehat{Y} = X \widehat{\beta} = X (X^TX)^{-1}X^TY=HY$, and $H$ is called the hat matrix (it is a projection matrix and it can be used for various purposes).
 
 
-## `lm()`-like fitting using QR decomposition `r emojifont::emoji("mortar_board")`
+## `lm()`-like fitting using QR decomposition `r .emo("info")`
 
 The goal is simply to decompose the design matrix into a product of two new matrices that present nice properties for doing maths super efficiently.
 
@@ -688,7 +688,7 @@ backsolve(R, QTY) ## solve B from RB = QTY
 * Note 2: other decompositions are sometimes used in other packages or other type of linear models (e.g. Cholesky decomposition).
 
 
-## Actual `lm()` fitting procedure `r emojifont::emoji("mortar_board")`
+## Actual `lm()` fitting procedure `r .emo("info")`
 
 First, `lm()` processes information for `lm.fit()`. It is quite a difficult function to read but are the important steps:
 ```{r lm guts, eval = FALSE}
@@ -735,7 +735,7 @@ as subroutine dqrdc2(x,ldx,n,p,tol,k,qraux,jpvt,work).
 -->
 
 
-## Dissecting the output from `lm()` `r emojifont::emoji("mortar_board")`
+## Dissecting the output from `lm()` `r .emo("info")`
 
 ```{r lm output}
 names(fit_alien_lm)
@@ -753,7 +753,7 @@ We have not yet seen:
 * ```model```: it comes from ```model.frame()```; it gives the data used for the fit.
 
 
-## What you need to remember `r emojifont::emoji("dart")`
+## What you need to remember `r .emo("goal")`
 
 * that the variance of residuals is a biased estimator of the error variance
 * how to extract key statistics for models fitted with `stats::lm()` & `spaMM::fitme()`

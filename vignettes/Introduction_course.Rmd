@@ -31,26 +31,26 @@ knitr::opts_chunk$set(fig.align = "center", fig.height=3.5, fig.width=3.5)
 
 # General information
 
-## Symbols `r emojifont::emoji("mortar_board")` 
+## Symbols `r .emo("info")` 
 
 I use emojis at the top of each slide to indicate what it refers to:
 
-- `r emojifont::emoji("mortar_board")` for things that are good to know for improving your understanding
-- `r emojifont::emoji("wrench")` for practical advice (i.e. things you need to learn doing)
-- `r emojifont::emoji("eyeglasses")` for demonstrations (i.e. to show you I am not always making things up and teach you how to test your own ideas)
+- `r .emo("info")` for things that are good to know for improving your understanding
+- `r .emo("practice")` for practical advice (i.e. things you need to learn doing)
+- `r .emo("proof")` for demonstrations (i.e. to show you I am not always making things up and teach you how to test your own ideas)
 
 <br>
 
 I may also use a few others within the slides
 
-- `r emojifont::emoji("dart")` for goals
-- `r emojifont::emoji("tada")` for solutions or nice results
-- `r emojifont::emoji("angry")` for things that are broken
-- `r emojifont::emoji("fire")` for heavy computations
-- `r emojifont::emoji("warning")` for warnings
-- `r emojifont::emoji("alien")` for aliens
+- `r .emo("goal")` for goals
+- `r .emo("party")` for solutions or nice results
+- `r .emo("broken")` for things that are broken
+- `r .emo("heavy")` for heavy computations
+- `r .emo("warn")` for warnings
+- `r .emo("alien")` for aliens
 
-## Course philosophy `r emojifont::emoji("mortar_board")`
+## Course philosophy `r .emo("info")`
 
 ### By the end of the course, my goal is for you to:
 * become autonomous with linear modelling (capable of doing a little, capable of learning a lot)
@@ -67,7 +67,7 @@ I may also use a few others within the slides
 * which packages can do X or Y in a single click
 
 
-## What do you need for the course? `r emojifont::emoji("wrench")`
+## What do you need for the course? `r .emo("practice")`
 * a laptop
 * a computer with internet connection
 * a web browser (up-to-date)
@@ -75,7 +75,7 @@ I may also use a few others within the slides
 * RStudio version $\geq$ 2022.01.1
 
 
-## How to access the course? `r emojifont::emoji("wrench")`
+## How to access the course? `r .emo("practice")`
 
 The course is an **R package** called **LM2GLMM**.
 
@@ -107,7 +107,7 @@ library(package = "LM2GLMM") ## !!! Always check the version with me because I w
 
 # The exam
 
-## Procedure `r emojifont::emoji("mortar_board")`
+## Procedure `r .emo("info")`
 
 ### What?
 
@@ -127,7 +127,7 @@ library(package = "LM2GLMM") ## !!! Always check the version with me because I w
 * you are free to look at your course and R-help files (no internet)
 
 
-## Grading `r emojifont::emoji("mortar_board")`
+## Grading `r .emo("info")`
 
 ### I will grade:
 
@@ -147,7 +147,7 @@ library(package = "LM2GLMM") ## !!! Always check the version with me because I w
 
 # A catalogue of useful {base} R commands for this course
 
-## Vectors: basics `r emojifont::emoji("wrench")`
+## Vectors: basics `r .emo("practice")`
 
 ```{r vectors basics}
 foo <- c(1, 5, 5, 10, 23, NA, NA)
@@ -159,7 +159,7 @@ foo2["b"]
 ```
 
 
-## Vectors: some useful functions `r emojifont::emoji("wrench")`
+## Vectors: some useful functions `r .emo("practice")`
 
 ```{r vectors function}
 length(foo)
@@ -169,7 +169,7 @@ table(foo, useNA = "always")
 ```
 
 
-## Vectors: classes `r emojifont::emoji("wrench")`
+## Vectors: classes `r .emo("practice")`
 
 ```{r vectors classes}
 foo1 <- c(1, 5, 5, NA)
@@ -190,7 +190,7 @@ knitr::kable(rbind(names, classes))
 ```
 
 
-## Vectors: factors `r emojifont::emoji("wrench")`
+## Vectors: factors `r .emo("practice")`
 
 ```{r vetors factors}
 (foo <-  factor(c("a", "b", "c"))) ## Tip: the brackets force the display
@@ -205,7 +205,7 @@ as.character(foo)                            ## you can turn factors into charac
 ```
 
 
-## Vectors: sequences `r emojifont::emoji("wrench")`
+## Vectors: sequences `r .emo("practice")`
 
 ```{r seq}
 1:5
@@ -215,7 +215,7 @@ seq(from = 1, to = 5, by = 0.5) ## more arguments possible
 ```
 
 
-## Vectors: pseudo-random numbers `r emojifont::emoji("wrench")`
+## Vectors: pseudo-random numbers `r .emo("practice")`
 
 ```{r rnorm}
 rnorm(5, mean = 2, sd = 0.1)  ## Tip: check ?Distributions for other distributions
@@ -227,7 +227,7 @@ rnorm(5, mean = 2, sd = 0.1)
 ```
 
 
-## Attributes `r emojifont::emoji("wrench")`
+## Attributes `r .emo("practice")`
 
 ```{r attributes}
 foo <- c(a = 1, b = 5, c = 10, d = 23)
@@ -238,7 +238,7 @@ attributes(foo)
 ```
 
 
-## Dataframes: basics `r emojifont::emoji("wrench")`
+## Dataframes: basics `r .emo("practice")`
 
 ```{r dataframe}
 foo <- data.frame(
@@ -251,7 +251,7 @@ dimnames(foo) ## Tip: try rownames() and colnames()
 ```
 
 
-## Dataframes: indexing `r emojifont::emoji("wrench")`
+## Dataframes: indexing `r .emo("practice")`
 
 ```{r dataframe indexing}
 foo[2, ]    ## get row 2
@@ -261,7 +261,7 @@ foo[, "x"]  ## get column x
 ```
 
 
-## Dataframes: combining rows `r emojifont::emoji("wrench")`
+## Dataframes: combining rows `r .emo("practice")`
 
 ```{r dataframe foo2}
 foo2 <- data.frame(
@@ -275,7 +275,7 @@ rbind(foo, foo2)
 ```
 
 
-## Dataframes: combining columns `r emojifont::emoji("wrench")`
+## Dataframes: combining columns `r .emo("practice")`
 
 ```{r dataframe bar}
 bar <- data.frame(
@@ -290,7 +290,7 @@ cbind(foo, bar) ## Note that columns are not merged
 ```
 
 
-## Dataframes: {dplyr} <---> {base} translation `r emojifont::emoji("mortar_board")`
+## Dataframes: {dplyr} <---> {base} translation `r .emo("info")`
 
 ```{r dataframe dplyr, message=FALSE}
 library(dplyr)
@@ -316,7 +316,7 @@ foo_tbl %>% filter(x == 3)  ## same as foo_tbl[foo_tbl$x == 3, ]
 ```
 
 
-## Dataframes: applying functions on rows or columns `r emojifont::emoji("wrench")`
+## Dataframes: applying functions on rows or columns `r .emo("practice")`
 
 ```{r new df}
 (d <- data.frame(a = c(1, 2, 3, NA), b = c(NA, 3, 2, 1)))
@@ -331,7 +331,7 @@ apply(d, 2, function(x) any(is.na(x)))  ## NA in each column
 ```
 
 
-## Matrices: basics `r emojifont::emoji("wrench")`
+## Matrices: basics `r .emo("practice")`
 
 ```{r matrix}
 foo <- matrix(data = 1:4, nrow = 2, ncol = 2) ## Tip: try with byrow = TRUE
@@ -350,7 +350,7 @@ foo[2, ]
 foo[1, 2]
 ```
 
-## Matrices: transposition, inversion `r emojifont::emoji("wrench")`
+## Matrices: transposition, inversion `r .emo("practice")`
 
 ```{r matrix transpose}
 foo
@@ -359,7 +359,7 @@ solve(foo)  ## inverse of foo
 ```
 
 
-## Matrices: multiplication `r emojifont::emoji("wrench")`
+## Matrices: multiplication `r .emo("practice")`
 
 ```{r matrix multiplication}
 foo %*% matrix(c(-1, 1)) ## = [1 * -1 + 2 * -1][3 * -1 + 4 * 1]
@@ -368,7 +368,7 @@ foo * solve(foo)         ## NOT MATRIX MULTIPLICATION! (element by element multi
 ```
 
 
-## Lists `r emojifont::emoji("wrench")`
+## Lists `r .emo("practice")`
 
 ```{r lists}
 foo <- list("foo1" = c(1:10), "foo2" = factor(c("a", "b")))
@@ -378,7 +378,7 @@ foo$foo2
 ```
 
 
-## Functions `r emojifont::emoji("wrench")`
+## Functions `r .emo("practice")`
 
 ```{r function}
 addA_B <- function(a = 0, b = 0) { ## setting values for argument makes them default values
@@ -398,7 +398,7 @@ addA_B_bis(2, 3)
 ```
 
 
-## Repeated operations `r emojifont::emoji("wrench")`
+## Repeated operations `r .emo("practice")`
 
 ```{r hello}
 hello <- function(who = "alex") paste("hello", who)
@@ -416,7 +416,7 @@ sapply(c("alex", "olivia"), function(i) hello(who = i)) ## returns a vector when
 lapply(c("alex", "olivia"), function(i) hello(who = i)) ## returns a list
 ```
 
-## Plots  `r emojifont::emoji("mortar_board")`
+## Plots  `r .emo("info")`
 
 Plots are necessary to check data (e.g. outliers), model assumptions, and communicate model results.
 
@@ -428,7 +428,7 @@ str(Davis)
 
 Note: check `?Davis` for details on each variable.
 
-## Plots: the scatterplot `r emojifont::emoji("wrench")`
+## Plots: the scatterplot `r .emo("practice")`
 
 For plotting two quantitative variables (work best if continuous, messy if discrete):
 
@@ -439,7 +439,7 @@ plot(repht ~ height, data = Davis)
 Note: if one variable is expected to affect the other it should be on the x-axis.
 
 
-## Plots: `pairs()` `r emojifont::emoji("wrench")`
+## Plots: `pairs()` `r .emo("practice")`
 
 Plot all variables against each others using scatterplots:
 
@@ -450,7 +450,7 @@ pairs(Davis)
 Note: qualitative variables are turned into quantitative ones.
 
 
-## Plots: the boxplot `r emojifont::emoji("wrench")`
+## Plots: the boxplot `r .emo("practice")`
 
 For plotting the distribution of a quantitative variable (best if continuous) against a qualitative variable:
 
@@ -463,7 +463,7 @@ boxplot(height ~ sex, data = plot_data)
 Note: boxplots show median, inter-quartile range, and potential outliers.
 
 
-## Plots: the conditioning plot `r emojifont::emoji("wrench")`
+## Plots: the conditioning plot `r .emo("practice")`
 
 Generate multiple scatterplots conditional on one other variable:
 
@@ -472,7 +472,7 @@ Generate multiple scatterplots conditional on one other variable:
 coplot(repht ~ height | sex, data = plot_data, panel = panel.smooth)
 ```
 
-## Plots: the conditioning plot `r emojifont::emoji("wrench")`
+## Plots: the conditioning plot `r .emo("practice")`
 
 Generate multiple scatterplots conditional on two other variables:
 
