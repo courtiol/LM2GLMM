@@ -78,6 +78,12 @@ plot(power ~ N)
 
 Can you run, read and understand this code?
 
+
+## Plots
+
+Using the dataset `TitanicSurvival`, find a good way to show at once what influenced the survival of passengers.
+
+
 ##
 
 <div align="right">

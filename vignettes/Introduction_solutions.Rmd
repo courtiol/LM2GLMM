@@ -109,3 +109,16 @@ Can you run, read and understand this code?
 ### Solution
 
 I cannot really correct that one here. Ask me if you don't get it.
+
+
+## Plots
+
+### Instruction
+
+Using the dataset `TitanicSurvival`, find a good way to show at once what influenced the survival of passengers.
+
+### Solution
+
+```{r survival_plot}
+coplot(survived ~ age | sex * passengerClass, data = TitanicSurvival, panel = panel.smooth)
+```
