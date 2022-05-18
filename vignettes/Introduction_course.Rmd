@@ -416,6 +416,55 @@ sapply(c("alex", "olivia"), function(i) hello(who = i)) ## returns a vector when
 lapply(c("alex", "olivia"), function(i) hello(who = i)) ## returns a list
 ```
 
+## Plots
+
+Necessary to check data (e.g. outliers), model assumptions, and communicate model results. We'll cover three basic plots using the `Davis` dataset. We have both continuous (e.g. weight, height) and categorical (e.g. sex) variables.
+
+```{r into_davis}
+#Look at the columns in Davis data frame
+str(Davis)
+#sex: Sex of participants 2 factors M and F.
+#weight: Measured weight of participants in kg
+#height: Measured height of participants in cm
+#repwt: Weight reported by participants in kg
+#repht: Height reported by participants in cm
+```
+
+## Plots: Scatterplot
+
+Plot two continuous variables. If one variable is expected to affect the other it should be on the x-axis.
+
+```{r scatterplot, fig.height=4.5, fig.width=4.5}
+plot(repht ~ height, data = Davis)
+```
+
+## Plots: Boxplot
+
+Plot a categorical variable and continuous variable. Boxplots show median, inter-quartile range, and potential outliers.
+
+```{r boxplot, fig.height=4.5, fig.width=4.5}
+#Remove outlier identified in scatterplot to see boxplots better (for demonstration only)
+plot_data <- Davis[Davis$height > 100, ]
+boxplot(height ~ sex, data = plot_data)
+```
+
+## Plots: coplot
+
+Generate multiple scatterplots conditional on some other variable.
+
+```{r coplot1, fig.height=4.5, fig.width=6}
+#Look at relationship between height and reported height for each sex
+coplot(repht ~ height | sex, data = plot_data, panel = panel.smooth)
+```
+
+## Plots: coplot
+
+**NOTE:** Scatterplots read from left-right and bottom-top.
+
+```{r coplot2}
+#Look at relationship between height and reported height for different weight groups
+coplot(repht ~ height | weight, data = plot_data, panel = panel.smooth)
+```
 
 ##
 
