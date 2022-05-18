@@ -22,13 +22,13 @@ options(width = 90)
 
 ## Computing with R
 
-Compute the following equation:
+### Instruction
 
-<br>
+Compute the following equation:
 
 <center><font size="8"> $\sqrt{\frac{2^{3+1}}{\frac{4}{5\times{6}}}-20}$ </font></center>
 
-<br>
+### Solution
 
 The idea is to do things step by step and always check that things are OK before they get too complex:
 
@@ -45,48 +45,49 @@ sqrt(((2^(3+1)) / (4 / (5*6))) - 20)
 
 ## Data exploration
 
+### Instruction
+
 Using the dataset `TitanicSurvival`, figure out: 
 
 - how many rows and columns are they in this dataset?
+- how many columns correspond to factors?
+- how many females below 20 years old survived in 2nd class, and how many did not?
 
+### Solution
 
+There are `r nrow(TitanicSurvival)` rows and `r ncol(TitanicSurvival)` columns:
 ```{r}
 dim(TitanicSurvival)
 ```
-We see that there are `r nrow(TitanicSurvival)` rows and `r ncol(TitanicSurvival)` columns.
 
-<br>
-
-- how many columns correspond to factors?
+There are 3 factors:
 
 ```{r}
 str(TitanicSurvival)
 ```
-We see that there are 3 factors.
 
-<br>
-
-- how many females below 20 years old survived in 2nd class, and how many did not?
+To compute how many females below 20 years old survived in 2nd class and how many did not, you can do:
 
 ```{r}
-test <- TitanicSurvival$survived == "yes" & 
-        TitanicSurvival$sex == "female" &
-        TitanicSurvival$age < 20 &
-        TitanicSurvival$passengerClass == "2nd"
-sum(test, na.rm = TRUE)
+test <- TitanicSurvival[TitanicSurvival$sex == "female" &
+                         TitanicSurvival$age < 20 &
+                         TitanicSurvival$passengerClass == "2nd", ]
+table(test$survived)
 ```
 Many other ways are possible, such as:
 
 ```{r, message=FALSE}
 library(dplyr)
 TitanicSurvival |>
-  filter(survived == "yes", sex == "female", age < 20, passengerClass == "2nd") |>
-  count()
+  filter(sex == "female", age < 20, passengerClass == "2nd") |>
+  count(survived)
 ```
 
 
 
 ## An example of programming
+
+### Instruction
 
 The following function can be used to investigate the statistical power of a t-test (i.e. the probability to detect a significant effect when they really is one = rate of true positive):
 
@@ -103,8 +104,8 @@ power <- sapply(N, function(n) mean(replicate(100, compare_heights(n_group = n))
 plot(power ~ N)
 ```
 
-<br>
-
 Can you run, read and understand this code?
 
-I cannot really correct that one here. Ask if you don't get it.
+### Solution
+
+I cannot really correct that one here. Ask me if you don't get it.
