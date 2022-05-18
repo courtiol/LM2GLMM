@@ -22,10 +22,10 @@ knitr::opts_chunk$set(error = TRUE)
 ## The Linear Model: LM
 
 * 2.0 [Introduction](./LM_intro_course.html)
-* 2.1 [Fitting procedure](./LM_fitting.html)
-* 2.2 [Tests & Intervals](./LM_test_intervals.html)
-* 2.3 [Assumptions & Outliers](./LM_assumptions.html)
-* 2.4 [Let's practice](./LM_practice.html)
+* 2.1 [Fitting procedure](./LM_fitting_course.html)
+* 2.2 [Tests & Intervals](./LM_test_intervals_course.html)
+* 2.3 [Assumptions & Outliers](./LM_assumptions_course.html)
+* 2.4 [Let's practice](./LM_practice_exercises.html)
 
 <br>
 
@@ -903,10 +903,10 @@ Note: it could be difficult to identify what packages computing (or plotting) au
 ## The Linear Model: LM
 
 * 2.0 [Introduction](./LM_intro_course.html)
-* 2.1 [Fitting procedure](./LM_fitting.html)
-* 2.2 [Tests & Intervals](./LM_test_intervals.html)
-* 2.3 [Assumptions & Outliers](./LM_assumptions.html)
-* 2.4 [Let's practice](./LM_practice.html)
+* 2.1 [Fitting procedure](./LM_fitting_course.html)
+* 2.2 [Tests & Intervals](./LM_test_intervals_course.html)
+* 2.3 [Assumptions & Outliers](./LM_assumptions_course.html)
+* 2.4 [Let's practice](./LM_practice_exercises.html)
 
 <br>
 
