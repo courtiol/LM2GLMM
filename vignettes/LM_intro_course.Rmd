@@ -877,7 +877,7 @@ Note: it could be difficult to identify what packages computing (or plotting) au
 
 # Summary
 
-## What you need to remember
+## What you need to remember `r emojifont::emoji("dart")`
 
 * how to write a linear model (using simple maths notation and R formulas)
 * how to simulate the data according to simple linear models
