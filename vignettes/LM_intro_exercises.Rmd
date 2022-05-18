@@ -19,8 +19,8 @@ knitr::opts_chunk$set(cache = FALSE,
                       fig.align = "center",
                       fig.width = 4,
                       fig.height = 4,
-                      cache.path = "./cache_knitr/LM_intro_ex/",
-                      fig.path = "./fig_knitr/LM_intro_ex/")
+                      cache.path = "./cache_knitr/Exo_LM_intro/",
+                      fig.path = "./fig_knitr/Exo_LM_intro/")
 options(width = 110)
 set.seed(1L)
 ```

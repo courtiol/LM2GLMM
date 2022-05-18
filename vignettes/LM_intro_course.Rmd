@@ -21,7 +21,7 @@ knitr::opts_chunk$set(error = TRUE)
 
 ## The Linear Model: LM
 
-* 2.0 [Introduction](./LM_intro.html)
+* 2.0 [Introduction](./LM_intro_course.html)
 * 2.1 [Fitting procedure](./LM_fitting.html)
 * 2.2 [Tests & Intervals](./LM_test_intervals.html)
 * 2.3 [Assumptions & Outliers](./LM_assumptions.html)
@@ -818,7 +818,7 @@ predict(fit_alien_lm, newdata = data_for_predict)
 
 <br>
 
-The fact that you provide predictors instead of regressors is particularly useful when you have qualitative variable (see [exercises](./LM_intro_ex.html)).
+The fact that you provide predictors instead of regressors is particularly useful when you have qualitative variable (see [exercises](./LM_intro_exercises.html)).
 
 ## Predictions with several predictors
 
@@ -894,7 +894,7 @@ Note: it could be difficult to identify what packages computing (or plotting) au
 <br>
 
 <div align="right">
-[Exercises](./LM_intro_ex.html)
+[Exercises](./LM_intro_exercises.html)
 </div>
 
 
@@ -902,7 +902,7 @@ Note: it could be difficult to identify what packages computing (or plotting) au
 
 ## The Linear Model: LM
 
-* 2.0 [Introduction](./LM_intro.html)
+* 2.0 [Introduction](./LM_intro_course.html)
 * 2.1 [Fitting procedure](./LM_fitting.html)
 * 2.2 [Tests & Intervals](./LM_test_intervals.html)
 * 2.3 [Assumptions & Outliers](./LM_assumptions.html)
