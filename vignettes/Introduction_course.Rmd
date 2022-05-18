@@ -21,9 +21,9 @@ knitr::opts_chunk$set(fig.align = "center")
 
 ## Table of content
 
-### 1. [General information](./Introduction.html#3)
-### 2. [The exam](./Introduction.html#7)
-### 3. [A catalogue of useful {base} R commands for this course](./Introduction.html#10)
+### 1. [General information](./Introduction_course.html#3)
+### 2. [The exam](./Introduction_course.html#7)
+### 3. [A catalogue of useful {base} R commands for this course](./Introduction_course.html#10)
 
 <div align="right">
 [Back to main menu](./Title.html#2)
@@ -401,7 +401,7 @@ lapply(c("alex", "olivia"), function(i) hello(who = i)) ## returns a list
 ##
 
 <div align="right">
-[Exercises](./Introduction_ex.html)
+[Exercises](./Introduction_exercises.html)
 </div>
 
 <br>
