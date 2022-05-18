@@ -118,15 +118,15 @@ set.seed(123)
 
 ## A note on `package::fn`
 
-In R, when you call a function it looks for it in the global environment (i.e. where your object are stored) and in all the packages attached to the so-called search list:
+In R, when you call a function it looks for it in the global environment (i.e. where your objects are stored) and in all the packages attached to the so-called search list:
 
 ```{r search list}
-search()
+head(search(), n = 10) ## shows first 10 elements
 ```
 
 The packages there are those that have been attached by the system or by you (e.g. using `library()`).
 
-Using the syntax `package::fn()` allows for you to access a function from an installed package that has not been attached which can be useful if you don't want to load a package and save one line of code (e.g. as when we do `drat::addRepo("courtiol")`.
+Using the syntax `package::fn()` allows for you to access a function from an installed package that has not been attached which can be useful if you don't want to load a package and save one line of code (e.g. as when we do `drat::addRepo("courtiol")`).
 
 Importantly, it is also a way to be explicit about where a function is coming from.
 
@@ -159,6 +159,11 @@ The object created stores a lot of information that you can retrieve directly or
 names(fit_alien_lm)
 ```
 
+Many functions can take such an object as input and thus will use its inner components:
+
+```{r lm methods}
+head(methods(class = class(fit_alien_lm)), n = 18) ## shows first 18 elements (items depend on packages attached)
+```
 
 ## Fitting the Alien data using ```fitme()```
 
@@ -240,7 +245,7 @@ residuals(fit_alien_lm2)
 summary(fit_alien_lm)$sigma^2 * (nrow(model.matrix(fit_alien_lm2)) - ncol(model.matrix(fit_alien_lm2))) / nrow(Alien)
 ```
 
-Note: `sigma` contains the error standard deviation estimate, hence the transformation.
+Note: `sigma` contains the standard deviation estimate for the errors, hence the transformation.
 
 ### From fit with `fitme`()
 ```{r fit estimate residual var spaMM}
@@ -513,7 +518,7 @@ res_optim_rss <- optim(par = c("intercept" = 0, "slope" = 1), ## the starting va
 Let's compare what we obtained from what `lm()` produced:
 ```{r optim by rss output}
 res_optim_rss$par - coef(fit_alien_lm) ## very close to what is produced by lm() :-) !!!
-res_optim_rss$value - sum(fit_alien_lm$residuals^2) ## very close to what is produced by lm() :-) !!!
+res_optim_rss$value -anova(fit_alien_lm)[2, "Sum Sq"] ## very close to what is produced by lm() :-) !!!
 ```
 
 
@@ -620,7 +625,7 @@ round(rbind(lm = coef(fit_test_lm), OLS = fit_test_homemade_OLS$par, ML = fit_te
 
 ## Comparing the three methods on a REAL dataset
 
-Let's now perform a bench mark to compare the computational efficiency of the 3 fitting methods:
+Let's now perform a benchmark to compare the computational efficiency of the 3 fitting methods:
 ```{r computation 3 methods bench, warning=FALSE}
 UKsmall <- UK[1:500, ] ## we reduce the sample size for saving time
 microbenchmark::microbenchmark(
@@ -656,7 +661,7 @@ solve(t(X) %*% X) %*% t(X) %*% Y  ## Tip: solve(x) returns the inverse of the ma
 
 <br>
 
-Geek note: $\widehat{Y} = X \widehat{\beta} = X (X^TX)^{-1}X^TY=HY$, and $H$ is called the hat matrix (it is a projection matrix).
+Geek note: $\widehat{Y} = X \widehat{\beta} = X (X^TX)^{-1}X^TY=HY$, and $H$ is called the hat matrix (it is a projection matrix and it can be used for various purposes).
 
 
 ## `lm()`-like fitting using QR decomposition
