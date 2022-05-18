@@ -31,7 +31,26 @@ knitr::opts_chunk$set(fig.align = "center")
 
 # General information
 
-## Course philosophy
+## Symbols `r emojifont::emoji("mortar_board")` 
+
+I use emojis at the top of each slide to indicate what it refers to:
+
+- `r emojifont::emoji("mortar_board")` for things that are good to know for improving your understanding
+- `r emojifont::emoji("wrench")` for practical advice (i.e. things you need to learn doing)
+- `r emojifont::emoji("eyeglasses")` for demonstrations (i.e. to show you I am not always making things up and teach you how to test your own ideas)
+
+<br>
+
+I may also use a few others within the slides
+
+- `r emojifont::emoji("dart")` for goals
+- `r emojifont::emoji("tada")` for solutions or nice results
+- `r emojifont::emoji("angry")` for things that are broken
+- `r emojifont::emoji("fire")` for heavy computations
+- `r emojifont::emoji("warning")` for warnings
+- `r emojifont::emoji("alien")` for aliens
+
+## Course philosophy `r emojifont::emoji("mortar_board")`
 
 ### By the end of the course, my goal is for you to:
 * become autonomous with linear modelling (capable of doing a little, capable of learning a lot)
@@ -48,7 +67,7 @@ knitr::opts_chunk$set(fig.align = "center")
 * which packages can do X or Y in a single click
 
 
-## What do you need for the course?
+## What do you need for the course? `r emojifont::emoji("wrench")`
 * a laptop
 * a computer with internet connection
 * a web browser (up-to-date)
@@ -56,7 +75,7 @@ knitr::opts_chunk$set(fig.align = "center")
 * RStudio version $\geq$ 2022.01.1
 
 
-## How to access the course?
+## How to access the course? `r emojifont::emoji("wrench")`
 
 The course is an **R package** called **LM2GLMM**.
 
@@ -88,7 +107,7 @@ library(package = "LM2GLMM") ## !!! Always check the version with me because I w
 
 # The exam
 
-## Procedure
+## Procedure `r emojifont::emoji("mortar_board")`
 
 ### What?
 
@@ -108,7 +127,7 @@ library(package = "LM2GLMM") ## !!! Always check the version with me because I w
 * you are free to look at your course and R-help files (no internet)
 
 
-## Grading
+## Grading `r emojifont::emoji("mortar_board")`
 
 ### I will grade:
 
@@ -128,7 +147,7 @@ library(package = "LM2GLMM") ## !!! Always check the version with me because I w
 
 # A catalogue of useful {base} R commands for this course
 
-## Vectors: basics
+## Vectors: basics `r emojifont::emoji("wrench")`
 
 ```{r vectors basics}
 foo <- c(1, 5, 5, 10, 23, NA, NA)
@@ -140,7 +159,7 @@ foo2["b"]
 ```
 
 
-## Vectors: some useful functions
+## Vectors: some useful functions `r emojifont::emoji("wrench")`
 
 ```{r vectors function}
 length(foo)
@@ -150,7 +169,7 @@ table(foo, useNA = "always")
 ```
 
 
-## Vectors: classes
+## Vectors: classes `r emojifont::emoji("wrench")`
 
 ```{r vectors classes}
 foo1 <- c(1, 5, 5, NA)
@@ -171,7 +190,7 @@ knitr::kable(rbind(names, classes))
 ```
 
 
-## Vectors: factors
+## Vectors: factors `r emojifont::emoji("wrench")`
 
 ```{r vetors factors}
 (foo <-  factor(c("a", "b", "c"))) ## Tip: the brackets force the display
@@ -186,7 +205,7 @@ as.character(foo)                            ## you can turn factors into charac
 ```
 
 
-## Vectors: sequences
+## Vectors: sequences `r emojifont::emoji("wrench")`
 
 ```{r seq}
 1:5
@@ -196,7 +215,7 @@ seq(from = 1, to = 5, by = 0.5) ## more arguments possible
 ```
 
 
-## Vectors: pseudo-random numbers
+## Vectors: pseudo-random numbers `r emojifont::emoji("wrench")`
 
 ```{r rnorm}
 rnorm(5, mean = 2, sd = 0.1)  ## Tip: check ?Distributions for other distributions
@@ -208,7 +227,7 @@ rnorm(5, mean = 2, sd = 0.1)
 ```
 
 
-## Attributes
+## Attributes `r emojifont::emoji("wrench")`
 
 ```{r attributes}
 foo <- c(a = 1, b = 5, c = 10, d = 23)
@@ -219,7 +238,7 @@ attributes(foo)
 ```
 
 
-## Dataframes: basics
+## Dataframes: basics `r emojifont::emoji("wrench")`
 
 ```{r dataframe}
 foo <- data.frame(
@@ -232,7 +251,7 @@ dimnames(foo) ## Tip: try rownames() and colnames()
 ```
 
 
-## Dataframes: indexing
+## Dataframes: indexing `r emojifont::emoji("wrench")`
 
 ```{r dataframe indexing}
 foo[2, ]    ## get row 2
@@ -242,7 +261,7 @@ foo[, "x"]  ## get column x
 ```
 
 
-## Dataframes: combining rows
+## Dataframes: combining rows `r emojifont::emoji("wrench")`
 
 ```{r dataframe foo2}
 foo2 <- data.frame(
@@ -256,7 +275,7 @@ rbind(foo, foo2)
 ```
 
 
-## Dataframes: combining columns
+## Dataframes: combining columns `r emojifont::emoji("wrench")`
 
 ```{r dataframe bar}
 bar <- data.frame(
@@ -271,7 +290,7 @@ cbind(foo, bar) ## Note that columns are not merged
 ```
 
 
-## Dataframes: {dplyr} <---> {base} translation
+## Dataframes: {dplyr} <---> {base} translation `r emojifont::emoji("mortar_board")`
 
 ```{r dataframe dplyr, message=FALSE}
 library(dplyr)
@@ -297,7 +316,7 @@ foo_tbl %>% filter(x == 3)  ## same as foo_tbl[foo_tbl$x == 3, ]
 ```
 
 
-## Dataframes: applying functions on rows or columns
+## Dataframes: applying functions on rows or columns `r emojifont::emoji("wrench")`
 
 ```{r new df}
 (d <- data.frame(a = c(1, 2, 3, NA), b = c(NA, 3, 2, 1)))
@@ -312,7 +331,7 @@ apply(d, 2, function(x) any(is.na(x)))  ## NA in each column
 ```
 
 
-## Matrices: basics
+## Matrices: basics `r emojifont::emoji("wrench")`
 
 ```{r matrix}
 foo <- matrix(data = 1:4, nrow = 2, ncol = 2) ## Tip: try with byrow = TRUE
@@ -331,7 +350,7 @@ foo[2, ]
 foo[1, 2]
 ```
 
-## Matrices: transposition, inversion
+## Matrices: transposition, inversion `r emojifont::emoji("wrench")`
 
 ```{r matrix transpose}
 foo
@@ -340,7 +359,7 @@ solve(foo)  ## inverse of foo
 ```
 
 
-## Matrices: multiplication
+## Matrices: multiplication `r emojifont::emoji("wrench")`
 
 ```{r matrix multiplication}
 foo %*% matrix(c(-1, 1)) ## = [1 * -1 + 2 * -1][3 * -1 + 4 * 1]
@@ -349,7 +368,7 @@ foo * solve(foo)         ## NOT MATRIX MULTIPLICATION! (element by element multi
 ```
 
 
-## Lists
+## Lists `r emojifont::emoji("wrench")`
 
 ```{r lists}
 foo <- list("foo1" = c(1:10), "foo2" = factor(c("a", "b")))
@@ -359,7 +378,7 @@ foo$foo2
 ```
 
 
-## Functions
+## Functions `r emojifont::emoji("wrench")`
 
 ```{r function}
 addA_B <- function(a = 0, b = 0) { ## setting values for argument makes them default values
@@ -379,7 +398,7 @@ addA_B_bis(2, 3)
 ```
 
 
-## Repeated operations
+## Repeated operations `r emojifont::emoji("wrench")`
 
 ```{r hello}
 hello <- function(who = "alex") paste("hello", who)

@@ -57,6 +57,7 @@ Imports:
     visreg
 Suggests:
     devtools,
+    emojifont,
     IsoriX,
     rmarkdown,
     rcdd,
