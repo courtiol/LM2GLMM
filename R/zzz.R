@@ -40,3 +40,20 @@
   message("About to upload the package on GitHub, be patient...")
   system("cd ../../drat; git add .; git commit -m 'Pruning';  git push")
 }
+
+#' @export
+.emo <- function(x = c("info", "practice", "proof", "goal", "party", "broken", "heavy", "warn", "alien")) {
+  x <- match.arg(x)
+  if(!requireNamespace("emojifont")) stop("You need to install the package emojifont to use this function.")
+  switch (x,
+    info = emojifont::emoji("mortar_board"),
+    practice = emojifont::emoji("wrench"),
+    proof = knitr::asis_output("\U1F9EA"),
+    goal = emojifont::emoji("dart"),
+    party = emojifont::emoji("tada"),
+    broken = emojifont::emoji("angry"),
+    heavy = emojifont::emoji("fire"),
+    warn = emojifont::emoji("warning"),
+    alien = emojifont::emoji("alien")
+  )
+}
