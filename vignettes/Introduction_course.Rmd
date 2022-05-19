@@ -38,17 +38,17 @@ I use emojis at the top of each slide to indicate what it refers to:
 - `r .emo("info")` for things that are good to know for improving your understanding
 - `r .emo("practice")` for practical advice (i.e. things you need to learn doing)
 - `r .emo("proof")` for demonstrations (i.e. to show you I am not always making things up and teach you how to test your own ideas)
+- `r .emo("alien")` for creation of data (i.e. the R objects we will use in other slides)
+- `r .emo("goal")` for goals (i.e. to highlight lists the key things you need to remember)
 
 <br>
 
 I may also use a few others within the slides
 
-- `r .emo("goal")` for goals
 - `r .emo("party")` for solutions or nice results
 - `r .emo("broken")` for things that are broken
 - `r .emo("heavy")` for heavy computations
 - `r .emo("warn")` for warnings
-- `r .emo("alien")` for aliens
 
 ## Course philosophy `r .emo("info")`
 
