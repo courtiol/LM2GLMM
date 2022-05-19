@@ -5,8 +5,8 @@ author: "Alexandre Courtiol"
 date: "`r Sys.Date()`"
 output:
   ioslides_presentation:
-  widescreen: true
-smaller: true
+    widescreen: true
+    smaller: true
 vignette: >
   %\VignetteIndexEntry{2.1 z-------------------------------------------------------------exercises}
   %\VignetteEncoding{UTF-8}
@@ -15,16 +15,29 @@ vignette: >
 
 ```{r setup, include=FALSE}
 library(LM2GLMM)
-knitr::opts_chunk$set(cache = FALSE,
-                      fig.align = "center",
-                      fig.width = 4,
-                      fig.height = 4,
-                      cache.path = "./cache_knitr/LM_fitting_ex/",
-                      fig.path = "./fig_knitr/LM_fitting_ex/")
+knitr::opts_chunk$set(cache = FALSE)
 options(width = 110)
 set.seed(1L)
 ```
 
+## Fitting a LM by REML
+
+In LM, REstricted Maximum Likelihood (aka REML) fits correspond to fits for which the (log-)likelihood is computed based on a data generating process that is gaussian (as in ML) and that uses as variance for the distribution the error variance estimate rather than the population residual variance.
+
+Adapt the code shown in the course to compute the log-likelihood of the REML fit with formula `size ~ humans_eaten` using the following data:
+
+```{r}
+set.seed(123)
+Alien <- simulate_Aliens()
+```
+
+
+Compare the results with the outcome of the following call:
+
+```{r, message=FALSE}
+library(spaMM)
+fit_spaMM_REML    <- fitme(size ~ humans_eaten, data = Alien, method = "REML")
+```
 
 
 ##
