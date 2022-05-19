@@ -16,7 +16,7 @@ editor_options:
 ```{r setup, include=FALSE}
 library(LM2GLMM)
 set.seed(1L)
-knitr::opts_chunk$set(fig.align = "center", fig.height=3.5, fig.width=3.5)
+knitr::opts_chunk$set(fig.align = "center", fig.width = 4, fig.height = 4, dev.args = list(pointsize = 8))
 ```
 
 ## Table of content
@@ -438,6 +438,14 @@ plot(repht ~ height, data = Davis)
 
 Note: if one variable is expected to affect the other it should be on the x-axis.
 
+## Plots: the scatterplot `r .emo("practice")`
+
+For more advanced scatterplots, you may use the functionn `scatterplot()` from the package **{car}**:
+
+```{r scatterplot_advanced, message=FALSE}
+library(car)
+scatterplot(height ~ weight + sex, data = Davis[-12, ])
+```
 
 ## Plots: `pairs()` `r .emo("practice")`
 
@@ -467,7 +475,7 @@ Note: boxplots show median, inter-quartile range, and potential outliers.
 
 Generate multiple scatterplots conditional on one other variable:
 
-```{r coplot1, fig.height=4.5, fig.width=6}
+```{r coplot1, fig.height=4, fig.width=6}
 ## Relationship between height and reported height for each sex
 coplot(repht ~ height | sex, data = plot_data, panel = panel.smooth)
 ```
