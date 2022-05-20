@@ -20,23 +20,22 @@ options(width = 110)
 set.seed(1L)
 ```
 
-## Fitting a LM by REML
+## Fitting a LM with REML estimation of the error variance
 
-In LM, REstricted Maximum Likelihood (aka REML) fits correspond to fits for which the (log-)likelihood is computed based on a data generating process that is gaussian (as in ML) and that uses as variance for the distribution the error variance estimate rather than the population residual variance.
+Adapt the code shown in the course to compute the log-likelihood of the fit as the function of the error variance estimate rather than the population residual variance.
 
-Adapt the code shown in the course to compute the log-likelihood of the REML fit with formula `size ~ humans_eaten` using the following data:
+As in the course, use `size ~ humans_eaten` as the formula and the following data:
 
 ```{r}
 set.seed(123)
 Alien <- simulate_Aliens()
 ```
 
-
 Compare the results with the outcome of the following call:
 
 ```{r, message=FALSE}
 library(spaMM)
-fit_spaMM_REML    <- fitme(size ~ humans_eaten, data = Alien, method = "REML")
+fit_spaMM_REML <- fitme(size ~ humans_eaten, data = Alien, method = "REML")
 ```
 
 

@@ -26,13 +26,13 @@ options(width = 90)
 set.seed(1L)
 ```
 
-## Fitting a LM by REML
+## Fitting a LM with REML estimation of the error variance
 
 ### Instruction
 
-In LM, REstricted Maximum Likelihood (aka REML) fits correspond to fits for which the (log-)likelihood is computed based on a data generating process that is gaussian (as in ML) and that use as variance for the distribution the error variance estimate rather than the population residual variance.
+Adapt the code shown in the course to compute the log-likelihood of the fit as the function of the error variance estimate rather than the population residual variance.
 
-Adapt the code shown in the course to compute the log restricted likelihood of the REML fit with formula `size ~ humans_eaten` using the following data:
+As in the course, use `size ~ humans_eaten` as the formula and the following data:
 
 ```{r}
 set.seed(123)
@@ -43,21 +43,21 @@ Compare the results with the outcome of the following call:
 
 ```{r, message=FALSE}
 library(spaMM)
-fit_spaMM_REML    <- fitme(size ~ humans_eaten, data = Alien, method = "REML")
+fit_spaMM_REML <- fitme(size ~ humans_eaten, data = Alien, method = "REML")
 ```
 
 ### Solution
 
-We adapt the function from the course by proposing 2 ways to compute the variance (ML or REML):
+We adapt the function from the course by proposing 2 ways to compute the variance (ML or REML estimation):
 
 ```{r}
-compute_logLik2 <- function(vector.param, formula, data, REML = FALSE) { ## ML is the default
+compute_logLik2 <- function(vector.param, formula, data, varREML = FALSE) {
   useful.data <- model.frame(formula = formula, data = data)
   X <- model.matrix(object = formula, data = useful.data)
   fitted_values <- X %*% matrix(vector.param)
   response <- model.response(useful.data)
   error_variance_top <- sum((response - fitted_values)^2) 
-  error_variance_bottom <- ifelse(REML, nrow(useful.data) - ncol(X), nrow(useful.data))
+  error_variance_bottom <- ifelse(varREML, nrow(useful.data) - ncol(X), nrow(useful.data))
   error_variance <- error_variance_top / error_variance_bottom
   sum(dnorm(response, mean = fitted_values, sd = sqrt(error_variance), log = TRUE))
 }
@@ -69,7 +69,7 @@ We run the new function on the data:
 res_optim_REML <- optim(par = c("intercept" = 0, "slope" = 1),
                       fn = compute_logLik2,
                       formula = size ~ humans_eaten,
-                      REML = TRUE,
+                      varREML = TRUE,
                       data = Alien,
                       control = list(fnscale = -1))
 ```
