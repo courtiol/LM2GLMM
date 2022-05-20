@@ -24,6 +24,7 @@ Imports:
     e1071,
     effects,
     ellipse,
+    forcats,
     spaMM,
     stats,
     glm2,
@@ -57,6 +58,7 @@ Imports:
     visreg
 Suggests:
     devtools,
+    doSNOW,
     emojifont,
     IsoriX,
     rmarkdown,
