@@ -86,7 +86,7 @@ set.seed(1)
 bias_vars_list <- replicate(100000, {
   observations <- rnorm(n = 20, mean = 0, sd = sqrt(5))
   numerator <- sum((observations - mean(observations))^2)
-  c(bias_pop_var   = (numerator/20) - 5,
+  c(bias_pop_var    = (numerator/20) - 5,
     bias_sample_var = (numerator/19) - 5)
 }, simplify = FALSE)
 bias_vars_df <- data.frame(do.call("rbind", bias_vars_list)) ## to turn the output as a clean dataframe
@@ -146,7 +146,7 @@ We will use it a lot because it is very flexible and powerful:
 - it allows for a straightforward computation of intervals, parametric bootstraps, and more
 
 
-## Fitting the Alien data using ```lm()``` `r .emo("practice")`
+## Fitting the Alien data using ```stats::lm()``` `r .emo("practice")`
 
 ```{r fit alien lm}
 fit_alien_lm <- lm(size ~ humans_eaten, data = Alien)
@@ -165,24 +165,26 @@ Many functions can take such an object as input and thus will use its inner comp
 head(methods(class = class(fit_alien_lm)), n = 18) ## shows first 18 elements (items depend on packages attached)
 ```
 
-## Fitting the Alien data using ```fitme()``` `r .emo("practice")`
+## Fitting the Alien data using ```spaMM::fitme()``` `r .emo("practice")`
 
 ```{r fit alien lm2a, message=FALSE}
 library(spaMM)
-fit_alien_lm2 <- fitme(size ~ humans_eaten, data = Alien)
+fit_alien_spaMM <- fitme(size ~ humans_eaten, data = Alien)
 ```
 
 <br>
 
-The object created also stores a lot of information that you can retrieve again directly or (better) indirectly using `fitme()` companion functions:
+The object created also stores a lot of information:
 ```{r fit alien lm2a output}
-names(fit_alien_lm2)
+names(fit_alien_spaMM)
 ```
+
+You can retrieve again directly, or (better) indirectly using `fitme()` companion extractor functions (more on that later).
 
 
 ## Extraction of the design matrix `r .emo("practice")`
 
-### From fit with `lm`()
+### From fit with `stats::lm`()
 ```{r dm lm, results='hold'}
 model.matrix(fit_alien_lm)
 ```
@@ -190,66 +192,70 @@ model.matrix(fit_alien_lm)
 
 ## Extraction of the design matrix `r .emo("practice")`
 
-### From fit with `fitme`()
+### From fit with `spaMM::fitme`()
 ```{r dm spaMM}
-model.matrix(fit_alien_lm2)
+model.matrix(fit_alien_spaMM)
 ```
 
 
 ## Extraction of model parameter estimates `r .emo("practice")`
 
-### From fit with `lm`()
+### From fit with `stats::lm`()
 ```{r fit coef, results='hold'}
 coef(fit_alien_lm) ## you can also do fit_alien_lm$coefficients but using dedicated 
                    ## extractor (if available) is a better idea!
 ```
 
-### From fit with `fitme`()
+### From fit with `spaMM::fitme`()
 ```{r fit coef spaMM, results='hold'}
-fixef(fit_alien_lm2)
+fixef(fit_alien_spaMM)
 ```
 
 
 ## Extraction of the error variance estimate `r .emo("practice")`
 
-### From fit with `lm`()
+### From fit with `stats::lm`()
 ```{r fit estimate error var}
 summary(fit_alien_lm)$sigma^2 ## we expect something close to 25
 ```
 
-### From fit with `fitme`()
+### From fit with `spaMM::fitme`()
 ```{r fit estimate error var spaMM}
-fit_alien_lm2$phi * nrow(Alien) / (nrow(model.matrix(fit_alien_lm2)) - ncol(model.matrix(fit_alien_lm2)))
+fit_alien_spaMM$phi * nrow(Alien) / (nrow(model.matrix(fit_alien_spaMM)) - ncol(model.matrix(fit_alien_spaMM)))
 ```
 
-Note: in ML fit (default setting) `phi` contains the population residual variance (that is, it considers the sample as being the full population: denominator = $n$, not $n-p$), but the error variance estimate can be directly obtained from a REML fit (more on that later). The ability to switch between ML and REML fitting methods becomes particularly useful for more complex models that aim at estimating variances (mixed models). `lm()` does not have this flexibility.
+Notes: 
 
+- in **{spaMM}**, for ML fits (the default method) `phi` contains the population residual variance; i.e. denominator = $n$, not $n-p$
+- in LM, the error variance estimate can be obtained as shown here, or it can be directly obtained from a REML fit (more on that later)
+- switching between ML and REML methods becomes particularly useful for LMM & GLMM
 
 ## Extraction of the residuals `r .emo("practice")`
 
-### From fit with `lm`()
+### From fit with `stats::lm`()
 ```{r fit residuals}
 residuals(fit_alien_lm)
 ```
 
-### From fit with `fitme`()
+### From fit with `spaMM::fitme`()
 ```{r fit residuals spaMM}
-residuals(fit_alien_lm2)
+residuals(fit_alien_spaMM)
 ```
 
 
 ## Extraction of the population residual variance `r .emo("practice")`
 
-### From fit with `lm`()
+### From fit with `stats::lm`()
 ```{r fit estimate residual var}
-summary(fit_alien_lm)$sigma^2 * (nrow(model.matrix(fit_alien_lm2)) - ncol(model.matrix(fit_alien_lm2))) / nrow(Alien)
+summary(fit_alien_lm)$sigma^2 * 
+  (nrow(model.matrix(fit_alien_spaMM)) - ncol(model.matrix(fit_alien_spaMM))) / nrow(Alien)
 ```
 
 Note: `sigma` contains the standard deviation estimate for the errors, hence the transformation.
 
-### From fit with `fitme`()
+### From fit with `spaMM::fitme`()
 ```{r fit estimate residual var spaMM}
-fit_alien_lm2$phi
+fit_alien_spaMM$phi
 ```
 
 
@@ -257,14 +263,14 @@ fit_alien_lm2$phi
 
 We will soon see what the likelihood is but for now consider that it is something quantifying how well the fit approximate the observations.
 
-### From fit with `lm`()
+### From fit with `stats::lm`()
 ```{r logLik}
 logLik(fit_alien_lm)
 ```
 
-### From fit with `fitme`()
+### From fit with `spaMM::fitme`()
 ```{r logLik spaMM}
-logLik(fit_alien_lm2)
+logLik(fit_alien_spaMM)
 ```
 
 
@@ -272,21 +278,21 @@ logLik(fit_alien_lm2)
 
 This is another statistics quantifying how well the fit approximate the observations, which we will also study.
 
-### From fit with `lm`()
+### From fit with `stats::lm`()
 ```{r rss}
 anova(fit_alien_lm)[2, "Sum Sq"] ## this is the same as sum(residuals(fit_alien_lm)^2)
 ```
 
-### From fit with `fitme`()
+### From fit with `spaMM::fitme`()
 ```{r rss spaMM, results='hold'}
-sum(residuals(fit_alien_lm2)^2) ## no extractor I can think of 
-                                ## (even if in the specific case of LM you may use deviance(fit_alien_lm2))
+sum(residuals(fit_alien_spaMM)^2) ## no extractor I can think of 
+                                  ## (even if in the specific case of LM you may use deviance(fit_alien_spaMM))
 ```
 
 
 # How fitting works?
 
-## How to fit a LM without `lm()`? `r .emo("info")`
+## How to fit a LM without `stats::lm()`? `r .emo("info")`
 
 In general, by:
 
@@ -483,7 +489,7 @@ text(-4, 65, paste("RSS =", round(sum(fit_alien_lm$resid^2), 1)), col = "red")
 </div>
 
 
-## Home made LM fitting by OLS `r .emo("proof")`
+## Home made LM fitting by OLS `r .emo("info")` `r .emo("proof")`
 
 We compute a function that compute the RSS given the parameter estimates, the formula and the data:
 
@@ -504,7 +510,7 @@ anova(fit_alien_lm)[2, "Sum Sq"] ## value for reference
 ```
 
 
-## Home made LM fitting by OLS `r .emo("proof")`
+## Home made LM fitting by OLS `r .emo("info")` `r .emo("proof")`
 
 We can now feed this function to an optimisation procedure that will find parameter values minimising the output by trying many combination of parameters:
 
@@ -515,7 +521,7 @@ res_optim_rss <- optim(par = c("intercept" = 0, "slope" = 1), ## the starting va
                        data = Alien)                  ## any additional arguments for "fn"
 ```
 
-Let's compare what we obtained from what `lm()` produced:
+Let's compare parameter and RSS values obtained to those obtained with `lm()`:
 ```{r optim by rss output}
 res_optim_rss$par - coef(fit_alien_lm) ## very close to what is produced by lm() :-) !!!
 res_optim_rss$value -anova(fit_alien_lm)[2, "Sum Sq"] ## very close to what is produced by lm() :-) !!!
@@ -551,7 +557,7 @@ segments(x0 = Alien[1, "size"], x1 = Alien[1, "size"], y0 = 0, y1 = Alien[1, "de
 arrows(x0 = Alien[1, "size"], x1 = 30, y0 = Alien[1, "density"], y1 = Alien[1, "density"], col = "purple", length = 0.1)
 ```
 
-We can test that the function works by comparing the logLik at parameter values estimated with `lm()`:
+The log-likelihood is simply the sum of these log-densities:
 ```{r alien log density}
 sum(log(Alien$density)) ## same as the log of the product!
 logLik(fit_alien_lm)[1]
@@ -560,7 +566,7 @@ logLik(fit_alien_lm)[1]
 </div>
 
 
-## Home made LM fitting by ML `r .emo("proof")`
+## Home made LM fitting by ML `r .emo("info")` `r .emo("proof")`
 
 ```{r def comput_logLik_Alien}
 compute_logLik <- function(vector.param, formula, data) {
@@ -572,15 +578,14 @@ compute_logLik <- function(vector.param, formula, data) {
   sum(dnorm(response, mean = fitted_values, sd = sqrt(population_residual_var), log = TRUE))
 }
 ```
-
-We can test that the function works by comparing the logLik to that produced by `lm()`:
+We can test that the function works by computing the logLik at parameter values estimated with `lm()`:
 ```{r def comput_logLik_Alien test}
 compute_logLik(vector.param = coef(fit_alien_lm), formula = size ~ humans_eaten, data = Alien)
 logLik(fit_alien_lm)[1] ## value for reference
 ```
 
 
-## Home made LM fitting by ML `r .emo("proof")`
+## Home made LM fitting by ML `r .emo("info")` `r .emo("proof")`
 
 We can now feed this function to an optimisation procedure that will find parameter values maximising the output:
 
@@ -591,8 +596,7 @@ res_optim_ML <- optim(par = c("intercept" = 0, "slope" = 1),
                       data = Alien,
                       control = list(fnscale = -1)) ## to indicate to maximise and not minimise
 ```
-
-Let's compare what we obtained from what `lm()` produced:
+Let's compare parameter and log-likelihood values obtained to those obtained with `lm()`:
 ```{r optim by ML output}
 res_optim_ML$par - coef(fit_alien_lm) ## coef are very close!
 res_optim_ML$value - logLik(fit_alien_lm)[1] ## logLiks are very close!
@@ -690,7 +694,7 @@ backsolve(R, QTY) ## solve B from RB = QTY
 
 ## Actual `lm()` fitting procedure `r .emo("info")`
 
-First, `lm()` processes information for `lm.fit()`. It is quite a difficult function to read but are the important steps:
+First, `lm()` processes information for `lm.fit()`; it is quite a difficult function to read but here are the important steps:
 ```{r lm guts, eval = FALSE}
 lm(size ~ humans_eaten, data = Alien)
 mf <- model.frame(size ~ humans_eaten, data = Alien)
