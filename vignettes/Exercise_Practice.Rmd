@@ -125,9 +125,9 @@ The plot shows the predicted mean weight of chicken for each diet (black) with a
 
 To make the plot even better we could have sorted the diet by increasing order of their effects.
 
-We can also use **{ggplot2}** if you prefer (which we load through **{tidyverse}** as we will use other tidy packages below)):
+We can also use **{ggplot2}** if you prefer:
 ```{r plot ggplot chicken}
-library(tidyverse)
+library(ggplot2)
 ggplot() +
   geom_point(aes(y = weight, x = feed),
              shape = 1,
@@ -185,7 +185,7 @@ barplot(sort(output$`%>300gr`), names.arg = output$feed[order(output$`%>300gr`)]
 or using tidy packages:
 
 ```{r, fig.width = 8}
-output$feed2 <- fct_reorder(output$feed, output$`%>300gr`)
+output$feed2 <- forcats::fct_reorder(output$feed, output$`%>300gr`)
 
 ggplot(output) +
     geom_col(aes(x = feed2, y = `%>300gr`)) +
