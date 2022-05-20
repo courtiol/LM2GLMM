@@ -489,7 +489,7 @@ text(-4, 65, paste("RSS =", round(sum(fit_alien_lm$resid^2), 1)), col = "red")
 </div>
 
 
-## Home made LM fitting by OLS `r .emo("info")` `r .emo("proof")`
+## Home made LM fitting by OLS `r .emo("nerd")` `r .emo("proof")`
 
 We compute a function that compute the RSS given the parameter estimates, the formula and the data:
 
@@ -510,7 +510,7 @@ anova(fit_alien_lm)[2, "Sum Sq"] ## value for reference
 ```
 
 
-## Home made LM fitting by OLS `r .emo("info")` `r .emo("proof")`
+## Home made LM fitting by OLS `r .emo("nerd")` `r .emo("proof")`
 
 We can now feed this function to an optimisation procedure that will find parameter values minimising the output by trying many combination of parameters:
 
@@ -566,7 +566,7 @@ logLik(fit_alien_lm)[1]
 </div>
 
 
-## Home made LM fitting by ML `r .emo("info")` `r .emo("proof")`
+## Home made LM fitting by ML `r .emo("nerd")` `r .emo("proof")`
 
 ```{r def comput_logLik_Alien}
 compute_logLik <- function(vector.param, formula, data) {
@@ -585,7 +585,7 @@ logLik(fit_alien_lm)[1] ## value for reference
 ```
 
 
-## Home made LM fitting by ML `r .emo("info")` `r .emo("proof")`
+## Home made LM fitting by ML `r .emo("nerd")` `r .emo("proof")`
 
 We can now feed this function to an optimisation procedure that will find parameter values maximising the output:
 
@@ -605,7 +605,7 @@ res_optim_ML$value - logLik(fit_alien_lm)[1] ## logLiks are very close!
 
 # Fitting methods comparison
 
-## Comparing the 3 methods on a REAL dataset `r .emo("info")`
+## Comparing the 3 methods on a REAL dataset `r .emo("nerd")`
 
 ```{r computation 3 methods}
 fit_test_lm <- lm(height ~ weight*sex + cigarettes + drink, data = UK)
@@ -627,7 +627,7 @@ round(rbind(lm = coef(fit_test_lm), OLS = fit_test_homemade_OLS$par, ML = fit_te
 ```
 
 
-## Comparing the 3 methods on a REAL dataset `r .emo("info")`
+## Comparing the 3 methods on a REAL dataset `r .emo("nerd")`
 
 Let's now perform a benchmark to compare the computational efficiency of the 3 fitting methods:
 ```{r computation 3 methods bench, warning=FALSE}
@@ -650,7 +650,7 @@ So our homemade functions work, but they are hugely inefficient!
 
 # Fitting LM analytically
 
-## What the statistical textbooks tell us `r .emo("info")`
+## What the statistical textbooks tell us `r .emo("nerd")`
 
 <center><font size = 8> $\widehat{\beta} = (X^\text{T}X)^{-1}X^\text{T}Y$ </font></center>
 
@@ -739,7 +739,7 @@ as subroutine dqrdc2(x,ldx,n,p,tol,k,qraux,jpvt,work).
 -->
 
 
-## Dissecting the output from `lm()` `r .emo("info")`
+## Dissecting the output from `lm()` `r .emo("nerd")`
 
 ```{r lm output}
 names(fit_alien_lm)

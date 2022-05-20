@@ -593,7 +593,7 @@ Note: in base R the default level of reference is always the first level of a fa
 ```
 
 
-## There are alternative contrasts parametrizations! `r .emo("warn")` `r .emo("info")`
+## There are alternative contrasts parametrizations! `r .emo("warn")`
 
 ```{r sum contrast 1}
 model.matrix(object =  ~ planet, data = Alien2, contrasts.arg = list(planet = "contr.sum"))
@@ -616,7 +616,7 @@ The intercept thus represents the mean of the mean of all groups. (nice!)
 You can use the same idea to show that the first coefficient corresponds to the mean of the first 2 groups minus the mean of the first group, that the second coefficient corresponds to the mean of the first 3 groups minus the mean of the first 2 groups, and so forth. (weird ?!)
 -->
 
-## The example of "sum contrasts" `r .emo("info")`
+## The example of "sum contrasts" `r .emo("nerd")`
 
 ```{r contr.sum 1}
 model.matrix(object =  ~ planet, data = Alien2, contrasts.arg = list(planet = "contr.sum"))
@@ -629,7 +629,7 @@ $$
 * The intercept thus represents the mean of the mean responses across all groups.
 
 
-## The example of "sum contrasts" `r .emo("info")`
+## The example of "sum contrasts" `r .emo("nerd")`
 
 ```{r contr.sum 2}
 model.matrix(object =  ~ planet, data = Alien2, contrasts.arg = list(planet = "contr.sum"))
@@ -643,7 +643,7 @@ $$
 * `planet1` represents the mean response of the first group minus the intercept.
 
 
-## The example of "sum contrasts" `r .emo("info")`
+## The example of "sum contrasts" `r .emo("nerd")`
 
 ```{r contr.sum 3}
 model.matrix(object =  ~ planet, data = Alien2, contrasts.arg = list(planet = "contr.sum"))
@@ -660,7 +660,7 @@ $$
 Note: not much used by R users (because not the default) but useful when there is no clear control.
 
 
-## Example of estimates under different contrasts `r .emo("info")`
+## Example of estimates under different contrasts `r .emo("nerd")`
 
 ```{r sum contrast panoply}
 lm(age ~ planet, data = Alien2, contrasts = list(planet = "contr.treatment"))
