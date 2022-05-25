@@ -48,7 +48,7 @@ I may also use a few others within the slides
 
 - `r .emo("party")` for solutions or nice results
 - `r .emo("broken")` for things that are broken
-- `r .emo("heavy")` for heavy computations
+- `r .emo("slow")` for heavy computations
 - `r .emo("warn")` for warnings
 
 ## Course philosophy `r .emo("info")`

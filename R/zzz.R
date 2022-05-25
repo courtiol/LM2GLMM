@@ -42,7 +42,7 @@
 }
 
 #' @export
-.emo <- function(x = c("info", "practice", "proof", "goal", "nerd", "party", "broken", "heavy", "warn", "alien")) {
+.emo <- function(x = c("info", "practice", "proof", "goal", "nerd", "party", "broken", "slow", "warn", "alien")) {
   x <- match.arg(x)
   if (!requireNamespace("emojifont")) stop("You need to install the package emojifont to use this function.")
   switch(x,
@@ -53,7 +53,7 @@
     nerd = knitr::asis_output("\U1F913")[[1]],
     party = emojifont::emoji("tada"),
     broken = emojifont::emoji("angry"),
-    heavy = emojifont::emoji("fire"),
+    slow = emojifont::emoji("fire"),
     warn = emojifont::emoji("warning"),
     alien = emojifont::emoji("alien")
   )
