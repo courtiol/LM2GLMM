@@ -794,32 +794,32 @@ The variance of the error ($\sigma^2$) cannot be directly observed...
 
 <br>
 
-## Interlude: sample vs population variance `r .emo("info")`
+## Interlude: estimation of variances `r .emo("info")`
 
 Do you remember that?
 
-### Population variance
+### Biased estimation of the variance for $x$
 
 <center><font size = 5>
 $$\frac{\displaystyle\sum^n_{i = 1}(x_i - \bar{x})^2}{n}$$
 </font></center>
 
-### Sample variance
+### Unbiased estimation of the variance for $x$
 
 <center><font size = 5>
 $$\frac{\displaystyle\sum^n_{i = 1}(x_i - \bar{x})^2}{n\color{red}{-1}}$$
 </font></center>
 
 
-## Interlude: sample vs population variance `r .emo("proof")`
+## Interlude: estimation of variances `r .emo("proof")`
 
 ```{r vars}
 set.seed(1)
 bias_vars_list <- replicate(100000, {
   observations <- rnorm(n = 20, mean = 0, sd = sqrt(5))
   numerator <- sum((observations - mean(observations))^2)
-  c(bias_pop_var    = (numerator/20) - 5,
-    bias_sample_var = (numerator/19) - 5)
+  c(bias_var1    = (numerator/20) - 5,
+    bias_var2 = (numerator/19) - 5)
 }, simplify = FALSE)
 bias_vars_df <- data.frame(do.call("rbind", bias_vars_list)) ## to turn the output as a clean dataframe
 ```
@@ -848,6 +848,7 @@ sum(residuals(fit_alien_lm)^2) / (nrow(Alien) - ncol(model.matrix(fit_alien_lm))
 summary(fit_alien_lm)$sigma^2 ## same thing, simpler :-)
 ```
 
+Note: this term is (somewhat confusingly) reffered to as an unbiased estimate of the **residual variance**.
 
 # Predictions
 

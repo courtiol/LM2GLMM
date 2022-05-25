@@ -169,7 +169,7 @@ fixef(fit_alien_spaMM)
 ```
 
 
-## Extraction of the error variance estimate `r .emo("practice")`
+## Extraction of the residual variance `r .emo("practice")`
 
 ### From fit with `stats::lm`()
 ```{r fit estimate error var}
@@ -183,8 +183,8 @@ fit_alien_spaMM$phi * nrow(Alien) / (nrow(model.matrix(fit_alien_spaMM)) - ncol(
 
 Notes: 
 
-- in **{spaMM}**, for ML fits (the default method) `phi` contains the population residual variance; i.e. denominator = $n$, not $n-p$
-- in LM, the error variance estimate can be obtained as shown here, or it can be directly obtained from a REML fit (more on that later)
+- in **{spaMM}**, for ML fits (the default method) `phi` contains a biased estimate of the residual variance; i.e. denominator = $n$, not $n-p$
+- in LM, the unbiased estimate of the residual variance can be obtained as shown here, or it can be directly obtained from a REML fit (more on that later)
 - switching between ML and REML methods becomes particularly useful for LMM & GLMM
 
 ## Extraction of the residuals `r .emo("practice")`
@@ -198,23 +198,6 @@ residuals(fit_alien_lm)
 ```{r fit residuals spaMM}
 residuals(fit_alien_spaMM)
 ```
-
-
-## Extraction of the population residual variance `r .emo("practice")`
-
-### From fit with `stats::lm`()
-```{r fit estimate residual var}
-summary(fit_alien_lm)$sigma^2 * 
-  (nrow(model.matrix(fit_alien_spaMM)) - ncol(model.matrix(fit_alien_spaMM))) / nrow(Alien)
-```
-
-Note: `sigma` contains the standard deviation estimate for the errors, hence the transformation.
-
-### From fit with `spaMM::fitme`()
-```{r fit estimate residual var spaMM}
-fit_alien_spaMM$phi
-```
-
 
 ## Extraction of the log-likelihood `r .emo("practice")`
 
@@ -492,8 +475,8 @@ res_optim_rss$value -anova(fit_alien_lm)[2, "Sum Sq"] ## very close to what is p
 ```{r alien loglik}
 Alien$fitted_values <- fitted.values(fit_alien_lm)
 Alien$residuals <- residuals(fit_alien_lm)
-Alien$population_residual_var <- sum(Alien$residuals^2) / nrow(Alien)
-Alien$density <- dnorm(x = Alien$size, mean = Alien$fitted_values, sd = sqrt(Alien$population_residual_var))
+Alien$residual_var <- sum(Alien$residuals^2) / nrow(Alien) ## need biased estimate here!!
+Alien$density <- dnorm(x = Alien$size, mean = Alien$fitted_values, sd = sqrt(Alien$residual_var))
 Alien[1, ] ## we look in details at the first row, but you can look at all of them 
 ```
 
@@ -502,7 +485,7 @@ Alien[1, ] ## we look in details at the first row, but you can look at all of th
 ```{r alien lik plot, fig.align='center', fig.asp=1, fig.width=3.5, echo = FALSE}
 par(mar = c(4, 4, 1, 1), las = 1)
 curve(dnorm(x, mean = Alien[1, "fitted_values"],
-            sd = sqrt(Alien$population_residual_var[1])),
+            sd = sqrt(Alien$residual_var[1])),
       from = 30, to = 30 + Alien[1, "fitted_values"],
       ylab = "Probability density", xlab = "size")
 abline(h = 0, lty = 2)
@@ -531,8 +514,8 @@ compute_logLik <- function(vector.param, formula, data) {
   X <- model.matrix(object = formula, data = useful.data) ## create the design matrix
   fitted_values <- X %*% matrix(vector.param) ## compute the fitted values given the coef
   response <- model.response(useful.data) ## extract the response
-  population_residual_var <- sum((response - fitted_values)^2) / nrow(useful.data)  ## var for the normal distrib
-  sum(dnorm(response, mean = fitted_values, sd = sqrt(population_residual_var), log = TRUE))
+  residual_var <- sum((response - fitted_values)^2) / nrow(useful.data)  ## var for the normal distrib
+  sum(dnorm(response, mean = fitted_values, sd = sqrt(residual_var), log = TRUE))
 }
 ```
 We can test that the function works by computing the logLik at parameter values estimated with `lm()`:
