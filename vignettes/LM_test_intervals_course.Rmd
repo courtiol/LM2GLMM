@@ -49,7 +49,6 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_test_interval
 * how to check if a test or a method aiming at building a CI is valid
 * how to use the functions ```summary()```, ```anova()``` and ```Anova()```
 * that you should avoid doing many tests
-* how to compute CI for predictions
 
 # Model fits for this session
 
@@ -71,7 +70,7 @@ fit_spaMM_AL1_ML   <- fitme(size ~ humans_eaten, data = Alien)
 fit_spaMM_AL1_ML
 ```
 
-Note: the ML fit is needed for whenever we are using the likelihood to study regression coefficients.
+Note: ML fits are needed for whenever we are using the likelihood to study regression coefficients.
 
 
 ## Aliens fitted with `spaMM::fitme()` `r .emo("alien")`
@@ -83,7 +82,7 @@ fit_spaMM_AL1_REML <- fitme(size ~ humans_eaten, data = Alien, method = "REML")
 fit_spaMM_AL1_REML
 ```
 
-Note: REML fit are needed for whenever we are using variance estimates!
+Note: REML fits are needed for whenever we are using estimate(s) of variance(s).
 
 
 ## Britons fitted with `stats::lm()` `r .emo("alien")`
@@ -114,7 +113,7 @@ fit_spaMM_UK1_REML
 ```
 
 
-# Testing regression coefficients
+# Regression coefficients
 
 ## Point estimates for regression coefficients `r .emo("practice")`
 
@@ -132,7 +131,7 @@ Point estimates are random variables. Thus, to know if these numbers differ from
 Each regression parameter is associated with an estimation variance and since they are all being jointly estimated, there are also covariances between them:
 
 ```{r vcov lm}
-vcov(fit_lm_AL1)
+vcov(fit_lm_AL1) ## = summary(fit_lm_AL1)$sigma^2 * solve(t(model.matrix(fit_lm_AL1)) %*% model.matrix(fit_lm_AL1))
 ```
 
 The variances are on the diagonals, so you can get the standard errors on the regression coefficients as follows:
@@ -159,32 +158,31 @@ Note: the null hypothesis for these tests is that the estimate is null (= 0).
 
 ## Testing regression coefficients with **{spaMM}** `r .emo("nerd")`
 
-Regression coefficient estimates are tested using Student's t-test:
+**{spaMM}** does not compute the p-values for the t-tests but it is possible to compute them:
 
 ```{r summary AL1}
-(ttable <- summary(fit_spaMM_AL1_REML, verbose = FALSE)$beta_table)  ## verbose is just for the slide display
-```
-
-**{spaMM}** does not (yet) compute the p-values for the t-tests but it is easy to compute them:
-```{r summary AL1 2}
+ttable <- summary(fit_spaMM_AL1_REML, verbose = FALSE)$beta_table  ## verbose is just for the slide display
 cbind(ttable, p = 2*pt(abs(ttable[, "t-value"]),
                        df = nrow(model.matrix(fit_spaMM_AL1_REML)) - ncol(model.matrix(fit_spaMM_AL1_REML)),## n-p
                        lower.tail = FALSE))
 ```
 
-Note: to obtain the t-values, you need to rely on the `REML` fits because the denominator of the t-value (`Cond. SE`) are sqrt variance estimates.
+Notes:
+
+- to obtain the t-values, you need to rely on the `REML` fits because the denominator of the t-value (`Cond. SE`) are (sqrt) variance estimates
+- regression coefficients are not affected since they are always estimated by `ML` in **{spaMM}** even if you used `method = "REML"`
 
 
 ## t-tests and linear models `r .emo("info")` `r .emo("proof")`
 
-You can actually substitute simple t-tests with LM:
+You can actually substitute simple two samples t-tests with LM:
 
 ```{r compare t-tests}
 t.test(extra ~ group, data = sleep, var.equal = TRUE)
 summary(lm(extra ~ group, data = sleep))$coef
 ```
 
-Note: the p-value obtained is the same `r .emo("party")`, but notice that effect sizes are opposite from each others.
+Note: the p-value obtained is the same `r .emo("party")`
 
 
 ## Why testing LM using t-tests? `r .emo("info")` `r .emo("proof")`
@@ -198,7 +196,7 @@ qqnorm(new_beta_estimates[, 2])  ## draw a qqplot
 qqline(new_beta_estimates[, 2], col = "red")  ## draw line of normality
 ```
 
-Note: `update()` refit a model with some of its input updated, but you can instead recall `lm()` if you provide all its arguments. 
+Note: `update()` refits a model with some of its input updated, but you can instead recall `lm()` if you provide the latter with all its arguments. 
 
 ## Why testing LM using t-tests? `r .emo("info")`
 
@@ -234,7 +232,7 @@ cbind(estimate, std.error, t.value, p.value)
 
 ## Testing a null but non-nill hypothesis `r .emo("practice")`
 
-Then, you can simply change the numbers.
+Then, you can simply remove the hypothetical value from the numerator of the t-value.
 
 E.g. we test if the coefficient for `human_eaten` is different from 1.5:
 
@@ -246,7 +244,7 @@ p.value <- 2*pt(abs(t.value), df = fit_lm_AL1$df.residual, lower.tail = FALSE) #
 cbind(estimate, std.error, t.value, p.value)
 ```
 
-You can alternatively use the package **{car}** to do that more directly:
+You can alternatively use the package **{car}** to do that automatically:
 
 ```{r specific t test 2}
 car::linearHypothesis(fit_lm_AL1, c("humans_eaten = 1.5"))$"Pr(>F)"[2]
@@ -259,20 +257,16 @@ A more general approach is to identify the entire range of population-level para
 
 This is what ***Confidence Intervals*** (CI) are used for!
 
-There are many methods for building such confidence intervals.
+There are many methods for building such confidence intervals:
 
-for example:
-
-- based on the student distribution (exact, but for LM only)
+- based on the Student's t distribution (exact, but for LM only)
 - by likelihood profiling (asymptotic, general)
 - by parametric bootstrap (empirical, general)
 
 <br>
 
-In the case of LM the method based on the Student's t distribution is best but we will see the alternative methods because they will become useful for more complex models and it is easier to start exploring these methods in the context of simple models.
+In the case of LM the method based on the Student's t distribution is best, but we will see the alternative methods because they will become useful for more complex models and it is easier to start exploring these methods in the context of simple models.
 
-
-# Confidence intervals on regression coefficients
 
 ## Student's based confidence intervals `r .emo("practice")`
 
@@ -289,7 +283,7 @@ cbind(coef(fit_lm_AL1) + qt(0.025, fit_lm_AL1$df.residual) * sqrt(diag(vcov(fit_
       coef(fit_lm_AL1) + qt(0.975, fit_lm_AL1$df.residual) * sqrt(diag(vcov(fit_lm_AL1))))
 ```
 
-Note: `qt()` is used to extract the quantiles from the Student's t distribution and `sqrt(diag(vcov(fit_lm_AL1))` is used to unscale the result so it follows the scale of the response.
+Note: `qt()` is used to extract the quantiles from the Student's t distribution and the rest is used to unscale the result so it follows the scale of the response.
 
 
 ## Why are there other methods to compute CI? `r .emo("info")`
@@ -306,7 +300,7 @@ Unfortunately, most methods for building confidence intervals are only approxima
 
 <br>
 
-Depending on the type of linear model, some methods show a coverage closer to their nominal level than others.
+Depending on the type of the statistical model and the data, some methods show a coverage closer to their nominal level than others.
 
 
 ## Measuring the coverage of Student's based CI `r .emo("practice")`
@@ -348,9 +342,9 @@ Note: `spaMM::fitme()` allows for the fixation of the variance in addition to th
 candidate_slopes <- seq(from = 0, to = 3, by = 0.1)
 loglik <- sapply(candidate_slopes, function(slope) logLik(lm(size ~ 1 + offset(slope*humans_eaten), data = Alien)))
 plot(loglik ~ candidate_slopes, type = "o")
-abline(v = 1.5, col = "green", lwd = 2)
-abline(v = coef(fit_lm_AL1)["humans_eaten"], col = "blue", lwd = 2)
-abline(h = logLik(fit_lm_AL1)[[1]] - 0.5*qchisq(0.95, df = 1), col = "red", lty = 2, lwd = 2)  ## the threshold
+abline(v = 1.5, col = "green", lwd = 2) ## ground truth (usually unknown)
+abline(v = coef(fit_lm_AL1)["humans_eaten"], col = "blue", lwd = 2) ## estimate
+abline(h = logLik(fit_lm_AL1)[[1]] - 0.5*qchisq(0.95, df = 1), col = "red", lty = 2, lwd = 2) ## logLik threshold
 ```
 
 
@@ -386,18 +380,20 @@ CI_prof_slope(fit = fit_lm_AL1, varname = "humans_eaten")
 
 ## Confidence intervals by likelihood profiling `r .emo("info")`
 
-* Benefit: not based on SE, so works well even if error is not Gaussian (as in GLM).
+<br>
+
+* Benefit: generality -- a CI method that is not based on SE works well even if error is not Gaussian (as in GLM).
 
 <br>
 
 * Cost: uses the $\chi^2$ distribution to establish a threshold, which is an asymptotic approximation, so it needs a quite lot of observations for this approximation to be reasonable.
 
 
-## Joint confidence intervals by likelihood profiling `r .emo("info")`
+## Joint CI by likelihood profiling `r .emo("info")`
 
 It can also be easily extended to build confidence regions (i.e. a multivariate CI):
 
-```{r profile betas, echo = FALSE, results = "hide", fig.width = 4, fig.asp = 1}
+```{r profile betas, echo = FALSE, results = "hide", fig.width = 4.5, fig.asp = 1}
 candidate_intercepts <- seq(from = 30, to = 70,  by = 0.1)
 candidates <- expand.grid(candidate_intercept = candidate_intercepts, 
                           candidate_slope = candidate_slopes)
@@ -465,7 +461,7 @@ if $\overline{a^*} = 3$ and $\widehat{a} = 2$, we infer $\widehat{a} - a \sim 2\
 
 ## Confidence intervals by parametric bootstrap `r .emo("nerd")`
 
-It is again a bit complicated even if the package **{boot}** helps:
+For model fitted with `stats::lm()`, it is a little complicated (even if the package **{boot}** helps):
 
 ```{r CI param boot 2}
 CI_boot <- function(fit, param, nboot) {
@@ -474,14 +470,14 @@ CI_boot <- function(fit, param, nboot) {
     newdata <- model.frame(fit) ## extract the data
     newdata[, 1] <- newYs[, i] ## replace the response var
     newfit <- update(fit, data = newdata)  ## refit the model
-    coef(newfit)[[param]]  ## extract the estimate
+    coef(newfit)[[param]]  ## extract the estimate (replace with fixef() if spaMM fit)
   })
   boot::boot.ci(boot.out = list(R = length(res_sim)),
                 t0 = coef(fit)[[param]], ## â
                 t  = res_sim,            ## a*
                 type = "basic")$basic[, 4:5]  ## more complex types exist!
 }
-CI_boot(fit = fit_lm_AL1, param = "humans_eaten", nboot = 100)
+CI_boot(fit = fit_lm_AL1, param = "humans_eaten", nboot = 1000)
 ```
 Notes: for more complex models, there are packages doing that for you, but I do not know one that would work with `stats::lm()` (it may exist).
 
@@ -490,7 +486,7 @@ Notes: for more complex models, there are packages doing that for you, but I do 
 With **{spaMM}**, it is much easier:
 
 ```{r param boot spaMM}
-confint(fit_spaMM_AL1_ML, parm = "humans_eaten", boot_args = list(nsim = 100))
+confint(fit_spaMM_AL1_ML, parm = "humans_eaten", boot_args = list(nsim = 1000))
 ```
 
 <!--
@@ -537,12 +533,349 @@ data.frame(method = c("Student", "Profile", "Parametric bootstrap"),
 
 <br>
 
-CONCLUSION: results are quite different depending on the method one uses!
+Notes: 
 
-In case of LM, it is a no brainer, stick to `confint()` which uses the Student's t distribution when called on a fit produced with `stats::lm()`.
+- results are quite different depending on the method one uses!
+- in case of LM, it is a no brainer, stick to `confint()` which uses the Student's t distribution when called on a fit produced with `stats::lm()`
+- we will see later how to check by yourself which method is best to compute a CI for your model
 
 
-# Testing the residual variance
+## Testing several estimates at once `r .emo("info")`
+
+1. For comparing nested models (e.g. to test the effect of a qualitative variable)
+2. For comparing factor levels
+
+<br>
+
+Example: 
+
+- does the alcohol consumption during pregnancy have an effect of the height of children?
+- which drinking categories differ from which?
+```{r summary alcohol}
+summary(fit_lm_UK1)$coefficients
+```
+
+
+## Comparing nested models using a F test `r .emo("practice")`
+
+You can use `anova()` to compare pairs of model fits:
+```{r fit 2}
+fit_lm_UK2 <- lm(height ~ drink, data = fit_lm_UK1$model) ## we use the model frame to keep same dataset!
+anova(fit_lm_UK2, fit_lm_UK1)
+```
+
+Note: here we test the overall effect of `sex * weight`.
+
+
+## Comparing nested models using a F test `r .emo("info")`
+
+The default behaviour for `anova()` on LM fit is to compare perform a F-test:
+
+```{r fit 2 bis, echo = FALSE}
+fit_lm_UK2 <- lm(height ~ drink, data = fit_lm_UK1$model) ## we use model frame to keep same dataset!
+anova(fit_lm_UK2, fit_lm_UK1)
+```
+
+The F-test is used to check is the decrease in residual variance for the more complex fit is higher than expected under H0:
+
+```{r F test hand}
+RSS_fit1 <- sum(residuals(fit_lm_UK1)^2)
+RSS_fit2 <- sum(residuals(fit_lm_UK2)^2)
+((RSS_fit1 - RSS_fit2)/(fit_lm_UK1$df.residual - fit_lm_UK2$df.residual)) / (RSS_fit1/fit_lm_UK1$df.residual)
+```
+
+Note: RSS/Res.Df = unbiased estimate of the residual variance
+
+
+## Comparing nested models using a LRT `r .emo("practice")`
+
+It is also possible to use a likelihood ratio test (LRT), similarly to what happened when we used likelihood profiling:
+
+```{r lrtest LRT}
+lmtest::lrtest(fit_lm_UK2, fit_lm_UK1)
+```
+
+Notes:
+
+- this uses the package **{lmtest}**
+- for LMs, the LRT and the F-test give similar results (but not for GLMs!)
+
+
+## Comparing nested models using a LRT `r .emo("practice")`
+
+It is possible to use `anova()` to perform a LRT if the model is fitted with **{spaMM}** (using `lmtest::lrtest()` won't work):
+
+```{r spaMM LRT}
+fit_spaMM_UK2_ML <- fitme(height ~ drink, data = fit_spaMM_UK1_ML$data)
+anova(fit_spaMM_UK1_ML, fit_spaMM_UK2_ML)
+```
+
+<br>
+
+Notes: 
+
+- you must use ML fits (not REML) when testing regression coefficients using the likelihood!
+- `anova(..., test = "LRT")` exists for model fitted with `lm()` but it does not really do a true LRT (unless the residual variances of the 2 fits are identical) `r .emo("broken")` (`drop1()` does work)
+
+
+## Comparing nested models using a LRT `r .emo("practice")`
+
+**{spaMM}** makes it also easy to test the LRT by parametric bootstrap instead of using the $\chi^2$, which is good if we are far from asymptotic conditions (but it can be slow to run) `r .emo("slow")`:
+
+```{r spaMM LRT boot, eval = TRUE}
+LRT(fit_spaMM_UK1_ML, fit_spaMM_UK2_ML, boot.repl = 1000)
+```
+
+Notes:
+
+- p-value #1 = asymptotic LRT
+- p-value #2 = LRT by bootstrap
+- p-value #3 = asymptotic LRT with Bartlett correction (midway solution if `boot.repl` must be small)
+
+
+## Comparing nested models to test factors `r .emo("practice")`
+
+Testing the overall effect cannot be done with `summary()` because it would only give you test outputs separately for each factor level. Instead, you should rely on model comparison for this purpose:
+
+```{r fit drink}
+fit_lm_UK3 <- lm(height ~ sex * weight, data = fit_lm_UK1$model)
+anova(fit_lm_UK3, fit_lm_UK1)
+```
+
+<br>
+
+CONCLUSION:
+
+the consumption of alcohol during pregnancy is (statistically) related to the children's height.
+
+
+## F-test vs t-test `r .emo("practice")`
+
+Testing the effect of `human_eatens` can be done with `summary()` or with model comparison:
+
+```{r fit human}
+summary(fit_lm_AL1)$coefficients["humans_eaten", ]
+fit_lm_AL2 <- lm(size ~ 1, data = fit_lm_AL1$model)
+anova(fit_lm_AL2, fit_lm_AL1)
+```
+
+Note: when the models differ by one parameter (as in the case of quantitative variable), the F-test and the t-test give an identical p-value ($t^2 = F$ when the numerator degree of freedom is 1).
+
+
+## Testing all predictors `r .emo("practice")`
+
+Instead of doing many model comparisons to test all your predictors one by one, you can use `car::Anova()` as a shortcut:
+
+```{r fit Anova}
+car::Anova(fit_lm_UK1)
+```
+
+`Anova()` performs a so-called Type 2 ANOVA: it tests for the effect of simple terms considering other simple terms are included, but not interactions. The function also tests for the effect of interactions assuming all simple terms are included.
+
+
+## Testing all predictors `r .emo("practice")`
+
+Better not use `anova()` for that since it performs the comparisons sequentially (i.e. Type 1 ANOVA, which is quite silly)...
+
+```{r fit anova}
+anova(fit_lm_UK1)
+```
+
+<br>
+
+Note: sequential comparisons are nonetheless useful to identify multicollinearity issues (more on that later).
+
+
+## Testing against the null model `r .emo("practice")`
+
+A null model is a model estimating nothing more than an intercept:
+
+```{r null fit 2}
+fit_lm_UK0 <- lm(height ~ 1, data = fit_lm_UK1$model)
+anova(fit_lm_UK0, fit_lm_UK1)
+```
+
+<br>
+
+Note: comparing a fit to the fit of a so-called null model **should always be performed first**, i.e. before testing the effect of predictors individually! `r .emo("info")`
+
+In the case of LM, it is also given by the last row produced by `summary()`!
+
+
+## Comparing different levels from a factor `r .emo("practice")`
+
+After establishing that a qualitative predictor is significant, you may wonder which level is different from which. Yet, comparing many levels leads to an increase in the rate of false positives, so it is best to apply a multiple testing correction. The package **{multcomp}** can help you do that:
+
+```{r ghlt}
+comparing_drink_levels <- multcomp::glht(fit_lm_UK1, linfct = multcomp::mcp(drink = "Tukey"))
+summary(comparing_drink_levels)
+```
+
+
+## Comparing different levels from a factor `r .emo("practice")`
+
+After establishing that a qualitative predictor is significant, you may wonder which level is different from which. Yet, comparing many levels leads to an increase in the rate of false positives, so it is best to apply a multiple testing correction. The package **{multcomp}** can help you do that:
+
+```{r ghlt spaMM, fig.width = 10, fig.height = 3.5, fig.asp = NULL}
+comparing_drink_levels_spaMM <- multcomp::glht(fit_spaMM_UK1_ML, linfct = multcomp::mcp(drink = "Tukey"),
+                                               coef. = fixef.HLfit)  ## works with spaMM fit too!
+par(mar = c(4, 20, 2, 2))  ## increase left margin
+plot(comparing_drink_levels_spaMM) ## you can plot the outcome!
+```
+
+
+## Comparing different levels from a factor `r .emo("practice")`
+
+After establishing that a qualitative predictor is significant, you may wonder which level is different from which. Yet, comparing many levels leads to an increase in the rate of false positives, so it is best to apply a multiple testing correction. The package **{multcomp}** can help you do that.
+
+You can also test specific hypotheses instead of testing all combinations (it increases the power!):
+
+```{r specific posthoc}
+UK$drink2 <- factor(gsub(" ", "_", UK$drink))  ## removes space in levels to avoid issues in multcomp
+fit_lm_UK1bis <- lm(height ~ drink2 + sex*weight, data = UK)
+summary(multcomp::glht(fit_lm_UK1bis, linfct = multcomp::mcp(drink2 = c("Not_at_all - Once_a_week_or_less == 0",
+                                                                        "Not_at_all == 0",  ## compare to intercept as no param for 2_to_3... 
+                                                                        "Not_at_all - Most_days == 0"))))
+```
+
+
+## Comparing different levels from a factor `r .emo("practice")`
+
+To reduce the number of comparisons, you can also select carefully the first level of a factor.
+
+```{r relevel}
+UK$drink3 <- relevel(UK$drink, ref = "Not at all")
+summary(lm(height ~ drink3 + sex*weight, data = UK))$coefficients
+```
+
+<br>
+
+Note: although this is an established practice, it does not correct for multiple testing (which is why the p-values are smaller than on the previous slide). 
+
+
+## Comparing non nested models with AIC `r .emo("practice")`
+
+So far all model comparisons we have seen considered nested models. Non-nested models can be compared too, as long as they have been fitted on the exact **same** response.
+
+For this, we rely on information criterions such as the Akaike Information Criterion:
+
+$\texttt{AIC} = -2 \times (\texttt{logLik} - p)$, with $p$ the number of parameters
+
+Example:
+
+```{r AIC, results='hold'}
+UKselect <- na.omit(UK[, c("height", "drink", "sex", "mother_height", "father_height")])  ## removes NA
+AIC(lm(height ~ drink * sex, data = UKselect))
+AIC(lm(height ~ mother_height + father_height, data = UKselect))
+```
+
+Notes:
+
+- the smaller the AIC the better
+- beware of NA which can makes your models not comparable!
+- do not use $r^2$ to compare models
+
+# Interlude: comparing too many things
+
+## Simulate nothingness `r .emo("alien")`
+
+To study what happens when testing many things, we will first simulate predictors with no effect:
+
+```{r simu_null}
+simu_null <- function(n, p) {
+  d <- as.data.frame(replicate(p + 1, rnorm(n)))
+  colnames(d)[1] <- "y"
+  colnames(d)[2:(p + 1)] <- paste0("x", 1:p)
+  return(d)
+}
+
+set.seed(123)
+simu_null(n = 5, p = 3)
+```
+
+
+## Testing nothingness `r .emo("info")`
+
+```{r robustness}
+p <- 3
+set.seed(123)
+lm(y ~ ., data = simu_null(n = 5, p = p))
+set.seed(123)
+(p.values <- car::Anova(lm(y ~ ., data = simu_null(n = 5, p = p)))["Pr(>F)"][1:p, 1])
+min(p.values) <= 0.05  ## test if any regression coef is significant
+```
+
+
+## Comparing many estimates increases false $+$ `r .emo("info")`
+
+```{r robustness 2}
+set.seed(123)
+mean(replicate(200, min(car::Anova(lm(y ~ ., data = simu_null(n = 100, p = 1)))["Pr(>F)"][1, 1]) <= 0.05))
+
+mean(replicate(200, min(car::Anova(lm(y ~ ., data = simu_null(n = 100, p = 3)))["Pr(>F)"][1:3, 1]) <= 0.05))
+
+mean(replicate(200, min(car::Anova(lm(y ~ ., data = simu_null(n = 100, p = 10)))["Pr(>F)"][1:10, 1]) <= 0.05))
+
+mean(replicate(200, min(car::Anova(lm(y ~ ., data = simu_null(n = 1000, p = 50)))["Pr(>F)"][1:50, 1]) <= 0.05))
+```
+
+## Why not do backward selection? `r .emo("warn")`
+
+Some scientists (with poor knowledge in statistics) rely on so-called backward stepwise selection to discard predictors. This is a terrible thing if you want to do inference (i.e. test things). Backward stepwise selection is evil, even when you compare the minimal "adequate" fit to a null fit.
+
+Here is why:
+
+```{r backward}
+backward <- function(p, nsimu = 100) {
+  pv.signif.rec <- matrix(rep(NA, 2*nsimu), nrow = 2)
+  row.names(pv.signif.rec) <- c("full", "backward")
+  for (i in 1:nsimu) {
+    d <- simu_null(n = nsimu, p = p)
+    mod.full <- lm(y ~ ., data = d)
+    mod.null <- lm(y ~ 1, data = d)
+    mod.backward <- step(mod.full, direction = "backward", trace = FALSE)
+    pv.full <- anova(mod.null, mod.full)$Pr[2]
+    pv.backward <- anova(mod.null, mod.backward)$Pr[2]
+    pv.signif.rec["full", i] <- ifelse(is.na(pv.full), FALSE, pv.full <= 0.05)
+    pv.signif.rec["backward", i] <- ifelse(is.na(pv.backward), FALSE, pv.backward <= 0.05)
+    }
+  apply(pv.signif.rec, 1, mean)
+}
+
+result_backward <- sapply(c(3, 5, 10, 15, 20, 50), function(i) backward(p = i))
+```
+
+## Why not do backward selection? `r .emo("proof")`
+
+```{r backward plot, fig.width = 4}
+plot(result_backward["full", ] ~ c(3, 5, 10, 15, 20, 50),
+  type = "b", col = "green", ylim = c(0, 1), xlab = "Initial number of variables",
+  ylab = "Proportion of significant models | H0", log = "x")
+points(result_backward["backward", ] ~ c(3, 5, 10, 15, 20, 50), type = "b", col = "red")
+abline(h = 0.05, lty = 2)
+legend("topleft", fill = c("red", "green"), legend = c("step selection (backward)", "full model"), bty = "n")
+```
+
+
+## What shall I do? `r .emo("info")` `r .emo("proof")`
+
+* Don't go fishing (forget backward selection for inference!!!)
+* Always compare your fit to the fit of a null model and do not do more tests if this global test is not significant
+
+```{r null fit test}
+mean(replicate(1000, {
+  d <- simu_null(n = 1000, p = 50)
+  mod <- lm(y ~ ., data = d)
+  mod0 <- lm(y ~ 1, data = d)
+  anova(mod, mod0)[2, "Pr(>F)"] <= 0.05
+}))
+
+```
+
+* Always test each qualitative variable as a whole before comparing levels
+* Correct for multiple testing when comparing the different levels of a factor
+
+# Residual variance
 
 ## Point estimate for the residual variance `r .emo("practice")`
 
@@ -576,6 +909,9 @@ stats_LRT <- -2 * (logLik(fit_spaMM_AL1_REML_varfixed) - logLik(fit_spaMM_AL1_RE
 pchisq(stats_LRT, df = 1, lower.tail = FALSE)
 ```
 
+Note: we saw that before but did so automatically using `lmtest::lrtest()` and that would not work here.
+
+
 ## Testing differences in residual variance `r .emo("practice")`
 
 For comparing 2 residual variances in LM specifically, there is a better method:
@@ -586,10 +922,16 @@ pchisq(sum(residuals(fit_spaMM_AL1_REML)^2)/25,
        lower.tail = FALSE)
 ```
 
+<br>
+
+This method is better but much less general and thus only applies to LM (not GLM, LMM, GLMM).
+
 
 ## Which alternative to choose for testing? `r .emo("info")`
 
-Sometimes theory helps, but sometimes there is no clear answer. Again, you can use simulations to answer the question.
+Sometimes theory helps, but sometimes there is no clear answer.
+
+In such cases, you can use simulations to answer the question!
 
 Statistical tests should meet 2 properties: the rate of false negatives should be as small as possible, and more importantly, the rate of false positives must be close to the nominal level. You can test the latter by checking if the test produces a uniform distribution of p-values under the null hypothesis (it should!):
 
@@ -623,12 +965,9 @@ legend("topleft", fill = c("black", "blue"), legend = c("Chisq", "LRT"), bty = "
 ```
 Notes: 
 
-- `ecdf()` computes the empirical cumulative distribution
-- if a distribution is uniform, its ECDF is a straight line
+- `ecdf()` computes the empirical cumulative distribution function
+- if a distribution is uniform, its ECDF looks like a straight line
 - here, both methods look good!
-
-
-# Confidence intervals for the residual variance
 
 
 ## Distribution of residual variance estimates `r .emo("nerd")`
@@ -687,9 +1026,9 @@ candidate_residvar <- seq(10, 120, 5)
 logLik_profile <- sapply(candidate_residvar, function(residvar) ## for each residvar we re-estimate other parameters
   logLik(update(fit_spaMM_AL1_REML_varfixed, fixed = list(phi = residvar))))
 plot(logLik_profile ~ candidate_residvar, type = "o")
-abline(v = 25, col = "green", lwd = 2)
-abline(v = fit_spaMM_AL1_REML$phi, col = "blue", lwd = 2)
-abline(h = logLik(fit_spaMM_AL1_REML) - 0.5*qchisq(0.95, 1), col = "red", lty = 2, lwd = 2)  ## threshold
+abline(v = 25, col = "green", lwd = 2) ## ground truth (usually unknown)
+abline(v = fit_spaMM_AL1_REML$phi, col = "blue", lwd = 2) ## estimate
+abline(h = logLik(fit_spaMM_AL1_REML) - 0.5*qchisq(0.95, 1), col = "red", lty = 2, lwd = 2) ## logLik threshold
 ```
 
 
@@ -799,350 +1138,7 @@ Notes:
 - parametric bootstrap is not always good (something to keep in mind for the future)
 
 
-
-# Tests on several regression coefficients at once
-
-
-## Why testing several estimates at once? `r .emo("info")`
-
-1. For comparing nested models (e.g. to test the effect of a qualitative variable)
-2. For comparing factor levels
-
-<br>
-
-Example: 
-
-- does the alcohol consumption during pregnancy have an effect of the height of children?
-- which drinking categories differ from which?
-```{r summary alcohol}
-summary(fit_lm_UK1)$coefficients
-```
-
-
-## Comparing models with the function `anova()` `r .emo("practice")`
-
-You can use `anova()` to compare pairs of model fits:
-```{r fit 2}
-fit_lm_UK2 <- lm(height ~ drink, data = fit_lm_UK1$model) ## we use the model frame to keep same dataset!
-anova(fit_lm_UK2, fit_lm_UK1)
-```
-
-Note: here we test the overall effect of `sex * weight`.
-
-
-## Comparing models with the function `anova()` `r .emo("info")`
-
-The default behaviour for `anova()` on LM fit is to compare perform a F-test:
-
-```{r fit 2 bis, echo = FALSE}
-fit_lm_UK2 <- lm(height ~ drink, data = fit_lm_UK1$model) ## we use model frame to keep same dataset!
-anova(fit_lm_UK2, fit_lm_UK1)
-```
-
-The F-test is used to check is the decrease in residual variance for the more complex fit is higher than expected under H0:
-
-```{r F test hand}
-RSS_fit1 <- sum(residuals(fit_lm_UK1)^2)
-RSS_fit2 <- sum(residuals(fit_lm_UK2)^2)
-((RSS_fit1 - RSS_fit2)/(fit_lm_UK1$df.residual - fit_lm_UK2$df.residual)) / (RSS_fit1/fit_lm_UK1$df.residual)
-```
-
-Note: RSS/Res.Df = unbiased estimate of the residual variance
-
-
-## Comparing models with the function `lmtest::lrtest()` `r .emo("practice")`
-
-It is also possible to use a likelihood ratio test (LRT) as we did it before for testing $\widehat{\sigma}^2$. Instead of doing it by hand, we will use this time the simple function from the package **{lmtest}**:
-
-```{r lrtest LRT}
-lmtest::lrtest(fit_lm_UK2, fit_lm_UK1)
-```
-
-Note: under LM the LRT and the F-test give similar results! (Not for GLM...)
-
-
-
-## Comparing models with **{spaMM}** `r .emo("practice")`
-
-It is possible to use `anova()` to perform a LRT if the model is fitted with **{spaMM}** (using `lmtest::lrtest()` won't work):
-
-```{r spaMM LRT}
-fit_spaMM_UK2_ML <- fitme(height ~ drink, data = fit_spaMM_UK1_ML$data)
-anova(fit_spaMM_UK1_ML, fit_spaMM_UK2_ML)
-```
-
-<br>
-
-Notes: 
-
-- you must use ML fits (not REML) when testing regression coefficients using the likelihood!
-- `anova(..., test = "LRT")` exists for model fitted with `lm()` but it does not really do a true LRT (unless the residual variances of the 2 fits are identical) `r .emo("broken")` (`drop1()` does work)
-
-
-## Comparing models with **{spaMM}** `r .emo("practice")`
-
-**{spaMM}** makes it also easy to test the LRT by parametric bootstrap instead of using the $\chi^2$, which is good if we are far from asymptotic conditions (but it can be slow to run) `r .emo("slow")`:
-
-```{r spaMM LRT boot, eval = TRUE}
-LRT(fit_spaMM_UK1_ML, fit_spaMM_UK2_ML, boot.repl = 1000)
-```
-
-Notes:
-
-- p-value #1 = asymptotic LRT
-- p-value #2 = LRT by bootstrap
-- p-value #3 = asymptotic LRT with Bartlett correction (midway solution if `boot.repl` must be small)
-
-
-## Comparing models to test qualitative var. `r .emo("practice")`
-
-Testing the overall effect cannot be done with `summary()` because it would only give you test outputs separately for each factor level. Instead, you should rely on model comparison for this purpose:
-
-```{r fit drink}
-fit_lm_UK3 <- lm(height ~ sex * weight, data = fit_lm_UK1$model)
-anova(fit_lm_UK3, fit_lm_UK1)
-```
-
-<br>
-
-CONCLUSION:
-
-the consumption of alcohol during pregnancy is (statistically) related to the children's height.
-
-
-## Comparing models to test quantitative var. `r .emo("practice")`
-
-Testing the effect of `human_eatens` can be done with `summary()` or with model comparison:
-
-```{r fit human}
-summary(fit_lm_AL1)$coefficients["humans_eaten", ]
-fit_lm_AL2 <- lm(size ~ 1, data = fit_lm_AL1$model)
-anova(fit_lm_AL2, fit_lm_AL1)
-```
-
-Note: when the models differ by one parameter (as in the case of quantitative variable), the F-test and the t-test give an identical p-value ($t^2 = F$ when the numerator degree of freedom is 1).
-
-
-## Comparing models to test all predictors `r .emo("practice")`
-
-Instead of doing many model comparisons to test all your predictors one by one, you can use `car::Anova()` as a shortcut:
-
-```{r fit Anova}
-car::Anova(fit_lm_UK1)
-```
-
-`Anova()` performs a so-called Type 2 ANOVA: it tests for the effect of simple terms considering other simple terms to be modelled, but not interactions. The function also tests for the effect of interactions assuming all simple terms to be modelled.
-
-
-## Comparing models to test all predictors `r .emo("practice")`
-
-Do not use `anova()` for that: it performs the comparisons sequentially (i.e. Type 1 ANOVA, which is quite silly)...
-
-```{r fit anova}
-anova(fit_lm_UK1)
-```
-
-<br>
-
-Note: sequential comparisons are nonetheless useful to identify multicollinearity issues (more on that later).
-
-
-## Testing against the null model `r .emo("practice")`
-
-A null model is a model estimating nothing more than an intercept:
-
-```{r null fit 2}
-fit_lm_UK0 <- lm(height ~ 1, data = fit_lm_UK1$model)
-anova(fit_lm_UK0, fit_lm_UK1)
-```
-
-<br>
-
-Note: comparing a fit to the fit of a so-called null model **should always be performed first**, i.e. before testing the effect of predictors individually! `r .emo("info")`
-
-In the case of LM, it is also given by the last row produced by `summary()`!
-
-
-# Comparing many things
-
-## Simulate nothingness `r .emo("alien")`
-
-To study what happens when testing many things, we will first simulate predictors with no effect:
-
-```{r simu_null}
-simu_null <- function(n, p) {
-  d <- as.data.frame(replicate(p + 1, rnorm(n)))
-  colnames(d)[1] <- "y"
-  colnames(d)[2:(p + 1)] <- paste0("x", 1:p)
-  return(d)
-}
-
-set.seed(123)
-simu_null(n = 5, p = 3)
-```
-
-
-## Testing nothingness `r .emo("info")`
-
-```{r robustness}
-p <- 3
-set.seed(123)
-lm(y ~ ., data = simu_null(n = 5, p = p))
-set.seed(123)
-(p.values <- car::Anova(lm(y ~ ., data = simu_null(n = 5, p = p)))["Pr(>F)"][1:p, 1])
-min(p.values) <= 0.05  ## test if any regression coef is significant
-```
-
-
-## Comparing many estimates increases false $+$ `r .emo("info")`
-
-```{r robustness 2}
-set.seed(123)
-mean(replicate(200, min(car::Anova(lm(y ~ ., data = simu_null(n = 100, p = 1)))["Pr(>F)"][1, 1]) <= 0.05))
-
-mean(replicate(200, min(car::Anova(lm(y ~ ., data = simu_null(n = 100, p = 3)))["Pr(>F)"][1:3, 1]) <= 0.05))
-
-mean(replicate(200, min(car::Anova(lm(y ~ ., data = simu_null(n = 100, p = 10)))["Pr(>F)"][1:10, 1]) <= 0.05))
-
-mean(replicate(200, min(car::Anova(lm(y ~ ., data = simu_null(n = 1000, p = 50)))["Pr(>F)"][1:50, 1]) <= 0.05))
-```
-
-## Why not do backward selection? `r .emo("warn")`
-
-Some scientists (with poor knowledge in statistics) rely on so-called backward stepwise selection to discard predictors. This is a terrible thing if you want to do inference (i.e. test things). Backward stepwise selection is evil, even when you compare the minimal "adequate" fit to a null fit.
-
-Here is why:
-
-```{r backward}
-backward <- function(p, nsimu = 100) {
-  pv.signif.rec <- matrix(rep(NA, 2*nsimu), nrow = 2)
-  row.names(pv.signif.rec) <- c("full", "backward")
-  for (i in 1:nsimu) {
-    d <- simu_null(n = nsimu, p = p)
-    mod.full <- lm(y ~ ., data = d)
-    mod.null <- lm(y ~ 1, data = d)
-    mod.backward <- step(mod.full, direction = "backward", trace = FALSE)
-    pv.full <- anova(mod.null, mod.full)$Pr[2]
-    pv.backward <- anova(mod.null, mod.backward)$Pr[2]
-    pv.signif.rec["full", i] <- ifelse(is.na(pv.full), FALSE, pv.full <= 0.05)
-    pv.signif.rec["backward", i] <- ifelse(is.na(pv.backward), FALSE, pv.backward <= 0.05)
-    }
-  apply(pv.signif.rec, 1, mean)
-}
-
-result_backward <- sapply(c(3, 5, 10, 15, 20, 50), function(i) backward(p = i))
-```
-
-## Why not do backward selection? `r .emo("proof")`
-
-```{r backward plot, fig.width = 4}
-plot(result_backward["full", ] ~ c(3, 5, 10, 15, 20, 50),
-  type = "b", col = "green", ylim = c(0, 1), xlab = "Initial number of variables",
-  ylab = "Proportion of significant models | H0", log = "x")
-points(result_backward["backward", ] ~ c(3, 5, 10, 15, 20, 50), type = "b", col = "red")
-abline(h = 0.05, lty = 2)
-legend("topleft", fill = c("red", "green"), legend = c("step selection (backward)", "full model"), bty = "n")
-```
-
-
-## What shall I do? `r .emo("info")` `r .emo("proof")`
-
-* Don't go fishing (forget backward selection for inference!!!)
-* Always compare your fit to the fit of a null model and do not do more tests if this global test is not significant
-
-```{r null fit test}
-mean(replicate(1000, {
-  d <- simu_null(n = 1000, p = 50)
-  mod <- lm(y ~ ., data = d)
-  mod0 <- lm(y ~ 1, data = d)
-  anova(mod, mod0)[2, "Pr(>F)"] <= 0.05
-}))
-
-```
-
-* Always test each qualitative variable as a whole before comparing levels
-* Correct for multiple testing when comparing the different levels of a factor
-
-
-# Comparing factor levels using post-hoc analyses
-
-## Comparing different levels from a factor `r .emo("practice")`
-
-After establishing that a qualitative predictor is significant, you may wonder which level is different from which. Yet, comparing many levels leads to an increase in the rate of false positives, so it is best to apply a multiple testing correction. The package **{multcomp}** can help you do that:
-
-```{r ghlt}
-comparing_drink_levels <- multcomp::glht(fit_lm_UK1, linfct = multcomp::mcp(drink = "Tukey"))
-summary(comparing_drink_levels)
-```
-
-
-## Comparing different levels from a factor `r .emo("practice")`
-
-After establishing that a qualitative predictor is significant, you may wonder which level is different from which. Yet, comparing many levels leads to an increase in the rate of false positives, so it is best to apply a multiple testing correction. The package **{multcomp}** can help you do that:
-
-```{r ghlt spaMM, fig.width = 10, fig.height = 3.5, fig.asp = NULL}
-comparing_drink_levels_spaMM <- multcomp::glht(fit_spaMM_UK1_ML, linfct = multcomp::mcp(drink = "Tukey"),
-                                               coef. = fixef.HLfit)  ## works with spaMM fit too!
-par(mar = c(4, 20, 2, 2))  ## increase left margin
-plot(comparing_drink_levels_spaMM) ## you can plot the outcome!
-```
-
-
-## Comparing different levels from a factor `r .emo("practice")`
-
-After establishing that a qualitative predictor is significant, you may wonder which level is different from which. Yet, comparing many levels leads to an increase in the rate of false positives, so it is best to apply a multiple testing correction. The package **{multcomp}** can help you do that.
-
-You can also test specific hypotheses instead of testing all combinations (it increases the power!):
-
-```{r specific posthoc}
-UK$drink2 <- factor(gsub(" ", "_", UK$drink))  ## removes space in levels to avoid issues in multcomp
-fit_lm_UK1bis <- lm(height ~ drink2 + sex*weight, data = UK)
-summary(multcomp::glht(fit_lm_UK1bis, linfct = multcomp::mcp(drink2 = c("Not_at_all - Once_a_week_or_less == 0",
-                                                                        "Not_at_all == 0",  ## compare to intercept as no param for 2_to_3... 
-                                                                        "Not_at_all - Most_days == 0"))))
-```
-
-
-## Comparing different levels from a factor `r .emo("practice")`
-
-To reduce the number of comparisons, you can also select carefully the first level of a factor.
-
-```{r relevel}
-UK$drink3 <- relevel(UK$drink, ref = "Not at all")
-summary(lm(height ~ drink3 + sex*weight, data = UK))$coefficients
-```
-
-<br>
-
-Note: although this is an established practice, it does not correct for multiple testing (which is why the p-values are smaller than on the previous slide). 
-
-
-# Comparing non-nested models
-
-## Comparing non nested models with AIC `r .emo("practice")`
-
-So far all model comparisons we have seen considered nested models. Non-nested models can be compared too, as long as they have been fitted on the exact **same** response.
-
-For this, we rely on information criterions such as the Akaike Information Criterion:
-
-$\texttt{AIC} = -2 \times (\texttt{logLik} - p)$, with $p$ the number of parameters
-
-Example:
-
-```{r AIC, results='hold'}
-UKselect <- na.omit(UK[, c("height", "drink", "sex", "mother_height", "father_height")])  ## removes NA
-AIC(lm(height ~ drink * sex, data = UKselect))
-AIC(lm(height ~ mother_height + father_height, data = UKselect))
-```
-
-Notes:
-
-- the smaller the AIC the better
-- beware of NA which can makes your models not comparable!
-- do not use $r^2$ to compare models
-
-
-# Confidence intervals for predictions
+# Predictions
 
 ## CI(predicted mean response) `r .emo("info")`
 
@@ -1181,7 +1177,7 @@ rbind(c(pred$fit[1, "fit"] + qt(0.025, 10) * pred$se.fit[1],
 Notes:
 
 - `se.fit` accounts for the uncertainty in the regression parameters
-- (it is equal to `sqrt(diag(X %*% vcov(fit) %*% t(X)))`)
+- it is equal to `sqrt(diag(X %*% vcov(fit) %*% t(X)))` `r .emo("nerd")`
 
 
 ## CI(predicted mean response) with **{spaMM}** `r .emo("practice")`
@@ -1191,7 +1187,7 @@ It is also quite easy to derive the CI for the mean response from models fitted 
 get_intervals(fit_spaMM_AL1_ML, newdata = data.frame(humans_eaten = 4:5), intervals = "fixefVar")
 ```
 
-Note: here it does not matter if you use the ML or REML fit...
+Note: here it does not matter if you use the ML or REML fit... (here **{spaMM}** uses the right thing automatically)
 
 
 ## CI(new observations) `r .emo("info")`
@@ -1228,7 +1224,7 @@ rbind(c(pred$fit[1, "fit"] + qt(0.025, df = 10) * se.pred[1],
         pred$fit[2, "fit"] + qt(0.975, df = 10) * se.pred[2]))
 ```
 
-Note: `se.pred` accounts for both the uncertainty in regression parameters and the uncertainty in the estimate for the residual variance.
+Note: `se.pred` accounts for both the uncertainty in regression parameters (**fixed-effect variance**) and the **residual variance**, so `se.pred^2` is called the **response variance**.
 
 
 ## CI(new observations) with **{spaMM}** `r .emo("info")`
@@ -1252,8 +1248,6 @@ Note: here it does not matter if you use the ML or REML fit... **{spaMM}** knows
 * how to check if a test or a method aiming at building a CI is valid
 * how to use the functions ```summary()```, ```anova()``` and ```Anova()```
 * that you should avoid doing many tests
-* how to compute CI for predictions
-
 
 <!--
 ```{r vcov}
