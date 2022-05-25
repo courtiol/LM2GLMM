@@ -893,6 +893,7 @@ Notes:
 - p-value #2 = LRT by bootstrap
 - p-value #3 = asymptotic LRT with Bartlett correction (midway solution if `boot.repl` must be small)
 
+
 ## Comparing models to test qualitative var. `r .emo("practice")`
 
 Testing the overall effect cannot be done with `summary()` because it would only give you test outputs separately for each factor level. Instead, you should rely on model comparison for this purpose:
