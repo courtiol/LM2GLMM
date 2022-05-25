@@ -17,19 +17,21 @@ editor_options:
 ```{r setup, include=FALSE}
 library(LM2GLMM)
 library(spaMM)
+library(doSNOW)
 options(width = 110)
 spaMM.options(nb_cores = 4L)
 #knitr::knit_hooks$set(webgl = hook_webgl) ## for rgl
-knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_test_intervals/", fig.path = "./fig_knitr/LM_test_intervals/", error = TRUE)
+knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_test_intervals/", fig.path = "./fig_knitr/LM_test_intervals/", error = TRUE,
+                      fig.align = "center", fig.asp = 1, dev.args = list(pointsize = 8))
 ```
 
 ## The Linear Model: LM
 
-* 2.0 [Introduction](./LM_intro.html)
-* 2.1 [Fitting procedure](./LM_fitting.html)
-* 2.2 [Tests & Intervals](./LM_test_intervals.html)
-* 2.3 [Assumptions & Outliers](./LM_assumptions.html)
-* 2.4 [Let's practice](./LM_practice.html)
+* 2.0 [Introduction](./LM_intro_course.html)
+* 2.1 [Fitting procedure](./LM_fitting_course.html)
+* 2.2 [Tests & Intervals](./LM_test_intervals_course.html)
+* 2.3 [Assumptions & Outliers](./LM_assumptions_course.html)
+* 2.4 [Let's practice](./LM_practice_course.html)
 
 <br>
 
@@ -38,7 +40,7 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_test_interval
 </div>
 
 
-## You will learn in this session
+## You will learn in this session `r .emo("info")`
 
 * that model parameter estimates are random variables
 * that for LM parameters are tested using t-tests
@@ -47,12 +49,11 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_test_interval
 * how to check if a test or a method aiming at building a CI is valid
 * how to use the functions ```summary()```, ```anova()``` and ```Anova()```
 * that you should avoid doing many tests
-* what 95% prediction intervals are
-
+* how to compute CI for predictions
 
 # Model fits for this session
 
-## Aliens fitted with `stats::lm()`
+## Aliens fitted with `stats::lm()`  `r .emo("alien")`
 
 ```{r Alien fit lm}
 set.seed(123L)
@@ -61,12 +62,7 @@ fit_lm_AL1 <- lm(size ~ humans_eaten, data = Alien)
 fit_lm_AL1
 ```
 
-<br>
-
-Note: `lm()` output are a little strange: the residual variance they provide is REML but the logLik is the one obtained by ML.
-
-
-## Aliens fitted with `spaMM::fitme()`
+## Aliens fitted with `spaMM::fitme()` `r .emo("alien")`
 
 ML fit:
 
@@ -78,7 +74,7 @@ fit_spaMM_AL1_ML
 Note: the ML fit is needed for whenever we are using the likelihood to study regression coefficients.
 
 
-## Aliens fitted with `spaMM::fitme()`
+## Aliens fitted with `spaMM::fitme()` `r .emo("alien")`
 
 REML fit:
 
@@ -90,29 +86,29 @@ fit_spaMM_AL1_REML
 Note: the REML fit is needed for whenever we are using the estimate of the error variance.
 
 
-## Brits fitted with `stats::lm()`
+## Britons fitted with `stats::lm()` `r .emo("alien")`
 
-```{r Brits fit lm}
+```{r Britons fit lm}
 fit_lm_UK1 <- lm(height ~ drink + sex*weight, data = UK)
 fit_lm_UK1
 ```
 
 
-## Brits fitted with `spaMM::fitme()`
+## Britons fitted with `spaMM::fitme()` `r .emo("alien")`
 
 ML fit:
 
-```{r Brits fit spaMM}
+```{r Britons fit spaMM}
 fit_spaMM_UK1_ML <- fitme(height ~ drink + sex*weight, data = UK)
 fit_spaMM_UK1_ML
 ```
 
 
-## Brits fitted with `spaMM::fitme()`
+## Britons fitted with `spaMM::fitme()` `r .emo("alien")`
 
 REML fit:
 
-```{r Brits fit spaMM2}
+```{r Britons fit spaMM2}
 fit_spaMM_UK1_REML <- fitme(height ~ drink + sex*weight, data = UK, method = "REML")
 fit_spaMM_UK1_REML
 ```
@@ -120,7 +116,7 @@ fit_spaMM_UK1_REML
 
 # Testing regression coefficients
 
-## Point estimates for regression coefficients
+## Point estimates for regression coefficients `r .emo("practice")`
 
 Fitting a model leads to point estimates:
 ```{r point estimates}
@@ -128,10 +124,26 @@ coef(fit_lm_AL1)  ## use fixef() for spaMM fits
 coef(fit_lm_UK1)  ## use fixef() for spaMM fits
 ```
 
-Point estimates are random variable. Thus, to know if these numbers differ from population parameter values, their distributions must be characterised and accounted for during tests.
+Point estimates are random variables. Thus, to know if these numbers differ from specific values in the population, their distributions must be characterised and accounted for during tests.
 
 
-## Testing regression coefficients with **{stats}**
+## Variances of estimates `r .emo("info")`
+
+Each regression parameter is associated with an estimation variance and since they are all being jointly estimated, there are also covariances between them:
+
+```{r vcov lm}
+vcov(fit_lm_AL1)
+```
+
+The variances are on the diagonals, so you can get the standard errors on the regression coefficients as follows:
+```{r SE}
+sqrt(diag(vcov(fit_lm_AL1)))
+```
+
+There are sometimes referred to as *conditional* standard errors because these SE do not account for uncertainty stemming from other sources (which happens in LMM & GLMM).
+
+
+## Testing regression coefficients with **{stats}** `r .emo("practice")`
 
 Regression coefficient estimates are tested using Student's t-test:
 
@@ -142,53 +154,53 @@ summary(fit_lm_UK1)$coefficients
 
 <br>
 
-Note: the null hypothesis for these tests is that the estimate is null.
+Note: the null hypothesis for these tests is that the estimate is null (= 0).
 
 
-## Testing regression coefficients with **{spaMM}**
+## Testing regression coefficients with **{spaMM}** `r .emo("nerd")`
 
 Regression coefficient estimates are tested using Student's t-test:
 
 ```{r summary AL1}
-(ttable <- summary(fit_spaMM_AL1_REML, verbose = FALSE)$beta_table)  ## verbose is just for the slides
+(ttable <- summary(fit_spaMM_AL1_REML, verbose = FALSE)$beta_table)  ## verbose is just for the slide display
 ```
 
-**{spaMM}** does not compute the p-values but it is easy to compute them:
+**{spaMM}** does not (yet) compute the p-values for the t-tests but it is easy to compute them:
 ```{r summary AL1 2}
 cbind(ttable, p = 2*pt(abs(ttable[, "t-value"]),
-                       df = nrow(model.matrix(fit_spaMM_AL1_REML)) -
-                         ncol(model.matrix(fit_spaMM_AL1_REML)),  ## n - p
+                       df = nrow(model.matrix(fit_spaMM_AL1_REML)) - ncol(model.matrix(fit_spaMM_AL1_REML)),## n-p
                        lower.tail = FALSE))
 ```
 
-Note: to obtain the t-values, you need to rely on the `REML` fits because the denominator of the t-test is the estimate of the square root of the error variance. Even in REML fits, however, the regression coefficients are estimated by ML as they should.
+Note: to obtain the t-values, you need to rely on the `REML` fits because the denominator of the t-value is the estimate of the square root of the error variance.
 
 
-## t-tests and linear models
+## t-tests and linear models `r .emo("info")` `r .emo("proof")`
 
-You can actually substitute simple t-tests by LM:
+You can actually substitute simple t-tests with LM:
 
 ```{r compare t-tests}
 t.test(extra ~ group, data = sleep, var.equal = TRUE)
 summary(lm(extra ~ group, data = sleep))$coef
 ```
 
-Note: the p-value obtained is the same!
+Note: the p-value obtained is the same `r .emo("party")`, but notice that effect sizes are opposite from each others.
 
 
-## So, why t-tests?
+## Why testing LM using t-tests? `r .emo("info")` `r .emo("proof")`
 
 This is because, in the case of LM, regression coefficients are normally distributed...
 
-```{r estimate normal, fig.width=4, fig.asp=1, fig.align='center'}
+```{r estimate normal, fig.width=3}
 set.seed(123)
 new_beta_estimates <- t(replicate(1000, coef(update(fit_lm_AL1, data = simulate_Aliens(N = 100)))))
 qqnorm(new_beta_estimates[, 2])  ## draw a qqplot
 qqline(new_beta_estimates[, 2], col = "red")  ## draw line of normality
 ```
 
+Note: `update()` refit a model with some of its input updated, but you can instead recall `lm()` if you provide all its arguments. 
 
-## Why t-tests?
+## Why testing LM using t-tests? `r .emo("info")`
 
 This is because, in the case of LM, regression coefficients are normally distributed and in cases where the variance of the estimate is estimated (i.e not known) one must use the Student's t distribution (not the Gaussian) to model the distribution of scaled estimates with no bias:
 
@@ -201,27 +213,11 @@ This is because, in the case of LM, regression coefficients are normally distrib
 <font size = 5> $t = \frac{\widehat{\beta} - \beta}{\widehat{\sigma_{\widehat{\beta}}}}\sim \mathcal{t}_{n - p}$ </font> ($t$ = Student's t distribution)
 
 
-## Variances on estimates
-
-Each regression parameter is associated with an estimation variance and since they are all being joinly estimated, there are also covariances between them:
-
-```{r vcov lm}
-vcov(fit_lm_AL1)
-```
-
-The variances are on the diagonals, so you can get the standard errors on the regression coefficients as follows:
-```{r SE}
-sqrt(diag(vcov(fit_lm_AL1)))
-```
-
-There are sometimes refered to as *conditional* standard errors because these SE do not account for uncertainty stemming from other sources (which happens in LMM & GLMM).
-
-
-## Testing a null but non-nill hypothesis
+## Testing a null but non-nill hypothesis `r .emo("practice")`
 
 The t-test compare each regression coefficient to 0, but you may want to test something more specific.
 
-For this we first need to understand how to do the previous t-tests by hand:
+First, you need to reproduce the previous t-tests by hand:
 
 ```{r t test by hand ref}
 summary(fit_lm_AL1)$coefficients["humans_eaten", ]
@@ -236,7 +232,7 @@ cbind(estimate, std.error, t.value, p.value)
 ```
 
 
-## Testing a null but non-nill hypothesis
+## Testing a null but non-nill hypothesis `r .emo("practice")`
 
 Then, you can simply change the numbers.
 
@@ -257,7 +253,7 @@ car::linearHypothesis(fit_lm_AL1, c("humans_eaten = 1.5"))$"Pr(>F)"[2]
 ```
 
 
-## Testing all null non-nill hypotheses at once: CI
+## Testing all null non-nill hypotheses at once: CI `r .emo("info")`
 
 A more general approach is to identify the entire range of population-level parameter values that would not be considered as significantly different from the estimate of interest.
 
@@ -273,14 +269,14 @@ for example:
 
 <br>
 
-In the case of LM the method based on the Student's t distribution is best but we will see the alternative methods because they will become useful for more complex models and it is easier to start seeing them in the context of simple models.
+In the case of LM the method based on the Student's t distribution is best but we will see the alternative methods because they will become useful for more complex models and it is easier to start exploring these methods in the context of simple models.
 
 
 # Confidence intervals on regression coefficients
 
-## Student's based confidence intervals
+## Student's based confidence intervals `r .emo("practice")`
 
-This is the method available when using `confint()` on a `lm()` fit:
+This is the method available when calling `confint()` on a `lm()` fit:
 
 ```{r CI student}
 confint(fit_lm_AL1)
@@ -293,12 +289,12 @@ cbind(coef(fit_lm_AL1) + qt(0.025, 10) * sqrt(diag(vcov(fit_lm_AL1))),  ## 10 = 
       coef(fit_lm_AL1) + qt(0.975, 10) * sqrt(diag(vcov(fit_lm_AL1))))  ## 10 = n - p
 ```
 
-Note: `qt()` is used to extract the quantiles from the Student's t distribution.
+Note: `qt()` is used to extract the quantiles from the Student's t distribution and `sqrt(diag(vcov(fit_lm_AL1))` is used to unscale the result so it follows the scale of the response.
 
 
-## Why are there other methods to compute CI?
+## Why are there other methods to compute CI? `r .emo("info")`
 
-A confidence interval with given level `X` is considered exact if the probability that the interval contains the value $k$ is `X` for any parameter value $k$. We call this probability *coverage*.
+A confidence interval with given nominal level `X` is considered exact if the probability that the interval contains the true population value $k$ is `X` for any $k$. We call this probability *coverage*.
 
 <br>
 
@@ -313,7 +309,7 @@ Unfortunately, most methods for building confidence intervals are only approxima
 Depending on the type of linear model, some methods show a coverage closer to their nominal level than others.
 
 
-## Measuring the coverage of Student's based CI
+## Measuring the coverage of Student's based CI `r .emo("practice")`
 
 You can always simulate data close to your situation to quantify the coverage of a given method:
 
@@ -325,12 +321,13 @@ mean(replicate(1000, sum(findInterval(confint(update(fit_lm_AL1, data = simulate
 
 <br>
 
-The coverage of our CI based on the Student's t distribution is great (this method is exact for LM, but not for LMM, GLM and GLMM).
+Note: 
 
-Note: `update()` refit a model with some of its input updated, but you can instead recall `lm()`. 
+- the coverage of our CI based on the Student's t distribution is great `r .emo("party")`
+- Student's based CI is an exact method for LM, but not for LMM, GLM and GLMM
 
 
-## Confidence intervals by likelihood profiling
+## Confidence intervals by likelihood profiling `r .emo("info")`
 
 Here the idea is to quantify the decrease in (log)-likelihood when parameter values depart from its estimate and to consider as part of the interval all the parameter values that do not lead the (log)-likelihood to decrease below a specific threshold.
 
@@ -345,9 +342,9 @@ logLik(lm(size ~ 0 + offset(50 + 1.5 * humans_eaten), data = Alien))
 Note: `spaMM::fitme()` allows for the fixation of the variance in addition to the fixation of the regression parameters but `lm()` does not (see later).
 
 
-## Confidence intervals by likelihood profiling
+## Confidence intervals by likelihood profiling `r .emo("info")`
 
-```{r profile for slope, fig.align = "center", fig.width = 4, fig.height = 4, fig.show = "hold"}
+```{r profile for slope,fig.width = 4, fig.show = "hold"}
 candidate_slopes <- seq(from = 0, to = 3, by = 0.1)
 loglik <- sapply(candidate_slopes, function(slope) logLik(lm(size ~ 1 + offset(slope*humans_eaten), data = Alien)))
 plot(loglik ~ candidate_slopes, type = "o")
@@ -357,7 +354,7 @@ abline(h = logLik(fit_lm_AL1)[[1]] - 0.5*qchisq(0.95, df = 1), col = "red", lty 
 ```
 
 
-## Confidence intervals by likelihood profiling
+## Confidence intervals by likelihood profiling `r .emo("nerd")`
 
 You can compute the boundaries of the CI95% more precisely by optimising the following function:
 
@@ -387,7 +384,7 @@ CI_prof_slope(fit = fit_lm_AL1, varname = "humans_eaten")
 ```
 
 
-## Confidence intervals by likelihood profiling
+## Confidence intervals by likelihood profiling `r .emo("info")`
 
 * Benefit: not based on SE, so works well even if error is not Gaussian (as in GLM).
 
@@ -396,11 +393,11 @@ CI_prof_slope(fit = fit_lm_AL1, varname = "humans_eaten")
 * Cost: uses the chi-squared distribution to establish a threshold, which is an asymptotic approximation, so it needs a quite lot of observations for this approximation to be reasonable.
 
 
-## Joint confidence intervals by likelihood profiling
+## Joint confidence intervals by likelihood profiling `r .emo("info")`
 
 It can also be easily extended to build confidence regions (i.e. a multivariate CI):
 
-```{r profile betas, fig.align = "center", echo = FALSE, results = "hide", fig.height = 5.5, fig.width = 5.5}
+```{r profile betas, echo = FALSE, results = "hide", fig.width = 4, fig.asp = 1}
 candidate_intercepts <- seq(from = 30, to = 70,  by = 0.1)
 candidates <- expand.grid(candidate_intercept = candidate_intercepts, 
                           candidate_slope = candidate_slopes)
@@ -427,11 +424,11 @@ with(candidates, contour(candidate_intercepts, candidate_slopes,
 ```
 
 
-## Confidence intervals by parametric bootstrap
+## Confidence intervals by parametric bootstrap `r .emo("info")`
 
 The general aim of bootstrap methods is to approximate the distribution of a statistic, in cases where parameters are not known and where this distribution is not known analytically.
 
-In the specific case of the parametric bootstrap, we do that by simulating new data using the fitted model (i.e. considering the parameter estimates as population parameters) and refitting models based on such simulated data.
+Here, we do that by simulating new data using the fitted model (i.e. considering the parameter estimates as population parameters) and refitting models based on such simulated data.
 
 <!--
     * Non-parametric bootstrap: bootstrap samples that are iid (independent and identically distributed) from the point of view of the empirical distribution.
@@ -466,7 +463,7 @@ if $\overline{a^*} = 3$ and $\widehat{a} = 2$, we infer $\widehat{a} - a \sim 2\
 -->
 
 
-## Confidence intervals by parametric bootstrap
+## Confidence intervals by parametric bootstrap `r .emo("nerd")`
 
 It is again a bit complicated even if the package **{boot}** helps:
 
@@ -480,14 +477,21 @@ CI_boot <- function(fit, param, nboot) {
     coef(newfit)[[param]]  ## extract the estimate
   })
   boot::boot.ci(boot.out = list(R = length(res_sim)),
-                t0 = coef(fit)[[param]],
-                t  = res_sim,
+                t0 = coef(fit)[[param]], ## â
+                t  = res_sim,            ## a*
                 type = "basic")$basic[, 4:5]  ## more complex types exist!
 }
 CI_boot(fit = fit_lm_AL1, param = "humans_eaten", nboot = 100)
 ```
-Notes: for more complex models, there are packages doing that for you, but I do not know one that would work with LM (it may exist). Also, to use the function above with a **{spaMM}** fit, just run `coef.HLfit <- fixef.HLfit` beforehand.
+Notes: for more complex models, there are packages doing that for you, but I do not know one that would work with `stats::lm()` (it may exist).
 
+## Confidence intervals by parametric bootstrap `r .emo("practice")`
+
+With **{spaMM}**, it is much easier:
+
+```{r param boot spaMM}
+confint(fit_spaMM_AL1_ML, parm = "humans_eaten", boot_args = list(nsim = 100))
+```
 
 <!--
 ## Testing the coverage of the 95% CI (using boot)
@@ -498,7 +502,7 @@ CIboot2c <- function(rep = 100, i){
   mod <- update(fit_lm_AL1, data = data)
   newYs <- simulate(mod, nsim = rep)
   res_sim <- t(coef(lm(as.matrix(newYs) ~ humans_eaten, data = data)))
-  boot.ci(boot.out = list(R = nrow(res_sim)),
+  boot::boot.ci(boot.out = list(R = nrow(res_sim)),
           t0 = coef(mod)[[i]],
           t  = res_sim[, i, drop = FALSE],
           var.t0 = vcov(mod)[i, i],
@@ -516,7 +520,7 @@ Note: here it accounts for the uncertainty in the estimation of the variance (bu
 -->
 
 
-## Comparing the 3 methods of CI construction
+## Comparing the 3 methods of CI construction `r .emo("practice")`
 
 ```{r CI compared}
 CI <-   rbind(confint(fit_lm_AL1)["humans_eaten", ],
@@ -535,12 +539,12 @@ data.frame(method = c("Student", "Profile", "Parametric bootstrap"),
 
 CONCLUSION: results are quite different depending on the method one uses!
 
-In case of LM, it is a no brainer, stick to `confint()` which uses the Student's t distribution.
+In case of LM, it is a no brainer, stick to `confint()` which uses the Student's t distribution when called on a fit produced with `stats::lm()`.
 
 
 # Testing the error variance estimate
 
-## Point estimate for the error variance
+## Point estimate for the error variance `r .emo("practice")`
 
 Remember how to extract the error variance:
 
@@ -551,13 +555,12 @@ fit_spaMM_AL1_REML$phi
 
 <br>
 
-Note: with **{spaMM}** you need to use the REML fit!
+Note: with **{spaMM}** you need to use the REML fit if you don't want to do maths.
 
 
-## Testing differences in variance
+## Testing differences in variance `r .emo("practice")`
 
 Testing if the error variance is null makes no sense, but it could make sense to compare the estimate to a given value.
-
 For this we could use a very general recipe one can use for any comparison between nested models:
 
 1- fit a model in which the parameter is constrained
@@ -573,14 +576,16 @@ stats_LRT <- -2 * (logLik(fit_spaMM_AL1_REML_varfixed) - logLik(fit_spaMM_AL1_RE
 pchisq(stats_LRT, df = 1, lower.tail = FALSE)
 ```
 
-But for testing error variance in LM specifically, there is a better method:
+## Testing differences in variance `r .emo("practice")`
+
+For testing error variance in LM specifically, there is a better method:
 
 ```{r sigma chisq}
 pchisq(sum(residuals(fit_spaMM_AL1_REML)^2)/25, df = 10, lower.tail = FALSE)  ## 10 = n - p
 ```
 
 
-## Which alternative to choose for testing?
+## Which alternative to choose for testing? `r .emo("info")`
 
 Sometimes theory helps, but sometimes there is no clear answer. Again, you can use simulations to answer the question.
 
@@ -605,9 +610,9 @@ res <- replicate(1000, tests_var_under_H0(fit_spaMM_AL1_REML))
 ```
 
 
-## Which alternative to choose for testing?
+## Which alternative to choose for testing? `r .emo("info")`
 
-```{r testing variances plot, echo=TRUE, fig.align='center', fig.asp=1, fig.width=3.5}
+```{r testing variances plot, echo=TRUE, fig.width=3.5}
 plot(ecdf(res["chisq", ]), lwd = 2)
 plot(ecdf(res["LRT", ]), add = TRUE, col = "blue", lwd = 2)
 abline(0, 1, col = "red", lwd = 2)
@@ -619,23 +624,23 @@ Note: `ecdf()` computes the empirical cumulative distribution.
 CONCLUSION: here, both methods look good!
 
 
-# Confidence intervals on the error variance estimate
+# Confidence intervals of the error variance estimate
 
 
-## Distribution of variance estimates
+## Distribution of variance estimates `r .emo("nerd")`
 
-Variance estimates generally follow a Gamma ($\Gamma$) distribution with mean  = $\texttt{estimate}$ and var = $2 ( \texttt{estimate})^2 / (n-p)$.
+Variance estimates generally follow a Gamma ($\Gamma$) distribution with mean  = $\texttt{estimate}$ and var = $2 (\texttt{estimate}^2) / (n-p)$.
 
-[for $\Gamma$, mean = $\texttt{shape} \times \texttt{scale}$ and var = 
-$\texttt{shape} \times \texttt{scale}^2$]
+For $\Gamma$, mean = $\texttt{shape} \times \texttt{scale}$ and var = 
+$\texttt{shape} \times \texttt{scale}^2$ ($\texttt{shape}$ and $\texttt{scale}$ are the two parameters shaping the shape of the $\Gamma$ distribution); thus, little maths show that in our context $\texttt{shape} =  (n-p)/2$ and $\texttt{scale} = 2 \times\texttt{estimate}/(n-p)$.
 
-```{r gamma, fig.align = "center", fig.height = 4, fig.width = 4}
+```{r gamma, fig.width = 3}
 curve(dgamma(x, shape = fit_lm_AL1$df.residual/2, scale = 2*sigma2_error/fit_lm_AL1$df.residual),
     from = 0, to = 100, xlab = "sigma2_error", ylab = "probability density", lwd = 3)
 ```
 
 
-## CI for $\widehat{\sigma}^2$ using the $\Gamma$ distribution
+## CI for $\widehat{\sigma}^2$ using the $\Gamma$ distribution `r .emo("info")`
 
 So, we can rely on the Gamma to build a CI95% as follows:
 
@@ -650,7 +655,7 @@ confint_sigma2(fit_lm_AL1)
 ```
 
 
-## CI for $\widehat{\sigma}^2$ using the $\chi^2$ distribution
+## CI for $\widehat{\sigma}^2$ using the $\chi^2$ distribution `r .emo("practice")`
 
 Yet, for the particular case of the estimate of the error variance, OLS theory tells us to use the chi-square distribution (exact rather than asymptotic):
 
@@ -671,9 +676,9 @@ Let's try that anyway for learning a thing or two...
 
 
 
-## CI for $\widehat{\sigma}^2$ using likelihood profiling
+## CI for $\widehat{\sigma}^2$ using likelihood profiling `r .emo("nerd")`
 
-```{r profile sigma, fig.align = "center", fig.width = 4, fig.height = 4}
+```{r profile sigma, fig.width = 4}
 candidate_sigma2 <- seq(10, 120, 5)
 logLik_profile <- sapply(candidate_sigma2, function(sigma2) ## for each sigma2 we re-estimate other parameters
   logLik(update(fit_spaMM_AL1_REML_varfixed, fixed = list(phi = sigma2))))
@@ -684,7 +689,7 @@ abline(h = logLik(fit_spaMM_AL1_REML) - 0.5*qchisq(0.95, 1), col = "red", lty = 
 ```
 
 
-## CI for $\widehat{\sigma}^2$ using likelihood profiling
+## CI for $\widehat{\sigma}^2$ using likelihood profiling `r .emo("nerd")`
 
 Again, you can compute the boundaries of the CI95% more precisely by optimising a function:
 
@@ -712,7 +717,7 @@ CI_prof_sigma2(fit = fit_spaMM_AL1_REML)
 ```
 
 
-## CI for $\widehat{\sigma}^2$ using parametric bootstrap
+## CI for $\widehat{\sigma}^2$ using parametric bootstrap `r .emo("nerd")`
 
 Again, you can use the package **{boot}** to perform a parametric bootstrap:
 
@@ -740,7 +745,7 @@ CI_boot_sigma2(fit = fit_spaMM_AL1_REML)
 Note: that we obtained a negative value is not great since variances cannot be negative...
 
 
-## Which method is best to build a CI?
+## Which method is best to build a CI? `r .emo("info")` `r .emo("proof")`
 
 Here we know: the one using the $\chi^2$ distribution, but sometime it is unclear (either because you don't know, because it is not known, or because there is no general answer) what the best method is. In such cases, you can always test for yourself by investigating the coverage of different methods by simulating data close to yours (as we did it earlier for Student's based CI).
 
@@ -763,9 +768,9 @@ mean(replicate(1000,
 ```
 
 
-## Which method is best to build CI for $\widehat{\sigma}^2$?
+## Which method is best to build CI for $\widehat{\sigma}^2$? `r .emo("info")` `r .emo("proof")`
 
-3- CI using likelihood profiling
+3- CI using likelihood profiling  `r .emo("slow")`
 
 ```{r coverage Gamma 2, eval = FALSE}
 set.seed(123)
@@ -775,7 +780,7 @@ mean(replicate(1000,  ## SLOW!
 ## RESULT  = 0.921
 ```
 
-4- CI using parametric boostrap
+4- CI using parametric boostrap `r .emo("slow")` `r .emo("slow")` `r .emo("slow")`
 
 ```{r coverage Gamma 3, eval = FALSE}
 set.seed(123)
@@ -788,13 +793,13 @@ mean(replicate(1000, ## VERY SLOW!
 
 CONCLUSION: for LM, we can confirm that the method based on the $\chi^2$ is clearly the best one!
 
-This example also shows that parametric bootstrap is not always good (something to keep in mind for the future).
+Note: this example also shows that parametric bootstrap is not always good (something to keep in mind for the future).
 
 
 # Tests on several regression coefficients at once
 
 
-## Why testing several estimates at once?
+## Why testing several estimates at once? `r .emo("info")`
 
 1. For comparing nested models (e.g. to test the effect of a qualitative variable)
 2. For comparing factor levels
@@ -810,7 +815,7 @@ summary(fit_lm_UK1)$coefficients
 ```
 
 
-## Comparing models with the function `anova()`
+## Comparing models with the function `anova()` `r .emo("practice")`
 
 You can use `anova()` to compare pairs of model fits:
 ```{r fit 2}
@@ -821,7 +826,7 @@ anova(fit_lm_UK2, fit_lm_UK1)
 Note: here we test the overall effect of `sex * weight`.
 
 
-## Comparing models with the function `anova()`
+## Comparing models with the function `anova()` `r .emo("info")`
 
 The default behaviour for `anova()` on LM fit is to compare perform a F-test:
 
@@ -835,13 +840,13 @@ The F-test is used to check is the decrease in residual variance for the more co
 ```{r F test hand}
 RSS_fit1 <- sum(residuals(fit_lm_UK1)^2)
 RSS_fit2 <- sum(residuals(fit_lm_UK2)^2)
-((RSS_fit2 - RSS_fit1))/(fit_lm_UK2$df.residual - fit_lm_UK1$df.residual) / summary(fit_lm_UK1)$sigma^2
+((RSS_fit1 - RSS_fit2)/(fit_lm_UK1$df.residual - fit_lm_UK2$df.residual)) / summary(fit_lm_UK1)$sigma^2
 ```
 
 Note: RSS/Res.Df = estimate of the error variance
 
 
-## Comparing models with the function `lmtest::lrtest()`
+## Comparing models with the function `lmtest::lrtest()` `r .emo("practice")`
 
 It is also possible to use a likelihood ratio test (LRT) as we did it before for testing $\widehat{\sigma}^2$. Here instead of doing it by hand, we will use this time the simple function from the package **{lmtest}**:
 
@@ -853,9 +858,9 @@ Note: under LM the LRT and the F-test give similar results! (Not for GLM...)
 
 
 
-## Comparing models with **{spaMM}**
+## Comparing models with **{spaMM}** `r .emo("practice")`
 
-It is possible to use `anova()` to perform a LRT if the model is fitted with **{spaMM}** (`lmtest::lrtest()` won't work):
+It is possible to use `anova()` to perform a LRT if the model is fitted with **{spaMM}** (using `lmtest::lrtest()` won't work):
 
 ```{r spaMM LRT}
 fit_spaMM_UK2_ML <- fitme(height ~ drink, data = fit_spaMM_UK1_ML$data)
@@ -864,7 +869,7 @@ anova(fit_spaMM_UK1_ML, fit_spaMM_UK2_ML)
 
 <bf>
 
-**{spaMM}** makes it also easy to test the LRT by parametric bootstrap instead of using the $\chi^2$, which is good if we are far from asymptotic conditions (but it slow to run):
+**{spaMM}** makes it also easy to test the LRT by parametric bootstrap instead of using the $\chi^2$, which is good if we are far from asymptotic conditions (but it slow to run) `r .emo("slow")`:
 
 ```{r spaMM LRT boot, eval = FALSE}
 LRT(fit_spaMM_UK1_ML, fit_spaMM_UK2_ML, boot.repl = 1000)
@@ -875,10 +880,10 @@ LRT(fit_spaMM_UK1_ML, fit_spaMM_UK2_ML, boot.repl = 1000)
 Notes: 
 
 - you must use ML fits (not REML) when testing regression coefficients using the likelihood!
-- `anova(..., test = "LRT")` exists for mode fitted with `lm()` but it does not really do a proper LRT (strange!)
+- `anova(..., test = "LRT")` exists for model fitted with `lm()` but it does not really do a proper LRT `r .emo("broken")`
 
 
-## Comparing models to test a qualitative variable
+## Comparing models to test qualitative var. `r .emo("practice")`
 
 Testing the overall effect cannot be done with `summary()` because it would only give you test outputs separately for each factor level. Instead, you should rely on model comparison for this purpose:
 
@@ -894,11 +899,12 @@ CONCLUSION:
 the consumption of alcohol during pregnancy is (statistically) related to the children's height.
 
 
-## Comparing models to test a quantitative variable
+## Comparing models to test quantitative var. `r .emo("practice")`
 
 Testing the effect of `human_eatens` can be done with `summary()` or with model comparison:
 
 ```{r fit human}
+summary(fit_lm_AL1)$coefficients["humans_eaten", ]
 fit_lm_AL2 <- lm(size ~ 1, data = fit_lm_AL1$model)
 anova(fit_lm_AL2, fit_lm_AL1)
 ```
@@ -906,7 +912,7 @@ anova(fit_lm_AL2, fit_lm_AL1)
 Note: when the models differ by one parameter (as in the case of quantitative variable), the F-test and the t-test give an identical p-value ($t^2 = F$ when the numerator degree of freedom is 1).
 
 
-## Comparing models to test all predictors
+## Comparing models to test all predictors `r .emo("practice")`
 
 Instead of doing many model comparisons to test all your predictors one by one, you can use `car::Anova()` as a shortcut:
 
@@ -914,10 +920,10 @@ Instead of doing many model comparisons to test all your predictors one by one, 
 car::Anova(fit_lm_UK1)
 ```
 
-`Anova()` performs a so-called Type 2 ANOVA: it tests for the effect of simple terms considering other simple terms to be modelled, but not interactions. The it tests for the effect of interactions assuming all simple terms to be modelled.
+`Anova()` performs a so-called Type 2 ANOVA: it tests for the effect of simple terms considering other simple terms to be modelled, but not interactions. The function also tests for the effect of interactions assuming all simple terms to be modelled.
 
 
-## Comparing models to test all predictors
+## Comparing models to test all predictors `r .emo("practice")`
 
 Do not use `anova()` for that: it performs the comparisons sequentially (i.e. Type 1 ANOVA, which is quite silly)...
 
@@ -930,9 +936,9 @@ anova(fit_lm_UK1)
 Note: sequential comparisons are nonetheless useful to identify multicollinearity issues (more on that later).
 
 
-## Comparing models to test against the null model
+## Testing against the null model `r .emo("practice")`
 
-A null model is a model estimating nothing more than the mean of the response:
+A null model is a model estimating nothing more than an intercept:
 
 ```{r null fit 2}
 fit_lm_UK0 <- lm(height ~ 1, data = fit_lm_UK1$model)
@@ -941,14 +947,14 @@ anova(fit_lm_UK0, fit_lm_UK1)
 
 <br>
 
-Note: **this test comparing a fit to the fit of a so-called null model should always be performed first before testing the effect of predictors individually!**
+Note: comparing a fit to the fit of a so-called null model **should always be performed first**, i.e. before testing the effect of predictors individually! `r .emo("info")`
 
 In the case of LM, it is also given by the last row produced by `summary()`!
 
 
 # Comparing many things
 
-## Simulate nothingness
+## Simulate nothingness `r .emo("alien")`
 
 To study what happens when testing many things, we will first simulate predictors with no effect:
 
@@ -965,7 +971,7 @@ simu_null(n = 5, p = 3)
 ```
 
 
-## Testing nothingness
+## Testing nothingness `r .emo("info")`
 
 ```{r robustness}
 p <- 3
@@ -977,7 +983,7 @@ min(p.values) <= 0.05  ## test if any regression coef is significant
 ```
 
 
-## Comparing many estimates increases false $+$
+## Comparing many estimates increases false $+$ `r .emo("info")`
 
 ```{r robustness 2}
 set.seed(123)
@@ -990,9 +996,9 @@ mean(replicate(200, min(car::Anova(lm(y ~ ., data = simu_null(n = 100, p = 10)))
 mean(replicate(200, min(car::Anova(lm(y ~ ., data = simu_null(n = 1000, p = 50)))["Pr(>F)"][1:50, 1]) <= 0.05))
 ```
 
-## Why not do backward selection?
+## Why not do backward selection? `r .emo("warn")`
 
-Some scientists (with poor knowledge in statistics) rely on so-called backward selection to discard predictors. This is a terrible thing if you want to do inference (i.e. test things). Backward stepwise selection is evil, even when you compare the minimal "adequate" fit to a null fit.
+Some scientists (with poor knowledge in statistics) rely on so-called backward stepwise selection to discard predictors. This is a terrible thing if you want to do inference (i.e. test things). Backward stepwise selection is evil, even when you compare the minimal "adequate" fit to a null fit.
 
 Here is why:
 
@@ -1016,9 +1022,9 @@ backward <- function(p, nsimu = 100) {
 result_backward <- sapply(c(3, 5, 10, 15, 20, 50), function(i) backward(p = i))
 ```
 
-## Why not do backward selection?
+## Why not do backward selection? `r .emo("proof")`
 
-```{r backward plot, fig.align = "center", fig.width = 4, fig.height = 4}
+```{r backward plot, fig.width = 4}
 plot(result_backward["full", ] ~ c(3, 5, 10, 15, 20, 50),
   type = "b", col = "green", ylim = c(0, 1), xlab = "Initial number of variables",
   ylab = "Proportion of significant models | H0", log = "x")
@@ -1028,10 +1034,10 @@ legend("topleft", fill = c("red", "green"), legend = c("step selection (backward
 ```
 
 
-## What shall I do?
+## What shall I do? `r .emo("info")` `r .emo("proof")`
 
 * Don't go fishing (forget backward selection for inference!!!)
-* Always compare the fit to null model fit and do not do more tests if this global test is not significant
+* Always compare your fit to the fit of a null model and do not do more tests if this global test is not significant
 
 ```{r null fit test}
 mean(replicate(1000, {
@@ -1049,7 +1055,7 @@ mean(replicate(1000, {
 
 # Comparing factor levels using post-hoc analyses
 
-## Comparing different levels from a factor
+## Comparing different levels from a factor `r .emo("practice")`
 
 After establishing that a qualitative predictor is significant, you may wonder which level is different from which. Yet, comparing many levels leads to an increase in the rate of false positives, so it is best to apply a multiple testing correction. The package **{multcomp}** can help you do that:
 
@@ -1059,11 +1065,11 @@ summary(comparing_drink_levels)
 ```
 
 
-## Comparing different levels from a factor
+## Comparing different levels from a factor `r .emo("practice")`
 
 After establishing that a qualitative predictor is significant, you may wonder which level is different from which. Yet, comparing many levels leads to an increase in the rate of false positives, so it is best to apply a multiple testing correction. The package **{multcomp}** can help you do that:
 
-```{r ghlt spaMM, fig.align='center', fig.height = 3.5, fig.width = 10}
+```{r ghlt spaMM, fig.width = 10, fig.height = 3.5, fig.asp = NULL}
 comparing_drink_levels_spaMM <- multcomp::glht(fit_spaMM_UK1_ML, linfct = multcomp::mcp(drink = "Tukey"),
                                                coef. = fixef.HLfit)  ## works with spaMM fit too!
 par(mar = c(4, 20, 2, 2))  ## increase left margin
@@ -1071,7 +1077,7 @@ plot(comparing_drink_levels_spaMM) ## you can plot the outcome!
 ```
 
 
-## Comparing different levels from a factor
+## Comparing different levels from a factor `r .emo("practice")`
 
 After establishing that a qualitative predictor is significant, you may wonder which level is different from which. Yet, comparing many levels leads to an increase in the rate of false positives, so it is best to apply a multiple testing correction. The package **{multcomp}** can help you do that.
 
@@ -1086,7 +1092,7 @@ summary(multcomp::glht(fit_lm_UK1bis, linfct = multcomp::mcp(drink2 = c("Not_at_
 ```
 
 
-## Comparing different levels from a factor
+## Comparing different levels from a factor `r .emo("practice")`
 
 To reduce the number of comparisons, you can also select carefully the first level of a factor.
 
@@ -1102,13 +1108,13 @@ Note: although this is an established practice, it does not correct for multiple
 
 # Comparing non-nested models
 
-## Comparing non nested models with AIC
+## Comparing non nested models with AIC `r .emo("practice")`
 
 So far all model comparisons we have seen considered nested models. Non-nested models can be compared too, as long as they have been fitted on the exact **same** response.
 
 For this, we rely on information criterions such as the Akaike Information Criterion:
 
-$AIC = -2 \times (logLik - p)$, with $p$ the number of parameters
+$\texttt{AIC} = -2 \times (\texttt{logLik} - p)$, with $p$ the number of parameters
 
 Example:
 
@@ -1125,15 +1131,13 @@ Notes:
 - do not use $r^2$ to compare models
 
 
-# Confidence intervals for the mean response
+# Confidence intervals for predictions
 
-## Confidence intervals for the mean response
+## CI(predicted mean response) `r .emo("info")`
 
-Since confidence intervals can be computed for any single-valued population parameter, you can compute confidence intervals around the mean response too!
+The CI95% on the predicted mean response is a nice way to represent the uncertainty of your fit:
 
-The CI95% on the mean response is a nice way to represent the uncertainty of your fit:
-
-```{r CI predVar, fig.align="center", fig.width=3.5, fig.height=3.5}
+```{r CI predVar, fig.width=3.5}
 pred <- data.frame(humans_eaten = seq(1, 12, 0.1))
 pred <- cbind(pred, predict(fit_lm_AL1, newdata = pred, interval = "confidence"))
 plot(size ~ humans_eaten, data = Alien)
@@ -1143,7 +1147,7 @@ points(lwr ~ humans_eaten, data = pred, lty = 2, lwd = 2, col = "blue", type = "
 ```
 
 
-## CI for the mean response with **{stats}**
+## CI(predicted mean response) with **{stats}** `r .emo("practice")`
 
 This is very easy to get in the case of `lm()` fits:
 
@@ -1151,7 +1155,10 @@ This is very easy to get in the case of `lm()` fits:
 predict(fit_lm_AL1, newdata = data.frame(humans_eaten = 4:5), interval = "confidence")
 ```
 
-Here is however a more general recipe that we will reuse for GLMs:
+
+## CI(predicted mean response) with **{stats}** `r .emo("info")`
+
+There is however a more general recipe which we will reuse for GLMs:
 ```{r compute predVar 2}
 pred <- predict(fit_lm_AL1, newdata = data.frame(humans_eaten = 4:5), interval = "confidence", se.fit = TRUE)
 rbind(c(pred$fit[1, "fit"] + qt(0.025, 10) * pred$se.fit[1],
@@ -1163,7 +1170,7 @@ rbind(c(pred$fit[1, "fit"] + qt(0.025, 10) * pred$se.fit[1],
 Note: `se.fit` only accounts for the uncertainty in the regression parameters. It can be obtained as `sqrt(diag(X %*% vcov(fit) %*% t(X)))`.
 
 
-## CI for the mean response with **{spaMM}**
+## CI(predicted mean response) with **{spaMM}** `r .emo("practice")`
 
 It is also quite easy to derive the CI for the mean response from models fitted with **{spaMM}**:
 ```{r compute predVar spaMM}
@@ -1173,15 +1180,10 @@ get_intervals(fit_spaMM_AL1_ML, newdata = data.frame(humans_eaten = 4:5), interv
 Note: here it does not matter if you use the ML or REML fit...
 
 
-# Intervals for new observations
+## CI(new observations) `r .emo("info")`
 
-## Prediction Interval
-
-It is used to predict the limits within which X% of new observations should fall (on average for future samples).
-
-Example of PI95%:
-
-```{r respVar, fig.align="center", fig.width=4.5, fig.height=4.5, echo = FALSE}
+CI for new observations (sometimes called Prediction Intervals) are used to predict the limits within which X% of new observations should fall (on average for future samples).
+```{r respVar, fig.width=3.5}
 pred <- data.frame(humans_eaten = seq(1, 12, 0.1))
 pred <- cbind(pred, predict(fit_lm_AL1, newdata = pred, interval = "prediction"))
 plot(size ~ humans_eaten, data = Alien)
@@ -1191,24 +1193,31 @@ points(lwr ~ humans_eaten, data = pred, lty = 2, lwd = 2, col = "red", type = "l
 ```
 
 
-## Prediction intervals with **{stats}**
+## CI(new observations) with **{stats}** `r .emo("practice")`
 
+This is very easy to get in the case of `lm()` fits:
 ```{r compute respVar}
+predict(fit_lm_AL1, newdata = data.frame(humans_eaten = 4:5), interval = "prediction")
+```
+
+
+## CI(new observations) with **{stats}** `r .emo("info")`
+
+There is however a more general recipe which we will reuse for GLMs:
+```{r compute respVar by hand}
 pred <- predict(fit_lm_AL1, newdata = data.frame(humans_eaten = 4:5), interval = "prediction", se.fit = TRUE)
 pred$fit
-se.pred <- sqrt(pred$se.fit^2 + pred$residual.scale^2) ## residual.scale = sigma error
+se.pred <- sqrt(pred$se.fit^2 + pred$residual.scale^2) ## residual.scale^2 = estimate of the error variance
 rbind(c(pred$fit[1, "fit"] + qt(0.025, df = 10) * se.pred[1],
         pred$fit[1, "fit"] + qt(0.975, df = 10) * se.pred[1]),
       c(pred$fit[2, "fit"] + qt(0.025, df = 10) * se.pred[2],
         pred$fit[2, "fit"] + qt(0.975, df = 10) * se.pred[2]))
 ```
 
-<br>
-
 Note: `se.pred` accounts for both the uncertainty in regression parameters and the uncertainty in the estimate for the error variance.
 
 
-## Prediction intervals with **{spaMM}**
+## CI(new observations) with **{spaMM}** `r .emo("info")`
 
 With **{spaMM}**:
 ```{r compute respVar spaMM}
@@ -1217,10 +1226,10 @@ get_intervals(fit_spaMM_AL1_REML, newdata = data.frame(humans_eaten = 4:5), inte
 
 <br>
 
-Note: here it does not matter if you use the ML or REML fit...
+Note: here it does not matter if you use the ML or REML fit... **{spaMM}** knows what to do.
 
 
-## What you need to remember
+## What you need to remember `r .emo("goal")`
 
 * that model parameter estimates are random variables
 * that for LM parameters are tested using t-tests
@@ -1229,7 +1238,7 @@ Note: here it does not matter if you use the ML or REML fit...
 * how to check if a test or a method aiming at building a CI is valid
 * how to use the functions ```summary()```, ```anova()``` and ```Anova()```
 * that you should avoid doing many tests
-* what 95% prediction intervals are
+* how to compute CI for predictions
 
 
 <!--
@@ -1254,7 +1263,7 @@ head(candidates)
 
 ## Multivariate density of the estimates for $\widehat{\beta}$s
 
-```{r plot rgl, webgl=TRUE, fig.align="center"}
+```{r plot rgl, webgl=TRUE}
 library(rgl)  ## to make interactive plots!
 with(data = candidates, plot3d(candidate_intercept, candidate_slope, d))
 ```
@@ -1262,7 +1271,7 @@ with(data = candidates, plot3d(candidate_intercept, candidate_slope, d))
 
 ## Same plot with ```graphics```
 
-```{r plot graphics, fig.align = "center", fig.height = 4, fig.width = 4}
+```{r plot graphics, fig.width = 4}
 contour(x = candidate_intercepts, y = candidate_slopes,
         z = matrix(candidates$d, nrow = length(candidate_intercepts)),
         nlevels = 5, xlab = "intercept", ylab = "slope")
@@ -1274,11 +1283,11 @@ contour(x = candidate_intercepts, y = candidate_slopes,
 
 ## The Linear Model: LM
 
-* 2.0 [Introduction](./LM_intro.html)
-* 2.1 [Fitting procedure](./LM_fitting.html)
-* 2.2 [Tests & Intervals](./LM_test_intervals.html)
-* 2.3 [Assumptions & Outliers](./LM_assumptions.html)
-* 2.4 [Let's practice](./LM_practice.html)
+* 2.0 [Introduction](./LM_intro_course.html)
+* 2.1 [Fitting procedure](./LM_fitting_course.html)
+* 2.2 [Tests & Intervals](./LM_test_intervals_course.html)
+* 2.3 [Assumptions & Outliers](./LM_assumptions_course.html)
+* 2.4 [Let's practice](./LM_practice_course.html)
 
 <br>
 
