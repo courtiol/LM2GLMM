@@ -316,7 +316,7 @@ $$
 
 ## Mean response values `r .emo("info")`
 
-The mean response value is here the mean size of an infinite number of aliens eating a given amount of humans.
+The mean response values are here the mean sizes of an infinite number of aliens eating the given amounts of humans.
 
 <div class="columns-2">
 
@@ -372,7 +372,6 @@ Alien$size_fitted <- fitted.values(fit_alien_lm)
 ```{r alien fitted values_res}
 Alien
 ```
-
 
 ## The fitted values `r .emo("practice")`
 
@@ -787,21 +786,83 @@ cor(Alien$residuals, Alien$error)
 mean(Alien$residuals) ## residuals have a mean of 0 in the sample, while error have a mean 0 in the population
 ```
 
+## Variances for the error & residuals `r .emo("info")`
+
+The variance of the error ($\sigma^2$) cannot be directly observed...
+
+... but it can be estimated from the variance of the residual.
+
+<br>
+
+## Interlude: sample vs population variance `r .emo("info")`
+
+Do you remember that?
+
+### Population variance
+
+<center><font size = 5>
+$$\frac{\displaystyle\sum^n_{i = 1}(x_i - \bar{x})^2}{n}$$
+</font></center>
+
+### Sample variance
+
+<center><font size = 5>
+$$\frac{\displaystyle\sum^n_{i = 1}(x_i - \bar{x})^2}{n\color{red}{-1}}$$
+</font></center>
+
+
+## Interlude: sample vs population variance `r .emo("proof")`
+
+```{r vars}
+set.seed(1)
+bias_vars_list <- replicate(100000, {
+  observations <- rnorm(n = 20, mean = 0, sd = sqrt(5))
+  numerator <- sum((observations - mean(observations))^2)
+  c(bias_pop_var    = (numerator/20) - 5,
+    bias_sample_var = (numerator/19) - 5)
+}, simplify = FALSE)
+bias_vars_df <- data.frame(do.call("rbind", bias_vars_list)) ## to turn the output as a clean dataframe
+```
+
+```{r vars2}
+apply(bias_vars_df, 2, mean)
+```
+
+The bias corresponds to an underestimation stemming from looking at the variation around the mean estimate: the variation around the mean estimate is always smaller that the variation around the true mean in the population. This is because by construction the estimate of the mean is the value generally the closest to all **sampled** points.
+
+The bias can be removed by considering $n - p$ in the denominator to correct for the bias when you estimate $p$ parameters ($p = 1$, when there is only one mean). 
+
+
+## Estimating the variances for the error `r .emo("info")` `r .emo("practice")`
+
+The variance of the error ($\sigma^2$) cannot be directly observed...
+
+... but it can be estimated from the variance of the residuals ($\varepsilon_i$):
+
+<center><font size = 5>
+$$\hat{\sigma}^2 = \frac{\displaystyle\sum^n_{i = 1}\varepsilon_i^2}{n\color{red}{-p}}$$
+</font></center>
+
+```{r estimate var error}
+sum(residuals(fit_alien_lm)^2) / (nrow(Alien) - ncol(model.matrix(fit_alien_lm)))
+summary(fit_alien_lm)$sigma^2 ## same thing, simpler :-)
+```
+
 
 # Predictions
 
-## Predictions using the design matrix  `r .emo("info")`
+## Predicting the mean response using $X$ `r .emo("info")`
 
-Predictions are the equivalent to fitted values for future or hypothetical observations.
+We here want to predict the average of large groups of future observations.
 
-Example: prediction for the size of Aliens having eaten 1, 1.5, 2, 2.5 and 3 humans.
+Example: prediction for the average size of Aliens having eaten 1, 1.5, 2, 2.5 and 3 humans.
 
 ```{r prediction by hand}
 (new_design <- cbind(Intercept = 1, humans_eaten = seq(1, 3, by = 0.5)))
 new_design %*% coef(fit_alien_lm)
 ```
 
-## Predictions using `predict()` `r .emo("practice")`
+## Same using `predict()` `r .emo("practice")`
 
 The function `predict()` saves you the trouble of building a design matrix by hand:
 
@@ -812,9 +873,10 @@ predict(fit_alien_lm, newdata = data_for_predict)
 
 <br>
 
-The fact that you provide predictors instead of regressors is particularly useful when you have qualitative variable (see [exercises](./LM_intro_exercises.html)).
+Note: the fact that you must feed the function `predict()` with predictors and not regressors is particularly useful when you have qualitative variable (see [exercises](./LM_intro_exercises.html)).
 
-## Predictions with several predictors `r .emo("practice")`
+
+## Predicting the mean response with several predictors `r .emo("practice")`
 
 When several predictors are involved, predictions can be computed differently...
 
@@ -827,7 +889,7 @@ fit_apb <- lm(age ~ planet * bh_trips, data = Alien2)
 (pred0 <- predict(fit_apb, newdata = newd0))
 ```
 
-## Predictions with several predictors `r .emo("practice")`
+## Predicting the mean response with several predictors `r .emo("practice")`
 
 When several predictors are involved, predictions can be computed differently...
 
@@ -841,7 +903,7 @@ fit_apb <- lm(age ~ planet * bh_trips, data = Alien2)
 ```
 
 
-## Predictions with several predictors `r .emo("practice")`
+## Predicting the mean response with several predictors `r .emo("practice")`
 
 When several predictors are involved, predictions can be computed differently...
 
@@ -854,7 +916,7 @@ fit_apb <- lm(age ~ planet * bh_trips, data = Alien2)
 (pred_conditional <- predict(fit_apb, newdata = newd_conditional))
 ```
 
-## Predictions with several predictors `r .emo("info")`
+## Predicting the mean response with several predictors `r .emo("info")`
 
 When several predictors are involved, predictions can be computed differently...
 
@@ -873,6 +935,21 @@ Note: it could be difficult to identify what packages computing (or plotting) au
 
 ##
 <center> <img src="./Extrapolation.png" alt="xkcd" style="width: 300x;"/> </center>
+
+
+## Predicting future observations `r .emo("info")`
+
+Sometimes we do not want to predict the mean response (i.e. the average response value for a group of observations) but single future observations.
+
+For this, you need to predict the mean response and then draw a realisation of the error.
+
+Example:  prediction for the size of 3 aliens having eaten 1.5 humans:
+
+```{r 3_aliens}
+(pred_mean_response <- predict(fit_alien_lm, newdata = data.frame(humans_eaten = 1.5)))
+set.seed(123)
+rnorm(n = 3, mean = pred_mean_response, sd = summary(fit_alien_lm)$sigma)
+```
 
 
 # Summary
