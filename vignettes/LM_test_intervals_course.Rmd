@@ -83,7 +83,7 @@ fit_spaMM_AL1_REML <- fitme(size ~ humans_eaten, data = Alien, method = "REML")
 fit_spaMM_AL1_REML
 ```
 
-Note: the REML fit is needed for whenever we are using the estimate of the error variance.
+Note: REML fit are needed for whenever we are using variance estimates!
 
 
 ## Britons fitted with `stats::lm()` `r .emo("alien")`
@@ -145,7 +145,7 @@ There are sometimes referred to as *conditional* standard errors because these S
 
 ## Testing regression coefficients with **{stats}** `r .emo("practice")`
 
-Regression coefficient estimates are tested using Student's t-test:
+Regression coefficient estimates are tested using Student's t-test (`t value = Estimate / Std. Error`):
 
 ```{r summary stats}
 summary(fit_lm_AL1)$coefficients  ## you can also use simply summary(fit_lm_AL1)!!!
@@ -172,7 +172,7 @@ cbind(ttable, p = 2*pt(abs(ttable[, "t-value"]),
                        lower.tail = FALSE))
 ```
 
-Note: to obtain the t-values, you need to rely on the `REML` fits because the denominator of the t-value is the estimate of the square root of the error variance.
+Note: to obtain the t-values, you need to rely on the `REML` fits because the denominator of the t-value (`Cond. SE`) are sqrt variance estimates.
 
 
 ## t-tests and linear models `r .emo("info")` `r .emo("proof")`
@@ -285,8 +285,8 @@ confint(fit_lm_AL1)
 It is easy to compute the same thing by hand:
 ```{r CI student hand}
 
-cbind(coef(fit_lm_AL1) + qt(0.025, 10) * sqrt(diag(vcov(fit_lm_AL1))),  ## 10 = n - p
-      coef(fit_lm_AL1) + qt(0.975, 10) * sqrt(diag(vcov(fit_lm_AL1))))  ## 10 = n - p
+cbind(coef(fit_lm_AL1) + qt(0.025, fit_lm_AL1$df.residual) * sqrt(diag(vcov(fit_lm_AL1))),
+      coef(fit_lm_AL1) + qt(0.975, fit_lm_AL1$df.residual) * sqrt(diag(vcov(fit_lm_AL1))))
 ```
 
 Note: `qt()` is used to extract the quantiles from the Student's t distribution and `sqrt(diag(vcov(fit_lm_AL1))` is used to unscale the result so it follows the scale of the response.
@@ -390,7 +390,7 @@ CI_prof_slope(fit = fit_lm_AL1, varname = "humans_eaten")
 
 <br>
 
-* Cost: uses the chi-squared distribution to establish a threshold, which is an asymptotic approximation, so it needs a quite lot of observations for this approximation to be reasonable.
+* Cost: uses the $\chi^2$ distribution to establish a threshold, which is an asymptotic approximation, so it needs a quite lot of observations for this approximation to be reasonable.
 
 
 ## Joint confidence intervals by likelihood profiling `r .emo("info")`
@@ -542,25 +542,25 @@ CONCLUSION: results are quite different depending on the method one uses!
 In case of LM, it is a no brainer, stick to `confint()` which uses the Student's t distribution when called on a fit produced with `stats::lm()`.
 
 
-# Testing the error variance estimate
+# Testing the residual variance
 
-## Point estimate for the error variance `r .emo("practice")`
+## Point estimate for the residual variance `r .emo("practice")`
 
-Remember how to extract the error variance:
+Remember how to extract the unbiased estimate of the residual variance:
 
 ```{r sigma point estimate}
-(sigma2_error <- summary(fit_lm_AL1)$sigma^2)
+(residvar <- summary(fit_lm_AL1)$sigma^2)
 fit_spaMM_AL1_REML$phi
 ```
 
 <br>
 
-Note: with **{spaMM}** you need to use the REML fit if you don't want to do maths.
+Note: you need to use the REML estimate of the residual variance, otherwise we have seen it is biased. 
 
 
-## Testing differences in variance `r .emo("practice")`
+## Testing differences in residual variance `r .emo("practice")`
 
-Testing if the error variance is null makes no sense, but it could make sense to compare the estimate to a given value.
+Testing if the residual variance is null makes no sense, but it could make sense to compare the estimate to a given value (e.g., here 25).
 For this we could use a very general recipe one can use for any comparison between nested models:
 
 1- fit a model in which the parameter is constrained
@@ -576,12 +576,14 @@ stats_LRT <- -2 * (logLik(fit_spaMM_AL1_REML_varfixed) - logLik(fit_spaMM_AL1_RE
 pchisq(stats_LRT, df = 1, lower.tail = FALSE)
 ```
 
-## Testing differences in variance `r .emo("practice")`
+## Testing differences in residual variance `r .emo("practice")`
 
-For testing error variance in LM specifically, there is a better method:
+For comparing 2 residual variances in LM specifically, there is a better method:
 
 ```{r sigma chisq}
-pchisq(sum(residuals(fit_spaMM_AL1_REML)^2)/25, df = 10, lower.tail = FALSE)  ## 10 = n - p
+pchisq(sum(residuals(fit_spaMM_AL1_REML)^2)/25,
+       df = nrow(fit_spaMM_AL1_REML$data) - length(fixef(fit_spaMM_AL1_REML)),
+       lower.tail = FALSE)
 ```
 
 
@@ -592,14 +594,15 @@ Sometimes theory helps, but sometimes there is no clear answer. Again, you can u
 Statistical tests should meet 2 properties: the rate of false negatives should be as small as possible, and more importantly, the rate of false positives must be close to the nominal level. You can test the latter by checking if the test produces a uniform distribution of p-values under the null hypothesis (it should!):
 
 ```{r testing variances}
-simu <- function(n, sigma2) simulate_Aliens(N = n, sigma2 = sigma2)
+simu <- function(n, residvar) simulate_Aliens(N = n, sigma2 = residvar)
 
-tests_var_under_H0 <- function(fit, sigma2_true = 25, n = 12) {
-  d <- simu(n, sigma2_true)
+tests_var_under_H0 <- function(fit, n = nrow(fit$data), residvar_true = 25) {
+  d <- simu(n, residvar_true)
   fit_phi_est <- update(fit, data = d)
-  fit_phi_fixed <- update(fit, fixed = list(phi = sigma2_true), data = d)
+  fit_phi_fixed <- update(fit, fixed = list(phi = residvar_true), data = d)
   stats_LRT <- -2 * (logLik(fit_phi_fixed) - logLik(fit_phi_est))
-  c(chisq = pchisq(sum(residuals(fit_phi_est)^2)/sigma2_true, df = n - length(fixef(fit)), lower.tail = FALSE),
+  c(chisq = pchisq(sum(residuals(fit_phi_est)^2)/residvar_true,
+                   df = nrow(fit$data) - length(spaMM::fixef(fit)), lower.tail = FALSE),
     LRT = pchisq(stats_LRT, df = 1, lower.tail = FALSE)[[1]])
 }
 ```
@@ -612,60 +615,61 @@ res <- replicate(1000, tests_var_under_H0(fit_spaMM_AL1_REML))
 
 ## Which alternative to choose for testing? `r .emo("info")`
 
-```{r testing variances plot, echo=TRUE, fig.width=3.5}
+```{r testing variances plot, echo=TRUE, fig.width=3}
 plot(ecdf(res["chisq", ]), lwd = 2)
 plot(ecdf(res["LRT", ]), add = TRUE, col = "blue", lwd = 2)
 abline(0, 1, col = "red", lwd = 2)
 legend("topleft", fill = c("black", "blue"), legend = c("Chisq", "LRT"), bty = "n")
 ```
+Notes: 
 
-Note: `ecdf()` computes the empirical cumulative distribution.
-
-CONCLUSION: here, both methods look good!
-
-
-# Confidence intervals of the error variance estimate
+- `ecdf()` computes the empirical cumulative distribution
+- if a distribution is uniform, its ECDF is a straight line
+- here, both methods look good!
 
 
-## Distribution of variance estimates `r .emo("nerd")`
+# Confidence intervals for the residual variance
 
-Variance estimates generally follow a Gamma ($\Gamma$) distribution with mean  = $\texttt{estimate}$ and var = $2 (\texttt{estimate}^2) / (n-p)$.
+
+## Distribution of residual variance estimates `r .emo("nerd")`
+
+Variance estimates generally follow a Gamma ($\Gamma$) distribution with mean  = $\texttt{estimate}$ and var = $2 (\texttt{estimate}^2) / \texttt{df}$.
 
 For $\Gamma$, mean = $\texttt{shape} \times \texttt{scale}$ and var = 
-$\texttt{shape} \times \texttt{scale}^2$ ($\texttt{shape}$ and $\texttt{scale}$ are the two parameters shaping the shape of the $\Gamma$ distribution); thus, little maths show that in our context $\texttt{shape} =  (n-p)/2$ and $\texttt{scale} = 2 \times\texttt{estimate}/(n-p)$.
+$\texttt{shape} \times \texttt{scale}^2$ ($\texttt{shape}$ and $\texttt{scale}$ are the two parameters of the $\Gamma$ distribution); thus, little maths show that in our context $\texttt{shape} =  \texttt{df}/2$ and $\texttt{scale} = 2 \times\texttt{estimate}/\texttt{df}$.
 
 ```{r gamma, fig.width = 3}
-curve(dgamma(x, shape = fit_lm_AL1$df.residual/2, scale = 2*sigma2_error/fit_lm_AL1$df.residual),
-    from = 0, to = 100, xlab = "sigma2_error", ylab = "probability density", lwd = 3)
+curve(dgamma(x, shape = fit_lm_AL1$df.residual/2, scale = 2*residvar/fit_lm_AL1$df.residual), ## df = n - p
+    from = 0, to = 100, xlab = "residual variance", ylab = "probability density", lwd = 3)
 ```
 
 
 ## CI for $\widehat{\sigma}^2$ using the $\Gamma$ distribution `r .emo("info")`
 
-So, we can rely on the Gamma to build a CI95% as follows:
+So, we can rely on the Gamma to build a CI95% of the variance estimate as follows:
 
 ```{r assymptotic}
-confint_sigma2 <- function(fit) {
-  sigma2_error <- summary(fit)$sigma^2
-  qgamma(p = c(0.025, 0.975), shape = fit$df.residual/2, scale = 2*sigma2_error/fit$df.residual)
+CI_residvar_gamma <- function(fit) {
+  residvar <- summary(fit)$sigma^2
+  qgamma(p = c(0.025, 0.975), shape = fit$df.residual/2, scale = 2*residvar/fit$df.residual)
 }
 ```
 ```{r assymptotic 2}
-confint_sigma2(fit_lm_AL1)
+CI_residvar_gamma(fit_lm_AL1)
 ```
 
 
 ## CI for $\widehat{\sigma}^2$ using the $\chi^2$ distribution `r .emo("practice")`
 
-Yet, for the particular case of the estimate of the error variance, OLS theory tells us to use the chi-square distribution (exact rather than asymptotic):
+Yet, for the particular case of the residual variance, OLS theory tells us to rely on the chi-square distribution (exact rather than asymptotic):
 
 ```{r chi2 interval}
-confint_sigma2_chi2 <- function(fit) {
+CI_residvar_chi2 <- function(fit) {
  sum(residuals(fit)^2)/c(qchisq(0.975, df = fit$df.residual), qchisq(0.025, df = fit$df.residual))
 }
 ```
 ```{r chi2 interval 2}
-confint_sigma2_chi2(fit_lm_AL1)
+CI_residvar_chi2(fit_lm_AL1)
 ```
 
 <br>
@@ -679,10 +683,10 @@ Let's try that anyway for learning a thing or two...
 ## CI for $\widehat{\sigma}^2$ using likelihood profiling `r .emo("nerd")`
 
 ```{r profile sigma, fig.width = 4}
-candidate_sigma2 <- seq(10, 120, 5)
-logLik_profile <- sapply(candidate_sigma2, function(sigma2) ## for each sigma2 we re-estimate other parameters
-  logLik(update(fit_spaMM_AL1_REML_varfixed, fixed = list(phi = sigma2))))
-plot(logLik_profile ~ candidate_sigma2, type = "o")
+candidate_residvar <- seq(10, 120, 5)
+logLik_profile <- sapply(candidate_residvar, function(residvar) ## for each residvar we re-estimate other parameters
+  logLik(update(fit_spaMM_AL1_REML_varfixed, fixed = list(phi = residvar))))
+plot(logLik_profile ~ candidate_residvar, type = "o")
 abline(v = 25, col = "green", lwd = 2)
 abline(v = fit_spaMM_AL1_REML$phi, col = "blue", lwd = 2)
 abline(h = logLik(fit_spaMM_AL1_REML) - 0.5*qchisq(0.95, 1), col = "red", lty = 2, lwd = 2)  ## threshold
@@ -694,8 +698,8 @@ abline(h = logLik(fit_spaMM_AL1_REML) - 0.5*qchisq(0.95, 1), col = "red", lty = 
 Again, you can compute the boundaries of the CI95% more precisely by optimising a function:
 
 ```{r CI by profile var}
-diff_logLik_sigma2 <- function(sigma2, fit) {
-  newfit <- update(fit, fixed = list(phi = sigma2))
+diff_logLik_residvar <- function(residvar, fit) {
+  newfit <- update(fit, fixed = list(phi = residvar))
   logLik_newfit <- logLik(newfit)[[1]]
   logLik_goal <- logLik(fit)[[1]] - 0.5*qchisq(0.95, df = 1)
   abs(logLik_newfit - logLik_goal)
@@ -703,17 +707,17 @@ diff_logLik_sigma2 <- function(sigma2, fit) {
 ```
 
 ```{r CI by profile var2}
-CI_prof_sigma2 <- function(fit, range = c(0.1, 1000)) {
-  lwr <- optimise(diff_logLik_sigma2, interval = c(range[1], fit$phi),
+CI_residvar_prof <- function(fit, range = c(0.1, 1000)) {
+  lwr <- optimise(diff_logLik_residvar, interval = c(range[1], fit$phi),
                   fit = fit)
-  upr <- optimise(diff_logLik_sigma2, interval = c(fit$phi, range[2]),
+  upr <- optimise(diff_logLik_residvar, interval = c(fit$phi, range[2]),
                   fit = fit)
   c(lwr = lwr$minimum, upr = upr$minimum)
 }
 ```
 
 ```{r CI by profile var3}
-CI_prof_sigma2(fit = fit_spaMM_AL1_REML)
+CI_residvar_prof(fit = fit_spaMM_AL1_REML)
 ```
 
 
@@ -721,8 +725,8 @@ CI_prof_sigma2(fit = fit_spaMM_AL1_REML)
 
 Again, you can use the package **{boot}** to perform a parametric bootstrap:
 
-```{r CI param boot sigma2}
-CI_boot_sigma2 <- function(fit, nboot = 1000) {
+```{r CI param boot residvar}
+CI_residvar_boot <- function(fit, nboot = 1000) {
   newYs <- simulate(fit, nsim = nboot) ## simulate new responses from the fit!!
   res_sim <- sapply(1:nboot, function(i) {
     newdata <- model.frame(fit) ## extract the data
@@ -737,9 +741,9 @@ CI_boot_sigma2 <- function(fit, nboot = 1000) {
 } ## to use with spaMM fit, just run coef.HLfit <- fixef.HLfit beforehand
 ```
 
-```{r CI param boot sigma2 2}
+```{r CI param boot residvar 2}
 set.seed(123)
-CI_boot_sigma2(fit = fit_spaMM_AL1_REML)
+CI_residvar_boot(fit = fit_spaMM_AL1_REML)
 ```
 
 Note: that we obtained a negative value is not great since variances cannot be negative...
@@ -756,7 +760,7 @@ Here, we will check the coverage for all 4 methods we have just mentioned:
 ```{r coverage Gamma}
 set.seed(123)
 mean(replicate(1000,
-  sum(findInterval(confint_sigma2_chi2(update(fit_lm_AL1, data = simulate_Aliens())), 25)) == 1))  ## for lm fit
+  sum(findInterval(CI_residvar_chi2(update(fit_lm_AL1, data = simulate_Aliens())), 25)) == 1))  ## for lm fit
 ```
 
 2- CI using the $\Gamma$
@@ -764,7 +768,7 @@ mean(replicate(1000,
 ```{r coverage Gamma chi2}
 set.seed(123)
 mean(replicate(1000,
-  sum(findInterval(confint_sigma2(update(fit_lm_AL1, data = simulate_Aliens())), 25)) == 1))  ## for lm fit
+  sum(findInterval(CI_residvar_gamma(update(fit_lm_AL1, data = simulate_Aliens())), 25)) == 1))  ## for lm fit
 ```
 
 
@@ -775,7 +779,7 @@ mean(replicate(1000,
 ```{r coverage Gamma 2, eval = FALSE}
 set.seed(123)
 mean(replicate(1000,  ## SLOW!
-  sum(findInterval(CI_prof_sigma2(update(fit_spaMM_AL1_REML, data = simulate_Aliens())), 25)) == 1))
+  sum(findInterval(CI_residvar_prof(update(fit_spaMM_AL1_REML, data = simulate_Aliens())), 25)) == 1))
 ## only designed to work with spaMM REML fit!
 ## RESULT  = 0.921
 ```
@@ -785,15 +789,15 @@ mean(replicate(1000,  ## SLOW!
 ```{r coverage Gamma 3, eval = FALSE}
 set.seed(123)
 mean(replicate(1000, ## VERY SLOW!
-  sum(findInterval(CI_boot_sigma2(update(fit_spaMM_AL1_REML, data = simulate_Aliens()), nboot = 1000), 25)) == 1))  ## only designed to work with spaMM REML fit!
+  sum(findInterval(CI_residvar_boot(update(fit_spaMM_AL1_REML, data = simulate_Aliens()), nboot = 1000), 25)) == 1))  ## only designed to work with spaMM REML fit!
 ## RESULT  = 0.811
 ```
 
-<br>
+Notes: 
 
-CONCLUSION: for LM, we can confirm that the method based on the $\chi^2$ is clearly the best one!
+- for LM, we can confirm that the method based on the $\chi^2$ is clearly the best one!
+- parametric bootstrap is not always good (something to keep in mind for the future)
 
-Note: this example also shows that parametric bootstrap is not always good (something to keep in mind for the future).
 
 
 # Tests on several regression coefficients at once
@@ -840,15 +844,15 @@ The F-test is used to check is the decrease in residual variance for the more co
 ```{r F test hand}
 RSS_fit1 <- sum(residuals(fit_lm_UK1)^2)
 RSS_fit2 <- sum(residuals(fit_lm_UK2)^2)
-((RSS_fit1 - RSS_fit2)/(fit_lm_UK1$df.residual - fit_lm_UK2$df.residual)) / summary(fit_lm_UK1)$sigma^2
+((RSS_fit1 - RSS_fit2)/(fit_lm_UK1$df.residual - fit_lm_UK2$df.residual)) / (RSS_fit1/fit_lm_UK1$df.residual)
 ```
 
-Note: RSS/Res.Df = estimate of the error variance
+Note: RSS/Res.Df = unbiased estimate of the residual variance
 
 
 ## Comparing models with the function `lmtest::lrtest()` `r .emo("practice")`
 
-It is also possible to use a likelihood ratio test (LRT) as we did it before for testing $\widehat{\sigma}^2$. Here instead of doing it by hand, we will use this time the simple function from the package **{lmtest}**:
+It is also possible to use a likelihood ratio test (LRT) as we did it before for testing $\widehat{\sigma}^2$. Instead of doing it by hand, we will use this time the simple function from the package **{lmtest}**:
 
 ```{r lrtest LRT}
 lmtest::lrtest(fit_lm_UK2, fit_lm_UK1)
@@ -867,21 +871,27 @@ fit_spaMM_UK2_ML <- fitme(height ~ drink, data = fit_spaMM_UK1_ML$data)
 anova(fit_spaMM_UK1_ML, fit_spaMM_UK2_ML)
 ```
 
-<bf>
-
-**{spaMM}** makes it also easy to test the LRT by parametric bootstrap instead of using the $\chi^2$, which is good if we are far from asymptotic conditions (but it slow to run) `r .emo("slow")`:
-
-```{r spaMM LRT boot, eval = FALSE}
-LRT(fit_spaMM_UK1_ML, fit_spaMM_UK2_ML, boot.repl = 1000)
-```
-
 <br>
 
 Notes: 
 
 - you must use ML fits (not REML) when testing regression coefficients using the likelihood!
-- `anova(..., test = "LRT")` exists for model fitted with `lm()` but it does not really do a proper LRT `r .emo("broken")`
+- `anova(..., test = "LRT")` exists for model fitted with `lm()` but it does not really do a true LRT (unless the residual variances of the 2 fits are identical) `r .emo("broken")` (`drop1()` does work)
 
+
+## Comparing models with **{spaMM}** `r .emo("practice")`
+
+**{spaMM}** makes it also easy to test the LRT by parametric bootstrap instead of using the $\chi^2$, which is good if we are far from asymptotic conditions (but it can be slow to run) `r .emo("slow")`:
+
+```{r spaMM LRT boot, eval = TRUE}
+LRT(fit_spaMM_UK1_ML, fit_spaMM_UK2_ML, boot.repl = 1000)
+```
+
+Notes:
+
+- p-value #1 = asymptotic LRT
+- p-value #2 = LRT by bootstrap
+- p-value #3 = asymptotic LRT with Bartlett correction (midway solution if `boot.repl` must be small)
 
 ## Comparing models to test qualitative var. `r .emo("practice")`
 
@@ -1167,7 +1177,10 @@ rbind(c(pred$fit[1, "fit"] + qt(0.025, 10) * pred$se.fit[1],
         pred$fit[2, "fit"] + qt(0.975, 10) * pred$se.fit[2]))
 ```
 
-Note: `se.fit` only accounts for the uncertainty in the regression parameters. It can be obtained as `sqrt(diag(X %*% vcov(fit) %*% t(X)))`.
+Notes:
+
+- `se.fit` accounts for the uncertainty in the regression parameters
+- (it is equal to `sqrt(diag(X %*% vcov(fit) %*% t(X)))`)
 
 
 ## CI(predicted mean response) with **{spaMM}** `r .emo("practice")`
@@ -1207,14 +1220,14 @@ There is however a more general recipe which we will reuse for GLMs:
 ```{r compute respVar by hand}
 pred <- predict(fit_lm_AL1, newdata = data.frame(humans_eaten = 4:5), interval = "prediction", se.fit = TRUE)
 pred$fit
-se.pred <- sqrt(pred$se.fit^2 + pred$residual.scale^2) ## residual.scale^2 = estimate of the error variance
+se.pred <- sqrt(pred$se.fit^2 + pred$residual.scale^2) ## residual.scale^2 = residual variance
 rbind(c(pred$fit[1, "fit"] + qt(0.025, df = 10) * se.pred[1],
         pred$fit[1, "fit"] + qt(0.975, df = 10) * se.pred[1]),
       c(pred$fit[2, "fit"] + qt(0.025, df = 10) * se.pred[2],
         pred$fit[2, "fit"] + qt(0.975, df = 10) * se.pred[2]))
 ```
 
-Note: `se.pred` accounts for both the uncertainty in regression parameters and the uncertainty in the estimate for the error variance.
+Note: `se.pred` accounts for both the uncertainty in regression parameters and the uncertainty in the estimate for the residual variance.
 
 
 ## CI(new observations) with **{spaMM}** `r .emo("info")`
@@ -1244,9 +1257,9 @@ Note: here it does not matter if you use the ML or REML fit... **{spaMM}** knows
 <!--
 ```{r vcov}
 XTX <- crossprod(model.matrix(fit_lm_AL1))
-## XTX/sigma2_error is the Hessian (matrix of second derivative) of Lik(X)
+## XTX/residvar is the Hessian (matrix of second derivative) of Lik(X)
 ## the inverse of the Hessian gives the covariance matrix
-sigma2_error * solve(XTX)
+residvar * solve(XTX)
 ```
 -->
 
