@@ -38,7 +38,6 @@ knitr::opts_chunk$set(error = TRUE,
 
 ## You will learn in this session `r .emo("info")`
 
-* that the variance of residuals is a biased estimator of the error variance
 * how to extract key statistics for models fitted with `stats::lm()` & `spaMM::fitme()`
 * how to compute estimates numerically in a few lines of code
 * how ```lm()``` works
@@ -59,48 +58,6 @@ knitr::opts_chunk$set(error = TRUE,
 ```
 </div>
 -->
-
-# High-school reminiscence
-
-## Sample and population variance `r .emo("info")`
-
-Do you remember that?
-
-### Population variance
-
-<center><font size = 5>
-$$\frac{\displaystyle\sum^n_{i = 1}(x_i - \bar{x})^2}{n}$$
-</font></center>
-
-### Sample variance
-
-<center><font size = 5>
-$$\frac{\displaystyle\sum^n_{i = 1}(x_i - \bar{x})^2}{n\color{red}{-1}}$$
-</font></center>
-
-
-## Sample and population variance `r .emo("proof")`
-
-```{r vars}
-set.seed(1)
-bias_vars_list <- replicate(100000, {
-  observations <- rnorm(n = 20, mean = 0, sd = sqrt(5))
-  numerator <- sum((observations - mean(observations))^2)
-  c(bias_pop_var    = (numerator/20) - 5,
-    bias_sample_var = (numerator/19) - 5)
-}, simplify = FALSE)
-bias_vars_df <- data.frame(do.call("rbind", bias_vars_list)) ## to turn the output as a clean dataframe
-```
-
-```{r vars2}
-apply(bias_vars_df, 2, mean)
-```
-
-The bias corresponds to an underestimation stemming from looking at the variation around the mean estimate: the variation around the mean estimate is always smaller that the variation around the true mean in the population. This is because by construction the estimate of the mean is the value generally the closest to all **sampled** points.
-
-The bias can be removed by considering $n - p$ in the denominator to correct for the bias when you estimate $p$ parameters ($p = 1$, when there is only one mean). 
-
-
 
 # Data
 
@@ -759,7 +716,6 @@ We have not yet seen:
 
 ## What you need to remember `r .emo("goal")`
 
-* that the variance of residuals is a biased estimator of the error variance
 * how to extract key statistics for models fitted with `stats::lm()` & `spaMM::fitme()`
 * how maximum likelihood estimations work
 
