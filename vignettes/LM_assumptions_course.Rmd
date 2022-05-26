@@ -17,18 +17,19 @@ editor_options:
 ```{r setup, include=FALSE}
 library(LM2GLMM)
 library(lmtest)
-knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_assumptions/", fig.path = "./fig_knitr/LM_assumptions/", fig.align = "center", fig.width = 4, fig.height = 4)
+knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LM_assumptions/",
+                      fig.path = "./fig_knitr/LM_assumptions/", fig.align = "center", fig.width = 4, fig.asp = 1)
 options(width = 200)
 set.seed(1L)
 ```
 
 ## The Linear Model: LM
 
-* 2.0 [Introduction](./LM_intro.html)
-* 2.1 [Fitting procedure](./LM_fitting.html)
-* 2.2 [Tests & Intervals](./LM_test_intervals.html)
-* 2.3 [Assumptions & Outliers](./LM_assumptions.html)
-* 2.4 [Let's practice](./LM_practice.html)
+* 2.0 [Introduction](./LM_intro_course.html)
+* 2.1 [Fitting procedure](./LM_fitting_course.html)
+* 2.2 [Tests & Intervals](./LM_test_intervals_course.html)
+* 2.3 [Assumptions & Outliers](./LM_assumptions_course.html)
+* 2.4 [Let's practice](./LM_practice_course.html)
 
 <br>
 
@@ -38,7 +39,7 @@ set.seed(1L)
 
 
 
-## You will learn in this session
+## You will learn in this session `r .emo("goal")`
 
 * the six main assumptions behind LM
 * how to check if these assumptions are met (by means of tests and using your eyes)
@@ -50,7 +51,7 @@ set.seed(1L)
 
 # Introduction
 
-## The main assumptions
+## The main assumptions `r .emo("info")`
 
 ### Model structure
 
@@ -68,7 +69,7 @@ set.seed(1L)
 
 # Linearity
 
-## Linearity in brief
+## Linearity in brief `r .emo("info")`
 
 ### Assumption
 
@@ -79,17 +80,18 @@ The mean of the response variable must be a linear combination of the parameters
 
 Departure from linearity can originate from a multitude of reasons and can create all kinds of problems.
 
-### Solution
+### Solutions
 
 * transform one or several predictors (e.g. polynomials)
 * transform the response (e.g. log and power transformation)
 
-### Alternative
+### Alternatives
 
-* non-linear models
+* Generalized Linear Models (GLM)
+* (other) non-linear models
 
 
-## Quiz
+## Quiz `r .emo("practice")`
 
 ### Can you express the following models as LM?
 
@@ -98,7 +100,7 @@ Departure from linearity can originate from a multitude of reasons and can creat
 * <font size = 8>$y_i = \alpha + \beta_1 x_i + \beta_2 x_i^2 + \beta_3 x_i^3 + \epsilon_i$ </font>
 * <font size = 8>$y_i = \frac{\beta x_i}{\alpha + x_i} + \epsilon_i$ </font> (Michaelis-Menten : V = Vmax[S]/(Km+[S]))
 
-## Lineweaver Burk method for Michaelis-Menten
+## Lineweaver Burk method for Michaelis-Menten `r .emo("info")`
 
 <center> ![](./LineweaverBurke.png) </center>
 
@@ -106,7 +108,7 @@ Departure from linearity can originate from a multitude of reasons and can creat
 
 But using this method is not advised as results can be unreliable...
 
-## A simple example of non-linearity
+## A simple example of non-linearity `r .emo("info")`
 
 ```{r simple non linear}
 set.seed(1L)
@@ -116,7 +118,7 @@ mod0a <- lm(size ~ humans_eaten, data = Alien0)
 coef(mod0a)
 ```
 
-## A simple example of non-linearity
+## A simple example of non-linearity `r .emo("info")`
 
 ```{r simple non linear plot}
 plot(size ~ humans_eaten, data = Alien0, pch = 3, col = "red")
@@ -124,31 +126,30 @@ abline(mod0a, col = "blue", lwd = 2)
 ```
 
 
-## A simple example of non-linearity
+## A simple example of non-linearity `r .emo("practice")`
 
-Solution for continuous design matrix column vectors: plot the residuals against them!
+Detection: plot the residuals against each quantitative variable
 ```{r simple non linear2}
-plot(residuals(mod0a) ~ model.matrix(mod0a)[,2])
+plot(residuals(mod0a) ~ model.matrix(mod0a)[, "humans_eaten"])
 abline(h = 0, col = "red", lty = 2)
 ```
 
 
-## A simple example of non-linearity
-
-```{r simple non linear3}
-mod0b <- lm(size ~ poly(humans_eaten, 2, raw = FALSE), data = Alien0)
-summary(mod0b)$coef
-```
+## A simple example of non-linearity `r .emo("info")`
 
 ```{r simple non linear3 raw}
 mod0b <- lm(size ~ poly(humans_eaten, 2, raw = TRUE), data = Alien0)
 summary(mod0b)$coef
 ```
 
+<br>
 
-## Another example of non-linearity
+Note: now that the model formula is correct we find estimates that are sensible.
 
-```{r poison}
+
+## Another example of non-linearity `r .emo("info")`
+
+```{r poison, fig.width=3.5}
 poison$treat <- factor(poison$Treatment)
 poison$poison <- factor(poison$Poison)
 fit_poison <- lm(Time ~ poison + treat, data = poison)
@@ -156,54 +157,61 @@ plot(residuals(fit_poison) ~ fitted(fit_poison), xlab = "fitted values", ylab = 
 abline(h = 0, col = "red", lty = 2)
 ```
 
+Note: plotting the residuals against the fitted values is a also a good way to find out about the issue.
 
-## The Box-Cox transformation (Box & Cox 1964)
+
+
+## The Box-Cox transformation (Box & Cox 1964) `r .emo("info")`
 
 <center> ![](./BoxCox.png) </center>
 
-## The Box-Cox transformation (Box & Cox 1964)
+## The Box-Cox transformation (Box & Cox 1964) `r .emo("info")`
 
-### It encompasses several classic transformations:
+### it encompasses several classic transformations:
 
+* no transformation ($\lambda = 1$)
 * log transformation ($\lambda = 0$)
 * inverse transformation ($\lambda = -1$)
 * square root transformation ($\lambda = 1/2$)
 * square transformation ($\lambda = 2$)
 
+### it can be used irrespective of what your predictors are
+
+E.g. here no quantitative predictors.
+
 <br>
 
-(but it changes intercept and rescale the $\beta$)
+### but it changes intercept and rescale the $\beta$
 
 
-## The Box-Cox transformation (Box & Cox 1964)
+## The Box-Cox transformation (Box & Cox 1964) `r .emo("practice")`
 
 ```{r boxcox, message = FALSE}
-car::boxCox(fit_poison)  ## makes logLik profile!
+car::boxCox(fit_poison)  ## makes profile of logLik as a function of lambda
 ```
 
 
-## The Box-Cox transformation (Box & Cox 1964)
+## The Box-Cox transformation (Box & Cox 1964) `r .emo("practice")`
 
 ```{r boxcox 2}
 summary(bc <- car::powerTransform(fit_poison))
-car::testTransform(bc, lambda = -1)
+car::testTransform(bc, lambda = -1) ## specifically compare estimated lambda to -1 (inverse transformation)
 ```
 
-<br>
-
-We will consider -1 instead of ```r round(bc$lambda[[1]], 2)``` as it is close enough and easier to interpret!
+Note: we will consider -1 instead of ```r round(bc$lambda[[1]], 2)``` as it is close enough and easier to interpret!
 
 
-## Poison example linearised
+## Poison example linearised `r .emo("practice")`
 
-```{r poison bc}
+```{r poison bc, fig.width=3.5}
 fit_poison_bc <- update(fit_poison, car::bcPower(Time, lambda = -1) ~ .)
 plot(residuals(fit_poison_bc) ~ fitted(fit_poison_bc), xlab = "fitted values", ylab = "residuals")
 abline(h = 0, col = "red", lty = 2)
 ```
+Note: that looks better `r .emo("party")`
 
 
-## Poison example linearised
+## Poison example linearised `r .emo("practice")`
 
 ### Predictions
 ```{r poison pred}
@@ -211,14 +219,14 @@ data.for.pred <- expand.grid(treat = levels(poison$treat), poison = levels(poiso
 (pred <- cbind(data.for.pred, predict(fit_poison_bc, newdata = data.for.pred, interval = "confidence")))
 ```
 
-There are in the Box-Cox scales. In this case, it represents the survival rate, but you can always get back to the original scale:
+These predicted mean response values are expressed in the Box-Cox scale. In this case, it represents the survival rate (see next slide), but you can always get back to the original scale if you need to:
 
 ```{r pred unbc}
 lambda <- -1; (pred$fit * lambda + 1)^(1/lambda)
 ```
 
 
-## Poison example linearised
+## Poison example linearised `r .emo("info")`
 
 Relationship between the Box-Cox with $\lambda = -1$ and survival (in discrete time):
 
@@ -226,32 +234,39 @@ With $t$ the time to death and $s$ the survival rate, we have:
 
 $$
 \begin{array}
-\text{new.y} & = & \frac{t^{-1} - 1}{-1}\\
+\texttt{new.y} & = & \frac{t^{-1} - 1}{-1}\\
 & = & 1- t^{-1}\\
 & = & 1- \frac{1}{t}\\
 & = & s
 \end{array}
 $$
+Proof `r .emo("proof")`: if the probability of survival is 0.75, how long do individuals live?
 
-
-
-## Comparison of tests
-
-```{r poison summary}
-summary(fit_poison) ## the original model
+$$t = \frac{1}{1-s} = \frac{1}{1 - 0.75} = \frac{1}{0.25} = 4$$
+Or by simulation:
+```{r}
+set.seed(123)
+mean(replicate(10000, which(rbinom(n = 100, size = 1, prob = 0.25) == 1)[1]))
 ```
 
 
-## Comparison of tests
+## Comparison of tests `r .emo("info")`
+
+```{r poison summary}
+summary(fit_poison) ## original (mispecified) model
+```
+
+
+## Comparison of tests `r .emo("info")`
 
 ```{r poison bc summary}
-summary(fit_poison_bc) ## the boxcoxed model
+summary(fit_poison_bc) ## BoxCoxed model
 ```
 
 
 # Lack of perfect multicollinearity
 
-## Lack of perfect multicollinearity in brief
+## Lack of perfect multicollinearity in brief `r .emo("info")`
 
 ### Assumption
 
@@ -259,20 +274,20 @@ The design matrix must have *full rank*. That means that the number of parameter
 
 ### Causes and consequences of violation
 
-Caused by having less data than parameters or when there is linear dependence between the column vectors of the design matrix. In such case, some parameters cannot be computed.
+Caused by having less data than parameters or by linear dependence between the column vectors of the design matrix. In such case, some parameters cannot be computed.
 
-### Solution
+### Solutions
 
 * change design matrix (change parameterization or drop redundant effects)
 * change the experimental design
 * collect more data
 
-### Alternative
+### Alternatives
 
 * none
 
 
-## Degenerated design matrix: ```n < p```
+## Degenerated design matrix: ```n < p``` `r .emo("info")`
 ```{r degenerated n too small, error = TRUE}
 set.seed(1L)
 n <- 3
@@ -291,7 +306,7 @@ coef(fit_alien1b)
 ```
 
 
-## Degenerated design matrix: trivial redundancy
+## Degenerated design matrix: trivial redundancy `r .emo("practice")`
 
 ```{r degenerated redundancy, error = TRUE}
 set.seed(1L)
@@ -304,7 +319,7 @@ fit_alien2$rank  == ncol(model.matrix(fit_alien2))
 ```
 
 
-## Degenerated design matrix: miscellaneous
+## Degenerated design matrix: miscellaneous `r .emo("practice")`
 
 ```{r degenerated redundancy subtle, error = TRUE}
 set.seed(1L)
@@ -319,7 +334,7 @@ caret::findLinearCombos(model.matrix(fit_alien3))  ## Tip: help to see what crea
 ```
 
 
-## Non-perfect multicollinearity
+## Non-perfect multicollinearity `r .emo("info")`
 
 ### Sometimes assumptions are met, but problems can still occur
 
@@ -330,16 +345,19 @@ summary(fit_US2 <- lm(Rape ~ Murder, data = USArrests))$coef
 
 <br>
 
-It is a problem to infer causal inference, not so much for predictions!
+Note: it is a problem to infer causal inference, but not so much for predictions
 
 
-## Non-perfect  multicollinearity: why?
+## Non-perfect  multicollinearity: why? `r .emo("info")`
+
+Because of strong correlation(s) between the regressors:
+
 ```{r USA plot}
 pairs(USArrests)
 ```
 
 
-## Non-perfect  multicollinearity: why?
+## Non-perfect  multicollinearity: diagnostic `r .emo("practice")`
 
 ```{r USA 3}
 cor(model.matrix(fit_US))  ## direct measure of correlation in the design matrix
@@ -348,10 +366,10 @@ cov2cor(vcov(fit_US))  ## direct measure of correlation between parameter estima
 
 <br>
 
-In more complex models, the numbers do not necessarily match, so it is good practice to check both matrices.
+Note: in more complex models, the numbers do not necessarily match, so it is good practice to check both matrices.
 
 
-## Non-perfect  multicollinearity: why?
+## Non-perfect  multicollinearity: diagnostic `r .emo("practice")`
 
 ### Often diagnosed using the Variance Inflation Factor
 
@@ -361,14 +379,13 @@ R2 <- summary(lm(Assault ~ Murder, data = USArrests))$r.squared  ## works too if
 1/(1 - R2)
 ```
 
-<br>
+Notes:
 
-Note: the model here considers the relationship between the predictors (the response variable of ```fit_US``` was ```rape```).
+- the model here considers the relationship between the predictors (the response variable of ```fit_US``` was ```rape```)
+- the VIF tells you by how much the variance in the uncertainty in parameter estimates increases due to multicollinearity
 
-The VIF tells you by how much the variance in the uncertainty in parameter estimates increases due to multicollinearity.
 
-
-## Non-perfect  multicollinearity: solution?
+## Non-perfect  multicollinearity: solutions `r .emo("practice")`
 
 * drop one variable
 * merge them
@@ -382,7 +399,7 @@ summary(fit_US3 <- lm(Rape ~ PC1, data = USArrests))
 
 # Predictor variables have fixed values
 
-## Predictor variables have fixed values (in brief)
+## Predictor variables have fixed values (in brief) `r .emo("info")`
 
 ### Assumption
 
@@ -392,19 +409,19 @@ The dependent variable are represented by fixed values.
 
 The presence of measurement errors is the main cause of violation. Violation can trigger both estimates and tests to be biased.
 
-### Solution
+### Solutions
 
 * often ignored in practice
 * better measurements
 
-### Alternative
+### Alternatives
 
 * multipurpose numerical approaches
 * errors-in-variables models
 * reduced major axis regression
 
 
-## Example
+## Example `r .emo("info")`
 
 ```{r measurement error}
 set.seed(1L)
@@ -415,7 +432,7 @@ summary(lm(size ~ humans_eaten_err, data = Alien4))$coef
 ```
 
 
-## Accounting for errors-in-variables using ```sem```
+## Accounting for errors-in-variables using ```sem``` `r .emo("practice")`
 
 ### Structural equation modelling
 
@@ -430,16 +447,17 @@ eqns <- sem::specifyEquations(text = "
                         V(humans_eaten_err) = 1
                         ")
 fit_sem <- sem::sem(eqns, data = Alien5, raw = TRUE, fixed.x = "Intercept")
-summary(fit_sem, analytic.se = FALSE)$coef  ## use analytic.se = FALSE (uses z as consider variance known)
+summary(fit_sem, analytic.se = FALSE)$coef  ## use analytic.se = FALSE otherwise considers variance known
 ```
 
-Other solutions are possible using mixed models.
+Note: other solutions are possible using mixed models.
+
 
 # Assumptions about the errors
 
 # Independence
 
-## Independence in brief
+## Independence in brief `r .emo("info")`
 
 ### Assumption
 
@@ -447,21 +465,21 @@ The errors (not the residuals) are uncorrelated: $\text{cov}(\epsilon_i, \epsilo
 
 ### Causes and consequences of violation
 
-A lack of independence (serial autocorrelation) in the residuals can appear if there is a departure from linearity, if data have been sampled non-randomly (e.g. spatial or temporal series), or if there is an overarching structure (e.g. repeated measures within individuals, families, species, ...). The lack of independence increases the risk of false positive (sometimes a lot).
+A lack of independence (serial autocorrelation) in the errors can appear if there is a departure from linearity, if data have been sampled non-randomly (e.g. spatial or temporal series), or if there is an overarching structure (e.g. repeated measures within individuals, families, species, ...). The lack of independence increases the risk of false positive (sometimes a lot).
 
 
-### Solution
+### Solutions
 
 * transformation (see linearity)
-* aggregation (be carefull)
+* aggregation (be careful)
 * sub-sampling
 
-### Alternative
+### Alternatives
 
 * mixed models (LMM and GLMM)
 
 
-## Testing for independence
+## Testing for independence `r .emo("practice")`
 
 We can use the Durbin-Watson test: D-W [0; 4]
 
@@ -475,25 +493,30 @@ car::durbinWatsonTest(modConv <- lm(fconvict ~ tfr + partic + degrees + mconvict
 ```
 
 
-## Testing for independence
+## Testing for independence `r .emo("practice")`
 
-We can also compute the partial autocorrelations for the residuals serie,
+We can also compute the partial autocorrelations for the residuals series,
 
 ```{r pacf}
 pacf(residuals(modConv))
 ```
 
-but mind that the CI plotted here are very aproximative.
+Note: mind that the CI plotted here is very approximative.
 
 
-## Testing for independence induced by a specific variable
+## Testing for independence induced by a specific variable `r .emo("practice")`
 
 ```{r DW 2, message = FALSE}
 lmtest::dwtest(modConv, order.by = modConv$model$degrees)
 ```
 
+Note: as for investigating linearity it is good here to try to order by:
 
-## Testing for independence by eye
+- each quantitative predictor
+- the fitted values
+- nothing -- as the data come since it often reflects something about the design that may not be explicitly coded in any variable
+
+## Testing for independence by eye `r .emo("practice")`
 
 ### It is difficult when the problem is not extreme
 
@@ -503,7 +526,7 @@ abline(h = 0, lty = 2, col = "red")
 ```
 
 
-## Testing for independence by eye
+## Testing for independence by eye `r .emo("practice")`
 
 ### The origin of the problem is here the time!
 
@@ -515,43 +538,43 @@ abline(h = 0, lty = 2, col = "red")
 
 # Constant variance (homoscedasticity)
 
-## Homos(c/k)edasticity in brief
+## Homos(c/k)edasticity in brief `r .emo("info")`
 
 ### Assumption
 
 The variance of the error (not residuals) is constant: $\text{var}(\epsilon_j) = \sigma^2$ for all $j$.
-With matrix notation: if $\epsilon^\text{T}$ is the vector of all $\epsilon_j$, then we assume $\text{cov}(\epsilon, \epsilon) = \text{E}(\epsilon \epsilon^\text{T}) = \sigma^2I_n$, where $I_n$ is the $n \times n$ identity matrix.
+With matrix notation: if $\epsilon^\text{T}$ is the vector of all $\epsilon_j$, then we assume $\text{cov}(\epsilon, \epsilon) = \sigma^2I_n$, where $I_n$ is the $n \times n$ identity matrix.
 
 ### Causes and consequences of violation
 
 Heteros(c/k)edasticity can emerge when there is a mean - variance relationship, when there is non independence between observations, when reaction norm changes acording to the treatement. It can create both false positives and false negative.
 
-### Solution
+### Solutions
 
 * transformation (see linearity)
 * post-hoc correction of the SE (not so great)
 
-### Alternative
+### Alternatives
 
 * Generalized Linear Models (GLM)
 * heteroscedastic models
 
 
-## Example of heteroscedasticity
+## Example of heteroscedasticity `r .emo("practice")`
 
 ```{r rpois}
 set.seed(1L)
 Alien5 <- simulate_Aliens(N = 100)
-Alien5$eggs <- rpois(100, lambda = 2 + 1 * Alien5$humans_eaten)
+Alien5$eggs <- rpois(100, lambda = 2 + 1 * Alien5$humans_eaten) ## data generation is NOT gaussian!
 fit_alien5 <- lm(eggs ~ humans_eaten, data = Alien5)
 summary(fit_alien5)$coef
 bptest(fit_alien5)
 ```
 
-The Breusch-Pagan test follows a Chi-square distribution (thus stat | H0 = df).
+The Breusch-Pagan test follows a $\chi^2$ distribution (thus test statistic = df under H0).
 
 
-## Testing for heteroscedasticity by eye
+## Testing for heteroscedasticity by eye `r .emo("practice")`
 
 Residuals must be standardized as raw residuals always have some (minor) heteroscedasticity.
 
@@ -559,8 +582,9 @@ Residuals must be standardized as raw residuals always have some (minor) heteros
 plot(abs(rstandard(fit_alien5)) ~ fitted(fit_alien5))
 ```
 
+Note: here again it is good to plot against all quantitative predictors, fitted values, and as the data come.
 
-## Post-hoc correction (not optimal)
+## Post-hoc correction (not optimal) `r .emo("nerd")`
 
 ```{r rpois correction}
 vcov(fit_alien5)
@@ -573,7 +597,7 @@ cbind(estimates, std.errors, t.values, p.values)
 ```
 
 
-## Post-hoc correction (not optimal)
+## Post-hoc correction (not optimal) `r .emo("practice")`
 
 Same using ```Anova```:
 ```{r}
@@ -584,28 +608,28 @@ car::Anova(fit_alien5, white.adjust = TRUE)  ## vcov = hccm
 
 # Normality
 
-## Normality in brief
+## Normality in brief `r .emo("info")`
 
 ### Assumption
 
-The errors (not the residuals) should be normaly distributed.
+The errors (not the residuals) should be normally distributed.
 
 ### Causes and consequences of violation
 
 The distribution of residuals can be skewed, this is often caused by the presence of outliers, and/or when the process generating the data is very different from normal (e.g. Poisson, Binomial...).
 
-### Solution
+### Solutions
 
 * transformation (see linearity)
 * taking outliers out (mindfully!)
 
-### Alternative
+### Alternatives
 
 * robust regressions
 * GLM
 
 
-## Testing normality
+## Testing normality `r .emo("practice")`
 
 ### There are many tests for normality out there...
 
@@ -616,8 +640,7 @@ nortest::lillie.test(residuals(fit_poison))   ## stat = 0 when normal
 shapiro.test(residuals(fit_poison))  ## stat = 1 when normal
 ```
 
-
-## Testing normality by eye
+## Testing normality by eye `r .emo("practice")`
 
 <div class=columns-2>
 
@@ -630,11 +653,9 @@ qqline(residuals(fit_poison), col = 2, lty = 2)
 qqnorm(residuals(fit_poison_bc))  ## the BoxCoxed fit
 qqline(residuals(fit_poison_bc), col = 2, lty = 2)
 ```
-
 </div>
 
-
-## Testing all assumptions on the errors at once
+## Testing all assumptions on the errors at once  `r .emo("party")`
 
 ```{r plot mod, fig.height = 5, fig.width = 5}
 par(mfrow = c(2, 2))
@@ -644,7 +665,7 @@ plot(fit_poison)
 
 # Outliers
 
-## Outliers in brief
+## Outliers in brief `r .emo("info")`
 
 ### What are they?
 
@@ -658,10 +679,10 @@ A few very deviant points can strongly influence all your estimations.
 
 It depends... but never trash them blindly.
 
-If you have very good reasons to take them out, do mention it in the paper!
+ `r .emo("warn")` If you have very good reasons to take them out, do mention it in the paper!
 
 
-## Example of outlier
+## Example of outlier `r .emo("practice")`
 
 <div class=columns-2>
 
@@ -682,14 +703,14 @@ abline(fit_davis2, col = "blue", lwd = 2)
 Note: to identify a given point on the plot, call `with(Davis, identify(height, weight, row.names(Davis)))`, then click close to the point and press escape.
 
 
-## There are many ways to identify an outlier
+## There are many ways to identify an outlier `r .emo("info")`
 
 ```{r influence.measures 0}
 influence.measures(fit_davis)  ## In the next slides we will see all that in details!
 ```
 
 
-## Leverage vs Influence
+## Leverage vs Influence `r .emo("info")`
 
 A regression outlier is an observation that has an unusual value of the dependent variable Y, conditional on X.
 
@@ -714,14 +735,14 @@ We do not want high influence caused by high leverage!
 ### Conclusion: we need to look at both!
 
 
-## Measuring the leverage
+## Measuring the leverage `r .emo("practice")`
 
 This is done by extracting the diagonal element of the hat matrix: the hat values.
 
 Recall: $\widehat{Y} = HY$
 
 * range: [1/n; 1]
-* mean : k/n
+* mean : (n-p)/n
 
 ```{r hat}
 head(sort(hatvalues(fit_davis), decreasing = TRUE))
@@ -734,62 +755,65 @@ head(sort(diag(X %*% solve(crossprod(X)) %*% t(X)), decreasing = TRUE))
 ```
 -->
 
-For some computations and plots the leverage are rescaled as $\frac{h_{i,i}}{1-h_{i,i}}$, but it does not change the reasoning.
+Note `r .emo("nerd")`: for some computations and plots the leverage are rescaled as $\frac{h_{i,i}}{1-h_{i,i}}$, but it does not change the reasoning.
 
 
-## Measuring the leverage
+## Measuring the leverage `r .emo("practice")`
 
 ```{r hat plot}
 plot(fit_davis, which = 5)
 ```
 
 
-## Measuring the influence on predictions
+## Measuring the influence on predictions `r .emo("practice")`
 
 ```{r influence}
 head(sort(dffits(fit_davis), decreasing = TRUE))
 head(sort(cooks.distance(fit_davis), decreasing = TRUE))
 ```
 
-Both the DFFITS statistics and the Cook distance (aka Cook's D) are two relative measures of the extent to which the predicted y-values changes if a given observation is dropped. The DFFITS measure is scaled by the standard deviation of the fit at the point. The Cook's D is based on a F statistics comparing simultaneously the changes in all estimates when the observation is dropped or not.
+Notes:
 
-A high value is obtained when the observation is associated to high leverage, high residual or both.
+- both the DFFITS statistics and the Cook distance (aka Cook's D) are two relative measures of the extent to which the predicted y-values changes if a given observation is dropped
+- the DFFITS measure is scaled by the standard deviation of the fit at the point
+- the Cook's D is based on a F statistics comparing simultaneously the changes in all estimates when the observation is dropped or not.
+- a high value is obtained when the observation is associated to high leverage, high residual or both.
 
 
-## Measuring the influence on predictions
+## Measuring the influence on predictions `r .emo("nerd")`
 
 ```{r influence2}
 plot(dffits(fit_davis2), cooks.distance(fit_davis2), xlab = "DFFITS", ylab = "Cook's distance")
 ```
 
 
-## Measuring the influence on predictions
+## Measuring the influence on predictions `r .emo("practice")`
 
-```{r influence3, fig.width = 10}
+```{r influence3, fig.width = 10, fig.asp=NULL}
 par(mfrow = c(1, 3))
 plot(fit_davis, which = 4:6)
 ```
 
 
-## Measuring the influence on predictions with another example
+## ... another example `r .emo("practice")`
 
-```{r influence4, fig.width = 10}
+```{r influence4, fig.width=10, fig.asp=NULL}
 fit_UK <- lm(height ~ sex * milk, data = UK[1:20, ])
 par(mfrow = c(1, 3))
 plot(fit_UK, which = 4:6)
 ```
 
 
-## Measuring the influence on predictions with another example bis
+## ... another example bis `r .emo("practice")`
 
-```{r influence5, fig.width = 10}
+```{r influence5, fig.width=10, fig.asp=NULL}
 fit_UK2 <- lm(height ~ sex * milk, data = UK)
 par(mfrow = c(1, 3))
 plot(fit_UK2, which = 4:6)
 ```
 
 
-## Measuring the influence on each parameter estimates
+## Measuring the influence on each estimate `r .emo("practice")`
 
 ```{r dfbetas}
 head(dfbeta(fit_davis), n = 3)
@@ -798,26 +822,25 @@ head(dfbetas(fit_davis), n = 3) ## same in SE units of the coef
 ```
 
 
-## Measuring the influence on the estimation of the covariance matrix
+## Measuring the influence on the covariance matrix `r .emo("practice")`
 
 ```{r cov}
 head(sort(covratio(fit_davis), decreasing = TRUE))
 det(vcov(update(fit_davis, data = Davis[-19, ]))) / det(vcov(fit_davis))
-
 ```
 
 
-## Exploring in depth outliers: all at once
+## Exploring in depth outliers: all at once `r .emo("practice")`
 
 Note: don't trust much rule of thumbs to identify outliers "automatically". If you still want to know some of them, you can look at the beginning of the code of the function ```influence.measures()```.
 
 ```{r influence.measures}
 influence.measures(fit_davis)  ## stars are just there to attract your attention, there is no proper tests!
 ```
-<!- The dfbetas are shown for each parameter! -->
+<!-- The dfbetas are shown for each parameter! -->
 
 
-## What you need to remember
+## What you need to remember `r .emo("goal")`
 
 * the six main assumptions behind LM
 * how to check if these assumptions are met (by means of tests and using your eyes)
@@ -831,11 +854,11 @@ influence.measures(fit_davis)  ## stars are just there to attract your attention
 
 ## The Linear Model: LM
 
-* 2.0 [Introduction](./LM_intro.html)
-* 2.1 [Fitting procedure](./LM_fitting.html)
-* 2.2 [Tests & Intervals](./LM_test_intervals.html)
-* 2.3 [Assumptions & Outliers](./LM_assumptions.html)
-* 2.4 [Let's practice](./LM_practice.html)
+* 2.0 [Introduction](./LM_intro_course.html)
+* 2.1 [Fitting procedure](./LM_fitting_course.html)
+* 2.2 [Tests & Intervals](./LM_test_intervals_course.html)
+* 2.3 [Assumptions & Outliers](./LM_assumptions_course.html)
+* 2.4 [Let's practice](./LM_practice_course.html)
 
 <br>
 
