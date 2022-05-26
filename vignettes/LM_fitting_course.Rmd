@@ -505,10 +505,11 @@ logLik(fit_alien_lm)[1]
 
 </div>
 
+<!--
 
 ## Home made LM fitting by ML `r .emo("nerd")` `r .emo("proof")`
 
-```{r def comput_logLik_Alien}
+```{r def comput_logLik_Alien_no_residvar}
 compute_logLik <- function(vector.param, formula, data) {
   useful.data <- model.frame(formula = formula, data = data) ## ditch useless data and flag response
   X <- model.matrix(object = formula, data = useful.data) ## create the design matrix
@@ -519,10 +520,33 @@ compute_logLik <- function(vector.param, formula, data) {
 }
 ```
 We can test that the function works by computing the logLik at parameter values estimated with `lm()`:
-```{r def comput_logLik_Alien test}
+```{r def comput_logLik_Alien test no_residvar}
 compute_logLik(vector.param = coef(fit_alien_lm), formula = size ~ humans_eaten, data = Alien)
 logLik(fit_alien_lm)[1] ## value for reference
 ```
+
+-->
+
+## Home made LM fitting by ML `r .emo("nerd")` `r .emo("proof")`
+
+```{r def comput_logLik_Alien}
+compute_logLik <- function(vector.param, formula, data) {
+  residual_var <- vector.param[1]  ## var for the normal distrib
+  if (residual_var < 0) return(NA) ## negative variance not accepted
+  useful.data <- model.frame(formula = formula, data = data) ## ditch useless data and flag response
+  X <- model.matrix(object = formula, data = useful.data) ## create the design matrix
+  fitted_values <- X %*% matrix(vector.param[-1]) ## compute the fitted values given the coef
+  response <- model.response(useful.data) ## extract the response
+  sum(dnorm(response, mean = fitted_values, sd = sqrt(residual_var), log = TRUE)) ## compute logLik
+}
+```
+We can test that the function works by computing the logLik at parameter values estimated with `lm()`:
+```{r def comput_logLik_Alien test}
+compute_logLik(vector.param = c(sum(residuals(fit_alien_lm)^2)/nrow(Alien), coef(fit_alien_lm)),
+               formula = size ~ humans_eaten, data = Alien)
+logLik(fit_alien_lm)[1] ## value for reference
+```
+
 
 
 ## Home made LM fitting by ML `r .emo("nerd")` `r .emo("proof")`
@@ -530,17 +554,28 @@ logLik(fit_alien_lm)[1] ## value for reference
 We can now feed this function to an optimisation procedure that will find parameter values maximising the output:
 
 ```{r def logLik Alien computation}
-res_optim_ML <- optim(par = c("intercept" = 0, "slope" = 1),
+res_optim_ML <- optim(par = c("residvar" = 10, "intercept" = 0, "slope" = 1),
                       fn = compute_logLik,
                       formula = size ~ humans_eaten,
                       data = Alien,
                       control = list(fnscale = -1)) ## to indicate to maximise and not minimise
 ```
-Let's compare parameter and log-likelihood values obtained to those obtained with `lm()`:
-```{r optim by ML output}
-res_optim_ML$par - coef(fit_alien_lm) ## coef are very close!
-res_optim_ML$value - logLik(fit_alien_lm)[1] ## logLiks are very close!
+Let's look at the output:
+
+<!-- cannot remove italic... :-( -->
+```{css csssmall, echo=FALSE, chache=FALSE} 
+.prettyprint.lang-small {
+  background-color: transparent;
+  line-height: 13px;
+  font-size: 12px;
+  font: 
+}
 ```
+
+```{r optim_by_ML_output, class.output="small", cache=FALSE}
+res_optim_ML
+```
+
 
 
 # Fitting methods comparison
@@ -557,13 +592,13 @@ fit_test_homemade_OLS <- optim(par = rep(0, 8),
                                method = "BFGS") ## better optim method (default is getting lost...)
 
 
-fit_test_homemade_ML <- optim(par = rep(0, 8),
+fit_test_homemade_ML <- optim(par = c(10, rep(0, 8)),
                               fn = compute_logLik,
                               formula = height ~ weight*sex + cigarettes + drink, data = UK,
                               control = list(fnscale = -1), method = "BFGS")
 ```
 ```{r computation 3 methods results}
-round(rbind(lm = coef(fit_test_lm), OLS = fit_test_homemade_OLS$par, ML = fit_test_homemade_ML$par), 3)
+round(rbind(lm = coef(fit_test_lm), OLS = fit_test_homemade_OLS$par, ML = fit_test_homemade_ML$par[-1]), 3)
 ```
 
 
@@ -579,7 +614,7 @@ microbenchmark::microbenchmark(
               formula = height ~ weight*sex + cigarettes + drink,
               data = UKsmall,
               method = "BFGS"),
-  ML = optim(par = rep(0, 8),
+  ML = optim(par = c(10, rep(0, 8)),
              fn = compute_logLik,
              formula = height ~ weight*sex + cigarettes + drink, data = UKsmall,
              control = list(fnscale = -1), method = "BFGS"),
