@@ -719,7 +719,7 @@ Regression outliers may not look at outliers on any Y or X variables.
 
 ### Leverage
 
-The leverage quantifies how unusual on observation is in terms of X values.
+The leverage quantifies how unusual on row of the design matrix is.
 
 A high leverage is not necessarily a bad thing.
 
