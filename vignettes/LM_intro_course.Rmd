@@ -848,7 +848,7 @@ sum(residuals(fit_alien_lm)^2) / (nrow(Alien) - ncol(model.matrix(fit_alien_lm))
 summary(fit_alien_lm)$sigma^2 ## same thing, simpler :-)
 ```
 
-Note: this term is (somewhat confusingly) reffered to as an unbiased estimate of the **residual variance**.
+Note: this term is (somewhat confusingly) referred to as an unbiased estimate of the **residual variance**.
 
 # Predictions
 
