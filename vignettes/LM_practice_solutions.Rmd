@@ -17,21 +17,18 @@ editor_options:
 library(LM2GLMM)
 library(car)
 knitr::opts_chunk$set(cache = FALSE, fig.align = "center", fig.width = 6, fig.height = 6,
-                      cache.path = "./cache_knitr/Exo_LM_solution/", fig.path = "./fig_knitr/Exo_LM_solution/")
+                      cache.path = "./cache_knitr/LM_practice_ex/", fig.path = "./fig_knitr/LM_practice_ex/")
 ```
 
 ## Disclamer
 
-In this vignette I illustrate the key steps required to solve the exercises. By no means I am trying to provide a detailed report of the analysis of each dataset. Any such report would need additional analyses and results would have to be written in good English, not in telegraphic style or lines of codes. I have also written this vignette very quickly, so double check I did not mess anything up...
+In this vignette I illustrate the key steps required to solve the exercises. By no means I am trying to provide a detailed report of the analysis of each dataset. Any such report may need additional analyses and results would have to be written in good English, not in telegraphic style or lines of codes.
 
 <br>
 
-# Dataset: chickwts (difficulty = 0/5)
+# Dataset: chickwts -- part 1 (difficulty = 0/5)
 
-## Goal
-
-* compare the effectiveness of various feed supplements on the weights of six weeks old chickens
-* predict the proportion of chicken over 300 grams for each feed supplements
+`r .emo("goal")` Compare the effectiveness of various feed supplements on the weights of six weeks old chickens.
 
 ## Exploring the data
 
@@ -84,13 +81,16 @@ Everything looks very good. The errors should thus be independent, homoscedastic
 ## Testing the effect of diet
 
 
-Note: because there is only one predictor, the following test also correspond to testing the fitted model against the fit of a null model.
+Notes:
+
+- because there is only one predictor, the following test also correspond to testing the fitted model against the fit of a null model.
+- here anova() is sufficient because type I and II are the same with a single predictor.
 
 ```{r}
-anova(fit_chick)  ## here anova() is sufficient because type I and II are the same with a single predictor
+anova(fit_chick)
 ```
 
-The diet seems to influence significantly the growth of chicken (F = ```r round(anova(fit_chick)$F[1], 2)```, df1 = ```r anova(fit_chick)$Df[1]```, df2 = ```r anova(fit_chick)$Df[2]```, p-value < 0.001).
+The diet seems to influence significantly the growth of chicken (F = `r round(anova(fit_chick)$F[1], 2)`, df1 = `r anova(fit_chick)$Df[1]`, df2 = `r anova(fit_chick)$Df[2]`, p-value < 0.001).
 
 ## Predicting the mean effect of each diet
 
@@ -153,45 +153,287 @@ par(oma = c(0, 8, 0, 0))
 plot(posthoc)
 ```
 
+<br>
 
-## Predicting the proportion of chicken heavier than 300 grams
+# Dataset: stackloss (difficulty = 1/5)
+
+`r .emo("goal")` Find out if the acid concentration influences the loss of ammonia by the plants.
+
+## Exploring the data
 
 ```{r}
-pred2 <- predict(fit_chick,
-                newdata = data.frame(feed = levels(chickwts$feed)),
-                interval = "prediction",
-                se.fit = TRUE)
-
-se.pred <- sqrt(pred2$se.fit^2 + pred2$residual.scale^2)
-
-freq_more300 <- pnorm(q = 300,
-                      mean = pred2$fit[, "fit"],
-                      sd = se.pred, lower.tail = FALSE)
-
-output <- as.data.frame(cbind(pred2$fit, "%>300gr" = round(freq_more300, 2)))
-
-output$feed <- levels(chickwts$feed)
-
-output
+str(stackloss)
+summary(stackloss)
+pairs(stackloss)
+any(is.na(stackloss))
 ```
 
-We can plot this: 
 
-```{r, fig.width = 8}
-barplot(sort(output$`%>300gr`), names.arg = output$feed[order(output$`%>300gr`)],
-        ylim = c(0, 1), ylab = "Predicted proportion of chicken larger than 300 gr")
+## Fitting the model
+
+We will consider all predictors since water and air flow seem to be strong determinants of the loss of ammonia in plants.
+
+```{r}
+fit_stack <- lm(stack.loss ~ ., data = stackloss)
 ```
 
-or using tidy packages:
+Note: the `.` is a shortcut to include all predictors at once.
 
-```{r, fig.width = 8}
-output$feed2 <- forcats::fct_reorder(output$feed, output$`%>300gr`)
 
-ggplot(output) +
-    geom_col(aes(x = feed2, y = `%>300gr`)) +
-    labs(y = "Predicted proportion of chicken larger than 300 gr") +
-    theme_minimal()
+## Checking the assumptions
+
+### Linearity
+
+Let’s examine the linearity assumption by plotting the residuals against each column of the design matrix (but the intercept):
+
+```{r}
+for (col in 2:ncol(model.matrix(fit_stack))) {
+  plot(rstandard(fit_stack) ~ model.matrix(fit_stack)[, col])
+  title(main = colnames(model.matrix(fit_stack))[col])
+}
 ```
+
+It looks messy but there is no obvious pattern suggesting a particular transformation of the predictors.
+
+### Multicollinearity
+
+```{r}
+cor(model.matrix(fit_stack)[ , -1])
+cov2cor(vcov(fit_stack))
+vif(fit_stack)
+```
+
+There are some multicollinearity problems but it does not seem to impact much the effect of acidity which is our focus. Note that the very strong correlation between slopes and the intercept are to be expected, as well as the one between a variable and itself.
+
+### Other assumptions
+
+We will assume that no there is no measurement error and will focus on the analysis of the residuals of the model:
+
+```{r}
+par(mfrow = c(2, 2))
+plot(fit_stack)
+```
+
+That is not fantastic but it is not specifically worse than what we may get under the assumption of LM with so few data. We can check this by simulating data under the assumption of LM and comparing the plots we get:
+
+```{r}
+par(mfrow = c(2, 2))
+plot(update(fit_stack, as.matrix(simulate(fit_stack)) ~ .))  ## simulation 1
+plot(update(fit_stack, as.matrix(simulate(fit_stack)) ~ .))  ## simulation 2
+```
+
+It does not look particularly better.
+
+We can also use the package **{DHARMa}** which compares your residuals to many simulations under the data generating process hypothesised (more details in GLM course):
+
+```{r}
+DHARMa::simulateResiduals(fit_stack, plot = TRUE)
+```
+
+It is hard to be sure due to the size of the dataset but we will consider the assumptions fulfilled.
+
+
+## Comparison to the null model
+
+Because the model involves several predictors, before anything else we need to make sure that the overall model offers a higher goodness of fit than the null model:
+
+```{r}
+fit_stack_H0 <- update(fit_stack, . ~ 1)
+anova(fit_stack_H0, fit_stack)
+```
+
+All good: the model predicts the data significantly better than the null model.
+
+
+## Testing the effect of the acid concentration
+
+```{r}
+summary(fit_stack)$coef["Acid.Conc.", ]
+```
+
+The acid seems to have no significant influence on the loss of ammonia (t = ```r round(summary(fit_stack)$coef["Acid.Conc.", 3], 2)```, df = ```r fit_stack$df.residual```, p-value = ```r round( summary(fit_stack)$coef["Acid.Conc.", 4], 2)```).
+
+Let's plot the effect very simply using the pacakge **{effects}**.
+
+```{r}
+plot(effects::effect("Acid.Conc.", mod = fit_stack))
+```
+
+
+## Considering interactions?
+
+Because we are specifically interested in the effect of the acid and that this effect may depend on the other predictors, we could check if considering interactions between the acidity and other predictors would improve the goodness of fit of the model:
+
+```{r}
+fit_stack_int <- lm(stack.loss ~ Acid.Conc. * (Air.Flow + Water.Temp), data = stackloss)
+anova(fit_stack, fit_stack_int)
+vif(fit_stack_int)
+```
+The goodness of fit is not significantly better and there are huge multicollinearity issues, so let's not go there.
+
+
+<br>
+
+
+# Dataset: swiss (difficulty = 1/5)
+
+`r .emo("goal")` Plot the influence of potential determinant of fertility.
+
+## Exploring the data
+
+```{r}
+str(swiss)
+summary(swiss)
+pairs(swiss)
+any(is.na(swiss))
+```
+
+## Fitting the model
+
+```{r}
+fit_swiss <- lm(Fertility ~ ., data = swiss)
+```
+
+
+## Checking the assumptions
+
+### Linearity
+
+Let's examine the linearity assumption by plotting the (standardised) residuals against each column of the design matrix (but the intercept):
+
+```{r}
+for (col in 2:ncol(model.matrix(fit_swiss))) {
+  plot(rstandard(fit_swiss) ~ model.matrix(fit_swiss)[, col])
+  title(main = colnames(model.matrix(fit_swiss))[col])
+}
+```
+
+No obvious non-linear pattern emerges.
+
+### Multicollinearity
+
+We can look at the correlation between the column vectors of the model matrix:
+
+```{r}
+cor(model.matrix(fit_swiss)[, -1])  ## we discard the intercept for that
+```
+
+We can also look at the correlation between parameter estimates:
+
+```{r}
+cov2cor(vcov(fit_swiss))
+```
+
+There are some noticeable correlations between predictors and between parameter estimates. Let's double check the extent to which multicollinearity could be an issue by looking at the variance inflation factors:
+
+```{r}
+vif(fit_swiss)
+```
+
+The situation is not ideal but nothing looks catastrophic. Let's see if the situation gets better once the variable ```Examination``` is omitted:
+
+```{r}
+fit_swiss_bis <- update(fit_swiss, . ~ . - Examination)
+vif(fit_swiss_bis)
+```
+
+The situation is much better so we will study predictions stemming from the fit with `Examination` and  from the fit without it, to examine the robustness of our results.
+
+### Fixed values for predictor
+
+Because we do not know on how many individuals the percentages have been based, we will assume that they did so on large sample and that this assumption is fulfilled.
+
+### Errors
+
+```{r}
+par(mfrow = c(2, 2))
+plot(fit_swiss)
+plot(fit_swiss_bis)
+```
+
+Both model fits look alright (even if not super great).
+
+## Comparison to the null model
+
+Because the model involves several predictors, before anything else we need to make sure that the overall model offers a higher goodness of fit than the null model:
+
+```{r}
+fit_swiss_H0 <- update(fit_swiss, . ~ 1)
+anova(fit_swiss_H0, fit_swiss)
+anova(fit_swiss_H0, fit_swiss_bis)
+```
+
+Both of our models fit the data clearly better than the null model.
+
+## Plotting the effect of the potential determinant of fertility
+
+Because this is a simple LM, we can try to use the function ```allEffects``` from the package ```effects``` to do that automatically:
+
+```{r plot effects, fig.height = 8, fig.width = 8, message=FALSE}
+plot(effects::allEffects(fit_swiss))
+plot(effects::allEffects(fit_swiss_bis))
+```
+
+Many other packages can probably do the same. One example is ```visreg```:
+
+```{r plot visreg, fig.height = 8, fig.width = 8}
+par(mfrow = c(2, 2))
+plot(visreg::visreg(fit_swiss_bis))
+```
+
+Both models predict the same overall trends. To illustrate the difference in predicted values between the two models, one would have to do the plot manually instead of using some easy package. Let's do that to illustrate how the prediction for the mean effect of education differ between models:
+
+```{r}
+data.for.pred <- data.frame("Agriculture" = mean(swiss$Agriculture), 
+                            "Examination" = mean(swiss$Examination),
+                            "Education" = seq(min(swiss$Education), max(swiss$Education), length = 30),
+                             "Catholic" = mean(swiss$Catholic),
+                             "Infant.Mortality" = mean(swiss$Infant.Mortality)
+                             )
+pred1 <- predict(fit_swiss, newdata = data.for.pred, interval = "confidence")
+pred2 <- predict(fit_swiss_bis, newdata = data.for.pred, interval = "confidence")
+pred1_df_temp <- as.data.frame(pred1) ## to turn the matrix into a data frame
+pred2_df_temp <- as.data.frame(pred2) ## to turn the matrix into a data frame
+pred1_df <- cbind(data.for.pred, pred1_df_temp)  ## we add the new data
+pred2_df <- cbind(data.for.pred, pred2_df_temp)  ## we add the new data
+```
+
+```{r}
+plot(fit ~ Education, data = pred1_df, col = "blue", lwd = 2, type = "l",
+     ylab = "Predicted Standardized Fertility (+/- 95% CI)", xlab = "Education (%)")
+points(lwr ~ Education, data = pred1_df,
+       col = "blue", lwd = 2, lty = 2, type = "l")
+points(upr ~ Education, data = pred1_df,
+       col = "blue", lwd = 2, lty = 2, type = "l")
+
+points(fit ~ Education, data = pred2_df,
+       col = "orange", lwd = 2, type = "l")
+points(lwr ~ Education, data = pred2_df,
+       col = "orange", lwd = 2, lty = 2, type = "l")
+points(upr ~ Education, data = pred2_df,
+       col = "orange", lwd = 2, lty = 2, type = "l")
+
+legend("topright", fill = c("blue", "orange"),
+       legend = c("fit_swiss", "fit_swiss_bis"), title = "Model:", bty = "n")
+```
+
+Note that while predicting the effect of ```Education``` we set all other covariates to their mean.
+
+
+Same with **{ggplot2}**:
+
+```{r}
+full_pred <- rbind(cbind(pred1_df, mod = "fit_swiss"),
+                   cbind(pred2_df, mod = "fit_swiss_bis")) ## we combine all the data
+full_pred
+ggplot(full_pred) +
+  aes(fill = mod, x = Education) +
+  geom_ribbon(aes(ymax = upr, ymin = lwr), alpha = 0.3) +
+  geom_line(aes(y = fit, colour = mod)) +
+  labs(y = "Predicted Standardized Fertility (+/- 95% CI)", x = "Education (%)") +
+  theme_minimal()
+```
+
 
 We clean the session for the next exercise:
 
@@ -199,13 +441,15 @@ We clean the session for the next exercise:
 rm(list = ls())
 ```
 
+<br>
+
 
 # Dataset: InsectSprays (difficulty = 2/5)
 
-## Goal
+`r .emo("goal")` Compare the effectiveness of various insecticides on the number of insects in agricultural experimental units.
 
-* compare the effectiveness of various insecticides on the number of insects in agricultural experimental units
-* what is the efficiency of spray C?
+`r .emo("goal")` What is the efficiency of spray C?
+
 
 ## Exploring the data
 
@@ -322,166 +566,56 @@ rm(list = ls())
 
 <br>
 
-# Dataset: swiss (difficulty = 1/5)
 
-## Goal
-*  plot the influence of potential determinant of fertility variation between Swiss provinces
+# Dataset: chickwts -- part 2 (difficulty = 0/5)
 
-## Exploring the data
+`r .emo("goal")`  Predict the proportion of chicken larger than 300gr for each feed supplements (difficulty 3/5).
 
-```{r}
-str(swiss)
-summary(swiss)
-pairs(swiss)
-any(is.na(swiss))
-```
 
-## Fitting the model
+## Predicting the proportion of chicken heavier than 300 grams
 
 ```{r}
-fit_swiss <- lm(Fertility ~ ., data = swiss)  ## note: the . is a shortcut to include all predictors
+fit_chick <- lm(weight ~ feed, data = chickwts)
 ```
 
-## Checking the assumptions
-
-
-### Linearity
-
-Let's examine the linearity assumption by plotting the (standardised) residuals against each column of the design matrix (but the intercept):
+We have already studied this model fit above, so we want do it again here.
 
 ```{r}
-for (col in 2:ncol(model.matrix(fit_swiss))) {
-  plot(rstandard(fit_swiss) ~ model.matrix(fit_swiss)[, col])
-  title(main = colnames(model.matrix(fit_swiss))[col])
-}
+pred2 <- predict(fit_chick,
+                newdata = data.frame(feed = levels(chickwts$feed)),
+                interval = "prediction",
+                se.fit = TRUE)
+
+se.pred <- sqrt(pred2$se.fit^2 + pred2$residual.scale^2)
+
+freq_more300 <- pnorm(q = 300,
+                      mean = pred2$fit[, "fit"],
+                      sd = se.pred, lower.tail = FALSE)
+
+output <- as.data.frame(cbind(pred2$fit, "%>300gr" = round(freq_more300, 2)))
+
+output$feed <- levels(chickwts$feed)
+
+output
 ```
 
-No obvious non-linear pattern emerges.
+We can plot this: 
 
-### Multicollinearity
-
-We can look at the correlation between the column vectors of the model matrix:
-
-```{r}
-cor(model.matrix(fit_swiss)[, -1])  ## we discard the intercept for that
+```{r, fig.width = 8}
+barplot(sort(output$`%>300gr`), names.arg = output$feed[order(output$`%>300gr`)],
+        ylim = c(0, 1), ylab = "Predicted proportion of chicken larger than 300 gr")
 ```
 
-We can also look at the correlation between parameter estimates:
+or using tidy packages:
 
-```{r}
-cov2cor(vcov(fit_swiss))
+```{r, fig.width = 8}
+output$feed2 <- forcats::fct_reorder(output$feed, output$`%>300gr`)
+
+ggplot(output) +
+    geom_col(aes(x = feed2, y = `%>300gr`)) +
+    labs(y = "Predicted proportion of chicken larger than 300 gr") +
+    theme_minimal()
 ```
-
-There are some noticeable correlations between predictors and between parameter estimates (the very strong correlation between slopes and the intercept are to be expected, as well as the one between a variable and itself). Let's double check the extent to which multicollinearity could be an issue by looking at the variance inflation factors:
-
-```{r}
-vif(fit_swiss)
-```
-
-The situation is not ideal but nothing looks catastrophic. Let's see if the situation gets better once the variable ```Examination``` is omitted:
-
-```{r}
-fit_swiss_bis <- update(fit_swiss, . ~ . - Examination)
-vif(fit_swiss_bis)
-```
-
-The situation is much better so we will preform the prediction of the fit with `Examination` and on the fit without it, for the sake of comparison.
-
-### Fixed values for predictor
-
-Because we do not know on how many individuals the percentages have been based, we will assume that they did so on large sample and that this assumption is fulfilled.
-
-### Errors
-
-```{r}
-par(mfrow = c(2, 2))
-plot(fit_swiss)
-plot(fit_swiss_bis)
-```
-
-Both model fits look alright (even if not super great).
-
-## Comparison to the null model
-
-Because the model involves several predictors, before anything else we need to make sure that the overall model offers a higher goodness of fit than the null model:
-
-```{r}
-fit_swiss_H0 <- update(fit_swiss, . ~ 1)
-anova(fit_swiss_H0, fit_swiss)
-anova(fit_swiss_H0, fit_swiss_bis)
-```
-
-Both of our models fit the data clearly better than the null model.
-
-## Plotting the effect of the potential determinant of fertility
-
-Because this is a simple LM, we can try to use the function ```allEffects``` from the package ```effects``` to do that automatically:
-
-```{r plot effects, fig.height = 8, fig.width = 8, message=FALSE}
-plot(effects::allEffects(fit_swiss))
-plot(effects::allEffects(fit_swiss_bis))
-```
-
-Many other packages can probably do the same. One example is ```visreg```:
-
-```{r plot visreg, fig.height = 8, fig.width = 8}
-par(mfrow = c(2, 2))
-plot(visreg::visreg(fit_swiss_bis))
-```
-
-Both models predict the same overall trends. To illustrate the difference in predicted values between the two models, one would have to do the plot manually instead of using some easy package. Let's do that to illustrate how the prediction for the mean effect of education differ between models:
-
-```{r}
-data.for.pred <- data.frame("Agriculture" = mean(swiss$Agriculture), 
-                            "Examination" = mean(swiss$Examination),
-                            "Education" = seq(min(swiss$Education), max(swiss$Education), length = 30),
-                             "Catholic" = mean(swiss$Catholic),
-                             "Infant.Mortality" = mean(swiss$Infant.Mortality)
-                             )
-pred1 <- predict(fit_swiss, newdata = data.for.pred, interval = "confidence")
-pred2 <- predict(fit_swiss_bis, newdata = data.for.pred, interval = "confidence")
-pred1_df_temp <- as.data.frame(pred1) ## to turn the matrix into a data frame
-pred2_df_temp <- as.data.frame(pred2) ## to turn the matrix into a data frame
-pred1_df <- cbind(data.for.pred, pred1_df_temp)  ## we add the new data
-pred2_df <- cbind(data.for.pred, pred2_df_temp)  ## we add the new data
-```
-
-```{r}
-plot(fit ~ Education, data = pred1_df, col = "blue", lwd = 2, type = "l",
-     ylab = "Predicted Standardized Fertility (+/- 95% CI)", xlab = "Education (%)")
-points(lwr ~ Education, data = pred1_df,
-       col = "blue", lwd = 2, lty = 2, type = "l")
-points(upr ~ Education, data = pred1_df,
-       col = "blue", lwd = 2, lty = 2, type = "l")
-
-points(fit ~ Education, data = pred2_df,
-       col = "orange", lwd = 2, type = "l")
-points(lwr ~ Education, data = pred2_df,
-       col = "orange", lwd = 2, lty = 2, type = "l")
-points(upr ~ Education, data = pred2_df,
-       col = "orange", lwd = 2, lty = 2, type = "l")
-
-legend("topright", fill = c("blue", "orange"),
-       legend = c("fit_swiss", "fit_swiss_bis"), title = "Model:", bty = "n")
-```
-
-Note that while predicting the effect of ```Education``` we set all other covariates to their mean.
-
-
-Same with **{ggplot2}**:
-
-```{r}
-full_pred <- rbind(cbind(pred1_df, mod = "fit_swiss"),
-                   cbind(pred2_df, mod = "fit_swiss_bis")) ## we combine all the data
-full_pred
-ggplot(full_pred) +
-  aes(fill = mod, x = Education) +
-  geom_ribbon(aes(ymax = upr, ymin = lwr), alpha = 0.3) +
-  geom_line(aes(y = fit, colour = mod)) +
-  labs(y = "Predicted Standardized Fertility (+/- 95% CI)", x = "Education (%)") +
-  theme_minimal()
-```
-
 
 We clean the session for the next exercise:
 
@@ -491,10 +625,163 @@ rm(list = ls())
 
 <br>
 
+
+# Dataset: mammals (difficulty = 3/5)
+
+`r .emo("goal")` What is the allometric exponent for the growth of brain size with body mass?
+
+`r .emo("goal")` Does this exponent agree with the usual expectation of 2/3?
+
+`r .emo("goal")` How large do we expect a 1kg animal to be?
+
+`r .emo("goal")` Rank organisms by relative brain size (i.e. controlled for body size)
+
+`r .emo("goal")` Repeat the analysis with the dataset `Animals`
+
+
+## Explore the data
+
+```{r}
+head(mammals)
+str(mammals)
+plot(brain ~ body, data = mammals)
+plot(log(brain) ~ log(body), data = mammals, pch = 20, col = "blue")
+text(log(mammals$body), log(mammals$brain) + 0.4,
+     labels = rownames(mammals), cex = 0.8)
+```
+
+## Reshaping the data
+```{r}
+mammals$log_brain <- log(mammals$brain)
+mammals$log_body <-  log(mammals$body)
+```
+
+## Fitting the model
+```{r}
+fit <- lm(log_brain ~ log_body, data = mammals)
+plot(fit)
+influence.measures(fit)
+plot(fit, which = 4)
+summary(fit)
+fit_nohuman <- lm(log_brain ~ log_body, data = mammals[rownames(mammals) != "Human", ])
+plot(fit_nohuman, which = 4)
+```
+
+## Comparing to 2/3
+
+```{r}
+t <- (fit$coefficients[2] - 2/3) / sqrt(diag(vcov(fit))[2])
+2*pt(abs(t), df = fit$df.residual, lower.tail = FALSE)
+confint(fit)
+fit2 <- lm(log_brain ~ 1 + offset(2/3*log_body), data = mammals)
+anova(fit2, fit)
+```
+
+
+```{r}
+t <- (fit_nohuman$coefficients[2] - 2/3) / sqrt(diag(vcov(fit_nohuman))[2])
+2*pt(abs(t), df = fit_nohuman$df.residual, lower.tail = FALSE)
+confint(fit_nohuman)
+fit2_nohuman <- lm(log_brain ~ 1 + offset(2/3*log_body), data = mammals[rownames(mammals) != "Human", ])
+anova(fit2_nohuman, fit_nohuman)
+```
+
+We can plot the predictions from the models
+
+```{r}
+plot(log_brain ~ log_body, data = mammals, col = "blue")
+text(mammals$log_body, mammals$log_brain + 0.5,
+     labels = rownames(mammals), cex = 0.8)
+abline(fit, col = "blue", lwd = 2)
+abline(fit_nohuman, col = "blue", lwd = 2, lty = 2)
+abline(coef(fit2), 2/3, col = "red", lwd = 2)
+abline(coef(fit2_nohuman), 2/3, col = "red", lwd = 2, lty = 2)
+legend("topleft", lty = c(1, 1, 2, 2), lwd = c(2, 2, 2, 2), col = c("blue", "red", "blue", "red"),
+       legend = c("slope estimated", "slope = 2/3", "slope estimated (no human)", "slope = 2/3 (no human)"))
+```
+
+
+## Prediction of the brain size for an animal of 1Kg
+
+```{r}
+p <- predict(fit_nohuman, newdata = data.frame(log_body = log(1)))
+exp(p)
+```
+
+An animal of 1 Kg is predicted to have a brain size of ```r round(exp(p), 2)``` grams.
+
+
+## Let us rank the organism by brain size controling for body size
+
+```{r}
+matrix(names(sort(resid(fit), decreasing = TRUE)), ncol = 1)
+```
+
+
+# Dataset: Animals (difficulty = 3/5)
+
+`r .emo("goal")` What is the allometric exponent for the growth of brain size with body mass?
+
+`r .emo("goal")` Does this exponent agree with the usual expectation of 2/3?
+
+`r .emo("goal")` How large do we expect a 1kg animal to be?
+
+`r .emo("goal")` Rank organisms by relative brain size (i.e. controlled for body size)
+
+
+## Explore the data
+
+```{r}
+head(Animals)
+str(Animals)
+plot(brain ~ body, data = Animals)
+plot(log(brain) ~ log(body), data = Animals, col = "blue",
+     ylim = c(min(log(brain)), max(log(brain)) + 0.5))
+text(log(Animals$body), log(Animals$brain) + 0.5,
+     labels = rownames(Animals), cex = 0.8)
+```
+
+## Reshaping the data
+```{r}
+Animals$log_brain <- log(Animals$brain)
+Animals$log_body <-  log(Animals$body)
+```
+
+## Fitting the model
+```{r}
+fit <- lm(log_brain ~ log_body, data = Animals)
+plot(fit)
+influence.measures(fit)
+plot(fit, which = 4)
+summary(fit)
+Animals_nodino <- Animals[!rownames(Animals) %in%
+                          c("Triceratops", "Brachiosaurus", "Dipliodocus"), ]
+fit_nodino <- lm(log_brain ~ log_body, data = Animals_nodino)
+plot(fit_nodino)
+influence.measures(fit_nodino)
+plot(fit_nodino, which = 4)
+summary(fit_nodino)
+```
+
+## Plot
+
+```{r}
+plot(log_brain ~ log_body, data = Animals, col = NULL)
+text(x = Animals$log_body, y = Animals$log_brain,
+     labels = rownames(Animals), cex = 0.8,
+     col = ifelse( rownames(Animals) %in% c("Triceratops", "Brachiosaurus", "Dipliodocus"), "red", "black"))
+p <- predict(fit, newdata = data.frame("log_body" = range(log(Animals$body))))
+p_nodino <- predict(fit_nodino, newdata = data.frame("log_body" = range(log(Animals$body))))
+points(x = range(Animals$log_body), y = p, col = "red", type = "l", lty = 2)
+points(x = range(Animals$log_body), y = p_nodino, col = "blue", type = "l")
+```
+
+<br>
+
+
 # Dataset: trees (difficulty = 3/5)
 
-## Goal
-* compare the approximation of the volume of wood given by $\text{Volume} = c*\text{Height}*\text{Girth}^2$ (with c to be estimated) to the usual consideration that a tree trunk is a cylinder
+`r .emo("goal")` Compare the approximation of the volume of wood given by $\text{Volume} = c\times\text{Height}\times\text{Girth}^2$ (with $c$ to be estimated) to the approximation of a tree trunk as a cylinder.
 
 ## Exploring the data
 
@@ -644,257 +931,3 @@ rm(list = ls())
 ```
 
 <br>
-
-# Dataset: stackloss (difficulty = 1/5)
-
-## Goal
-* find out if the acid concentration influences the loss of ammonia by the plants
-
-## Exploring the data
-
-```{r}
-str(stackloss)
-summary(stackloss)
-pairs(stackloss)
-any(is.na(stackloss))
-```
-
-
-## Fitting the model
-
-```{r}
-fit_stack <- lm(stack.loss ~ ., data = stackloss)
-```
-
-
-## Checking the assumptions
-
-### Linearity
-
-Let’s examine the linearity assumption by plotting the residuals against each column of the design matrix (but the intercept):
-
-```{r}
-for (col in 2:ncol(model.matrix(fit_stack))) {
-  plot(rstandard(fit_stack) ~ model.matrix(fit_stack)[, col])
-  title(main = colnames(model.matrix(fit_stack))[col])
-}
-```
-
-It looks messy but there is no obvious pattern suggesting a particular transformation of the predictors.
-
-### Multicollinearity
-
-```{r}
-cor(model.matrix(fit_stack)[ , -1])
-cov2cor(vcov(fit_stack))
-vif(fit_stack)
-```
-
-There are some multicollinearity problems but it does not seem to impact much the effect of acidity which is our focus.
-
-### Other assumptions
-
-We will assume that no there is no measurement error and will focus on the analysis of the prediction error of the model:
-
-```{r}
-par(mfrow = c(2, 2))
-plot(fit_stack)
-```
-
-
-That is not fantastic but it is not specifically worse than what we may get under the assumption of LM with so few data. We can check this by simulating data under the assumption of LM and comparing the plots we get:
-
-```{r}
-par(mfrow = c(2, 2))
-plot(update(fit_stack, as.matrix(simulate(fit_stack)) ~ .))  ## simulation 1
-plot(update(fit_stack, as.matrix(simulate(fit_stack)) ~ .))  ## simulation 2
-```
-
-It does not look particularly better, so we will consider the assumptions fulfilled.
-
-## Comparison to the null model
-
-Because the model involves several predictors, before anything else we need to make sure that the overall model offers a higher goodness of fit than the null model:
-
-```{r}
-fit_stack_H0 <- update(fit_stack, . ~ 1)
-anova(fit_stack_H0, fit_stack)
-```
-
-All good, the model predicts the data significantly better than the null model.
-
-## Testing the effect of the acid concentration
-
-```{r}
-summary(fit_stack)$coef["Acid.Conc.", ]
-```
-
-The acid seems to have no significant influence on the loss of ammonia (t = ```r round(summary(fit_stack)$coef["Acid.Conc.", 3], 2)```, df = ```r fit_stack$df.residual```, p-value = ```r round( summary(fit_stack)$coef["Acid.Conc.", 4], 2)```).
-
-Let's plot the effect using ```effects```.
-
-```{r}
-plot(effects::effect("Acid.Conc.", mod = fit_stack))
-```
-
-## Considering interactions?
-
-Because we are specifically interested in the effect of the acid and that this effect may depend on the other predictors, we could check if considering interaction between the acidity and other predictors would improve the goodness of fit of the model:
-
-```{r}
-fit_stack_int <- lm(stack.loss ~ Acid.Conc. * (Air.Flow + Water.Temp), data = stackloss)
-anova(fit_stack, fit_stack_int)
-vif(fit_stack_int)
-```
-The goodness of fit is not significantly better and there are huge multicollinearity issues, so let's not go there.
-
-That is all for now!
-
-<br>
-
-
-# Dataset: mammals
-
-## Goal
-
-* What is the allometric exponent for the growth of brain size with body mass?
-* Does this exponent agree with the usual expectation of 2/3?
-* How large do we expect the brain of a 1kg animal to be?
-* Rank organisms by relative brain size (i.e. controlled for body size)
-
-## Explore the data
-
-```{r}
-head(mammals)
-str(mammals)
-plot(brain ~ body, data = mammals)
-plot(log(brain) ~ log(body), data = mammals, pch = 20, col = "blue")
-text(log(mammals$body), log(mammals$brain) + 0.4,
-     labels = rownames(mammals), cex = 0.8)
-```
-
-## Reshaping the data
-```{r}
-mammals$log_brain <- log(mammals$brain)
-mammals$log_body <-  log(mammals$body)
-```
-
-## Fitting the model
-```{r}
-fit <- lm(log_brain ~ log_body, data = mammals)
-plot(fit)
-influence.measures(fit)
-plot(fit, which = 4)
-summary(fit)
-fit_nohuman <- lm(log_brain ~ log_body, data = mammals[rownames(mammals) != "Human", ])
-plot(fit_nohuman, which = 4)
-```
-
-## Comparing to 2/3
-
-```{r}
-t <- (fit$coefficients[2] - 2/3) / sqrt(diag(vcov(fit))[2])
-2*pt(abs(t), df = fit$df.residual, lower.tail = FALSE)
-confint(fit)
-fit2 <- lm(log_brain ~ 1 + offset(2/3*log_body), data = mammals)
-anova(fit2, fit)
-```
-
-
-```{r}
-t <- (fit_nohuman$coefficients[2] - 2/3) / sqrt(diag(vcov(fit_nohuman))[2])
-2*pt(abs(t), df = fit_nohuman$df.residual, lower.tail = FALSE)
-confint(fit_nohuman)
-fit2_nohuman <- lm(log_brain ~ 1 + offset(2/3*log_body), data = mammals[rownames(mammals) != "Human", ])
-anova(fit2_nohuman, fit_nohuman)
-```
-
-We can plot the predictions from the models
-
-```{r}
-plot(log_brain ~ log_body, data = mammals, col = "blue")
-text(mammals$log_body, mammals$log_brain + 0.5,
-     labels = rownames(mammals), cex = 0.8)
-abline(fit, col = "blue", lwd = 2)
-abline(fit_nohuman, col = "blue", lwd = 2, lty = 2)
-abline(coef(fit2), 2/3, col = "red", lwd = 2)
-abline(coef(fit2_nohuman), 2/3, col = "red", lwd = 2, lty = 2)
-legend("topleft", lty = c(1, 1, 2, 2), lwd = c(2, 2, 2, 2), col = c("blue", "red", "blue", "red"),
-       legend = c("slope estimated", "slope = 2/3", "slope estimated (no human)", "slope = 2/3 (no human)"))
-```
-
-
-## Prediction of the brain size for an animal of 1Kg
-
-```{r}
-p <- predict(fit_nohuman, newdata = data.frame(log_body = log(1)))
-exp(p)
-```
-
-An animal of 1 Kg is predicted to have a brain size of ```r round(exp(p), 2)``` grams.
-
-
-## Let us rank the organism by brain size controling for body size
-
-```{r}
-matrix(names(sort(resid(fit), decreasing = TRUE)), ncol = 1)
-```
-
-
-# Dataset: Animals
-
-## Goal
-
-* What is the allometric exponent for the growth of brain size with body mass?
-* Does this exponent agree with the usual expectation of 2/3?
-* How large do we expect a 1kg animal to be?
-* Rank organisms by relative brain size (i.e. controlled for body size)
-
-## Explore the data
-
-```{r}
-head(Animals)
-str(Animals)
-plot(brain ~ body, data = Animals)
-plot(log(brain) ~ log(body), data = Animals, col = "blue",
-     ylim = c(min(log(brain)), max(log(brain)) + 0.5))
-text(log(Animals$body), log(Animals$brain) + 0.5,
-     labels = rownames(Animals), cex = 0.8)
-```
-
-## Reshaping the data
-```{r}
-Animals$log_brain <- log(Animals$brain)
-Animals$log_body <-  log(Animals$body)
-```
-
-## Fitting the model
-```{r}
-fit <- lm(log_brain ~ log_body, data = Animals)
-plot(fit)
-influence.measures(fit)
-plot(fit, which = 4)
-summary(fit)
-Animals_nodino <- Animals[!rownames(Animals) %in%
-                          c("Triceratops", "Brachiosaurus", "Dipliodocus"), ]
-fit_nodino <- lm(log_brain ~ log_body, data = Animals_nodino)
-plot(fit_nodino)
-influence.measures(fit_nodino)
-plot(fit_nodino, which = 4)
-summary(fit_nodino)
-```
-
-## Plot
-
-```{r}
-plot(log_brain ~ log_body, data = Animals, col = NULL)
-text(x = Animals$log_body, y = Animals$log_brain,
-     labels = rownames(Animals), cex = 0.8,
-     col = ifelse( rownames(Animals) %in% c("Triceratops", "Brachiosaurus", "Dipliodocus"), "red", "black"))
-p <- predict(fit, newdata = data.frame("log_body" = range(log(Animals$body))))
-p_nodino <- predict(fit_nodino, newdata = data.frame("log_body" = range(log(Animals$body))))
-points(x = range(Animals$log_body), y = p, col = "red", type = "l", lty = 2)
-points(x = range(Animals$log_body), y = p_nodino, col = "blue", type = "l")
-```
-
-
