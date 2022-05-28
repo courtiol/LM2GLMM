@@ -29,7 +29,7 @@ set.seed(1L)
 * 2.1 [Fitting procedure](./LM_fitting_course.html)
 * 2.2 [Tests & Intervals](./LM_test_intervals_course.html)
 * 2.3 [Assumptions & Outliers](./LM_assumptions_course.html)
-* 2.4 [Let's practice](./LM_practice_course.html)
+* 2.4 [Let's practice](./LM_practice_exercises.html)
 
 <br>
 
@@ -858,7 +858,7 @@ influence.measures(fit_davis)  ## stars are just there to attract your attention
 * 2.1 [Fitting procedure](./LM_fitting_course.html)
 * 2.2 [Tests & Intervals](./LM_test_intervals_course.html)
 * 2.3 [Assumptions & Outliers](./LM_assumptions_course.html)
-* 2.4 [Let's practice](./LM_practice_course.html)
+* 2.4 [Let's practice](./LM_practice_exercises.html)
 
 <br>
 
