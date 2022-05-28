@@ -22,11 +22,11 @@ set.seed(1L)
 
 ## The Linear Model: LM
 
-* 2.0 [Introduction](./LM_intro.html)
-* 2.1 [Fitting procedure](./LM_fitting.html)
-* 2.2 [Tests & Intervals](./LM_test_intervals.html)
-* 2.3 [Assumptions & Outliers](./LM_assumptions.html)
-* 2.4 [Let's practice](./LM_practice.html)
+* 2.0 [Introduction](./LM_intro_course.html)
+* 2.1 [Fitting procedure](./LM_fitting_course.html)
+* 2.2 [Tests & Intervals](./LM_test_intervals_course.html)
+* 2.3 [Assumptions & Outliers](./LM_assumptions_course.html)
+* 2.4 [Let's practice](./LM_practice_exercises.html)
 
 <br>
 
@@ -37,63 +37,19 @@ set.seed(1L)
 
 # Exercises
 
-## Dataset: chickwts (difficulty = 0/5)
+## Dataset: chickwts -- part 1 (difficulty = 0/5) `r .emo("practice")`
 
 ```{r chickwts}
 head(chickwts)
 levels(chickwts$feed)
 ```
 
-### Goal:
-
-* compare the effectiveness of various feed supplements on the weights of six weeks old chickens.
-
-* optional: predict the proportion of chicken larger than 300gr for each feed supplements (difficulty 3/5)
-
-
-## Dataset: InsectSprays (difficulty = 2/5)
-
-```{r InsectSprays}
-head(InsectSprays, n = 3)
-levels(InsectSprays$spray)
-```
-
-
-### Goal
-
-* Compare the effectiveness of various insecticides on the number of insects in agricultural experimental units.
-
-* What is the efficiency of spray C?
-
-
-## Dataset: swiss (difficulty = 1/5)
-
-```{r swiss}
-head(swiss)
-```
-
 <br>
 
-### Goal
-
-* Plot the influence of potential determinant of fertility variation between Swiss provinces.
+`r .emo("goal")`  Compare the effectiveness of various feed supplements on the weights of six weeks old chickens.
 
 
-## Dataset: trees (difficulty = 4/5)
-
-```{r trees}
-head(trees)
-```
-
-<br>
-
-### Goal
-
-* Compare the approximation of the volume of wood given by $\text{Volume} = c*\text{Height}*\text{Girth}^2$ (with c to be estimated) to the usual consideration that a tree trunk is a cylinder.
-
-
-
-## Dataset: stackloss (difficulty = 1/5)
+## Dataset: stackloss (difficulty = 1/5) `r .emo("practice")`
 
 ```{r stackloss}
 head(stackloss)
@@ -101,27 +57,77 @@ head(stackloss)
 
 <br>
 
-### Goal
-
-* Find out if the acid concentration influences the loss of ammonia by the plants.
+`r .emo("goal")` Find out if the acid concentration influences the loss of ammonia by the plants.
 
 
-## Dataset: mammals (difficulty = 3/5)
+## Dataset: swiss (difficulty = 1/5) `r .emo("practice")`
+
+```{r swiss}
+head(swiss)
+```
+
+<br>
+
+`r .emo("goal")` Plot the influence of potential determinant of fertility.
+
+
+## Dataset: InsectSprays (difficulty = 2/5) `r .emo("practice")`
+
+```{r InsectSprays}
+head(InsectSprays, n = 3)
+levels(InsectSprays$spray)
+```
+
+<br>
+
+`r .emo("goal")` Compare the effectiveness of various insecticides on the number of insects in agricultural experimental units.
+
+`r .emo("goal")` What is the efficiency of spray C?
+
+
+## Dataset: chickwts -- part 2 (difficulty = 3/5) `r .emo("practice")`
+
+```{r chickwts2}
+head(chickwts)
+levels(chickwts$feed)
+```
+
+<br>
+
+`r .emo("goal")`  Predict the proportion of chicken larger than 300gr for each feed supplements (difficulty 3/5).
+
+
+## Dataset: mammals (difficulty = 3/5) `r .emo("practice")`
 
 ```{r}
 head(mammals)
 ```
 
-### Goal
+<br>
 
-* What is the allometric exponent for the growth of brain size with body mass?
-* Does this exponent agree with the usual expectation of 2/3?
-* How large do we expect a 1kg animal to be?
-* Rank organisms by relative brain size (i.e. controlled for body size)
-* Repeat the analysis with the dataset `Animals`
+`r .emo("goal")` What is the allometric exponent for the growth of brain size with body mass?
+
+`r .emo("goal")` Does this exponent agree with the usual expectation of 2/3?
+
+`r .emo("goal")` How large do we expect a 1kg animal to be?
+
+`r .emo("goal")` Rank organisms by relative brain size (i.e. controlled for body size)
+
+`r .emo("goal")` Repeat the analysis with the dataset `Animals`
 
 
-## Dataset: Bats (difficulty = 5/5)
+## Dataset: trees (difficulty = 4/5) `r .emo("practice")`
+
+```{r trees}
+head(trees)
+```
+
+<br>
+
+`r .emo("goal")` Compare the approximation of the volume of wood given by $\text{Volume} = c\times\text{Height}\times\text{Girth}^2$ (with $c$ to be estimated) to the approximation of a tree trunk as a cylinder.
+
+
+## Dataset: Bats (difficulty = 5/5) `r .emo("practice")`
 
 ```{r Bats}
 head(Bats)
@@ -129,19 +135,16 @@ head(Bats)
 
 <br>
 
-### Goal
-
-* reproduce the results on body weight from the study: [Seltmann et al. (Conservation Physiology, 2017)](https://academic.oup.com/conphys/article/doi/10.1093/conphys/cox020/3103058/Habitat-disturbance-results-in-chronic-stress-and?rss=1).
+`r .emo("goal")` Reproduce the results on body weight from the study: [Seltmann et al. (Conservation Physiology, 2017)](https://academic.oup.com/conphys/article/doi/10.1093/conphys/cox020/3103058/Habitat-disturbance-results-in-chronic-stress-and?rss=1).
 
 
 # Solutions
 
-## Answers to Exercises
+## Answers to Exercises `r .emo("practice")`
 
 <br>
 
-You can find the solution to all problems but the bat one 
-[here](./Exercise_Practice.html).
+You can find the solution to all problems [here](./LM_practice_solutions.html).
 
 Give it a good try before checking how I did it!
 
@@ -149,11 +152,11 @@ Give it a good try before checking how I did it!
 
 ## The Linear Model: LM
 
-* 2.0 [Introduction](./LM_intro.html)
-* 2.1 [Fitting procedure](./LM_fitting.html)
-* 2.2 [Tests & Intervals](./LM_test_intervals.html)
-* 2.3 [Assumptions & Outliers](./LM_assumptions.html)
-* 2.4 [Let's practice](./LM_practice.html)
+* 2.0 [Introduction](./LM_intro_course.html)
+* 2.1 [Fitting procedure](./LM_fitting_course.html)
+* 2.2 [Tests & Intervals](./LM_test_intervals_course.html)
+* 2.3 [Assumptions & Outliers](./LM_assumptions_course.html)
+* 2.4 [Let's practice](./LM_practice_exercises.html)
 
 <br>
 
