@@ -153,7 +153,16 @@ par(oma = c(0, 8, 0, 0))
 plot(posthoc)
 ```
 
+## Clean up
+We clean the session for the next exercise:
+
+```{r}
+rm(list = ls())
+```
+
 <br>
+
+
 
 # Dataset: stackloss (difficulty = 1/5)
 
@@ -270,7 +279,22 @@ anova(fit_stack, fit_stack_int)
 vif(fit_stack_int)
 ```
 The goodness of fit is not significantly better and there are huge multicollinearity issues, so let's not go there.
+## Clean up
+We clean the session for the next exercise:
 
+```{r}
+rm(list = ls())
+```
+
+<br>
+
+
+## Clean up
+We clean the session for the next exercise:
+
+```{r}
+rm(list = ls())
+```
 
 <br>
 
@@ -367,29 +391,29 @@ Both of our models fit the data clearly better than the null model.
 
 ## Plotting the effect of the potential determinant of fertility
 
-Because this is a simple LM, we can try to use the function ```allEffects``` from the package ```effects``` to do that automatically:
+Because this is a simple LM, you can use the function `allEffects()` from the package **{effects}** to do that automatically:
 
 ```{r plot effects, fig.height = 8, fig.width = 8, message=FALSE}
 plot(effects::allEffects(fit_swiss))
 plot(effects::allEffects(fit_swiss_bis))
 ```
 
-Many other packages can probably do the same. One example is ```visreg```:
+Many other packages can be used to draw similar plots (although details on how predictions are computed vary). One example is **{visreg}**:
 
 ```{r plot visreg, fig.height = 8, fig.width = 8}
 par(mfrow = c(2, 2))
 plot(visreg::visreg(fit_swiss_bis))
 ```
 
-Both models predict the same overall trends. To illustrate the difference in predicted values between the two models, one would have to do the plot manually instead of using some easy package. Let's do that to illustrate how the prediction for the mean effect of education differ between models:
+Both models predict the same overall trends. To illustrate more precisely the difference in predicted values between the two models, one would have to compute the predictions by hand and plot them. Let's do that to illustrate how the prediction for the mean effect of education differ between models:
 
 ```{r}
 data.for.pred <- data.frame("Agriculture" = mean(swiss$Agriculture), 
                             "Examination" = mean(swiss$Examination),
                             "Education" = seq(min(swiss$Education), max(swiss$Education), length = 30),
-                             "Catholic" = mean(swiss$Catholic),
-                             "Infant.Mortality" = mean(swiss$Infant.Mortality)
-                             )
+                            "Catholic" = mean(swiss$Catholic),
+                            "Infant.Mortality" = mean(swiss$Infant.Mortality)
+                            )
 pred1 <- predict(fit_swiss, newdata = data.for.pred, interval = "confidence")
 pred2 <- predict(fit_swiss_bis, newdata = data.for.pred, interval = "confidence")
 pred1_df_temp <- as.data.frame(pred1) ## to turn the matrix into a data frame
@@ -417,7 +441,7 @@ legend("topright", fill = c("blue", "orange"),
        legend = c("fit_swiss", "fit_swiss_bis"), title = "Model:", bty = "n")
 ```
 
-Note that while predicting the effect of ```Education``` we set all other covariates to their mean.
+Note that while predicting the effect of ```Education``` we set all other covariates to their mean although other choices are possible.
 
 
 Same with **{ggplot2}**:
@@ -434,7 +458,7 @@ ggplot(full_pred) +
   theme_minimal()
 ```
 
-
+## Clean up
 We clean the session for the next exercise:
 
 ```{r}
@@ -558,6 +582,7 @@ car::bcnPowerInverse(meanC_BC, lambda = bc$lambda, gamma = 0) - 1  ## same thing
 ```
 We thus expect to find on average (95%CI) ```r  round(meanC[1, "fit"], 2)``` (```r round(meanC[1, "lwr"], 2)``` -- ```r round(meanC[1, "upr"], 2)```) insects on agricultural experimental units treated with the insecticide C.
 
+## Clean up
 We clean the session for the next exercise:
 
 ```{r}
@@ -565,6 +590,7 @@ rm(list = ls())
 ```
 
 <br>
+
 
 
 # Dataset: chickwts -- part 2 (difficulty = 0/5)
@@ -617,6 +643,7 @@ ggplot(output) +
     theme_minimal()
 ```
 
+## Clean up
 We clean the session for the next exercise:
 
 ```{r}
@@ -624,6 +651,8 @@ rm(list = ls())
 ```
 
 <br>
+
+
 
 
 # Dataset: mammals (difficulty = 3/5)
@@ -718,6 +747,16 @@ matrix(names(sort(resid(fit), decreasing = TRUE)), ncol = 1)
 ```
 
 
+## Clean up
+We clean the session for the next exercise:
+
+```{r}
+rm(list = ls())
+```
+
+<br>
+
+
 # Dataset: Animals (difficulty = 3/5)
 
 `r .emo("goal")` What is the allometric exponent for the growth of brain size with body mass?
@@ -776,10 +815,17 @@ points(x = range(Animals$log_body), y = p, col = "red", type = "l", lty = 2)
 points(x = range(Animals$log_body), y = p_nodino, col = "blue", type = "l")
 ```
 
+## Clean up
+We clean the session for the next exercise:
+
+```{r}
+rm(list = ls())
+```
+
 <br>
 
 
-# Dataset: trees (difficulty = 3/5)
+# Dataset: trees (difficulty = 4/5)
 
 `r .emo("goal")` Compare the approximation of the volume of wood given by $\text{Volume} = c\times\text{Height}\times\text{Girth}^2$ (with $c$ to be estimated) to the approximation of a tree trunk as a cylinder.
 
@@ -924,6 +970,7 @@ The plot shows the influence of height on the mean volume for 4 specific girths 
 That the approximation of the volume of trees as cylinders over-estimate the actual volume may be due to the fact that the diameter of trees goes down as you climb up the tree...
 
 
+## Clean up
 We clean the session for the next exercise:
 
 ```{r}
@@ -931,3 +978,4 @@ rm(list = ls())
 ```
 
 <br>
+
