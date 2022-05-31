@@ -1106,7 +1106,7 @@ That the approximation of the volume of trees as cylinders over-estimate the act
 
 
 ## Clean up
-We clean the session for the next exercise:
+We clean the session:
 
 ```{r}
 rm(list = ls())
@@ -1114,3 +1114,77 @@ rm(list = ls())
 
 <br>
 
+<!-- Somehow the bats data are not the same is in the paper :-(
+
+# Dataset: Bats (difficulty = 5/5) `r .emo("practice")`
+
+`r .emo("goal")` Reproduce the results on body weight from the study: [Seltmann et al. (Conservation Physiology, 2017)](https://academic.oup.com/conphys/article/doi/10.1093/conphys/cox020/3103058/Habitat-disturbance-results-in-chronic-stress-and?rss=1).
+
+## Exploring the data
+
+```{r}
+Bats
+str(Bats)
+summary(Bats)
+any(is.na(Bats))
+```
+
+## Body mass in relation to habitat type
+
+```{r}
+fit <- lm(log_weight ~ Spp.y * Site.y + log_FAz + Site.x + REP + Fed + Year + Season, data = Bats)
+plot(fit)
+```
+
+```{r}
+fit_no_SppSiteY <- lm(log_weight ~ Spp.y + Site.y + log_FAz + Site.x + REP + Fed + Year + Season, data = Bats)
+anova(fit_no_SppSiteY, fit)
+```
+
+```{r}
+Bats$SppSite <- interaction(Bats$Spp.y, Bats$Site.y)
+fit2 <- lm(log_weight ~ -1 + SppSite + log_FAz + Site.x + REP + Fed + Year + Season, data = Bats)
+```
+
+
+```{r}
+K <- matrix(0, 6, ncol = length(coef(fit2)))
+colnames(K) <- names(coef(fit2))
+rownames(K) <- c(
+	"trees forest - logged",
+	"trees logged - frag",
+	"trees forest - frag",
+	"cave  forest - logged",
+	"cave  logged - frag",
+	"cave  forest - frag"
+	)
+
+trees <- c("Keha", "Kein", "Kepa", "Rhse", "Rhtr") ## trials, not real group!
+cave <- c("Hice", "Hidy", "Rhbo")
+for (i in 1:2) {
+	sp.roost <- get(c("trees", "cave")[i])
+	for (sp in sp.roost) {
+		forest <- paste0("SppSite", sp, ".Forest")
+		logged_forest <- paste0("SppSite", sp, ".Logged_forest")
+		frag_forest <- paste0("SppSite", sp, ".Fragmented_forest")
+		counter <- ifelse(i == 1, 1, 4)
+		K[counter, forest] <- 1/length(sp.roost)
+		K[counter, logged_forest] <- -1/length(sp.roost)
+		if (sp != "Rhse" & i == 1) {
+			K[counter + 1, frag_forest] <- -1/(length(sp.roost) - 1)
+			K[counter + 1, logged_forest] <- 1/(length(sp.roost) - 1)
+			K[counter + 2, forest] <- 1/(length(sp.roost) - 1)
+			K[counter + 2, frag_forest] <- -1/(length(sp.roost) - 1)
+		}
+		if (sp != "Rhse" & i == 2) {
+			K[counter + 1, frag_forest] <- -1/length(sp.roost)
+			K[counter + 1, logged_forest] <- 1/length(sp.roost)
+			K[counter + 2, forest] <- 1/length(sp.roost)
+			K[counter + 2, frag_forest] <- -1/length(sp.roost)
+		}
+	}
+}
+summary(multcomp::glht(fit2, linfct = K))
+```
+
+-->

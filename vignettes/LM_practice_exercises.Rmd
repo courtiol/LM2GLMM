@@ -126,7 +126,7 @@ head(trees)
 
 `r .emo("goal")` Compare the approximation of the volume of wood given by $\text{Volume} = c\times\text{Height}\times\text{Girth}^2$ (with $c$ to be estimated) to the approximation of a tree trunk as a cylinder.
 
-
+<!-- The data here are not the good one and the exercise is very complex... -> let's drop it
 ## Dataset: Bats (difficulty = 5/5) `r .emo("practice")`
 
 ```{r Bats}
@@ -136,7 +136,7 @@ head(Bats)
 <br>
 
 `r .emo("goal")` Reproduce the results on body weight from the study: [Seltmann et al. (Conservation Physiology, 2017)](https://academic.oup.com/conphys/article/doi/10.1093/conphys/cox020/3103058/Habitat-disturbance-results-in-chronic-stress-and?rss=1).
-
+-->
 
 # Solutions
 
