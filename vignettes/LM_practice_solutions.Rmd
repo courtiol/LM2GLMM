@@ -39,7 +39,7 @@ str(chickwts)
 plot(weight ~ feed, data = chickwts)
 ```
 
-I don't know much about chicken but the values seem alright.
+I don't know much about chicken but the values seem right.
 
 We look at the distribution of chicken among the sources of feed:
 ```{r}
@@ -207,7 +207,7 @@ It looks messy but there is no obvious pattern suggesting a particular transform
 ### Multicollinearity
 
 ```{r}
-cor(model.matrix(fit_stack)[ , -1])
+cor(model.matrix(fit_stack)[ , -1]) ## we discard the intercept for that
 cov2cor(vcov(fit_stack))
 vif(fit_stack)
 ```
@@ -262,10 +262,10 @@ summary(fit_stack)$coef["Acid.Conc.", ]
 
 The acid seems to have no significant influence on the loss of ammonia (t = ```r round(summary(fit_stack)$coef["Acid.Conc.", 3], 2)```, df = ```r fit_stack$df.residual```, p-value = ```r round( summary(fit_stack)$coef["Acid.Conc.", 4], 2)```).
 
-Let's plot the effect very simply using the pacakge **{effects}**.
+Let's plot the effect very simply using the package **{effects}**.
 
 ```{r}
-plot(effects::effect("Acid.Conc.", mod = fit_stack))
+plot(effects::predictorEffect("Acid.Conc.", mod = fit_stack))
 ```
 
 
@@ -339,7 +339,7 @@ No obvious non-linear pattern emerges.
 We can look at the correlation between the column vectors of the model matrix:
 
 ```{r}
-cor(model.matrix(fit_swiss)[, -1])  ## we discard the intercept for that
+cor(model.matrix(fit_swiss)[, -1])
 ```
 
 We can also look at the correlation between parameter estimates:
@@ -391,11 +391,11 @@ Both of our models fit the data clearly better than the null model.
 
 ## Plotting the effect of the potential determinant of fertility
 
-Because this is a simple LM, you can use the function `allEffects()` from the package **{effects}** to do that automatically:
+Because this is a simple LM, you can use the function `predictorEffects()` from the package **{effects}** to do that automatically:
 
 ```{r plot effects, fig.height = 8, fig.width = 8, message=FALSE}
-plot(effects::allEffects(fit_swiss))
-plot(effects::allEffects(fit_swiss_bis))
+plot(effects::predictorEffects(fit_swiss))
+plot(effects::predictorEffects(fit_swiss_bis))
 ```
 
 Many other packages can be used to draw similar plots (although details on how predictions are computed vary). One example is **{visreg}**:
@@ -525,7 +525,7 @@ car::boxCox(fit_insect_bis)
 summary(bc <- car::powerTransform(fit_insect_bis))
 ```
 
-The estimated value for lambda is close to 1/3 which corresponds to a cube root exponent to the observation but this is not particularly meaningful so we will stick to the best estimate for lambda which is ```r bc$lambda``` and stored in the object bc$lambda.
+The estimated value for lambda is close to 1/3 which corresponds to a cube root exponent to the observation but this is not particularly meaningful so we will stick to the best estimate for lambda which is ```r bc$lambda``` and stored in the object `bc$lambda`.
 
 Let's fit the model on the transformed data and display the new diagnostic plots:
 
@@ -561,7 +561,7 @@ Again, no issue here.
 
 ## Testing the effect of insecticides
 
-Note: once again, because there is only one predictor, the following test also correspond to testing the fitted model against the fit of a null model.
+Note: once again, because there is only one predictor, the following test also corresponds to testing the fitted model against the fit of a null model.
 
 ```{r}
 anova(fit_insect_bc)  ## again, same here as car::Anova as only one predictor
@@ -581,6 +581,27 @@ This corresponds to the number of insects + 1 on the Box Cox scale. Thus we need
 car::bcnPowerInverse(meanC_BC, lambda = bc$lambda, gamma = 0) - 1  ## same thing with less maths
 ```
 We thus expect to find on average (95%CI) ```r  round(meanC[1, "fit"], 2)``` (```r round(meanC[1, "lwr"], 2)``` -- ```r round(meanC[1, "upr"], 2)```) insects on agricultural experimental units treated with the insecticide C.
+
+## Plotting the effect of all sprays
+
+Let's use this exercise to illustrate how you can "easily" plot the effect of the different sprays using **{effects}** despite the BoxCox transformation:
+
+```{r}
+f.inverse <- function(x) car::bcnPowerInverse(x, lambda = bc$lambda, gamma = 0) - 1
+predict_spray <- effects::predictorEffect("spray", fit_insect_bc)
+plot(predict_spray,
+     axes = list(y = list(transform = list(inverse = f.inverse),
+                      type = "response", lab = "Count (UnBoxCoxed)",
+                      lim = c(0, 25)), grid = TRUE))
+```
+
+That also works with **{visreg}**:
+
+```{r}
+visreg::visreg(fit_insect_bc, trans = f.inverse, ylab = "Count (UnBoxCoxed)", gg = TRUE) +
+  scale_y_continuous(limits = c(0, 25)) +
+  theme_bw()
+```
 
 ## Clean up
 We clean the session for the next exercise:
@@ -604,16 +625,28 @@ rm(list = ls())
 fit_chick <- lm(weight ~ feed, data = chickwts)
 ```
 
-We have already studied this model fit above, so we want do it again here.
+We have already studied this model fit above, so we won't do it again here.
+
+We start by predicting the weight of chicken of all type of feed:
 
 ```{r}
-pred2 <- predict(fit_chick,
-                newdata = data.frame(feed = levels(chickwts$feed)),
-                interval = "prediction",
-                se.fit = TRUE)
+(pred2 <- predict(fit_chick,
+                  newdata = data.frame(feed = levels(chickwts$feed)),
+                  interval = "prediction",
+                  se.fit = TRUE))
+```
 
-se.pred <- sqrt(pred2$se.fit^2 + pred2$residual.scale^2)
+Note: we need the `se.fit` since we use it to compute the distribution of future observations.
 
+Such distribution is gaussian under the assumptions of LM, as a mean predicted by `pred2` and SD corresponding to the square root of the response variance:
+
+```{r}
+(se.pred <- sqrt(pred2$se.fit^2 + pred2$residual.scale^2))
+```
+
+We can thus use the distribution function of the normal distribution to get what we want:
+
+```{r}
 freq_more300 <- pnorm(q = 300,
                       mean = pred2$fit[, "fit"],
                       sd = se.pred, lower.tail = FALSE)
@@ -625,14 +658,16 @@ output$feed <- levels(chickwts$feed)
 output
 ```
 
-We can plot this: 
+## Plotting the proportion of chicken heavier than 300 grams
+
+We can plot the outcome like this: 
 
 ```{r, fig.width = 8}
 barplot(sort(output$`%>300gr`), names.arg = output$feed[order(output$`%>300gr`)],
         ylim = c(0, 1), ylab = "Predicted proportion of chicken larger than 300 gr")
 ```
 
-or using tidy packages:
+or using **{ggplot2}** and another tidy package (**{forcats}**) to reorganise the order of the factor levels:
 
 ```{r, fig.width = 8}
 output$feed2 <- forcats::fct_reorder(output$feed, output$`%>300gr`)
@@ -668,7 +703,7 @@ rm(list = ls())
 `r .emo("goal")` Repeat the analysis with the dataset `Animals`
 
 
-## Explore the data
+## Exploring the data
 
 ```{r}
 head(mammals)
@@ -679,43 +714,99 @@ text(log(mammals$body), log(mammals$brain) + 0.4,
      labels = rownames(mammals), cex = 0.8)
 ```
 
+This is the kind of things for which knowing **{ggplot2}** and its companion packages **{ggrepel}** and **{scales}** helps a little:
+
+```{r}
+ggplot(mammals) +
+  aes(y = brain, x = body, label =  rownames(mammals)) +
+  geom_point() +
+  #geom_smooth() + ## to show regression smoother
+  ggrepel::geom_text_repel(max.overlaps = Inf) +
+  scale_x_continuous(trans = "log10", labels = scales::label_number()) +
+  scale_y_continuous(trans = "log10", labels = scales::label_number()) +
+  theme_minimal()
+```
+
 ## Reshaping the data
 ```{r}
 mammals$log_brain <- log(mammals$brain)
 mammals$log_body <-  log(mammals$body)
 ```
 
+Note: you can use any log transformation, it will make no difference for the allometry coefficient and for the untransformed fitted values (as long as you untransform the data correctly and as long as you use the same transformation for `x` and `y`).
+
+
 ## Fitting the model
 ```{r}
 fit <- lm(log_brain ~ log_body, data = mammals)
 plot(fit)
+```
+
+There seem to be some issues caused by outliers.
+
+So let's examine the outliers in more details:
+
+```{r}
 influence.measures(fit)
 plot(fit, which = 4)
-summary(fit)
+```
+
+Humans seem to be the problem, so let's refit the model without them:
+
+```{r}
+summary(fit) ## fit with humans
 fit_nohuman <- lm(log_brain ~ log_body, data = mammals[rownames(mammals) != "Human", ])
+summary(fit_nohuman) ## fit without humans
+plot(fit_nohuman)
 plot(fit_nohuman, which = 4)
 ```
 
-## Comparing to 2/3
+The fit diagnostics are somewhat better without humans.
+
+
+## Comparing to an allometry coefficient of 2/3
+
+Let's use three equivalent ways to test the allometry coefficient:
+
+- a simple check of the confidence interval:
 
 ```{r}
-t <- (fit$coefficients[2] - 2/3) / sqrt(diag(vcov(fit))[2])
-2*pt(abs(t), df = fit$df.residual, lower.tail = FALSE)
 confint(fit)
+```
+
+0.6666... is not in the confidence interval, so the estimate differs from 2/3.
+
+
+- a t-test on the regression coefficient:
+
+```{r}
+(t <- (fit$coefficients[2] - 2/3) / sqrt(diag(vcov(fit))[2]))
+2*pt(abs(t), df = fit$df.residual, lower.tail = FALSE)
+```
+Indeed, the null hypothesis of an allometry coefficient of 2/3 is rejected.
+
+- a F-test based on the comparison between 2 models:
+```{r}
 fit2 <- lm(log_brain ~ 1 + offset(2/3*log_body), data = mammals)
 anova(fit2, fit)
 ```
 
+Same p-value, as expected.
+
+We can repeat the same on the fit without humans, just to be sure our results are robust to this outlier: 
 
 ```{r}
+confint(fit_nohuman)
 t <- (fit_nohuman$coefficients[2] - 2/3) / sqrt(diag(vcov(fit_nohuman))[2])
 2*pt(abs(t), df = fit_nohuman$df.residual, lower.tail = FALSE)
-confint(fit_nohuman)
 fit2_nohuman <- lm(log_brain ~ 1 + offset(2/3*log_body), data = mammals[rownames(mammals) != "Human", ])
 anova(fit2_nohuman, fit_nohuman)
 ```
+Same results, good!
 
-We can plot the predictions from the models
+## Plotting the observed and expected allometric relationships
+
+We can plot the predictions from the models:
 
 ```{r}
 plot(log_brain ~ log_body, data = mammals, col = "blue")
@@ -724,9 +815,8 @@ text(mammals$log_body, mammals$log_brain + 0.5,
 abline(fit, col = "blue", lwd = 2)
 abline(fit_nohuman, col = "blue", lwd = 2, lty = 2)
 abline(coef(fit2), 2/3, col = "red", lwd = 2)
-abline(coef(fit2_nohuman), 2/3, col = "red", lwd = 2, lty = 2)
-legend("topleft", lty = c(1, 1, 2, 2), lwd = c(2, 2, 2, 2), col = c("blue", "red", "blue", "red"),
-       legend = c("slope estimated", "slope = 2/3", "slope estimated (no human)", "slope = 2/3 (no human)"))
+legend("topleft", lty = c(1, 1, 2), lwd = c(2, 2, 2), col = c("blue", "red", "blue"),
+       legend = c("slope estimated", "slope = 2/3", "slope estimated (no human)"))
 ```
 
 
@@ -740,7 +830,7 @@ exp(p)
 An animal of 1 Kg is predicted to have a brain size of ```r round(exp(p), 2)``` grams.
 
 
-## Let us rank the organism by brain size controling for body size
+## Let us rank the organisms by brain size controling for body size
 
 ```{r}
 matrix(names(sort(resid(fit), decreasing = TRUE)), ncol = 1)
@@ -768,7 +858,7 @@ rm(list = ls())
 `r .emo("goal")` Rank organisms by relative brain size (i.e. controlled for body size)
 
 
-## Explore the data
+## Exploring the data
 
 ```{r}
 head(Animals)
@@ -792,27 +882,59 @@ fit <- lm(log_brain ~ log_body, data = Animals)
 plot(fit)
 influence.measures(fit)
 plot(fit, which = 4)
-summary(fit)
+```
+
+Here the biggest problem comes from dinosaurs, which do not seem to follow the same relationship than other animals.
+
+```{r}
 Animals_nodino <- Animals[!rownames(Animals) %in%
                           c("Triceratops", "Brachiosaurus", "Dipliodocus"), ]
 fit_nodino <- lm(log_brain ~ log_body, data = Animals_nodino)
 plot(fit_nodino)
 influence.measures(fit_nodino)
 plot(fit_nodino, which = 4)
-summary(fit_nodino)
 ```
 
-## Plot
+That is not great, but much better!
+
+## Comparing to an allometry coefficient of 2/3
+
+This time we will use a package to test the allometry coefficient.
+
+```{r}
+summary(multcomp::glht(fit, linfct = c("log_body = 0.66666666667")))
+```
+
+Note: you cannot write `2/3` `r .emo("broken")`
+
+## Plotting the observed and expected allometric relationships
 
 ```{r}
 plot(log_brain ~ log_body, data = Animals, col = NULL)
 text(x = Animals$log_body, y = Animals$log_brain,
      labels = rownames(Animals), cex = 0.8,
-     col = ifelse( rownames(Animals) %in% c("Triceratops", "Brachiosaurus", "Dipliodocus"), "red", "black"))
+     col = ifelse( rownames(Animals) %in% c("Triceratops", "Brachiosaurus", "Dipliodocus"),
+                   "red", "black"))
 p <- predict(fit, newdata = data.frame("log_body" = range(log(Animals$body))))
 p_nodino <- predict(fit_nodino, newdata = data.frame("log_body" = range(log(Animals$body))))
 points(x = range(Animals$log_body), y = p, col = "red", type = "l", lty = 2)
 points(x = range(Animals$log_body), y = p_nodino, col = "blue", type = "l")
+```
+
+## Prediction of the brain size for an animal of 1Kg
+
+```{r}
+p <- predict(fit_nodino, newdata = data.frame(log_body = log(1)))
+exp(p)
+```
+
+An animal of 1 Kg is predicted to have a brain size of ```r round(exp(p), 2)``` grams.
+
+
+## Let us rank the organisms by brain size controling for body size
+
+```{r}
+matrix(names(sort(resid(fit), decreasing = TRUE)), ncol = 1)
 ```
 
 ## Clean up
@@ -840,6 +962,7 @@ any(is.na(trees))
 
 ## Fitting the model (Solution 1)
 
+A first solution is to create a new predictor containing the value of $\text{Height}\times\text{Girth}^2$ and then fit a model without intercept which will directly estimate $c$.
 ```{r solution 1}
 trees$HG2 <- trees$Height*trees$Girth^2
 fit_trees1 <- lm(Volume ~ HG2 - 1, data = trees)
@@ -856,7 +979,9 @@ plot(fit_trees1)
 
 ## Fitting the model (Solution 2)
 
-$\text{Volume} = c \times \text{Height} \times \text{Girth}^2$ is not linear but we can turn it into a linear expression by using logs: 
+Another solution is to use a transformation of the data based on logarithms.
+
+Indeed, $\text{Volume} = c \times \text{Height} \times \text{Girth}^2$ is not linear but we can turn it into a linear expression by using logs: 
 
 $$\text{log(Volume)} = \text{log}(c) + \text{log(Height)} + 2 \times \text{log(Girth)}$$
 
@@ -880,42 +1005,52 @@ par(mfrow = c(2, 2))
 plot(fit_trees2)
 ```
 
-It looks alright, let's no forget that we only have ```r nrow(trees)``` rows in the datasets.
+It looks alright, let's not forget that we only have ```r nrow(trees)``` rows in the datasets.
 
 ## Let us compare how each model fits the data
+
+It is not clear how to compare the model since they are not nested and don't use the same response.
+
+We will here use the r-squared although this is not a method to be recommended in general.
 
 ```{r r sq mod}
 cor(predict(fit_trees1), trees$Volume)^2
 cor(exp(predict(fit_trees2)), trees$Volume)^2
 ```
 
+The goodness of fits look identical.
+
 
 ## Estimation of the parameter $c$
+
+The first model fit gives us directly an estimate for $c$:
 
 ```{r}
 coef(fit_trees1)
 confint(fit_trees1)
 ```
 
-The estimation with confidence interval of $k$ are:
+The second fit gives us an estimate of $k$ (not $c$), which is:
 
 ```{r}
 coef(fit_trees2)
 confint(fit_trees2)
 ```
 
-Because $k$ is correspond to the log of $c$, we must raise the obtained value to the exponential to obtain the estimation of $c$:
+Because $k$ corresponds to the log of $c$, we must raise the obtained value to the exponential to obtain the estimation of $c$:
 
 ```{r}
 exp(coef(fit_trees2))
 exp(confint(fit_trees2))
 ```
 
-We compare the two modelling approach in percentage of the estimation of $c$ by model 1:
+We compare the two modelling approaches:
 
 ```{r}
-100*(coef(fit_trees1)[[1]] - exp(coef(fit_trees2))[[1]])/coef(fit_trees1)[[1]]
+coef(fit_trees1)[[1]] / exp(coef(fit_trees2))[[1]]
 ```
+
+Note: both estimates are very close.
 
 
 ## Comparison to the approximation of a tree trunk by a cylinder
