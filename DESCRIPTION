@@ -27,6 +27,8 @@ Imports:
     forcats,
     spaMM,
     stats,
+    ggplot2,
+    ggrepel,
     glm2,
     glmmTMB,
     knitr,
@@ -53,6 +55,7 @@ Imports:
     rgl,
     ROI.plugin.glpk,
     safeBinaryRegression,
+    scales,
     sem,
     tools,
     visreg
