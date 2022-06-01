@@ -476,7 +476,7 @@ CI_boot <- function(fit, param, nboot) {
                 t0 = coef(fit)[[param]], ## â
                 t  = res_sim,            ## a*
                 type = "basic")$basic[, 4:5]  ## more complex types exist!
-}
+} ## to use with spaMM fit, just run coef.HLfit <- fixef.HLfit beforehand
 CI_boot(fit = fit_lm_AL1, param = "humans_eaten", nboot = 1000)
 ```
 Notes: for more complex models, there are packages doing that for you, but I do not know one that would work with `stats::lm()` (it may exist).
@@ -972,51 +972,39 @@ Notes:
 
 ## Distribution of residual variance estimates `r .emo("nerd")`
 
-Variance estimates generally follow a Gamma ($\Gamma$) distribution with mean  = $\texttt{estimate}$ and var = $2 (\texttt{estimate}^2) / \texttt{df}$.
+In LM, variance estimates follow a Gamma ($\Gamma$) distribution with mean = $\texttt{estimate}$ and var = $2 (\texttt{estimate}^2) / \texttt{df}$.
 
 For $\Gamma$, mean = $\texttt{shape} \times \texttt{scale}$ and var = 
 $\texttt{shape} \times \texttt{scale}^2$ ($\texttt{shape}$ and $\texttt{scale}$ are the two parameters of the $\Gamma$ distribution); thus, little maths show that in our context $\texttt{shape} =  \texttt{df}/2$ and $\texttt{scale} = 2 \times\texttt{estimate}/\texttt{df}$.
 
 ```{r gamma, fig.width = 3}
 curve(dgamma(x, shape = fit_lm_AL1$df.residual/2, scale = 2*residvar/fit_lm_AL1$df.residual), ## df = n - p
-    from = 0, to = 100, xlab = "residual variance", ylab = "probability density", lwd = 3)
+      from = 0, to = 100, xlab = "residual variance", ylab = "probability density", lwd = 3)
 ```
 
 
-## CI for $\widehat{\sigma}^2$ using the $\Gamma$ distribution `r .emo("info")`
+## CI for $\widehat{\sigma}^2$ using the $\Gamma$ distribution `r .emo("practice")`
 
 So, we can rely on the Gamma to build a CI95% of the variance estimate as follows:
 
 ```{r assymptotic}
 CI_residvar_gamma <- function(fit) {
   residvar <- summary(fit)$sigma^2
-  qgamma(p = c(0.025, 0.975), shape = fit$df.residual/2, scale = 2*residvar/fit$df.residual)
+  1/qgamma(p = c(0.975, 0.025), shape = fit$df.residual/2, scale = 2/(residvar*fit$df.residual))
 }
 ```
-```{r assymptotic 2}
-CI_residvar_gamma(fit_lm_AL1)
-```
-
-
-## CI for $\widehat{\sigma}^2$ using the $\chi^2$ distribution `r .emo("practice")`
-
-Yet, for the particular case of the residual variance, OLS theory tells us to rely on the chi-square distribution (exact rather than asymptotic):
-
+Since the $\chi^2$ is a particular case of the $\Gamma$ distribution, this is equivalent to:
 ```{r chi2 interval}
 CI_residvar_chi2 <- function(fit) {
- sum(residuals(fit)^2)/c(qchisq(0.975, df = fit$df.residual), qchisq(0.025, df = fit$df.residual))
+ sum(residuals(fit)^2)/qchisq(c(0.975, 0.025), df = fit$df.residual)
 }
 ```
-```{r chi2 interval 2}
+
+```{r assymptotic 2, results='hold'}
+CI_residvar_gamma(fit_lm_AL1)
 CI_residvar_chi2(fit_lm_AL1)
 ```
-
-<br>
-
-If we did not know better, we could also use likelihood profiling or parametric bootstrap as we have seen it in the context of CI for regression coefficients.
-
-Let's try that anyway for learning a thing or two...
-
+Note: if we did not know better, we could also use likelihood profiling or parametric bootstrap as we have seen it in the context of CI for regression coefficients. Let's try that anyway for learning a thing or two...
 
 
 ## CI for $\widehat{\sigma}^2$ using likelihood profiling `r .emo("nerd")`
@@ -1074,10 +1062,10 @@ CI_residvar_boot <- function(fit, nboot = 1000) {
     newfit$phi  ## extract the estimate
   })
   boot::boot.ci(boot.out = list(R = length(res_sim)),
-                t0 = fit$phi,
-                t  = res_sim,
+                t0 = fit$phi, ## â
+                t  = res_sim, ## a*
                 type = "basic")$basic[, 4:5]  ## more types exist!
-} ## to use with spaMM fit, just run coef.HLfit <- fixef.HLfit beforehand
+}
 ```
 
 ```{r CI param boot residvar 2}
@@ -1088,32 +1076,26 @@ CI_residvar_boot(fit = fit_spaMM_AL1_REML)
 Note: that we obtained a negative value is not great since variances cannot be negative...
 
 
-## Which method is best to build a CI? `r .emo("info")` `r .emo("proof")`
+## Which method is best to build a CI for $\widehat{\sigma}^2$? `r .emo("info")` `r .emo("proof")`
 
-Here we know: the one using the $\chi^2$ distribution, but sometime it is unclear (either because you don't know, because it is not known, or because there is no general answer) what the best method is. In such cases, you can always test for yourself by investigating the coverage of different methods by simulating data close to yours (as we did it earlier for Student's based CI).
+Here we know: the one using the $\Gamma$ (or equivalently $\chi^2$) distribution, but sometime it is unclear (either because you don't know, because it is not known, or because there is no general answer) what the best method is. In such cases, you can always test for yourself by investigating the coverage of different methods by simulating data close to yours (as we did it earlier for Student's based CI).
 
-Here, we will check the coverage for all 4 methods we have just mentioned:
+Here, we will check the coverage for all 3 methods we have just mentioned:
 
 1- CI using the $\chi^2$
 
 ```{r coverage Gamma}
 set.seed(123)
 mean(replicate(1000,
-  sum(findInterval(CI_residvar_chi2(update(fit_lm_AL1, data = simulate_Aliens())), 25)) == 1))  ## for lm fit
-```
-
-2- CI using the $\Gamma$
-
-```{r coverage Gamma chi2}
-set.seed(123)
-mean(replicate(1000,
   sum(findInterval(CI_residvar_gamma(update(fit_lm_AL1, data = simulate_Aliens())), 25)) == 1))  ## for lm fit
 ```
+
+Note: as expected, the coverage is very close to the nominal level of 95%.
 
 
 ## Which method is best to build CI for $\widehat{\sigma}^2$? `r .emo("info")` `r .emo("proof")`
 
-3- CI using likelihood profiling  `r .emo("slow")`
+2- CI using likelihood profiling  `r .emo("slow")`
 
 ```{r coverage Gamma 2, eval = FALSE}
 set.seed(123)
@@ -1123,7 +1105,7 @@ mean(replicate(1000,  ## SLOW!
 ## RESULT  = 0.921
 ```
 
-4- CI using parametric boostrap `r .emo("slow")` `r .emo("slow")` `r .emo("slow")`
+3- CI using parametric boostrap `r .emo("slow")` `r .emo("slow")` `r .emo("slow")`
 
 ```{r coverage Gamma 3, eval = FALSE}
 set.seed(123)
