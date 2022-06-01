@@ -58,10 +58,10 @@ I may also use a few others within the slides
 * become capable of tackling most challenges brought by the analyses of real dataset
 
 ### How to get there?
-* Learn some key concepts & some programming (but hardly any mathematics)
-* We need to dig a bit underneath the surface to understand how R does thing
-* You need to refrain yourself from compulsive googling and compulsive copy/pasting of the code produced by random people.
-* You should instead start trying to solve any R/stats problems like any other scientific problem: by combining observations and experiments (in your R console)
+* learn some key concepts & some programming (but hardly any mathematics)
+* we need to dig a bit underneath the surface to understand how R does thing
+* you need to refrain yourself from compulsive googling and compulsive copy/pasting of the code produced by random people.
+* you should instead start trying to solve any R/stats problems like any other scientific problem: by combining observations and experiments (in your R console)
 
 ### What I will not cover in this course:
 * how to use the {dplyr} and friends ({tidyr}, {tidyselect}, {forcats}...) to put data in shape
@@ -112,7 +112,7 @@ library(package = "LM2GLMM") ## !!! Always check the version with me because I w
 
 ### What?
 
-* biological questions for which the answers will require you to build liner models
+* biological questions for which the answers will require you to build liner models (LM or GLM)
 * you will answer by writing text and R code producing results including figures and/or tables 
 
 ### When?
