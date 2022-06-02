@@ -13,7 +13,7 @@ A data frame with 10 variables:
    \item{FA.y}{The forearm length in mm}
    \item{log_FAz}{The log forearm length turned into z-score by centering and scalling the measurement within species}
    \item{Fed}{A binary factor indicating if the individuals have recently been feeding (Y = Yes, N = No)}
-   \item{REP}{A factor indicating the reproductions status (NR = non-reproductive, PR = pregnant, L = lactating or M = post-lactating)}
+   \item{REP}{A factor indicating the reproductions status (NR = non-reproductive, L = lactating or M = male)}
    \item{Year}{A factor indicating the year of sampling}
    \item{Season}{A factor indicating the season of sampling}
    \item{Site.x}{A factor indicating the type of forest patch in which individuals have been captured}
