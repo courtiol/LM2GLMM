@@ -144,7 +144,7 @@ Alien$size <- Alien$intercept + Alien$slope*Alien$humans_eaten + Alien$error
 Note: we could also write the last 2 lines as the following line:
 
 ```{r alien data2}
-# Alien$size <- rnorm(n = 6, mean = 50 + 1.5*Alien$humans_eaten, sd = sqrt(25))
+# Alien$size <- rnorm(n = 6, mean = 50 + 1.5*Alien$humans_eaten, sd = sqrt(5))
 ```
 
 
