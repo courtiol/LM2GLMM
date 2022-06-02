@@ -69,9 +69,9 @@ str(TitanicSurvival)
 To compute how many females below 20 years old survived in 2nd class and how many did not, you can do:
 
 ```{r}
-test <- TitanicSurvival[TitanicSurvival$sex == "female" &
+test <- TitanicSurvival[which(TitanicSurvival$sex == "female" &
                          TitanicSurvival$age < 20 &
-                         TitanicSurvival$passengerClass == "2nd", ]
+                         TitanicSurvival$passengerClass == "2nd"), ]
 table(test$survived)
 ```
 Many other ways are possible, such as:

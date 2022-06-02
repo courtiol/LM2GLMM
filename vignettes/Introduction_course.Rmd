@@ -35,12 +35,12 @@ knitr::opts_chunk$set(fig.align = "center", fig.width = 4, fig.height = 4, dev.a
 
 I use emojis at the top of each slide to indicate what it refers to:
 
-- `r .emo("info")` for things that are good to know for improving your understanding
-- `r .emo("practice")` for practical advice (i.e. things you need to learn doing)
-- `r .emo("nerd")` for nerdy details (i.e. things you don't need to learn, but useful for my argument)
+- `r .emo("info")` for things that are good to know to improve your understanding
+- `r .emo("practice")` for practical advice (i.e. things you need to learn by doing)
+- `r .emo("nerd")` for nerdy details (i.e. things you don't need to learn, but will deepen your understanding)
 - `r .emo("proof")` for demonstrations (i.e. to show you I am not always making things up and teach you how to test your own ideas)
 - `r .emo("alien")` for creation of data (i.e. the R objects we will use in other slides)
-- `r .emo("goal")` for goals (i.e. to highlight lists the key things you need to remember)
+- `r .emo("goal")` for goals (i.e. highlight the key things you need to remember)
 
 <br>
 
@@ -112,7 +112,7 @@ library(package = "LM2GLMM") ## !!! Always check the version with me because I w
 
 ### What?
 
-* biological questions for which the answers will require you to build liner models (LM or GLM)
+* biological questions for which the answers will require you to build linear models (LM or GLM)
 * you will answer by writing text and R code producing results including figures and/or tables 
 
 ### When?
@@ -154,11 +154,17 @@ library(package = "LM2GLMM") ## !!! Always check the version with me because I w
 foo <- c(1, 5, 5, 10, 23, NA, NA)
 foo[2]
 foo > 3
-foo[foo > 3]
-foo2 <- c(a = 1, b = 5, c = 10, d = 23)
-foo2["b"]
+foo[foo > 3] #Will return NAs
+foo[which(foo > 3)] #Will not return NAs
 ```
 
+## Vectors: basics `r .emo("practice")`
+
+```{r vector basics2}
+foo2 <- c(a = 1, b = 5, c = 10, d = 23)
+foo2["b"]
+foo2[c("b", "a")]
+```
 
 ## Vectors: some useful functions `r .emo("practice")`
 
@@ -306,14 +312,14 @@ foo_tbl ## the display is different
 ```{r dataframe dplyr select columns, results='hide'}
 select(foo_tbl, x)          ## same as foo_tbl[, "x", drop = FALSE]
 slice(foo_tbl, 2)           ## same as foo_tbl[2, ]
-filter(foo_tbl, x == 3)     ## same as foo_tbl[foo_tbl$x == 3, ]
+filter(foo_tbl, x == 3)     ## same as foo_tbl[which(foo_tbl$x == 3), ]
 ```
 
 
 ```{r dataframe dplyr select columns piped, results='hide'}
 foo_tbl %>% select(x)       ## same as foo_tbl[, "x", drop = FALSE]
 foo_tbl %>% slice(2)        ## same as foo_tbl[2, ]
-foo_tbl %>% filter(x == 3)  ## same as foo_tbl[foo_tbl$x == 3, ]
+foo_tbl %>% filter(x == 3)  ## same as foo_tbl[which(foo_tbl$x == 3), ]
 ```
 
 
@@ -465,7 +471,7 @@ For plotting the distribution of a quantitative variable (best if continuous) ag
 
 ```{r boxplot}
 ## Remove outlier identified in scatterplot to see boxplots better (for demonstration only)
-plot_data <- Davis[Davis$height > 100, ]
+plot_data <- Davis[which(Davis$height > 100), ]
 boxplot(height ~ sex, data = plot_data)
 ```
 

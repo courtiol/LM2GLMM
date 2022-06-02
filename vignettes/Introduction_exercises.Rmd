@@ -59,7 +59,7 @@ table(focus, useNA = "always")
 
 ## An example of programming
 
-The following function can be used to investigate the statistical power of a t-test (i.e. the probability to detect a significant effect when they really is one = rate of true positive):
+The following function can be used to investigate the statistical power of a t-test (i.e. the probability to detect a significant effect when there really is one = rate of true positive):
 
 ```{r example, fig.show='hide'}
 compare_heights <- function(n_group = 10, height_difference = 5) {
@@ -81,7 +81,7 @@ Can you run, read and understand this code?
 
 ## Plots
 
-Using the dataset `TitanicSurvival`, find a good way to show at once what influenced the survival of passengers.
+Using the dataset `TitanicSurvival`, find a good way to show in one plot what influenced the survival of passengers.
 
 
 ##
