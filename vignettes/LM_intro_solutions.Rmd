@@ -100,6 +100,14 @@ So here the intercept equates 70 and the slope `x` equates 20.
 
 * ```TRUE``` vs ```FALSE```
 
+Remember, in R `TRUE` and `FALSE` are represented by 1 and 0 respectively. If these are used in a model they will be treated as numeric values (1 and 0).
+
+```{r}
+as.numeric(c(TRUE, FALSE))
+```
+
+Therefore, this is essentially the opposite to the question with `0 vs 1`.
+
 ```{r}
 d <- data.frame(x = c(TRUE, FALSE))
 model.matrix(~ x, data = d)
@@ -137,8 +145,10 @@ No the representations are not equivalent and are actually all different.
 
 Turn the following code into a function that takes the number of aliens to generate as an argument:
 
+*Tip:* Remember to check `?sample()` to understand what this new function does.
+
 ```{r alien data}
-Alien <- data.frame(humans_eaten = rep(1:3, each = 2), intercept = 50, slope = 1.5)
+Alien <- data.frame(humans_eaten = sample(1:3, size = 6, replace = TRUE), intercept = 50, slope = 1.5)
 Alien$error <- rnorm(n = 6, mean = 0, sd = sqrt(5))
 Alien$size <- Alien$intercept + Alien$slope*Alien$humans_eaten + Alien$error
 ```
@@ -273,16 +283,61 @@ What do each of these estimates really mean?
 
 ### Instruction
 
-Predict and plot the influence of the weight of girls on their height!
+Create a plot with marginal predictions showing the influence of the weight of girls on their height!
+
+*Tip:* Look back at slides about marginal and conditional predictions to work out how to deal with the effect of 'drink'.
 
 ### Solution
 
-Since weight influences linearly predictions, we only need predictions for the lightest and heaviest girl for each drink category.
+For marginal predictions we use the *modal* value of non-focal qualitative variables within the set of all sampled observations.
+
+```{r}
+
+#The most frequent value of 'drink' is 'Not at all'
+table(UK$drink)
+
+```
+
+Since weight influences predictions linearly, we only need predictions for the lightest and heaviest girl in our drink category.
+
+```{r}
+UK_girl <- UK[which(UK$sex == "Girl" & UK$drink == "Not at all"), ]
+
+tab_weight <- data.frame(sex = "Girl",
+                         drink = "Not at all",
+                         weight = range(UK_girl$weight, na.rm = TRUE))
+
+tab_weight
+```
+
+Now we can add the predicted values:
+
+```{r}
+tab_weight$height_pred <- predict(fit_UK1,
+                                  newdata = tab_weight)
+tab_weight
+```
+
+Create a plot to show the data.
+
+```{r}
+
+#Plot the points
+plot(x = tab_weight$height_pred, y = tab_weight$weight)
+
+#Or we can plot the points and lines
+lines(x = tab_weight$height_pred, y = tab_weight$weight)
+
+```
+
+#### BONUS Solution `r .emo("nerd")`
+
+How would we do this for each category of drink?
 
 So let's start with identifying the relevant weights we need to use:
 
 ```{r range_weight}
-UK_girl <- UK[UK$sex == "Girl", ]
+UK_girl <- UK[which(UK$sex == "Girl"), ]
 
 tapply(UK_girl$weight, UK_girl$drink, range, na.rm = TRUE)
 

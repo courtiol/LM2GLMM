@@ -59,8 +59,10 @@ Are these different representations of ages equivalent?
 
 Turn the following code into a function that takes the number of aliens to generate as an argument:
 
+*Tip:* Remember to check `?sample()` to understand what this new function does.
+
 ```{r alien data}
-Alien <- data.frame(humans_eaten = rep(1:3, each = 2), intercept = 50, slope = 1.5)
+Alien <- data.frame(humans_eaten = sample(1:3, size = 6, replace = TRUE), intercept = 50, slope = 1.5)
 Alien$error <- rnorm(n = 6, mean = 0, sd = sqrt(5))
 Alien$size <- Alien$intercept + Alien$slope*Alien$humans_eaten + Alien$error
 ```
@@ -139,8 +141,9 @@ What do each of these estimates really mean?
 
 ## More predictions with `fit_UK1`
 
-Predict and plot the influence of the weight of girls on their height! 
+Create a plot with marginal predictions showing the influence of the weight of girls on their height!
 
+*Tip:* Look back at slides about marginal and conditional predictions to work out how to deal with the effect of 'drink'.
 
 ##
 
