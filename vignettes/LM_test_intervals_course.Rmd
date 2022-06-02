@@ -569,14 +569,14 @@ Note: here we test the overall effect of `sex * weight`.
 
 ## Comparing nested models using a F test `r .emo("info")`
 
-The default behaviour for `anova()` on LM fit is to compare perform a F-test:
+The default behaviour for `anova()` on LM fit is to perform a F-test:
 
 ```{r fit 2 bis, echo = FALSE}
 fit_lm_UK2 <- lm(height ~ drink, data = fit_lm_UK1$model) ## we use model frame to keep same dataset!
 anova(fit_lm_UK2, fit_lm_UK1)
 ```
 
-The F-test is used to check is the decrease in residual variance for the more complex fit is higher than expected under H0:
+The F-test is used to check if the decrease in residual variance for the more complex fit is higher than expected under H0:
 
 ```{r F test hand}
 RSS_fit1 <- sum(residuals(fit_lm_UK1)^2)

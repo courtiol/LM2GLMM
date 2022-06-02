@@ -515,7 +515,7 @@ compute_logLik <- function(vector.param, formula, data) {
   X <- model.matrix(object = formula, data = useful.data) ## create the design matrix
   fitted_values <- X %*% matrix(vector.param) ## compute the fitted values given the coef
   response <- model.response(useful.data) ## extract the response
-  residual_var <- sum((response - fitted_values)^2) / nrow(useful.data)  ## var for the normal distrib
+  residual_var <- sum((response - fitted_values)^2) / nrow(useful.data)  ## var for the normal distribution
   sum(dnorm(response, mean = fitted_values, sd = sqrt(residual_var), log = TRUE))
 }
 ```

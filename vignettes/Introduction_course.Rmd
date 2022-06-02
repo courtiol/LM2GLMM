@@ -35,12 +35,12 @@ knitr::opts_chunk$set(fig.align = "center", fig.width = 4, fig.height = 4, dev.a
 
 I use emojis at the top of each slide to indicate what it refers to:
 
-- `r .emo("info")` for things that are good to know for improving your understanding
-- `r .emo("practice")` for practical advice (i.e. things you need to learn doing)
-- `r .emo("nerd")` for nerdy details (i.e. things you don't need to learn, but useful for my argument)
+- `r .emo("info")` for things that are good to know to improve your understanding
+- `r .emo("practice")` for practical advice (i.e. things you need to learn by doing)
+- `r .emo("nerd")` for nerdy details (i.e. things you don't need to learn, but will deepen your understanding)
 - `r .emo("proof")` for demonstrations (i.e. to show you I am not always making things up and teach you how to test your own ideas)
 - `r .emo("alien")` for creation of data (i.e. the R objects we will use in other slides)
-- `r .emo("goal")` for goals (i.e. to highlight lists the key things you need to remember)
+- `r .emo("goal")` for goals (i.e. highlight the key things you need to remember)
 
 <br>
 
@@ -112,7 +112,7 @@ library(package = "LM2GLMM") ## !!! Always check the version with me because I w
 
 ### What?
 
-* biological questions for which the answers will require you to build liner models (LM or GLM)
+* biological questions for which the answers will require you to build linear models (LM or GLM)
 * you will answer by writing text and R code producing results including figures and/or tables 
 
 ### When?

@@ -67,7 +67,7 @@ So the intercept represents here the IQ of females and thus should equate 110 an
 d <- data.frame(x = c(0, 1))
 model.matrix(~ x, data = d)
 ```
-So the intercept represents here the IQ of males and thus should equate 90 and `x` represents the a slope which multiplied by one and added to the intercept should yield the value for males.
+So the intercept represents here the IQ of males and thus should equate 90 and `x` represents a slope which multiplied by one and added to the intercept should yield the value for males.
 That slope should thus equate 20.
 
 <br>

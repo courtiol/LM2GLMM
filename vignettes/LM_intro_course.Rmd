@@ -246,7 +246,7 @@ The meaning of the parameters thus always depends on the design matrix (more on 
 
 ## Model parameters estimates `r .emo("practice")`
 
-There are the estimations for of the model parameters produced by the fit of the model:
+These are the estimations of the model parameters produced by the fit of the model:
 
 ```{r estimates}
 Alien$intercept_est <- coef(fit_alien_lm)[["(Intercept)"]]
@@ -364,7 +364,7 @@ Alien
 
 ## The fitted values `r .emo("practice")`
 
-There are the estimations for of the mean response values produced by the fit of the model:
+These are the estimations of the mean response values produced by the fit of the model:
 
 ```{r alien fitted values}
 Alien$size_fitted <- fitted.values(fit_alien_lm)
@@ -540,7 +540,7 @@ In case you are curious: the default polynomial formulation for the design matri
 
 ## (Galactic) Interlude `r .emo("alien")`
 
-Goddess Emerald Lion informed us that Aliens have colonised different exoplanets since their creation and that their age depends on when the arrived on these planets, on their sex (the sex ZZ ages much faster), and on how many times they visited a black hole (due to the time dilatation happening there):
+Goddess Emerald Lion informed us that Aliens have colonised different exoplanets since their creation and that their age depends on when they arrived on these planets, on their sex (the sex ZZ ages much faster), and on how many times they visited a black hole (due to the time dilatation happening there):
 
 ```{r Alien}
 set.seed(123)
@@ -569,7 +569,7 @@ model.matrix(object = ~ planet, data = Alien2)
 
 This parametrization of factors such as `planet` follows the so-called matrix of contrasts called "treatment".
 
-It is the easiest one to interpret and the one use by default in R (but not in all software).
+It is the easiest one to interpret and the one used by default in R (but not in all software).
 
 
 ## Interpreting the treatment contrasts `r .emo("info")`
@@ -771,7 +771,7 @@ $$
 
 ## The residuals `r .emo("practice")`
 
-There are the estimations for of the errors produced during the fit of the model:
+These are the estimations of the errors produced during the fit of the model:
 
 ```{r error vs residuals}
 Alien$residuals <- residuals(fit_alien_lm)
