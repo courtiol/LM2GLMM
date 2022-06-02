@@ -154,11 +154,17 @@ library(package = "LM2GLMM") ## !!! Always check the version with me because I w
 foo <- c(1, 5, 5, 10, 23, NA, NA)
 foo[2]
 foo > 3
-foo[foo > 3]
-foo2 <- c(a = 1, b = 5, c = 10, d = 23)
-foo2["b"]
+foo[foo > 3] #Will return NAs
+foo[which(foo > 3)] #Will not return NAs
 ```
 
+## Vectors: basics `r .emo("practice")`
+
+```{r vector basics2}
+foo2 <- c(a = 1, b = 5, c = 10, d = 23)
+foo2["b"]
+foo2[c("b", "a")]
+```
 
 ## Vectors: some useful functions `r .emo("practice")`
 
@@ -306,14 +312,14 @@ foo_tbl ## the display is different
 ```{r dataframe dplyr select columns, results='hide'}
 select(foo_tbl, x)          ## same as foo_tbl[, "x", drop = FALSE]
 slice(foo_tbl, 2)           ## same as foo_tbl[2, ]
-filter(foo_tbl, x == 3)     ## same as foo_tbl[foo_tbl$x == 3, ]
+filter(foo_tbl, x == 3)     ## same as foo_tbl[which(foo_tbl$x == 3), ]
 ```
 
 
 ```{r dataframe dplyr select columns piped, results='hide'}
 foo_tbl %>% select(x)       ## same as foo_tbl[, "x", drop = FALSE]
 foo_tbl %>% slice(2)        ## same as foo_tbl[2, ]
-foo_tbl %>% filter(x == 3)  ## same as foo_tbl[foo_tbl$x == 3, ]
+foo_tbl %>% filter(x == 3)  ## same as foo_tbl[which(foo_tbl$x == 3), ]
 ```
 
 
@@ -465,7 +471,7 @@ For plotting the distribution of a quantitative variable (best if continuous) ag
 
 ```{r boxplot}
 ## Remove outlier identified in scatterplot to see boxplots better (for demonstration only)
-plot_data <- Davis[Davis$height > 100, ]
+plot_data <- Davis[which(Davis$height > 100), ]
 boxplot(height ~ sex, data = plot_data)
 ```
 
