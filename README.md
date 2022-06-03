@@ -40,7 +40,7 @@ get_vignettes() ## see folder cointaining vignettes as *.html files
 2. make sure the working directory is the one of the project (and make sure you have deleted the cache and the cached figured if you want all chunks to be rerun and not just the one you changed), then:
 
 ```{r, eval = FALSE}
-LM2GLMM:::.build_vignettes() ## use arg quiet = FALSE if there are issues
+LM2GLMM:::.build_vignettes()
 LM2GLMM:::.update_drat()
 ```
 

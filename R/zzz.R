@@ -19,7 +19,7 @@
 
 
 #' @export
-.build_vignettes <- function(quiet = TRUE) {
+.build_vignettes <- function(quiet = FALSE) {
   devtools::build_vignettes(pkg = ".", dependencies = "VignetteBuilder", clean = FALSE,
                             upgrade = "never", quiet = quiet, install = TRUE,
                             keep_md = TRUE)
