@@ -4,10 +4,8 @@
 ^readme\.Rmd$
 ^\.git$
 ^readme\.html$
-^vignettes/cache_knitr/*$
-^vignettes/fig_knitr/*$
+^vignettes$
 ^Rplot.pdf$
-^vignettes/future_vignettes/*$
 ^doc$
 ^Meta$
 ^Course_notes.*$
