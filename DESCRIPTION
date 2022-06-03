@@ -65,6 +65,5 @@ Suggests:
     emojifont,
     IsoriX,
     rmarkdown,
-    rcdd,
-    rgl
+    rcdd
 VignetteBuilder: knitr
