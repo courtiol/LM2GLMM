@@ -1,7 +1,7 @@
 Package: LM2GLMM
 Type: Package
 Title: Data science for biologists: Generalized linear modelling with R
-Version: 20220603.2
+Version: 20220607.1
 Author: Alexandre Courtiol [aut, cre], François Rousset [ctb], Liam Bailey [ctb]
 Maintainer: Alexandre Courtiol <courtiol@izw-berlin.de>
 Description: This package provides all required material for the course.
