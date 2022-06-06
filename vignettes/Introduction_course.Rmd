@@ -154,8 +154,8 @@ library(package = "LM2GLMM") ## !!! Always check the version with me because I w
 foo <- c(1, 5, 5, 10, 23, NA, NA)
 foo[2]
 foo > 3
-foo[foo > 3] #Will return NAs
-foo[which(foo > 3)] #Will not return NAs
+foo[foo > 3] ## return NAs
+foo[which(foo > 3)] ## does not return NAs
 ```
 
 ## Vectors: basics `r .emo("practice")`
@@ -415,12 +415,12 @@ hello <- function(who = "alex") paste("hello", who)
 replicate(10, hello())  ## returns a vector when it can
 ```
 
-```{r sapply}
-sapply(c("alex", "olivia"), function(i) hello(who = i)) ## returns a vector when it can
-```
-
 ```{r lapply}
 lapply(c("alex", "olivia"), function(i) hello(who = i)) ## returns a list
+```
+
+```{r sapply}
+sapply(c("alex", "olivia"), function(i) hello(who = i)) ## returns a (named) vector when it can
 ```
 
 ## Plots  `r .emo("info")`
@@ -447,7 +447,7 @@ Note: if one variable is expected to affect the other it should be on the x-axis
 
 ## Plots: the scatterplot `r .emo("practice")`
 
-For more advanced scatterplots, you may use the functionn `scatterplot()` from the package **{car}**:
+For more advanced scatterplots, you may use the function `scatterplot()` from the package **{car}**:
 
 ```{r scatterplot_advanced, message=FALSE}
 library(car)
