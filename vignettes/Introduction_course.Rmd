@@ -216,7 +216,6 @@ c(factor(c("a", "b")), factor(c("b", "c")))  ## R >= 4.1 can coerce factors with
 as.character(foo)                            ## you can turn factors into characters
 ```
 
-
 ## Vectors: sequences `r .emo("practice")`
 
 ```{r seq}
@@ -238,6 +237,44 @@ set.seed(14353L)
 rnorm(5, mean = 2, sd = 0.1)
 ```
 
+## Logical operators `r .emo("practice")`
+
+Logical operators compare two objects and return TRUE or FALSE (or NA)
+
+```{r logical_operator}
+10 == 11 #Is equal to
+10 != 11 #Is not equal to
+10 < 11  #Less than
+10 <= 11 #Less than or equal to
+```
+
+## Logical operators `r .emo("practice")`
+
+```{r logical_operator_vct1}
+foo  <- c(1, 2, 3)
+foo <= 2 #Compare every item in vector to the same value
+```
+
+```{r logical_operator_vct2}
+foo2 <- c(0, 3, 2)
+foo < foo2 #Compare each set of numbers in the two vectors
+```
+
+```{r logical_operator_vct2}
+foo > 0 & foo < 3 #Combine multiple operators 
+```
+
+## Logical operators `r .emo("practice")`
+
+```{r logical_as_numeric}
+as.numeric(c(TRUE, FALSE)) #TRUE = 1, FALSE = 0
+```
+
+```{r}
+foo3 <- c("a", "b", "a", "a")
+sum(foo3 == "a") #Number of items that equal a
+mean(foo3 == "b") #Proportion of items that equal b
+```
 
 ## Attributes `r .emo("practice")`
 
@@ -248,7 +285,6 @@ attr(foo, "names")  ## Tip: here a shortcut would be 'names(foo)', but this is n
 foo <-  factor(c("a", "b", "c"))
 attributes(foo)
 ```
-
 
 ## Dataframes: basics `r .emo("practice")`
 
