@@ -369,7 +369,7 @@ solve(foo)  ## inverse of foo
 ## Matrices: multiplication `r .emo("practice")`
 
 ```{r matrix multiplication}
-foo %*% matrix(c(-1, 1)) ## = [1 * -1 + 2 * -1][3 * -1 + 4 * 1]
+foo %*% matrix(c(-1, 1)) ## = [1 * -1 + 3 * 1][2 * -1 + 4 * 1]
 foo %*% solve(foo)       ## a matrix times its inverse equals the identity matrix
 foo * solve(foo)         ## NOT MATRIX MULTIPLICATION! (element by element multiplication)
 ```
