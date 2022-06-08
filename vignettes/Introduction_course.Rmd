@@ -166,6 +166,10 @@ foo2["b"]
 foo2[c("b", "a")]
 ```
 
+```{r negative_index}
+foo2[-3] #Remove one item from the vector
+```
+
 ## Vectors: some useful functions `r .emo("practice")`
 
 ```{r vectors function}
@@ -211,7 +215,6 @@ c(factor(c("a", "b")), factor(c("b", "c")))  ## R >= 4.1 can coerce factors with
 as.character(foo)                            ## you can turn factors into characters
 ```
 
-
 ## Vectors: sequences `r .emo("practice")`
 
 ```{r seq}
@@ -233,7 +236,47 @@ set.seed(14353L)
 rnorm(5, mean = 2, sd = 0.1)
 ```
 
+## Logical operators `r .emo("practice")`
 
+Return TRUE or FALSE (or NA)
+<div  class="columns-2">
+```{r logical_operator, eval = FALSE}
+x == y #Is equal to
+x != y #Is not equal to
+x < y  #Less than
+x <= y #Less than or equal to
+x > y  #Greater than
+x >= y #Greater than or equal to
+```
+
+```{r logical_operator_vct1}
+#Compare every item in vector to the same object
+foo  <- c(1, 2, 3, NA)
+foo <= 2 
+```
+</div>
+<div  class="columns-2">
+```{r logical_operator_vct2}
+#Compare each set of items in the two vectors
+foo2 <- c(0, 3, 2, NA)
+foo < foo2 
+```
+
+```{r logical_operator_vct3}
+#Combine multiple operators 
+foo > 0 & foo < 3
+```
+</div>
+<div  class="columns-2">
+```{r logical_as_numeric}
+as.numeric(c(TRUE, FALSE)) #TRUE = 1, FALSE = 0
+```
+
+```{r}
+foo3 <- c("a", "b", "a", "a")
+sum(foo3 == "a") #Number of items that equal a
+```
+</div>
 ## Attributes `r .emo("practice")`
 
 ```{r attributes}
@@ -243,7 +286,6 @@ attr(foo, "names")  ## Tip: here a shortcut would be 'names(foo)', but this is n
 foo <-  factor(c("a", "b", "c"))
 attributes(foo)
 ```
-
 
 ## Dataframes: basics `r .emo("practice")`
 
@@ -369,7 +411,7 @@ solve(foo)  ## inverse of foo
 ## Matrices: multiplication `r .emo("practice")`
 
 ```{r matrix multiplication}
-foo %*% matrix(c(-1, 1)) ## = [1 * -1 + 2 * -1][3 * -1 + 4 * 1]
+foo %*% matrix(c(-1, 1)) ## = [1 * -1 + 3 * 1][2 * -1 + 4 * 1]
 foo %*% solve(foo)       ## a matrix times its inverse equals the identity matrix
 foo * solve(foo)         ## NOT MATRIX MULTIPLICATION! (element by element multiplication)
 ```
