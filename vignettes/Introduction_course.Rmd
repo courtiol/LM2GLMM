@@ -168,7 +168,6 @@ foo2[c("b", "a")]
 
 ```{r negative_index}
 foo2[-3] #Remove one item from the vector
-foo2[c(-3, -1)] #Remove multiple items
 ```
 
 ## Vectors: some useful functions `r .emo("practice")`
