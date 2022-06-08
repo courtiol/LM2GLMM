@@ -154,8 +154,8 @@ library(package = "LM2GLMM") ## !!! Always check the version with me because I w
 foo <- c(1, 5, 5, 10, 23, NA, NA)
 foo[2]
 foo > 3
-foo[foo > 3] ## return NAs
-foo[which(foo > 3)] ## does not return NAs
+which(foo > 3) ## returns indexes
+foo[which(foo > 3)] ## foo[foo > 3] would return the same + NAs
 ```
 
 ## Vectors: basics `r .emo("practice")`
@@ -167,7 +167,7 @@ foo2[c("b", "a")]
 ```
 
 ```{r negative_index}
-foo2[-3] #Remove one item from the vector
+foo2[-3] ## remove one item from the vector (same result as foo2[names(foo2) != "c"])
 ```
 
 ## Vectors: some useful functions `r .emo("practice")`
@@ -241,40 +241,40 @@ rnorm(5, mean = 2, sd = 0.1)
 Return TRUE or FALSE (or NA)
 <div  class="columns-2">
 ```{r logical_operator, eval = FALSE}
-x == y #Is equal to
-x != y #Is not equal to
-x < y  #Less than
-x <= y #Less than or equal to
-x > y  #Greater than
-x >= y #Greater than or equal to
+x == y ## is equal to
+x != y ## is not equal to
+x < y  ## less than
+x <= y ## less than or equal to
+x > y  ## greater than
+x >= y ## greater than or equal to
 ```
 
 ```{r logical_operator_vct1}
-#Compare every item in vector to the same object
+## compare every item in vector to the same object
 foo  <- c(1, 2, 3, NA)
 foo <= 2 
 ```
 </div>
 <div  class="columns-2">
 ```{r logical_operator_vct2}
-#Compare each set of items in the two vectors
+## compare each set of items in the two vectors
 foo2 <- c(0, 3, 2, NA)
 foo < foo2 
 ```
 
 ```{r logical_operator_vct3}
-#Combine multiple operators 
+## combine multiple operators 
 foo > 0 & foo < 3
 ```
 </div>
 <div  class="columns-2">
 ```{r logical_as_numeric}
-as.numeric(c(TRUE, FALSE)) #TRUE = 1, FALSE = 0
+as.numeric(c(TRUE, FALSE)) ## TRUE = 1, FALSE = 0
 ```
 
 ```{r}
 foo3 <- c("a", "b", "a", "a")
-sum(foo3 == "a") #Number of items that equal a
+sum(foo3 == "a") ## number of items that equal a
 ```
 </div>
 ## Attributes `r .emo("practice")`
