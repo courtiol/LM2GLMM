@@ -239,33 +239,36 @@ rnorm(5, mean = 2, sd = 0.1)
 
 ## Logical operators `r .emo("practice")`
 
-Logical operators compare two objects and return TRUE or FALSE (or NA)
-
-```{r logical_operator}
-10 == 11 #Is equal to
-10 != 11 #Is not equal to
-10 < 11  #Less than
-10 <= 11 #Less than or equal to
+Return TRUE or FALSE (or NA)
+<div  class="columns-2">
+```{r logical_operator, eval = FALSE}
+x == y #Is equal to
+x != y #Is not equal to
+x < y  #Less than
+x <= y #Less than or equal to
+x > y  #Greater than
+x >= y #Greater than or equal to
 ```
-
-## Logical operators `r .emo("practice")`
 
 ```{r logical_operator_vct1}
-foo  <- c(1, 2, 3)
-foo <= 2 #Compare every item in vector to the same value
+#Compare every item in vector to the same object
+foo  <- c(1, 2, 3, NA)
+foo <= 2 
 ```
-
+</div>
+<div  class="columns-2">
 ```{r logical_operator_vct2}
-foo2 <- c(0, 3, 2)
-foo < foo2 #Compare each set of numbers in the two vectors
+#Compare each set of items in the two vectors
+foo2 <- c(0, 3, 2, NA)
+foo < foo2 
 ```
 
-```{r logical_operator_vct2}
-foo > 0 & foo < 3 #Combine multiple operators 
+```{r logical_operator_vct3}
+#Combine multiple operators 
+foo > 0 & foo < 3
 ```
-
-## Logical operators `r .emo("practice")`
-
+</div>
+<div  class="columns-2">
 ```{r logical_as_numeric}
 as.numeric(c(TRUE, FALSE)) #TRUE = 1, FALSE = 0
 ```
@@ -273,9 +276,8 @@ as.numeric(c(TRUE, FALSE)) #TRUE = 1, FALSE = 0
 ```{r}
 foo3 <- c("a", "b", "a", "a")
 sum(foo3 == "a") #Number of items that equal a
-mean(foo3 == "b") #Proportion of items that equal b
 ```
-
+</div>
 ## Attributes `r .emo("practice")`
 
 ```{r attributes}
