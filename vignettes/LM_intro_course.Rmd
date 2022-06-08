@@ -420,7 +420,7 @@ label_data <- data.frame(label = c("Observed value",
                                    "Mean response\nvalue"),
                          x = 3.5, xend = 3.05,
                          y = c(59.5, 56.5, 52.5),
-                         yend = c(Alien[nrow(Alien), "size"]+0.2,
+                         yend = c(Alien[nrow(Alien), "size"] + 0.2,
                                   Alien[nrow(Alien), "size_fitted"],
                                   Alien[nrow(Alien), "size_mean"]),
                          curvature = c(0.15, -0.15, -0.3))
@@ -620,13 +620,12 @@ set.seed(123)
 Alien2 <- data.frame(planet = factor(c(rep("Chambr", 2), rep("Riplyx", 2), rep("Wickor", 2))),
                      sex = factor(rep(c("Z", "ZZ"), times = 3)),
                      bh_trips = 6:1)
-Alien2$age <- rep(0, nrow(Alien2))
+Alien2$age <- 0.5*Alien2$bh_trips
 Alien2$age[Alien2$planet == "Chambr"] <- Alien2$age[Alien2$planet == "Chambr"] + 100 
 Alien2$age[Alien2$planet == "Riplyx"] <- Alien2$age[Alien2$planet == "Riplyx"] + 1000
 Alien2$age[Alien2$planet == "Wickor"] <- Alien2$age[Alien2$planet == "Wickor"] + 10000
 Alien2$age[Alien2$sex == "Z"] <- Alien2$age[Alien2$sex == "Z"] + -20
 Alien2$age[Alien2$sex == "ZZ"] <- Alien2$age[Alien2$sex == "ZZ"] + 20
-Alien2$age <- Alien2$age + 0.5*Alien2$bh_trips
 Alien2$age <- Alien2$age + rnorm(nrow(Alien2), mean = 0, sd = 4)
 Alien2
 ```
@@ -648,7 +647,7 @@ It is the easiest one to interpret and the one used by default in R (but not in 
 ## Interpreting the treatment contrasts `r .emo("info")`
 
 ```{r treatment contrast}
-model.matrix(object =  ~ planet, data = Alien2)
+model.matrix(object = ~ planet, data = Alien2)
 ```
 
 * The intercept represents the mean response value for the baseline (here, reference level = ```"Chambr"```).
@@ -658,17 +657,24 @@ model.matrix(object =  ~ planet, data = Alien2)
 Note: in base R the default level of reference is always the first level of a factor. Which level comes first can be changed, but by default it is the first level when ranked by alphabetical order given the locale (mind that `forcats::as_factor()` behave differently than `as.factor()`; the forcats function follows order in which levels appear).
 
 
-## A design matrix with a factor `r .emo("info")`
+## A design matrix with a factor `r .emo("practice")`
 
 ```{r factor 2}
 (fit_alien_lm2 <- lm(age ~ planet, data = Alien2))
 ```
 
+Can you reproduce the `fitted` values in the following table?
 
-## There are alternative contrasts parametrizations! `r .emo("warn")`
+```{r factor 3}
+D <- model.matrix(object = ~ planet, data = Alien2) ## same as D <- model.matrix(fit_alien_lm2)
+cbind(D, data.frame(fitted = D %*% coef(fit_alien_lm2))) ## same as fitted = fitted.values(fit_alien_lm2)
+```
+
+
+## There are alternative parametrizations! `r .emo("warn")`
 
 ```{r sum contrast 1}
-model.matrix(object =  ~ planet, data = Alien2, contrasts.arg = list(planet = "contr.sum"))
+model.matrix(object = ~ planet, data = Alien2, contrasts.arg = list(planet = "contr.sum"))
 ```
 
 Alternative parametrizations of the contrasts can ease convergence in GLM(M) (for continuous variable) and can allow for testing specific hypotheses or fit particular experimental design (for qualitative variables). 
@@ -691,7 +697,7 @@ You can use the same idea to show that the first coefficient corresponds to the 
 ## The example of "sum contrasts" `r .emo("nerd")`
 
 ```{r contr.sum 1}
-model.matrix(object =  ~ planet, data = Alien2, contrasts.arg = list(planet = "contr.sum"))
+model.matrix(object = ~ planet, data = Alien2, contrasts.arg = list(planet = "contr.sum"))
 ```
 
 $$
@@ -704,7 +710,7 @@ $$
 ## The example of "sum contrasts" `r .emo("nerd")`
 
 ```{r contr.sum 2}
-model.matrix(object =  ~ planet, data = Alien2, contrasts.arg = list(planet = "contr.sum"))
+model.matrix(object = ~ planet, data = Alien2, contrasts.arg = list(planet = "contr.sum"))
 ```
 
 $$
@@ -718,7 +724,7 @@ $$
 ## The example of "sum contrasts" `r .emo("nerd")`
 
 ```{r contr.sum 3}
-model.matrix(object =  ~ planet, data = Alien2, contrasts.arg = list(planet = "contr.sum"))
+model.matrix(object = ~ planet, data = Alien2, contrasts.arg = list(planet = "contr.sum"))
 ```
 
 $$
@@ -732,7 +738,7 @@ $$
 Note: not much used by R users (because not the default) but useful when there is no clear control.
 
 
-## Example of estimates under different contrasts `r .emo("nerd")`
+## Example of estimates across contrasts `r .emo("nerd")`
 
 ```{r sum contrast panoply}
 lm(age ~ planet, data = Alien2, contrasts = list(planet = "contr.treatment"))
@@ -1007,10 +1013,6 @@ Nothing is incorrect, the different predictions simply represent answers to diff
 Note: it could be difficult to identify what packages computing (or plotting) automatically predictions actually do.
 
 
-##
-<center> <img src="./Extrapolation.png" alt="xkcd" style="width: 300x;"/> </center>
-
-
 ## Predicting future observations `r .emo("info")`
 
 Sometimes we do not want to predict the mean response (i.e. the average response value for a group of observations) but single future observations.
@@ -1024,6 +1026,9 @@ Example:  prediction for the size of 3 aliens having eaten 1.5 humans:
 set.seed(123)
 rnorm(n = 3, mean = pred_mean_response, sd = summary(fit_alien_lm)$sigma)
 ```
+
+##
+<center> <img src="./Extrapolation.png" alt="xkcd" style="width: 300x;"/> </center>
 
 
 # Summary
