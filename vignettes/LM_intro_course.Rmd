@@ -643,20 +643,6 @@ This parametrization of factors such as `planet` follows the so-called matrix of
 
 It is the easiest one to interpret and the one used by default in R (but not in all software).
 
-
-## Interpreting the treatment contrasts `r .emo("info")`
-
-```{r treatment contrast}
-model.matrix(object = ~ planet, data = Alien2)
-```
-
-* The intercept represents the mean response value for the baseline (here, reference level = ```"Chambr"```).
-* ```planetRiplyx``` represents the mean response value for ```"Riplyx"``` minus the mean of the baseline.
-* ```planetWickor``` represents the mean response value for ```"Wickor"``` minus the mean of the baseline.
-
-Note: in base R the default level of reference is always the first level of a factor. Which level comes first can be changed, but by default it is the first level when ranked by alphabetical order given the locale (mind that `forcats::as_factor()` behave differently than `as.factor()`; the forcats function follows order in which levels appear).
-
-
 ## A design matrix with a factor `r .emo("practice")`
 
 ```{r factor 2}
@@ -670,6 +656,17 @@ D <- model.matrix(object = ~ planet, data = Alien2) ## same as D <- model.matrix
 cbind(D, data.frame(fitted = D %*% coef(fit_alien_lm2))) ## same as fitted = fitted.values(fit_alien_lm2)
 ```
 
+## Interpreting the treatment contrasts `r .emo("info")`
+
+```{r treatment contrast}
+model.matrix(object = ~ planet, data = Alien2)
+```
+
+* The intercept represents the mean response value for the baseline (here, reference level = ```"Chambr"```).
+* ```planetRiplyx``` represents the mean response value for ```"Riplyx"``` minus the mean of the baseline.
+* ```planetWickor``` represents the mean response value for ```"Wickor"``` minus the mean of the baseline.
+
+Note: in base R the default level of reference is always the first level of a factor. Which level comes first can be changed, but by default it is the first level when ranked by alphabetical order given the locale (mind that `forcats::as_factor()` behave differently than `as.factor()`; the forcats function follows order in which levels appear).
 
 ## There are alternative parametrizations! `r .emo("warn")`
 
