@@ -791,12 +791,16 @@ It produces a symmetric diagonal matrix. Those are particularly maths friendly.
 -->
 
 ## A design matrix with > 1 factors `r .emo("practice")`
-
 ```{r factorial}
 model.matrix(object = ~ planet + sex, data = Alien2)
 ```
 Now the intercept corresponds to observations that have the first level for all factors.
 
+## A design matrix with > 1 factors `r .emo("practice")`
+
+```{r factorial coef}
+lm(age ~ planet + sex, data = Alien2)
+```
 
 ## A design matrix with interactions `r .emo("practice")`
 
