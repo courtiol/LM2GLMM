@@ -668,6 +668,25 @@ model.matrix(object = ~ planet, data = Alien2)
 
 Note: in base R the default level of reference is always the first level of a factor. Which level comes first can be changed, but by default it is the first level when ranked by alphabetical order given the locale (mind that `forcats::as_factor()` behave differently than `as.factor()`; the forcats function follows order in which levels appear).
 
+## Interpreting the treatment contrasts `r .emo("info")`
+
+```{r refactor 1}
+Alien2$planet <- factor(Alien2$planet, levels = c("Riplyx", "Chambr", "Wickor")) #Change reference to 'Riplyx'
+(fit_alien_lm_revel <- lm(age ~ planet, data = Alien2)) #Different regression coefficients
+```
+
+Regression coefficients are different, but fitted values are unchanged!
+
+```{r refactor 2}
+D <- model.matrix(object = ~ planet, data = Alien2)
+cbind(D, data.frame(fitted = D %*% coef(fit_alien_lm2)))
+```
+
+```{r, echo = FALSE}
+#Relevel to make sure following code still works
+Alien2$planet <- factor(Alien2$planet, levels = c("Chambr", "Riplyx", "Wickor"))
+```
+
 ## There are alternative parametrizations! `r .emo("warn")`
 
 ```{r sum contrast 1}
