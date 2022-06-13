@@ -92,7 +92,7 @@ fit_lm_UK1 <- lm(height ~ drink + sex*weight, data = UK)
 fit_lm_UK1
 ```
 
-## RECAP: Interpreting regression coefficients `r .emo("info")`
+## RECAP: Interpreting regression coefficients `r .emo("recap")`
 
 ```{r Britons fit lm2, echo = FALSE}
 fit_lm_UK1
@@ -102,7 +102,7 @@ fit_lm_UK1
 
 How do you interpret each parameter estimate?
 
-## RECAP: Interpreting regression coefficients `r .emo("info")`
+## RECAP: Interpreting regression coefficients `r .emo("recap")`
 
 ```{r interaction_plot, echo = FALSE, fig.width = 5}
 #Plot interaction effect of sex:weight at reference level of drink
