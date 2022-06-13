@@ -895,7 +895,7 @@ The variance of the error ($\sigma^2$) cannot be directly observed...
 
 ## The residuals `r .emo("practice")`
 
-```{r}
+```{r fig.height=5, fig.width=10, echo = FALSE}
 mod_intercept <- coef(fit_alien_lm)[["(Intercept)"]]
 mod_slope     <- coef(fit_alien_lm)[["humans_eaten"]]
 
