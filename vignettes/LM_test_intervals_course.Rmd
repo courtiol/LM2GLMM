@@ -92,12 +92,6 @@ fit_lm_UK1 <- lm(height ~ drink + sex*weight, data = UK)
 fit_lm_UK1
 ```
 
-## RECAP: Interpreting regression coefficients `r .emo("recap")`
-
-```{r Britons fit lm2, echo = FALSE}
-fit_lm_UK1
-```
-
 <br>
 
 How do you interpret each parameter estimate?
