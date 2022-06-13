@@ -92,6 +92,47 @@ fit_lm_UK1 <- lm(height ~ drink + sex*weight, data = UK)
 fit_lm_UK1
 ```
 
+## RECAP: Interpreting regression coefficients `r .emo("info")`
+
+```{r Britons fit lm2, echo = FALSE}
+fit_lm_UK1
+```
+
+<br>
+
+How do you interpret each parameter estimate?
+
+## RECAP: Interpreting regression coefficients `r .emo("info")`
+
+```{r interaction_plot, echo = FALSE, fig.width = 5}
+#Plot interaction effect of sex:weight at reference level of drink
+plot_data <- expand.grid(drink = c("2 to 3 times a week"),
+                         sex = c("Girl", "Boy"),
+                         weight = c(0, 50))
+plot_data$height <- predict(fit_lm_UK1, newdata = plot_data)
+library(ggplot2)
+ggplot(plot_data) +
+  geom_line(aes(x  = weight, y = height, colour = sex), size = 1) +
+  geom_text(data = plot_data[plot_data$weight == 50, ],
+            aes(x = weight - 4, y = height * c(0.95, 1.01), colour = sex, label = c("\U2640", "\U2642")),
+            size = 10) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(limits = c(110, 160),
+                     breaks = c(fit_lm_UK1$coefficients["(Intercept)"],
+                                fit_lm_UK1$coefficients["(Intercept)"] + fit_lm_UK1$coefficients["sexGirl"],
+                                120, 130, 140, 150, 160),
+                     labels = c(format(as.numeric(fit_lm_UK1$coefficients["(Intercept)"]), digits = 5),
+                                format(as.numeric(fit_lm_UK1$coefficients["(Intercept)"] + fit_lm_UK1$coefficients["sexGirl"]), digits = 5),
+                                "120", "130", "140", "150", "160")) +
+  scale_colour_manual(values = c("#41658A", "#70A37F")) +
+  labs(x = "Weight (kg)",
+       y = "Height (cm)",
+       title = "Relationship between weight and height for\nthe reference level of 'drink'") +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text = element_text(colour = "black"),
+        axis.ticks = element_line(colour = "black"))
+```
 
 ## Britons fitted with `spaMM::fitme()` `r .emo("alien")`
 
