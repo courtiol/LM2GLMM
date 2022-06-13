@@ -682,7 +682,7 @@ D <- model.matrix(object = ~ planet, data = Alien2)
 cbind(D, data.frame(fitted = D %*% coef(fit_alien_lm2)))
 ```
 
-```{r, echo = FALSE}
+```{r, include = FALSE}
 #Relevel to make sure following code still works
 Alien2$planet <- factor(Alien2$planet, levels = c("Chambr", "Riplyx", "Wickor"))
 ```
