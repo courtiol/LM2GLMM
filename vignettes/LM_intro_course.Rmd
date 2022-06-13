@@ -924,8 +924,6 @@ label_data <- data.frame(label = c("Observed value",
 #Palette
 my_palette <- c("#3a405a", "#f06543", "#ddd92a", "#7371fc", "#20BF55")
 
-
-library(ggplot2)
 ggplot(data = Alien) +
   ### ADD POINTS SHOWING OBSERVED VALUES
   geom_point(aes(x = humans_eaten, y = size, colour = "Observed value"),
