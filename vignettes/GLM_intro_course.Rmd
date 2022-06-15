@@ -16,7 +16,7 @@ editor_options:
 ```{r setup, include=FALSE}
 library(LM2GLMM)
 library(doSNOW) ## for load balancing in spaMM
-options(width = 120)
+options(width = 110)
 knitr::opts_chunk$set(cache = FALSE, cache.path = "./cache_knitr/GLM_intro/", fig.path = "./fig_knitr/GLM_intro/", fig.width = 5, fig.height = 5, fig.align = "center", error = TRUE)
 spaMM::spaMM.options(nb_cores = parallel::detectCores() - 1L)
 ```
@@ -832,14 +832,14 @@ Note: you cannot use AIC in this case since the responses differ!
 
 # Interpreting regression coefficients
 
-## Estimates with the Gaussian family
+## Estimates with the Gaussian family `r .emo("recap")`
 
 <br>
 
 <center> Same as LM (when link = identity)! </center>
 
 
-## Estimates with the Poisson family with log link
+## Estimates with the Poisson family with log link `r .emo("info")`
 
 ### Predictions for $\eta$ and $\mu$ differ!
 
@@ -852,7 +852,7 @@ coef(fit_poiss)[1] + 10 * coef(fit_poiss)[2]
 Because we used the link function ```log```, this is a log number of eggs!
 
 
-## Estimates with the Poisson family with log link
+## Estimates with the Poisson family with log link `r .emo("info")`
 
 ### Predictions for $\eta$ and $\mu$ differ!
 
@@ -865,7 +865,7 @@ exp(coef(fit_poiss)[1] + 10 * coef(fit_poiss)[2])
 This is the average number of eggs predicted for aliens eating 10 humans.
 
 
-## Estimates with the Poisson family with log link
+## Estimates with the Poisson family with log link `r .emo("info")`
 
 The model parameters are linear for $\eta$, not $\mu$!
 
@@ -873,15 +873,31 @@ Ex: what happens when different aliens eat one additional human?
 
 ```{r}
 (p.eta <- predict(fit_poiss, newdata = data.frame(humans_eaten = 1:5)))
-(p.mu <- predict(fit_poiss, newdata = data.frame(humans_eaten = 1:5), type = "response"))
+diff(p.eta)
 ```
 
 <br>
 
-The effect is no longer constant!
+Note: the effect is constant at the scale of the linear predictor.
 
 
-## Estimates with the Poisson family with log link
+## Estimates with the Poisson family with log link `r .emo("info")`
+
+The model parameters are linear for $\eta$, not $\mu$!
+
+Ex: what happens when different aliens eat one additional human?
+
+```{r}
+(p.mu <- predict(fit_poiss, newdata = data.frame(humans_eaten = 1:5), type = "response"))
+diff(p.mu)
+```
+
+<br>
+
+Note: the effect is NOT constant at the scale of the response.
+
+
+## Estimates with the Poisson family with log link `r .emo("practice")`
 
 Ratios are the way out:
 
@@ -890,24 +906,24 @@ p.mu[-1] / p.mu[-5]
 exp(coef(fit_poiss)[2])
 ```
 
-Eating one additional human increases the average number of eggs produced by aliens by ```r exp(fit_poiss$coefficients[2])``` times or ```r 100*exp(fit_poiss$coefficients[2])-100```%.
+Eating one additional human increases the average number of eggs produced by aliens by ```r exp(fit_poiss$coefficients[2])``` times, which is equivalent to ```r 100*exp(fit_poiss$coefficients[2])-100```%.
 
-Note: if you change the link function, the receipe will be different!
+Note: if you change the link function, the recipe will be different!
 
 
-## Estimates and the Binomial with logit link
+## Estimates and the Binomial with logit link `r .emo("info")`
 
 ```{r}
-(p.eta <- predict(fit_binom, newdata = data.frame(humans_eaten = 1:5)))
 (p.mu <- predict(fit_binom, newdata = data.frame(humans_eaten = 1:5), type = "response"))
+diff(p.mu)
 ```
 
 <br>
 
-The effect is also not constant...
+Note: the effect is also not constant at the scale of the response!
 
 
-## Estimates and the Binomial with logit link
+## Estimates and the Binomial with logit link `r .emo("practice")`
 
 Odds ratios are the way out:
 
@@ -929,7 +945,7 @@ exp(coef(fit_binom)[2])
 Eating one additional human increases the **odd** of aliens having blue eyes by ```r round(exp(fit_binom$coefficients[2]), 2)``` times.
 
 
-## Estimates and the Binomial with logit link
+## Estimates and the Binomial with logit link `r .emo("practice")`
 
 What happens when different aliens eat 10 additional humans?
 
@@ -949,8 +965,11 @@ exp(fit_binom$coefficients[2] * 10)
 
 <br>
 
-Note: as odds-ratios are ratios, a value of 0.1 means a 10 (=1/0.1) fold reduction in odds ratios.
+Note: as odds-ratios are ratios, a value of 0.1 means a 10 (=1/0.1) fold reduction in odds.
 
+# Predictions
+
+## TODO
 
 # Testing regression coefficients
 
@@ -1036,23 +1055,23 @@ phi*solve(XTWX)
 -->
 
 
-## Summary: gaussian
+## Summary: gaussian `r .emo("info")`
 
 ```{r summary gauss2}
 summary(fit_gauss)
 ```
 
 
-## Summary: gaussian
+## Summary: gaussian `r .emo("recap")`
 
 ### Just like LM!
 ```{r  summary lm2 gauss2}
 summary(fit_gauss)$coefficients
-summary(fit_gauss_lm)$coef
+summary(fit_gauss_lm)$coefficients
 ```
 
 
-## Summary: other families
+## Summary: other families `r .emo("practice")`
 
 Example: Poisson
 
@@ -1063,12 +1082,14 @@ pvalues <- 2 * pnorm(abs(z), lower.tail = FALSE)
 cbind(z, pvalues)
 ```
 
-<br>
+```{r summary poiss spaMM, eval=FALSE}
+summary(fit_poiss_spaMM_ML, details = c(p_value = "Wald"), verbose = FALSE)$beta_table ## same with spaMM
+```
 
-When the dispersion parameter is not estimated, `summary` uses $z$, not $t$. Yet, these tests are not very reliable and it is better to rely on CI build using likelihood profiling or paramettric bootstrap.
+Note: when the dispersion parameter is not estimated, `summary` uses $z$, not $t$. Yet, these so-called "Wald tests" are not very reliable and it is better to rely on CI build using likelihood profiling or parametric bootstrap.
 
 
-## Distribution of parameter estimates
+## Distribution of parameter estimates `r .emo("info")`
 
 The parameter estimates are asymptotically normally distributed as in LM, but for non-Gaussian families small sample sizes deviate strongly from the asymptotic case. Example with large N:
 
@@ -1089,7 +1110,7 @@ qqline(new_betas[, 2], col = "red", lwd = 2)
 </div>
 
 
-## Distribution of parameter estimates
+## Distribution of parameter estimates `r .emo("warn")`
 
 The parameter estimates are asymptotically normally distributed as in LM, but for non-Gaussian families small sample sizes deviate strongly from the asymptotic case. Example with small N:
 
@@ -1109,8 +1130,10 @@ qqline(new_betas[, 2], col = "red", lwd = 2)
 ```
 </div>
 
+Note: this is why the so-called Wald tests shown earlier are not great...
 
-## Anova: gaussian
+
+## Anova: gaussian `r .emo("info")`
 
 For `gaussian()` (and `quasiXXX()`) the F-test is the one you should use (as we have seen it with LM):
 
@@ -1133,7 +1156,7 @@ Note: the computation will differ between methods when dispersion is not equals 
 -->
 
 
-## Anova: Poisson and Binomial
+## Anova: Poisson and Binomial `r .emo("info")` `r .emo("proof")`
 
 What about a F-test?
 
@@ -1151,13 +1174,13 @@ rbind(mean(pv["F", ] <= 0.05),
       mean(pv["LR", ] <= 0.05))
 ```
 
-The F-test performs very badly here, but the LRT is better.
+Note: the F-test performs very badly here, but the LRT is better.
 
 
-## Anova by LRT:
+## Anova by LRT `r .emo("practice")`
 
 ```{r Anova Poiss}
-anova(fit_poiss, update(fit_poiss, . ~ 1), test = "LRT")
+anova(update(fit_poiss, . ~ 1), fit_poiss, test = "LRT")
 car::Anova(fit_poiss, test = "LR")
 LR <- -2 * (logLik(update(fit_poiss, . ~ 1)) - logLik(fit_poiss))
 pvalue <- pchisq(LR, df = 1, lower.tail = FALSE)
@@ -1165,7 +1188,9 @@ cbind(LR, pvalue)  ## the same
 ```
 
 
-## Anova: parametric bootstrap (with **{spaMM}**)
+## Anova: LRT by parametric bootstrap `r .emo("practice")`
+
+You can compare model fits this way using **{spaMM}**:
 
 ```{r lrt boot 2, results='hide', cache=TRUE}
 fit_poiss_spaMM0 <- update(fit_poiss_spaMM_ML, . ~ 1)
@@ -1175,7 +1200,21 @@ res <- anova(fit_poiss_spaMM_ML, fit_poiss_spaMM0, boot.repl = 1000)
 res 
 ```
 
-## Anova: parametric bootstrap (with **{spaMM}**)
+## Anova: LRT by parametric bootstrap `r .emo("practice")`
+
+You can also compare model fits this way using **{pbkrtest}** for `stats::glm()` fits:
+
+```{r lrt boot pbkrtest, cache=TRUE}
+fit_poiss_0 <- update(fit_poiss, . ~ 1)
+res <- pbkrtest::PBmodcomp(fit_poiss, fit_poiss_0, nsim = 1000, seed = 123)
+```
+```{r lrt boot pbkrtest show}
+res 
+```
+
+## Anova: LRT by parametric bootstrap `r .emo("nerd")`
+
+Let us compare the 2 versions of the LRT using parametric bootstrap `r .emo("slow")` `r .emo("slow")` `r .emo("slow")`
 
 ```{r test by boot, warning = FALSE, results='hide', cache=TRUE}
 set.seed(1L)
@@ -1194,8 +1233,12 @@ pv_boot <- replicate(1000, {
 rbind(mean(pv_boot["Bart", ] <= 0.05), mean(pv_boot["raw", ] <= 0.05))
 ```
 
+Note: applying the Bartlett correction is not as accurate (but it should become best if `boot.repl` is small).
 
-## Comparing test types using **{spaMM}**
+
+## Comparing the four possible test `r .emo("info")`
+
+Let us compare the performances of all 4 tests (a perfect test would follow the dashed red line)
 
 ```{r ecfd spaMM 1, echo = FALSE, fig.width = 7, fig.height = 5}
 par(las = 1)
@@ -1208,7 +1251,9 @@ abline(0, 1, col = "red", lty = 2, lwd = 2)
 ```
 
 
-## Comparing test types using **{spaMM}**
+## Comparing the four possible test `r .emo("info")`
+
+Let us compare the performances of all 4 tests (a perfect test would follow the dashed red line)
 
 ```{r ecfd spaMM 2, echo = FALSE, fig.width = 7, fig.height = 5}
 par(las = 1)
@@ -1219,64 +1264,60 @@ plot(ecdf(pv_boot["raw", ]), col = "purple", add = TRUE, cex = 0.5)
 legend("topleft", fill = c("blue", "green", "orange", "purple"), legend = c("F", "LR", "Param boot Bartlett", "Param boot raw"), bty = "n")
 abline(0, 1, col = "red", lty = 2, lwd = 2)
 ```
-
+Note: here the F-test and asymptotic LRT are **anticonservative** `r .emo("warn")`
 
 # Confidence intervals of parameter estimates
 
-## Which methods should you use to compute CI?
+## Which methods for computing CIs? `r .emo("practice")`
 
-For the gaussian family, do as in LM! (Use the quantiles from the Student's distribution or `confint()`).
+For the Gaussian family, do as in LM! (Use the quantiles from the Student's distribution or `confint()`).
 
-For families with non-estimated variances (e.g. binomial, poisson...), CI based on the gaussian or the Student's t distributions do not work well and instead you should build CI by likelihood profiling or parametric bootstrap.
+For families with non-estimated variances (e.g. binomial, poisson...), CI based on the Gaussian or the Student's t distributions do not work well and instead you should build CI by likelihood profiling or parametric bootstrap.
 
-If **{MASS}** is installed calling `confint()` on a model fitted with `stats::glm()` direcly does build CI by likelihood profiling:
+If **{MASS}** is installed, calling `confint()` on a model fitted with `stats::glm()` directly does build CI by likelihood profiling:
 
 ```{r profiling}
 confint(fit_poiss)
 ```
 
 
-## Which methods should you use to compute CI?
+## Which methods for computing CIs? `r .emo("practice")`
 
-For the gaussian family, do as in LM! (Use the quantiles from the Student's distribution or `confint()`).
+For the Gaussian family, do as in LM! (Use the quantiles from the Student's distribution or `confint()`).
 
-For families with non-estimated variances (e.g. binomial, poisson...), CI based on the gaussian or the Student's t distributions do not work well and instead you should build CI by likelihood profiling or parametric bootstrap.
+For families with non-estimated variances (e.g. binomial, poisson...), CI based on the Gaussian or the Student's t distributions do not work well and instead you should build CI by likelihood profiling or parametric bootstrap.
 
-For model fitted with `spaMM::fitme()`, calling `confint()` also perform likelihood profiling:
+For model fitted with `spaMM::fitme()`, calling `confint()` also performs likelihood profiling:
 
-```{r Lev bug}
-LevenbergM <- list() ## to avoid a bug in current spaMM... (fixed in devel)
-```
 ```{r profiling spaMM confint}
 confint(fit_poiss_spaMM_ML, parm = "(Intercept)")
 confint(fit_poiss_spaMM_ML, parm = "humans_eaten")
 ```
 
 
-## Which methods should you use to compute CI?
+## Which methods for computing CIs? `r .emo("practice")`
 
-For the gaussian family, do as in LM! (Use the quantiles from the Student's distribution or `confint()`).
+For the Gaussian family, do as in LM! (Use the quantiles from the Student's distribution or `confint()`).
 
-For families with non-estimated variances (e.g. binomial, poisson...), CI based on the gaussian or the Student's t distributions do not work well and instead you should build CI by likelihood profiling or parametric bootstrap.
+For families with non-estimated variances (e.g. binomial, poisson...), CI based on the Gaussian or the Student's t distributions do not work well and instead you should build CI by likelihood profiling or parametric bootstrap.
 
-For model fitted with `spaMM::fitme()`, calling `confint()` can also be used to compute CI using parametric boostrap if the argument `boot_args` is correctly set:
+For model fitted with `spaMM::fitme()`, calling `confint()` can also be used to compute CI using parametric bootstrap if the argument `boot_args` is correctly set:
 
 ```{r profiling spaMM confint boot, cache=TRUE, results='hide'}
-## on spaMM devel only...
 res_boot <- confint(fit_poiss_spaMM_ML, parm = "humans_eaten", boot_args = list(nsim = 1000))
 ```
 
 
-## Which methods should you use to compute CI?
+## Which methods for computing CIs? `r .emo("practice")`
 ```{r, profiling spaMM confint boot out}
 res_boot
 res_boot$normal  ## do not use the other types here!
 ```
 
 
-## Which methods should you use to compute CI?
+## Which methods for computing CIs? `r .emo("practice")`
 
-Which method is best depends on the particular circumstances, but you can test for yourself using simulations:
+Which method is best depends on the particular circumstances, but you can (as always) test for yourself using simulations `r .emo("slow")` `r .emo("slow")` `r .emo("slow")`
 ```{r test coverage confint, results='hide', cache=TRUE, warning=FALSE}
 set.seed(1L)
 N <- 20
@@ -1293,14 +1334,14 @@ coverage_small_list <- replicate(1000, {
 ```{r test coverage confint res}
 apply((do.call("rbind", coverage_small_list)), 2, mean, na.rm = TRUE)
 ```
-Note: it takes a very long time to run...
+Note: here the construction of CI by likelihood profiling behaves best.
 
 
 # Intervals for new observations
 
-## CI using Gaussian approximation
+## CI using Gaussian approximation `r .emo("practice")`
 
-There is no longer a direct method using `predict()` for models fitted with `stats::glm()`:
+There is no longer a direct method offered by `predict()` for models fitted with `stats::glm()`:
 ```{r conf fitted poiss}
 newdata <- data.frame(humans_eaten = 3:4)
 pred <- predict(fit_poiss, newdata = newdata, se.fit = TRUE)
@@ -1312,27 +1353,27 @@ cbind(lwr = poisson(link = "log")$linkinv(lwr_eta),
 Note: you cannot use `type = "response"` in `predict()` because transformations need to happen after CI are computed!
 
 
-## CI using Gaussian approximation
+## CI using Gaussian approximation `r .emo("practice")`
 
 It is much easier with **{spaMM}**:
 
 ```{r conf fitted poiss spaMM}
-get_intervals(fit_poiss_spaMM_ML, newdata = newdata, intervals = "fixefVar")  ## log to get eta!
+get_intervals(fit_poiss_spaMM_ML, newdata = newdata, intervals = "fixefVar")
 ```
 
 
 # Comparing non-nested models
 
-## Comparing different links or different families
+## Comparing different links or different families `r .emo("info")`
 
 Since the response variable does not change but models are not nested, you can use:
 
 * likelihood (larger = better)
 * AIC (smaller = better)
 
-For true test, the only method available is the parametric bootstrap!
+For actual testing, the only method available is the parametric bootstrap!
 
-Note: using the deviance is not recommended because some family return a scaled deviance while other do not...
+Note: using the deviance is not recommended because some family return a scaled deviance while other do not `r .emo("broken")`
 
 <!--
 ## Comparing LM vs GLM
@@ -1358,19 +1399,18 @@ Here we used `fit_lm` as the null model. In principle, we could used `fit_glm`, 
 -->
 
 
-# Residuals (and interlude before checking assumptions)
+# Residuals (an interlude before checking assumptions)
 
-## Can we still use `plot(model)` ?
+## `plot(model)` is useless for GLM `r .emo("info")`
 
-```{r plot poiss}
+```{r plot poiss, fig.width = 5, fig.height = 4}
 par(mfrow = c(2, 2))
 plot(fit_poiss)
 ```
 
-In general, no!
+Note: what we would expect to see here is no longer the same as for LM.
 
-
-## Many types of residuals can be computed for GLM
+## Many types of residuals can be computed for GLM `r .emo("info")`
 
 ```{r residuals poiss}
 rbind(
@@ -1384,7 +1424,7 @@ Note: we can compute even more types of residuals, such as the partial residuals
 
 <br>
 
-Unfortunately those residuals are prety much useless to check the model assumptions!
+Unfortunately, none of these residuals are particularly useful to check the model assumptions!
 
 
 <!--
@@ -1595,21 +1635,25 @@ crPlots(fit_UK, terms = ~ cigarettes)
 -->
 
 
-## Computing residuals by simulation: a better idea
+## Computing residuals by simulation `r .emo("nerd")`
 
-```{r bootstrap, fig.height = 4, fig.width = 4}
+We can deduce useful residuals from the comparison of observations to values expected under the model assumption...
+
+```{r bootstrap, fig.height = 3, fig.width = 3}
 set.seed(1L)
 simulated_data <- simulate(fit_poiss, 1000)
 simulated_data_cont <- simulated_data + runif(nrow(simulated_data)*ncol(simulated_data), min = -0.5, max = 0.5)
 hist(as.numeric(simulated_data_cont[1, ]), main = "distrib of first fitted value", nclass = 30)
 abline(v = fit_poiss$y[1] + runif(1, min = -0.5, max = 0.5), col = "red", lwd = 2, lty = 2)
 ```
+Note: here we compare the first observation (+/- a little noise) to 1000 response values simulated under the model fit.
 
 
-## Computing residuals by simulation: a better idea
+## Computing residuals by simulation `r .emo("nerd")`
 
-```{r bootstrap 2, fig.height = 4, fig.width = 4}
-plot(ecdf_simulated_1 <- ecdf(simulated_data_cont[1, ]), main = "cdf of first fitted value")
+The idea of is to consider as residuals the quantile of each observation in its expected (simulated) distribution:
+```{r bootstrap 2, fig.height = 3, fig.width = 3}
+plot(ecdf_simulated_1 <- ecdf(unlist(simulated_data_cont[1, ])), main = "cdf of first fitted value")
 noise <- runif(1, min = -0.5, max = 0.5)
 observed_quantile_1_cont <-  ecdf_simulated_1(fit_poiss$y[1] + noise)
 segments(x0 = fit_poiss$y[1] + noise, y0 = 0, y1 =  observed_quantile_1_cont, col = "red", lwd = 2)
@@ -1617,15 +1661,21 @@ arrows(x0 = fit_poiss$y[1] + noise, x1 = -1, y0 = observed_quantile_1_cont, col 
 ```
 
 
-## Computing residuals by simulation: a better idea
+## Computing residuals by simulation `r .emo("nerd")`
 
+We can compute them all at once using the same process:
 ```{r simu resid, fig.height = 4, fig.width = 4}
 simulated_residuals <- rep(NA, nrow(fit_poiss$model))
 for (i in 1:nrow(fit_poiss$model)) {
-  ecdf_fn <- ecdf(simulated_data_cont[i, ])
+  ecdf_fn <- ecdf(unlist(simulated_data_cont[i, ]))
   simulated_residuals[i] <- ecdf_fn(fit_poiss$y[i] + runif(1, min = -0.5, max = 0.5))
 }
+simulated_residuals
 ```
+
+## Computing residuals by simulation `r .emo("nerd")`
+
+By construction, these residuals should be uniformly distributed.
 
 <div class="columns-2">
 
@@ -1640,8 +1690,9 @@ plot(ecdf(simulated_residuals))
 </div>
 
 
-## Computing residuals by simulation with **{DHARMa}**
+## Computing residuals by simulation `r .emo("practice")`
 
+All of this can be done easily with the package **{DHARMa}**:
 ```{r simres poiss, fig.width = 7, fig.height = 4, message=FALSE}
 library(DHARMa)
 fit_poiss_simres <- simulateResiduals(fit_poiss)
@@ -1662,7 +1713,7 @@ fit_poiss_simres_boot <- simulateResiduals(fit_poiss, refit = TRUE, n = 1000)
 
 # Assumptions
 
-## The main assumptions
+## The main assumptions `r .emo("info")`
 
 ### Model structure
 
