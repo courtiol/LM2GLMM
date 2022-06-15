@@ -250,14 +250,14 @@ mean(replicate(10000, which(rbinom(n = 100, size = 1, prob = 0.25) == 1)[1]))
 ```
 
 
-## Comparison of models `r .emo("info")`
+## Comparison of model fits `r .emo("info")`
 
 ```{r poison summary}
 summary(fit_poison) ## original (mispecified) model
 ```
 
 
-## Comparison of models `r .emo("info")`
+## Comparison of model fits `r .emo("info")`
 
 ```{r poison bc summary}
 summary(fit_poison_bc) ## BoxCoxed model
