@@ -42,7 +42,7 @@
 }
 
 #' @export
-.emo <- function(x = c("info", "practice", "proof", "goal", "nerd", "party", "broken", "slow", "warn", "alien")) {
+.emo <- function(x = c("info", "practice", "proof", "goal", "nerd", "party", "broken", "slow", "warn", "alien", "recap")) {
   x <- match.arg(x)
   if (!requireNamespace("emojifont")) stop("You need to install the package emojifont to use this function.")
   switch(x,
@@ -55,6 +55,7 @@
     broken = emojifont::emoji("angry"),
     slow = emojifont::emoji("fire"),
     warn = emojifont::emoji("warning"),
-    alien = emojifont::emoji("alien")
+    alien = emojifont::emoji("alien"),
+    recap = emojifont::emoji("rewind")
   )
 }

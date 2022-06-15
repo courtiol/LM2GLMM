@@ -50,6 +50,7 @@ I may also use a few others within the slides
 - `r .emo("broken")` for things that are broken
 - `r .emo("slow")` for heavy computations
 - `r .emo("warn")` for warnings
+- `r .emo("recap")` recap something we covered previously
 
 ## Course philosophy `r .emo("info")`
 

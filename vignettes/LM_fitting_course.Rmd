@@ -643,7 +643,7 @@ solve(t(X) %*% X) %*% t(X) %*% Y  ## Tip: solve(x) returns the inverse of the ma
 Geek note: $\widehat{Y} = X \widehat{\beta} = X (X^TX)^{-1}X^TY=HY$, and $H$ is called the hat matrix (it is a projection matrix and it can be used for various purposes).
 
 
-## `lm()`-like fitting using QR decomposition `r .emo("info")`
+## `lm()`-like fitting using QR decomposition `r .emo("nerd")`
 
 The goal is simply to decompose the design matrix into a product of two new matrices that present nice properties for doing maths super efficiently.
 
@@ -667,7 +667,7 @@ backsolve(R, QTY) ## solve B from RB = QTY
 * Note 2: other decompositions are sometimes used in other packages or other type of linear models (e.g. Cholesky decomposition).
 
 
-## Actual `lm()` fitting procedure `r .emo("info")`
+## Actual `lm()` fitting procedure `r .emo("nerd")`
 
 First, `lm()` processes information for `lm.fit()`; it is quite a difficult function to read but here are the important steps:
 ```{r lm guts, eval = FALSE}
