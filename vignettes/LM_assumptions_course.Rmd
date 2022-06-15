@@ -45,7 +45,7 @@ set.seed(1L)
 * how to check if these assumptions are met (by means of tests and using your eyes)
 * how to do the Box-Cox transformation
 * that you can manipulate the design matrix to solve problems
-* how to study carefully outliers
+* how to carefully study outliers
 * that you will have to learn GLM and (G)LMM to solve some usual problems
 
 
@@ -100,7 +100,7 @@ Departure from linearity can originate from a multitude of reasons and can creat
 * <font size = 8>$y_i = \alpha + \beta_1 x_i + \beta_2 x_i^2 + \beta_3 x_i^3 + \epsilon_i$ </font>
 * <font size = 8>$y_i = \frac{\beta x_i}{\alpha + x_i} + \epsilon_i$ </font> (Michaelis-Menten : V = Vmax[S]/(Km+[S]))
 
-## Lineweaver Burk method for Michaelis-Menten `r .emo("info")`
+## Lineweaver Burk method for Michaelis-Menten `r .emo("nerd")`
 
 <center> ![](./LineweaverBurke.png) </center>
 
@@ -250,14 +250,14 @@ mean(replicate(10000, which(rbinom(n = 100, size = 1, prob = 0.25) == 1)[1]))
 ```
 
 
-## Comparison of tests `r .emo("info")`
+## Comparison of models `r .emo("info")`
 
 ```{r poison summary}
 summary(fit_poison) ## original (mispecified) model
 ```
 
 
-## Comparison of tests `r .emo("info")`
+## Comparison of models `r .emo("info")`
 
 ```{r poison bc summary}
 summary(fit_poison_bc) ## BoxCoxed model
@@ -514,7 +514,7 @@ Note: as for investigating linearity it is good here to try to order by:
 
 - each quantitative predictor
 - the fitted values
-- nothing -- as the data come since it often reflects something about the design that may not be explicitly coded in any variable
+- nothing (as the data come) -- since it often reflects something about the design that may not be explicitly coded in any variable
 
 ## Testing for independence by eye `r .emo("practice")`
 
@@ -528,7 +528,7 @@ abline(h = 0, lty = 2, col = "red")
 
 ## Testing for independence by eye `r .emo("practice")`
 
-### The origin of the problem is here the time!
+### The origin of the problem here is the time!
 
 ```{r DW by eye 2}
 plot(residuals(modConv) ~ Hartnagel$year, type = "o")
@@ -597,7 +597,7 @@ cbind(estimates, std.errors, t.values, p.values)
 ```
 
 
-## Post-hoc correction (not optimal) `r .emo("practice")`
+## Post-hoc correction (not optimal) `r .emo("nerd")`
 
 Same using ```Anova```:
 ```{r}
@@ -714,12 +714,12 @@ influence.measures(fit_davis)  ## In the next slides we will see all that in det
 
 A regression outlier is an observation that has an unusual value of the dependent variable Y, conditional on X.
 
-Regression outliers may not look at outliers on any Y or X variables.
+Regression outliers may not look like an outlier on any Y or X variables.
 
 
 ### Leverage
 
-The leverage quantifies how unusual on row of the design matrix is.
+The leverage quantifies how unusual one row of the design matrix is.
 
 A high leverage is not necessarily a bad thing.
 

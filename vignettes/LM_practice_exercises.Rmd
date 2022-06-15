@@ -46,7 +46,11 @@ levels(chickwts$feed)
 
 <br>
 
-`r .emo("goal")`  Compare the effectiveness of various feed supplements on the weights of six weeks old chickens.
+`r .emo("goal")`  Test whether diet significantly affects the weights of six weeks old chickens.
+
+`r .emo("goal")`  Compare the effect of different feed supplement types.
+
+`r .emo("goal")`  Plot mean effects for each feed supplement type showing 95% confidence intervals.
 
 
 ## Dataset: stackloss (difficulty = 1/5) `r .emo("practice")`
@@ -68,7 +72,9 @@ head(swiss)
 
 <br>
 
-`r .emo("goal")` Plot the influence of potential determinant of fertility.
+`r .emo("goal")` Plot the influence of potential determinants of fertility.
+
+`r .emo("goal")` Test the effect of different predictors on fertility.
 
 
 ## Dataset: InsectSprays (difficulty = 2/5) `r .emo("practice")`
@@ -80,9 +86,9 @@ levels(InsectSprays$spray)
 
 <br>
 
-`r .emo("goal")` Compare the effectiveness of various insecticides on the number of insects in agricultural experimental units.
+`r .emo("goal")`  Test whether insecticide type significantly affects the number of insects in agricultural experimental units.
 
-`r .emo("goal")` What is the efficiency of spray C?
+`r .emo("goal")` What is the mean number of insects we would predict to find on a plot treated with insecticide C?
 
 
 ## Dataset: chickwts -- part 2 (difficulty = 3/5) `r .emo("practice")`
@@ -94,7 +100,7 @@ levels(chickwts$feed)
 
 <br>
 
-`r .emo("goal")`  Predict the proportion of chicken larger than 300gr for each feed supplements (difficulty 3/5).
+`r .emo("goal")`  Predict the proportion of chickens larger than 300g for each feed supplements.
 
 
 ## Dataset: mammals (difficulty = 3/5) `r .emo("practice")`
@@ -109,7 +115,7 @@ head(mammals)
 
 `r .emo("goal")` Does this exponent agree with the usual expectation of 2/3?
 
-`r .emo("goal")` How large do we expect a 1kg animal to be?
+`r .emo("goal")` How large do we expect the brain of a 1kg animal to be?
 
 `r .emo("goal")` Rank organisms by relative brain size (i.e. controlled for body size)
 
@@ -125,6 +131,8 @@ head(trees)
 <br>
 
 `r .emo("goal")` Compare the approximation of the volume of wood given by $\text{Volume} = c\times\text{Height}\times\text{Girth}^2$ (with $c$ to be estimated) to the approximation of a tree trunk as a cylinder.
+
+Remember: Check the units of each column in the help file `?trees`. (There are 12 inches in a foot)
 
 <!-- The data here are not the good one and the exercise is very complex... -> let's drop it
 ## Dataset: Bats (difficulty = 5/5) `r .emo("practice")`
