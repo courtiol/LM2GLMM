@@ -833,10 +833,15 @@ p <- predict(fit_nohuman, newdata = data.frame(log_body = log(1)))
 exp(p)
 ```
 
-An animal of 1 Kg is predicted to have a brain size of ```r round(exp(p), 2)``` grams.
+An animal of 1 kg is predicted to have a brain size of ```r round(exp(p), 2)``` grams.
 
+**NOTE:** This is the same as the intercept because `log(1) = 0`.
 
-## Let us rank the organisms by brain size controling for body size
+```{r}
+exp(coefficients(fit_nohuman)["(Intercept)"])
+```
+
+## Let us rank the organisms by brain size controlling for body size
 
 ```{r}
 matrix(names(sort(resid(fit), decreasing = TRUE)), ncol = 1)
@@ -934,10 +939,15 @@ p <- predict(fit_nodino, newdata = data.frame(log_body = log(1)))
 exp(p)
 ```
 
-An animal of 1 Kg is predicted to have a brain size of ```r round(exp(p), 2)``` grams.
+An animal of 1kg is predicted to have a brain size of ```r round(exp(p), 2)``` grams.
 
+**NOTE:** Again, this is the same as the intercept because `log(1) = 0`.
 
-## Let us rank the organisms by brain size controling for body size
+```{r}
+exp(coefficients(fit_nodino)["(Intercept)"])
+```
+
+## Let us rank the organisms by brain size controlling for body size
 
 ```{r}
 matrix(names(sort(resid(fit), decreasing = TRUE)), ncol = 1)
