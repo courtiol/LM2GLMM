@@ -620,12 +620,12 @@ rm(list = ls())
 
 
 
-# Dataset: chickwts -- part 2 (difficulty = 0/5)
+# Dataset: chickwts -- part 2 (difficulty = 3/5)
 
-`r .emo("goal")`  Predict the proportion of chicken larger than 300gr for each feed supplements (difficulty 3/5).
+`r .emo("goal")`  Predict the proportion of chickens larger than 300g for each feed supplements.
 
 
-## Predicting the proportion of chicken heavier than 300 grams
+## Predicting the proportion of chickens heavier than 300 grams
 
 ```{r}
 fit_chick <- lm(weight ~ feed, data = chickwts)

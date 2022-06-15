@@ -100,7 +100,7 @@ levels(chickwts$feed)
 
 <br>
 
-`r .emo("goal")`  Predict the proportion of chickens larger than 300gr for each feed supplements.
+`r .emo("goal")`  Predict the proportion of chickens larger than 300g for each feed supplements.
 
 
 ## Dataset: mammals (difficulty = 3/5) `r .emo("practice")`
