@@ -885,14 +885,6 @@ cor(Alien$residuals, Alien$error)
 mean(Alien$residuals) ## residuals have a mean of 0 in the sample, while error have a mean 0 in the population
 ```
 
-## Variances for the error & residuals `r .emo("info")`
-
-The variance of the error ($\sigma^2$) cannot be directly observed...
-
-... but it can be estimated from the variance of the residual.
-
-<br>
-
 ## The residuals `r .emo("practice")`
 
 ```{r fig.height=5, fig.width=10, echo = FALSE}
@@ -1000,7 +992,16 @@ ggplot(data = Alien) +
         plot.margin = margin(t = 10, r = 10, b = 10, l = 10))
 ```
 
-## Interlude: estimation of variances `r .emo("info")`
+## Variances for the error & residuals `r .emo("info")`
+
+The variance of the error ($\sigma^2$) cannot be directly observed...
+
+... but it can be estimated from the variance of the residual.
+
+<br>
+
+
+## Interlude: estimation of variances `r .emo("recap")`
 
 Do you remember that?
 
