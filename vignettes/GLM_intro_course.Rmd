@@ -125,7 +125,7 @@ poisson(link = "log")
 
 <br>
 
-The objects of class `family` created by these functions also contain other useful information needed for the fitting procedure.
+Note: the objects of class `family` created by these functions also contain other useful information needed for the fitting procedure.
 
 
 # Data and model fits for this session
@@ -401,7 +401,7 @@ A lot of functions that will be used by `glm()` and friends:
 str(binomial(link = "logit"))
 ```
 
-We will see the 2 most useful components.
+Note: we will explore the 2 most useful components.
 
 
 ## The link function (```link``` & ```linkfun```) `r .emo("practice")`
@@ -501,7 +501,7 @@ This is the same as finding the $\widehat{\beta}$ minimizing the residual devian
 Residual deviance = $-2 \times (\text{logLik}_\text{focal fit} - \text{logLik}_\text{staturated fit})$
 
 
-## A simple function to fit simple GLM numerically `r .emo("nerd")`
+## A simple function to fit GLM numerically `r .emo("info")`
 
 ```{r}
 my_glm1 <- function(formula, data, family, weights = NULL) {
@@ -527,14 +527,14 @@ my_glm1 <- function(formula, data, family, weights = NULL) {
 }
 ```
 
-It should handle all families but it does not consider offsets, convergence issues and maybe other sources of complexity.
+Note: it should handle all families but it does not consider offsets, convergence issues and maybe other sources of complexity.
 
 
 ## No analytic solution... `r .emo("info")`
 
 ### Problem
 
-unlike LM there is no direct algorithm to obtain the maximum likelihood estimates (MLE)!
+unlike LM there is no analytic solution to directly obtain maximum likelihood estimates (MLE)!
 
 ### Solution to avoid the full numerical optimisation
 
@@ -577,9 +577,9 @@ my_glm2 <- function(formula, data, family, weights = NULL) {
 ```
 
 
-## Iterations in action `r .emo("nerd")`
+## Iterations in action `r .emo("practice")`
 
-The algorithm often quickly converges:
+The algorithm usually converges quickly:
 
 ```{r iterations}
 foo <- glm(size ~ humans_eaten, data = Aliens, family = gaussian(), control = list(trace = TRUE))
@@ -674,16 +674,18 @@ glm(y ~ x, data = test, family = Gamma(link = "log"))
 
 ## Coping with iterative algorithm failures `r .emo("practice")`
 
-You may try to play with parameters of the iterative algorithm (difficult):
+You may try to play with parameters of the iterative algorithm...
 
 ```{r}
 glm(y ~ x, data = test, family = Gamma(link = "log"), start = c(10, -0.1), control = list(epsilon = 1e-3))
 ```
 
+... but unless you really know what you are doing (& I don't), you risk to make the optimisation algorithm stop prematurely without warning.
+
 
 ## Coping with iterative algorithm failures `r .emo("practice")`
 
-You may also try other fitting methods (much easier):
+You may also try other fitting methods (safer & easier):
 
 ```{r, error = TRUE, message = FALSE}
 library(spaMM) ## you need to load spaMM explicitly for that
@@ -692,7 +694,7 @@ glm(y ~ x, data = test, family = Gamma(link = "log"), method = "spaMM_glm.fit")
 
 ## Coping with iterative algorithm failures `r .emo("practice")`
 
-You may also try other fitting functions (much easier):
+You may also try other fitting functions (which is equivalent to selecting alternative fitting methods):
 
 ```{r, error = TRUE, results='hold'}
 fitme(y ~ x, data = test, family = Gamma(link = "log"))
@@ -728,32 +730,31 @@ my_glm3(y ~ x, data = test, family = Gamma(link = "log"))  ## Crash
 
 # GLM vs LM with transformation
 
-## The example of the GLM Poisson
+## The example of the GLM Poisson `r .emo("info")`
 
-### If the process generating the data is not Gaussian...
-
-...fits will be more difficult:
+If the process generating the data is not Gaussian fits will be more difficult...
 
 ```{r, error = TRUE}
-fit_lm <- lm(log(eggs) ~ humans_eaten, data = Aliens)
+manyAliens <- simulate_Aliens_GLM(N = 1000)
+fit_lm <- lm(log(eggs) ~ humans_eaten, data = manyAliens) ## fails due to log(0)
 ```
 
 <br>
 
-...parameter estimates can be substantially biased:
+...and parameter estimates may be substantially biased:
 
 ```{r}
-fit_lm2 <- lm(log(eggs+1) ~ humans_eaten, data = Aliens)
-rbind(fit_poiss$coefficients,
-      fit_lm2$coefficients)
+fit_lm2 <- lm(log(eggs+1) ~ humans_eaten, data = manyAliens) ## runs since no longer 0s
+fit_glm <- glm(eggs ~ humans_eaten, family = poisson(), data = manyAliens, )
+rbind(ground_truth = attr(manyAliens, "param.eta")$eggs,
+      GLM_Poisson = fit_glm$coefficients,
+      LM = fit_lm2$coefficients)
 ```
 
 
-## The example of the GLM Poisson
+## The example of the GLM Poisson `r .emo("info")`
 
-### If the process generating the data is not Gaussian...
-
-...the assumptions for LM will often not be met:
+If the process generating the data is not Gaussian the assumptions for LM will also often not be met:
 
 ```{r, fig.width = 10, fig.height = 3}
 par(mfrow = c(1, 4))
@@ -761,52 +762,55 @@ plot(fit_lm2)
 ```
 
 
-## But, if the process is Gaussian...
+## But, if the process is Gaussian... `r .emo("info")`
 
 ```{r gauss vs log, warning = FALSE}
 set.seed(1L)
 x <- seq(1, 2, length = 100)
 simu <- replicate(100, {
-  y <- exp(rnorm(n = length(x), mean = 2 + 1 * x, sd = 0.5))
+  y <- exp(rnorm(n = length(x), mean = 2 + 1 * x, sd = 2)) ## exp(mean_resp + error)
   fit_lm   <- lm(log(y) ~ x)
-  fit_glm <- glm(y ~ x, family = gaussian(link = "log"))
+  fit_glm  <- glm(y ~ x, family = gaussian(link = "log"))
   c(coef(fit_lm), coef(fit_glm))
 })
 
 round(rbind(
-  fit_lm = c("mean int" = mean(simu[1, ]), "sd int" = sd(simu[1, ]),
-             "mean slope" = mean(simu[2, ]), "sd slope" = sd(simu[2, ])),
-  fit_glm = c(mean(simu[3, ]), sd(simu[3, ]), mean(simu[4, ]), sd(simu[4, ]))), 3)
+  ground_truth = c("mean int" = 2, "sd int" = NA,
+                   "mean slope" = 1, "sd slope" = NA),
+  LM = c("mean int" = mean(simu[1, ]), "sd int" = sd(simu[1, ]),
+         "mean slope" = mean(simu[2, ]), "sd slope" = sd(simu[2, ])),
+  GLM = c(mean(simu[3, ]), sd(simu[3, ]), mean(simu[4, ]), sd(simu[4, ]))), 3)
 ```
 
-In `fit_glm` the expected values are log transformed, not the observations! So the estimates produced by this fit are biased.
+Note: in `fit_glm` the expected values are log transformed, not the residuals! So the estimates produced by this fit are biased.
 
 
-## But, if the process is Gaussian...
+## But, if the process is Gaussian... `r .emo("info")`
 
 ```{r gauss vs log 2}
 set.seed(1L)
 x <- seq(1, 2, length = 100)
 simu <- replicate(100, {
-  y <- rnorm(n = length(x), mean = exp(2 + 1 * x), sd = 5)
+  y <- rnorm(n = length(x), mean = exp(2 + 1 * x), sd = 2) ## exp(mean_resp) + error
   fit_lm   <- lm(log(y) ~ x)
-  fit_glm <- glm(y ~ x, family = gaussian(link = "log"))
+  fit_glm  <- glm(y ~ x, family = gaussian(link = "log"))
   c(coef(fit_lm), coef(fit_glm))
 })
 
 round(rbind(
-  fit_lm = c("mean int" = mean(simu[1, ]), "sd int" = sd(simu[1, ]),
-             "mean slope" = mean(simu[2, ]), "sd slope" = sd(simu[2, ])),
-  fit_glm = c(mean(simu[3, ]), sd(simu[3, ]), mean(simu[4, ]), sd(simu[4, ]))), 3)
-
+  ground_truth = c("mean int" = 2, "sd int" = NA,
+                   "mean slope" = 1, "sd slope" = NA),
+  LM = c("mean int" = mean(simu[1, ]), "sd int" = sd(simu[1, ]),
+         "mean slope" = mean(simu[2, ]), "sd slope" = sd(simu[2, ])),
+  GLM = c(mean(simu[3, ]), sd(simu[3, ]), mean(simu[4, ]), sd(simu[4, ]))), 3)
 ```
 
-Here `fit_glm` corresponds the simulation model, so the estimates produced are better than the alternatives.
+Note: here `fit_glm` corresponds the simulation model, so the estimates produced are better than the alternatives.
 
 
-## How to compare LM and GLM?
+## How to compare LM and GLM? `r .emo("practice")`
 
-We can compare deviances but not directly:
+We can compare deviances (smaller = better), but not directly:
 
 ```{r}
 set.seed(1L)
@@ -816,14 +820,14 @@ y <- rnorm(n = length(x), mean = exp(2 + 1 * x), sd = 5)
 fit_glm  <- glm(y ~ x, family = gaussian(link = "log"))
 fit_lm   <- lm(log(y) ~ x)
 
-rbind("deviance glm"          = deviance(fit_glm),
-      "raw deviance lm"       = deviance(fit_lm),  ## not comparable as response = log(y)
-      "corrected deviance lm" = sum((y - exp(predict(fit_lm)))^2))  ## comparable deviance for lm
+rbind("deviance GLM"          = deviance(fit_glm),
+      "raw deviance LM"       = deviance(fit_lm),  ## not comparable as response = log(y)
+      "corrected deviance LM" = sum((y - exp(predict(fit_lm)))^2))  ## comparable deviance for lm
 ```
 
 <br>
 
-You cannot use AIC in this case as the responses differ.
+Note: you cannot use AIC in this case since the responses differ!
 
 
 # Interpreting regression coefficients
