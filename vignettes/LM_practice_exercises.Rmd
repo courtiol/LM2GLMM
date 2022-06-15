@@ -132,6 +132,8 @@ head(trees)
 
 `r .emo("goal")` Compare the approximation of the volume of wood given by $\text{Volume} = c\times\text{Height}\times\text{Girth}^2$ (with $c$ to be estimated) to the approximation of a tree trunk as a cylinder.
 
+Remember: Check the units of each column in the help file `?trees`. (There are 12 inches in a foot)
+
 <!-- The data here are not the good one and the exercise is very complex... -> let's drop it
 ## Dataset: Bats (difficulty = 5/5) `r .emo("practice")`
 
