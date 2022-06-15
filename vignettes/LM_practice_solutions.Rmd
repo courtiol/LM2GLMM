@@ -28,7 +28,11 @@ In this vignette I illustrate the key steps required to solve the exercises. By 
 
 # Dataset: chickwts -- part 1 (difficulty = 0/5)
 
-`r .emo("goal")` Compare the effectiveness of various feed supplements on the weights of six weeks old chickens.
+`r .emo("goal")`  Test whether diet significantly affects the weights of six weeks old chickens.
+
+`r .emo("goal")`  Compare the effect of different feed supplement types.
+
+`r .emo("goal")`  Plot mean effect for each feed supplement types showing 95% confidence intervals.
 
 ## Exploring the data
 
@@ -301,7 +305,9 @@ rm(list = ls())
 
 # Dataset: swiss (difficulty = 1/5)
 
-`r .emo("goal")` Plot the influence of potential determinant of fertility.
+`r .emo("goal")` Plot the influence of potential determinants of fertility.
+
+`r .emo("goal")` Test the effect of different predictors on fertility.
 
 ## Exploring the data
 
@@ -470,9 +476,9 @@ rm(list = ls())
 
 # Dataset: InsectSprays (difficulty = 2/5)
 
-`r .emo("goal")` Compare the effectiveness of various insecticides on the number of insects in agricultural experimental units.
+`r .emo("goal")`  Test whether insecticide type significantly affects the number of insects in agricultural experimental plots.
 
-`r .emo("goal")` What is the efficiency of spray C?
+`r .emo("goal")` What is the mean number of insects we would predict to find on a plot treated with insecticide C?
 
 
 ## Exploring the data
@@ -696,7 +702,7 @@ rm(list = ls())
 
 `r .emo("goal")` Does this exponent agree with the usual expectation of 2/3?
 
-`r .emo("goal")` How large do we expect a 1kg animal to be?
+`r .emo("goal")` How large do we expect the brain of a 1kg animal to be?
 
 `r .emo("goal")` Rank organisms by relative brain size (i.e. controlled for body size)
 
@@ -820,7 +826,7 @@ legend("topleft", lty = c(1, 1, 2), lwd = c(2, 2, 2), col = c("blue", "red", "bl
 ```
 
 
-## Prediction of the brain size for an animal of 1Kg
+## Prediction of the brain size for an animal of 1kg
 
 ```{r}
 p <- predict(fit_nohuman, newdata = data.frame(log_body = log(1)))
@@ -853,7 +859,7 @@ rm(list = ls())
 
 `r .emo("goal")` Does this exponent agree with the usual expectation of 2/3?
 
-`r .emo("goal")` How large do we expect a 1kg animal to be?
+`r .emo("goal")` How large do we expect the brain of a 1kg animal to be?
 
 `r .emo("goal")` Rank organisms by relative brain size (i.e. controlled for body size)
 
@@ -921,7 +927,7 @@ points(x = range(Animals$log_body), y = p, col = "red", type = "l", lty = 2)
 points(x = range(Animals$log_body), y = p_nodino, col = "blue", type = "l")
 ```
 
-## Prediction of the brain size for an animal of 1Kg
+## Prediction of the brain size for an animal of 1kg
 
 ```{r}
 p <- predict(fit_nodino, newdata = data.frame(log_body = log(1)))
