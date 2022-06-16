@@ -93,13 +93,13 @@ Alien2
 
 ## The UK dataset
 
-For information on this dataset, check the details section in `?UK`.
+Start by fitting this model:
 
 ```{r UK data}
-head(UK)
 fit_UK1 <- lm(height ~ drink + sex*weight, data = UK)
 ```
 
+Note: for information on this dataset, check the details section in `?UK`.
 
 ## Predictions with `fit_UK1`
 
