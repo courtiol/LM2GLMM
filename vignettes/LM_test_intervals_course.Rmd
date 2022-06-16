@@ -585,7 +585,7 @@ Notes:
 
 Example: 
 
-- does the alcohol consumption during pregnancy have an effect of the height of children?
+- does the alcohol consumption during pregnancy have an effect on the height of children?
 - which drinking categories differ from which?
 ```{r summary alcohol}
 summary(fit_lm_UK1)$coefficients
