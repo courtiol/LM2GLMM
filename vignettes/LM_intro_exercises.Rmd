@@ -29,7 +29,7 @@ set.seed(1L)
 
 ## Alternative representations of design matrices
 
-If the average IQ for boys were 90 and 110 for girls, what would the parameter values be, for each of the following coding (using treatment contrasts):
+If the average IQ for boys were 90 and 110 for girls, what would the parameter values be, for each of the following alternative coding for a boy and a girl (using treatment contrasts):
 
 * ```"boy"``` vs ```"girl"```
 * ```"male"``` vs ```"female"```
