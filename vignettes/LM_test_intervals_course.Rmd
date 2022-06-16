@@ -893,7 +893,7 @@ legend("topleft", fill = c("red", "green"), legend = c("step selection (backward
 ```
 
 
-## What shall I do? `r .emo("info")` `r .emo("proof")`
+## What shall you do? `r .emo("info")` `r .emo("proof")`
 
 * Don't go fishing (forget backward selection for inference!!!)
 * Always compare your fit to the fit of a null model and do not do more tests if this global test is not significant
