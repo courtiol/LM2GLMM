@@ -592,7 +592,7 @@ summary(fit_lm_UK1)$coefficients
 ```
 
 
-## Comparing nested models using a F test `r .emo("practice")`
+## Comparing nested models using a F-test `r .emo("practice")`
 
 You can use `anova()` to compare pairs of model fits:
 ```{r fit 2}
@@ -603,7 +603,7 @@ anova(fit_lm_UK2, fit_lm_UK1)
 Note: here we test the overall effect of `sex * weight`.
 
 
-## Comparing nested models using a F test `r .emo("info")`
+## Comparing nested models using a F-test `r .emo("info")`
 
 The default behaviour for `anova()` on LM fit is to perform a F-test:
 
