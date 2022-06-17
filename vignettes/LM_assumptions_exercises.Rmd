@@ -19,8 +19,8 @@ knitr::opts_chunk$set(cache = FALSE,
                       fig.align = "center",
                       fig.width = 4,
                       fig.height = 4,
-                      cache.path = "./cache_knitr/LM_assumption_ex/",
-                      fig.path = "./fig_knitr/LM_assumption_ex/")
+                      cache.path = "./cache_knitr/Exo_LM_assumptions/",
+                      fig.path = "./fig_knitr/Exo_LM_assumptions/")
 options(width = 110)
 set.seed(1L)
 ```
@@ -34,9 +34,6 @@ head(Fungi)
 
 <br>
 
-### Goal:
+`r .emo("goal")`  Fit a model that would allow you to quantify the average growth rate of alive fungi for each species, in each experimental condition, using a single linear model.
 
-quantifying the average growth rate of alive fungi for each species,
-in each experimental condition, using a single linear model.
-
-([solution](./Exercise_Multicollinearity.html))
+([solution](./LM_assumptions_solutions.html))
