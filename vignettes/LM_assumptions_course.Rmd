@@ -839,6 +839,15 @@ influence.measures(fit_davis)  ## stars are just there to attract your attention
 ```
 <!-- The dfbetas are shown for each parameter! -->
 
+## Exploring in depth outliers: all at once `r .emo("practice")`
+
+Tip: if your dataset is large, you can select the rows flagged with the stars as follows:
+
+```{r influence.measures2}
+influence_results <- influence.measures(fit_davis)
+influence_results$infmat[apply(influence_results$is.inf, 1, sum) > 0, ]
+```
+
 
 ## What you need to remember `r .emo("goal")`
 
