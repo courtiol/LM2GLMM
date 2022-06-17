@@ -567,11 +567,13 @@ set.seed(1L)
 Alien5 <- simulate_Aliens(N = 100)
 Alien5$eggs <- rpois(100, lambda = 2 + 1 * Alien5$humans_eaten) ## data generation is NOT gaussian!
 fit_alien5 <- lm(eggs ~ humans_eaten, data = Alien5)
-summary(fit_alien5)$coef
 bptest(fit_alien5)
 ```
 
-The Breusch-Pagan test follows a $\chi^2$ distribution (thus test statistic = df under H0).
+Notes:
+
+- the Breusch-Pagan tests test the null hypothesis of homoscedasticity (no matter its cause)
+- the Breusch-Pagan test follows a $\chi^2$ distribution (thus test statistic = df under H0).
 
 
 ## Testing for heteroscedasticity by eye `r .emo("practice")`
