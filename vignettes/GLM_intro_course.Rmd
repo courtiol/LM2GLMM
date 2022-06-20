@@ -829,6 +829,191 @@ rbind("deviance GLM"          = deviance(fit_glm),
 
 Note: you cannot use AIC in this case since the responses differ!
 
+# Predictions
+
+## 2 scales for predictions `r .emo("practice")`
+
+### You can predict outcomes for 2 different scales
+
+- for the scale of the **linear predictor**, e.g.:
+
+```{r, predict_link_scale}
+predict(fit_binom, newdata = data.frame(humans_eaten = 1:5), type = "link")
+```
+
+Note: the numbers correspond here to logits since it is the link function used in this fit.
+
+<br>
+ 
+- for the scale of the **response**, e.g.:
+
+```{r, predict_resp_scale}
+predict(fit_binom, newdata = data.frame(humans_eaten = 1:5), type = "response")
+```
+
+Note: the numbers correspond here to probabilities since it is a binomial fit.
+
+## 2 scales for predictions `r .emo("info")`
+
+```{r, predict_both_scales, echo = FALSE, fig.width = 10}
+library(ggplot2)
+p_link <- predict(fit_binom, newdata = data.frame(humans_eaten = 1:5), type = "link")
+p_resp <- predict(fit_binom, newdata = data.frame(humans_eaten = 1:5), type = "response")
+
+logit_data <- data.frame(x = x <- seq(-4, 4, length = 100), y = plogis(x))
+pred_data <- as.data.frame(cbind(humans_eaten = 1:5, link = p_link, response = p_resp))
+pred_data_expanded <- data.frame(x = x <- seq(0, 10, length = 100),
+                                 y = predict(fit_binom, newdata = data.frame(humans_eaten = x), type = "response"))
+
+
+ggplot() +
+  geom_abline(slope = coef(fit_binom)["humans_eaten"][[1]], intercept = coef(fit_binom)["(Intercept)"][[1]], linetype = "dashed") +
+  geom_point(aes(y = link, x = humans_eaten, colour = factor(humans_eaten)), data = pred_data) +
+  scale_x_continuous(limits = c(0, 10), breaks = 0:10) +
+  scale_y_continuous(limits = c(-4, 4), breaks = seq(-4, 4, by = 2)) +
+  labs(y = "prediction (link scale)", x = "humans eaten", colour = "humans eaten") +
+  theme_bw() +
+  theme(legend.position = "top") -> p1
+
+ggplot() +
+  geom_line(aes(y = y, x = x), data = pred_data_expanded, linetype = "dashed") +
+  geom_point(aes(y = response, x = humans_eaten, colour = factor(humans_eaten)), data = pred_data) +
+  scale_x_continuous(limits = c(0, 10), breaks = 0:10) +
+  labs(y = "prediction (response scale)", x = "humans eaten", colour = "humans eaten") +
+  scale_y_continuous(limits = c(0, 1)) +
+  theme_bw() +
+  theme(legend.position = "top") -> p2
+
+ggplot() +
+    geom_line(aes(y = y, x = x), data = logit_data, linetype = "dashed") +
+    geom_point(aes(y = response, x = link, colour = factor(humans_eaten)), data = pred_data) +
+    labs(y = "prediction (response scale)", x = "prediction (link scale)", colour = "humans eaten") +
+    theme_bw() +
+    theme(legend.position = "top") -> p3
+
+library(patchwork)
+p1 + p2 + p3
+```
+
+## Predictions on the linear scale `r .emo("recap")`
+
+The predictions on the linear scale work just as we saw it for LMs.
+
+
+## Predictions on the response scale `r .emo("info")`
+
+Doing the right thing can be tricky (even when a single predictor is involved)...
+
+### Why?
+
+Because on the response scale the prediction associated with a mean value is not equal to the mean of predictions associated with each values.
+
+```{r, prediction_of_means_data_prep}
+Aliens2       <- data.frame(humans_eaten = rpois(n = 1000, lambda = 4)) ## new data making difference obvious
+Aliens2$happy <- rbinom(n  = 1000, size = 1, prob = plogis(-3 + 0.3 * Aliens2$humans_eaten))
+fit_binar2    <- glm(happy ~ humans_eaten, family = binomial(), data = Aliens2)
+```
+
+```{r, prediction_of_means}
+predict(fit_binar2, newdata = data.frame(humans_eaten = mean(Aliens2$humans_eaten)), type = "response")[[1]]
+mean(predict(fit_binar2, newdata = data.frame(humans_eaten = Aliens2$humans_eaten), type = "response"))
+```
+
+Note: considering a predictor at its mean no longer gives the mean expectation.
+
+
+## Predictions on the response scale `r .emo("practice")`
+
+Let's illustrate the issue on a more realistic model fit:
+
+```{r, fit_titanic}
+fit_titanic <- glm(survived ~ sex*age*passengerClass, data = TitanicSurvival, family = binomial())
+```
+
+- Naive (incorrect) computation of the mean survival for all sex - class combinations:
+
+```{r,  prediction_of_means2}
+newdata1 <- expand.grid(sex = levels(fit_titanic$model$sex),
+                        passengerClass = levels(fit_titanic$model$passengerClass),
+                        age = mean(fit_titanic$model$age))
+preds1 <- predict(fit_titanic, newdata = newdata1, type = "response")
+cbind(newdata1, survival = preds1)
+```
+
+## Predictions on the response scale `r .emo("practice")`
+
+Let's illustrate the issue on a more realistic model fit:
+
+```{r, fit_titanic2, eval=FALSE}
+fit_titanic <- glm(survived ~ sex*age*passengerClass, data = TitanicSurvival, family = binomial())
+```
+
+- More accurate (marginal) computation of the mean survival for all sex - class combinations:
+
+```{r,  prediction_of_means3, message=FALSE}
+newdata2 <- expand.grid(sex = levels(fit_titanic$model$sex),
+                        passengerClass = levels(fit_titanic$model$passengerClass),
+                        age = fit_titanic$model$age)
+preds2 <- cbind(newdata2, survival = predict(fit_titanic, newdata = newdata2, type = "response"))
+aggregate(survival ~ sex + passengerClass, data = preds2, FUN = mean)
+```
+
+## Predictions on the response scale `r .emo("practice")`
+
+Let's illustrate the issue on a more realistic model fit:
+
+```{r, fit_titanic3, eval=FALSE}
+fit_titanic <- glm(survived ~ sex*age*passengerClass, data = TitanicSurvival, family = binomial())
+```
+
+- More accurate (conditional) computation of the mean survival for all sex - class combinations:
+
+```{r,  prediction_of_means4}
+newdata3 <- aggregate(age ~ sex + passengerClass, data = fit_titanic$model, FUN = identity)
+newdata3 <- tidyr::unnest(newdata3, cols = age) ## unnest the list column storing ages
+preds3 <- cbind(newdata3, survival = predict(fit_titanic, newdata = newdata3, type = "response"))
+aggregate(survival ~ sex + passengerClass, data = preds3, FUN = mean)
+```
+
+
+## Predictions on the response scale `r .emo("practice")`
+
+Things can be easier with **{spaMM}** provided that:
+
+- you focus on one focal predictor
+- you want partial-dependence effects
+
+```{r,  fit_titanic4}
+fit_titanic_spaMM <- fitme(survived ~ sex*age*passengerClass, data = TitanicSurvival, family = binomial())
+```
+
+```{r,  prediction_of_means7}
+pdep_effects(fit_titanic_spaMM, focal_var = "passengerClass")
+```
+
+
+## Predictions on the response scale `r .emo("practice")`
+
+Things can be easier with **{spaMM}** provided that:
+
+- you focus on one focal predictor
+- you want partial-dependence effects
+
+```{r,  fit_titanic5, eval=FALSE}
+fit_titanic_spaMM <- fitme(survived ~ sex*age*passengerClass, data = TitanicSurvival, family = binomial())
+```
+
+Doing the same by hand:
+```{r,  prediction_of_means6}
+newdata1 <- newdata2 <- newdata3 <- fit_titanic_spaMM$data ## same as fit_titanic$model
+newdata1["passengerClass"] <- "1st"
+newdata2["passengerClass"] <- "2nd"
+newdata3["passengerClass"] <- "3rd"
+newdata <- rbind(newdata1, newdata2, newdata3)
+preds <- cbind(newdata, survival = predict(fit_titanic_spaMM, newdata = newdata))
+aggregate(survival ~ passengerClass, data = preds, FUN = mean)
+```
+
 
 # Interpreting regression coefficients
 
@@ -967,9 +1152,6 @@ exp(fit_binom$coefficients[2] * 10)
 
 Note: as odds-ratios are ratios, a value of 0.1 means a 10 (=1/0.1) fold reduction in odds.
 
-# Predictions
-
-## TODO
 
 # Testing regression coefficients
 
@@ -1350,7 +1532,11 @@ upr_eta <- pred$fit + qnorm(0.975) * pred$se.fit
 cbind(lwr = poisson(link = "log")$linkinv(lwr_eta),
       upr = poisson(link = "log")$linkinv(upr_eta))
 ```
-Note: you cannot use `type = "response"` in `predict()` because transformations need to happen after CI are computed!
+Notes:
+
+- you cannot use `type = "response"` in `predict()` because transformations need to happen after CI are computed!
+
+- for proper predictions involving more predictors, better use `pdep_effects()` on a model fitted with **{spaMM}** `r .emo("recap")`
 
 
 ## CI using Gaussian approximation `r .emo("practice")`
@@ -1359,7 +1545,10 @@ It is much easier with **{spaMM}**:
 
 ```{r conf fitted poiss spaMM}
 get_intervals(fit_poiss_spaMM_ML, newdata = newdata, intervals = "fixefVar")
+pdep_effects(fit_poiss_spaMM_ML, focal_var = "humans_eaten", focal_values = 3:4)
 ```
+
+Note: here the 2 methods are equivalent because only one predictor is considered in the model fit.
 
 
 # Comparing non-nested models
@@ -1728,7 +1917,7 @@ fit_poiss_simres_boot <- simulateResiduals(fit_poiss, refit = TRUE, n = 1000)
 
 # Assumptions about the model structure
 
-## How to test for linearity?
+## How to test for linearity? `r .emo("info")`
 
 It is difficult, but we may try to:
 
@@ -1737,7 +1926,7 @@ It is difficult, but we may try to:
 * plot the predictions from a GAM model
 
 
-## Example of non-linearity
+## Example of non-linearity `r .emo("alien")`
 
 ```{r Aliens}
 set.seed(1L)
@@ -1768,51 +1957,49 @@ points(predict(fit_poiss_bad, newdata = data.for.pred, type = "response") ~ I(0:
 -->
 
 
-## Example of non-linearity
+## Example of non-linearity `r .emo("practice")`
 
 ```{r plot res Aliens, fig.width = 7, fig.height = 4}
-plot(s_bad <- simulateResiduals(fit_poiss_bad, n = 1000))
+plot(s_bad <- simulateResiduals(fit_poiss_bad, n = 1000)) ## simulated residuals from the bad fit
 ```
 
 
-## Example of non-linearity
+## Example of non-linearity `r .emo("practice")`
 
 ```{r plot res Aliens 2, fig.width = 7, fig.height = 4}
-plot(s_good <- simulateResiduals(fit_poiss_good, n = 1000))
+plot(s_good <- simulateResiduals(fit_poiss_good, n = 1000)) ## simulated residuals from the good fit
 ```
 
 
-## Example of non-linearity
+## Example of non-linearity `r .emo("practice")`
 
 ```{r plot partial Aliens}
-car::crPlots(fit_poiss_bad, terms = ~ humans_eaten)
+car::crPlots(fit_poiss_bad, terms = ~ humans_eaten) ## partial residuals from the bad fit
 ```
 
-<!--
-## Example of non-linearity
+## Example of non-linearity `r .emo("practice")`
 
 ```{r plot partial Aliens 2}
-car::crPlots(fit_poiss_good)
+car::crPlots(fit_poiss_good, terms = ~ poly(humans_eaten, 2, raw = TRUE)) ## partial residuals from the good fit
 ```
--->
 
-## Example of non-linearity
+## Example of non-linearity `r .emo("practice")`
 
 ```{r GAM, fig.width = 4, fig.height = 4, message = FALSE}
-library(mgcv)
+library(mgcv) ## package to fit GAMs
 fit_poissGAM <- gam(eggs ~ s(humans_eaten), data = Aliens, family = poisson())
 plot(fit_poissGAM, shade = TRUE, residuals = FALSE, shade.col = "red")  ## on the scale of the linear predictor!
 ```
 
 
-## Multicollinearity and fixed-values
+## Multicollinearity and fixed-values `r .emo("recap")`
 
 ### Same as for LM!
 
 
 # Assumptions about the errors
 
-## How to test for independence?
+## How to test for independence? `r .emo("practice")`
 
 You can run the Durbin Watson test on the simulated residuals using **{DHARMa}**:
 
@@ -1821,11 +2008,11 @@ testTemporalAutocorrelation(s_good, time = fit_poiss_good$fitted.values, plot = 
 ```
 
 
-## How to test for independence?
+## How to test for independence? `r .emo("practice")`
 
 You can run the Durbin Watson test on the simulated residuals using **{DHARMa}**:
 
-```{r autocorr 2}
+```{r autocorr_2}
 testTemporalAutocorrelation(s_good, time = Aliens$humans_eaten, plot = FALSE)
 ```
 
@@ -1851,7 +2038,7 @@ In such a case, a random effect for the identity of the individual is not needed
 -->
 
 
-## Overdispersion / Underdispersion
+## Overdispersion / Underdispersion `r .emo("info")`
 
 A GLM assumes a particular relationship between mu and var(mu):
 
@@ -1867,11 +2054,11 @@ plot(v_b ~ p, type = "o"); plot(v_p ~ lambda, type = "o"); plot(v_G ~ theta, typ
 ```
 
 
-## Overdispersion / Underdispersion
+## Overdispersion / Underdispersion `r .emo("info")`
 
 ### Overdispersion = more variance than expected
 
-* very common $\rightarrow$ increases false positive
+* very common $\rightarrow$ increase in false positives
 * specially relevant for Poisson and Binomial
 * irrelevant for the binary case! (don't look for it)
 
@@ -1885,10 +2072,10 @@ Usual suspects:
 
 ### Underdispersion = less variance than expected
 
-* rather rare  $\rightarrow$ increases false negative
+* rather rare  $\rightarrow$ increase in false negatives
 
 
-## Overdispersion / Underdispersion
+## Overdispersion / Underdispersion `r .emo("alien")`
 
 ### A toy example
 
@@ -1905,7 +2092,7 @@ AliensMix <- rbind(popA, popB)
 ```
 
 
-## Overdispersion / Underdispersion
+## Overdispersion / Underdispersion `r .emo("info")`
 
 Two measures are traditionally used to quantify dispersion:
 
@@ -1915,9 +2102,9 @@ sum(residuals(fit_poissMix, type = "pearson")^2) / fit_poissMix$df.residual
 ```
 
 
-## Overdispersion / Underdispersion
+## Overdispersion / Underdispersion `r .emo("info")`
 
-Asymptotic tests based on these measures do not always behave well:
+Asymptotic tests based on these measures do not always behave well `r .emo("proof")`
 
 <div class = "columns-2">
 
@@ -1948,7 +2135,7 @@ abline(0, 1, lty = 2, col = "green")
 Note: this is far from the uniform distribution we aim at...
 
 
-## Overdispersion / Underdispersion
+## Overdispersion / Underdispersion `r .emo("practice")`
 
 We can again use **{DHARMa}** for that:
 
@@ -1960,7 +2147,7 @@ testDispersion(r) # stat = squared pearson residuals compared to that obtained b
 
 # Solving dispersion problems
 
-## Potential solutions
+## Potential solutions `r .emo("practice")`
 
 * fix linearity issues
 * fix heterogeneity issues (if you have the data)
@@ -1971,7 +2158,7 @@ r2 <- simulateResiduals(fit_poissMix2, n = 1000)
 testDispersion(r2, plot = FALSE)  ## you can change options to test for underdispersion
 ```
 
-## Potential solutions
+## Potential solutions `r .emo("info")`
 
 * fix linearity issues
 * fix heterogeneity issues (if you have the data)
@@ -1993,20 +2180,20 @@ car::Anova(fit_poissMixQ, test = "F")  ## 'F' not 'LR' because dispersion is est
 ```
 
 
-## Modeling simply overdispersion
+## Simple modeling of overdispersion `r .emo("practice")`
 
 ### For Poisson
 
 Variance = $k \times \mu$
 
-It kind of works, but we cannot do much with these types of fit:
+It kind of works (if the overdispersion is not too strong), but we cannot do everything with these types of fit since they have no likelihood:
 ```{r confint quasipoiss}
-confint(fit_poissMixQ)
-c(logLik(fit_poissMixQ), AIC(fit_poissMixQ))
+confint(fit_poissMixQ) ## works (using deviance)
+c(logLik(fit_poissMixQ), AIC(fit_poissMixQ)) ## does not work
 ```
 
 
-## Modeling simply overdispersion
+## Simple modeling of overdispersion `r .emo("info")`
 
 ### For binomial
 
@@ -2018,10 +2205,10 @@ c(logLik(fit_poissMixQ), AIC(fit_poissMixQ))
 
 ### Solution
 
-* add a random effect with one level per individual (see GLMM)
+* add a random effect with one level per individual (see GLMMs)
 
 
-## Modelling departure from expected dispersion with other probability distributions
+## Modelling departure from expected dispersion with other probability distributions `r .emo("info")`
 
 For count data, you have 3 options:
 
@@ -2032,7 +2219,7 @@ For count data, you have 3 options:
 Note: only the Conway-Maxwell-Poisson can handle underdispersion.
 
 
-## Negative binomial with **{spaMM}**
+## Negative binomial with **{spaMM}** `r .emo("practice")`
 
 ```{r negbin spaMM}
 fit_poissMix_spaMM   <- fitme(eggs ~ humans_eaten, family = poisson(), data = AliensMix)
@@ -2040,6 +2227,8 @@ fit_poissMixNB_spaMM <- fitme(eggs ~ humans_eaten, family = spaMM::negbin(), dat
 summary(fit_poissMixNB_spaMM)
 c(AIC(fit_poissMix_spaMM), AIC(fit_poissMixNB_spaMM))
 ```
+
+Note: the negative binomial fit is much better than the Poisson one.
 
 <!--
 ## Conway-Maxwell-Poisson (from **{ spaMM}**)
@@ -2087,11 +2276,11 @@ legend("topleft", fill = c("black", "red", "blue"), legend = c("Poisson", "Negat
 
 # Zero-augmentation
 
-## Zero-augmentation in brief
+## Zero-augmentation in brief `r .emo("info")`
 
 ### What is it?
 
-It occurs for binomial or Poisson events when too many zeros occur.
+It occurs for any event when too many zeros occur.
 
 ### Why does it occur?
 
@@ -2103,30 +2292,30 @@ Examples:
 * biological (e.g. infection, then spread of microbes)
 
 
-## How to tackle zero-augmentation?
+## How to tackle zero-augmentation? `r .emo("info")`
 
 ### We have 2 main options for this:
 
-Fit an hurdle model
+Fit an **hurdle model**
 
-* binomial  (or truncated count distribution) + truncated Poisson or truncated negative binomial
+* e.g. binomial + truncated Poisson or truncated negative binomial
 * a single source of zeros
-* e.g. number of offspring
+* e.g. of response variable: number of offspring
 
 <br>
 
-Fit a zero-inflation model
+Fit a **zero-inflation model**
 
-* binomial (or truncated count distribution) + Poisson or negative binomial
+* e.g. binomial + Poisson or negative binomial
 * two sources of zeros
-* e.g. number of viruses in individuals (0 for unexposed, 0 for exposed with strong immune system)
+* e.g. of response variable: number of viruses in individuals (0 for unexposed, 0 for exposed with strong immune system)
 
-### If you are not sure where the zeros come from, try both!
+Note: if you are not sure where the zeros come from, try both!
 
 
-## Zero-augmented data
+## Generating zero-augmented data `r .emo("alien")`
 
-```{r zeroinfl}
+```{r zeroinfl, fig.height=4}
 set.seed(1L)
 AliensZ <- simulate_Aliens_GLM(N = 1000)
 AliensZ$eggs <- AliensZ$eggs * AliensZ$happy ## unhappy Aliens loose their eggs :-(
@@ -2134,20 +2323,23 @@ barplot(table(AliensZ$eggs))
 ```
 
 
-## Poisson fit of zero-augmented data
+## Poisson fit of zero-augmented data `r .emo("practice")`
 
 ```{r zeroinfl poiss}
 fit_Zpoiss <- glm(eggs ~ humans_eaten, data = AliensZ, family = poisson())
 r <- simulateResiduals(fit_Zpoiss, n = 1000)
 testZeroInflation(r, plot = FALSE)
-mean(sum(AliensZ$eggs == 0) / sum(dpois(0, fitted(fit_Zpoiss))))
+```
+Note: we reject the null hypothesis which is that the observed number of zeros is compatible with the one expected if those data would have be produced by a Poisson model.
+
+```{r zeroinfl poiss2}
+mean(sum(AliensZ$eggs == 0) / sum(dpois(0, fitted(fit_Zpoiss)))) ## = ratioObsSim
 ```
 
+## Poisson fit of zero-augmented data `r .emo("practice")`
 
-## Poisson fit of zero-augmented data
-
-```{r test zeroinfl}
-testZeroInflation(r, plot = TRUE)
+```{r test zeroinfl, fig.width=7}
+testZeroInflation(r, plot = TRUE) ## plot the number of 0s simulated under the model and observed
 ```
 
 <!--
@@ -2167,34 +2359,43 @@ testZeroInflation(r, plot = TRUE)
 ```
 -->
 
-## Hurdle fit of zero-augmented data
+## Hurdle fit of zero-augmented data `r .emo("practice")`
 
+You can fit hurdle models with `pscl::hurdle()`:
 ```{r hurdle, message = FALSE}
 library(pscl)
 fit_Zhurd1 <- hurdle(eggs ~ humans_eaten | humans_eaten, dist = "poisson", zero.dist = "binomial",
                      data = AliensZ)
-fit_Zhurd2 <- hurdle(eggs ~ humans_eaten | 1, dist = "poisson", zero.dist = "binomial", data = AliensZ)
+fit_Zhurd2 <- hurdle(eggs ~ humans_eaten | 1, dist = "poisson", zero.dist = "binomial",
+                     data = AliensZ)
 lmtest::lrtest(fit_Zhurd1, fit_Zhurd2)
-mean(sum(AliensZ$eggs == 0) / sum(predict(fit_Zhurd1, type = "prob")[, 1]))
 ```
 
+Note: here we tested whether `humans_eaten` influenced the production of all 0s (since they all come from the binary process).
 
-## Zero-inflation fit of zero-augmented data
+## Zero-inflation fit of zero-augmented data `r .emo("practice")`
 
+You can fit zero-inflation models with `pscl::zeroinfl()`:
 ```{r zeroinfl fit, message = FALSE}
 fit_Zzi1 <- zeroinfl(eggs ~ humans_eaten | humans_eaten, dist = "poisson", data = AliensZ)
 fit_Zzi2 <- zeroinfl(eggs ~ humans_eaten | 1, dist = "poisson", data = AliensZ)
 lmtest::lrtest(fit_Zzi1, fit_Zzi2)
-mean(sum(AliensZ$eggs == 0) / sum(predict(fit_Zzi1, type = "prob")[, 1]))
 ```
 
+Note: here we tested whether `humans_eaten` influenced the production of some of the 0s (since they come both from the binary process and the Poisson process).
 
-## Comparison
+
+
+## Comparison of alternative fits `r .emo("practice")`
 
 ```{r comp zeroinfl}
-cbind(Poisson = AIC(fit_Zpoiss),
-      Hurdle  = AIC(fit_Zhurd1),
-      ZeroInf = AIC(fit_Zzi1))
+cbind(Poisson = AIC(fit_Zpoiss), ## poor fit
+      Hurdle  = AIC(fit_Zhurd1), ## close to best
+      ZeroInf = AIC(fit_Zzi1))   ## best but not by much
+```
+
+Let's also compare the model parameter estimates:
+```{r comp zeroinfl2}
 tab <- rbind(Poisson = c(fit_Zpoiss$coefficients, NA, NA),
              Hurdle = unlist(fit_Zhurd1$coefficients),  ## NOTE: the hurdle part predicts positive counts, not zeros!!
              ZeroInfl = unlist(fit_Zzi1$coefficients),  ## NOTE: the binary part predicts zeros, not counts!!
@@ -2203,30 +2404,30 @@ colnames(tab) <- c("Int.count", "Slope.count", "Int.bin", "Slope.bin")
 tab
 ```
 
+Note: parameter estimates confirm that both the hurdle and the zero-inflation fits are (here) accurate.
+
 
 # One last trap: separation
 
-## The problem of separation in Binomial
+## The problem of separation in Binomial `r .emo("info")`
 
-What is it?
+### What is it?
 
 Separation occurs when a level or combination of levels for categorical predictor, or when a particular threshold along a continuous predictor, predicts the outcomes perfectly.
 
-<br>
-
-Complete or quasi separation?
+### Complete or quasi separation?
 
 From Wikipedia:
 
 *For example, if the predictor X is continuous, and the outcome y = 1 for all observed x > 2. If the outcome values are perfectly determined by the predictor (e.g., y = 0 when x ≤ 2) then the condition "complete separation" is said to occur. If instead there is some overlap (e.g., y = 0 when x < 2, but y has observed values of 0 and 1 when x = 2) then "quasi-complete separation" occurs. A 2 × 2 table with an empty cell is an example of quasi-complete separation.*
 
-Consequences
+### Consequences
 
 * sometimes the model cannot be fitted
 * when it does fit, the estimates and standard errors are usually wrong!
 
 
-## The problem of separation in Binomial
+## The problem of separation in Binomial `r .emo("proof")`
 
 ```{r separ}
 set.seed(1L)
@@ -2241,30 +2442,30 @@ fit_separated <- glm(happy ~ sp, data = test, family = binomial())
 summary(fit_separated)$coefficients
 ```
 
+Note: despite the very clear effect, the test does not detect it.
 
-## The problem of separation in Binomial
+## The problem of separation in Binomial `r .emo("practice")`
 
-### Detection
+### Detection for `glm()` fits
 
-```{r safebin, error = TRUE, message = FALSE}
+```{r safebin, error = TRUE, message = FALSE, warning = FALSE}
 library(safeBinaryRegression)  ## overload the glm function
-fit_separated <- glm(happy ~ sp, data = test, family = binomial())
-detach(package:safeBinaryRegression)
+fit_separated <- glm(happy ~ sp, data = test, family = binomial()) ## don't mind warnings here
+detach(package:safeBinaryRegression) ## stop masking original glm()
 ```
 
+## The problem of separation in Binomial `r .emo("practice")`
 
-## The problem of separation in Binomial
-
-### Detection
+### Detection for `fitme()` fits
 
 ```{r spaMM separ, error = TRUE}
 fit_separated_spaMM <- fitme(happy ~ sp, data = test, family = binomial())
 ```
 
-Note: you need an additional package but **{spaMM}** will inform you about it.
+Note: you may need to install an additional package, but **{spaMM}** will inform you about it.
 
 
-## The problem of separation in Binomial
+## The problem of separation in Binomial `r .emo("practice")`
 
 ### Let's tweak the data in a conservative way
 ```{r tweak separ}
@@ -2274,10 +2475,12 @@ fit_separated2 <- glm(happy ~ sp, data = test, family = binomial())
 summary(fit_separated2)$coefficients
 ```
 
+Note: this little tweak of the data is sufficient to recover significance.
 
-## The problem of separation in Binomial
 
-### A solution for the binary case (as well as for binomial in general!)
+## The problem of separation in Binomial `r .emo("practice")`
+
+A better solution for the binary case (as well as for binomial in general) is to use a specific fitting method:
 
 ```{r brglm2, message = FALSE}
 test$happy[1] <- 0  ## restore the original data
