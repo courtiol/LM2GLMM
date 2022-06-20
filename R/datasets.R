@@ -378,7 +378,7 @@
 #' F. E. Harrell, Jr. (2001) \emph{Regression Modeling Strategies} New York:
 #' Springer.
 #' @source Data set \code{titanic3} from
-#' \url{http://biostat.mc.vanderbilt.edu/twiki/bin/view/Main/DataSets}.
+#' \url{https://biostat.app.vumc.org/wiki/Main/DataSets}.
 #' @keywords datasets
 "TitanicSurvival"
 
