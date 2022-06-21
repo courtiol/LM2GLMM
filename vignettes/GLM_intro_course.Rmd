@@ -2231,7 +2231,7 @@ testDispersion(r2, plot = FALSE)  ## you can change options to test for underdis
 * there are specific solutions if the origin is zero-augmentation
 
 
-## Modeling simple overdispersion
+## Simple modeling of overdispersion
 
 ### For Poisson
 
