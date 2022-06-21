@@ -899,7 +899,7 @@ p1 + p2 + p3
 
 The predictions on the linear scale work just as we saw it for LMs.
 
-How do we interpret the coefficients?
+How do we interpret the coefficients on the *linear* scale?
 
 ```{r}
 fit_binom
@@ -1563,6 +1563,10 @@ cbind(pred = pred_wrong$fit,
       lwr = lwr_eta,
       upr = upr_eta)
 ```
+
+## CI using Gaussian approximation `r .emo("practice")`
+
+CIs are assumed symmetrical (i.e. Gaussian) on the **linear predictor scale** but not on the **response scale**.
 
 ```{r, fig.width = 4, echo = FALSE}
 newdata <- data.frame(humans_eaten = 0:1)
