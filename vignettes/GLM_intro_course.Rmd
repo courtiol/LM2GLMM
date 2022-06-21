@@ -1559,7 +1559,7 @@ cbind(pred = poisson(link = "log")$linkinv(pred$fit),
 ```
 Notes:
 
-- you cannot use `type = "response"` in `predict()` because transformations need to happen after CI are computed!
+- don't use `type = "response"` in `predict()` because transformations need to happen after CI are computed!
 
 - for proper predictions involving more predictors, better use `pdep_effects()` on a model fitted with **{spaMM}** `r .emo("recap")`
 
