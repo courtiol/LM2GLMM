@@ -1092,10 +1092,11 @@ Option 1: you can set non-focal variable to 0 for quantitative variables (or to 
 
 ```{r, predictions_multiple_pred1}
 fit_apb <- lm(age ~ planet * bh_trips, data = Alien2)
-(newd0 <- data.frame(planet = c("Chambr", "Riplyx", "Wickor"),
-                     bh_trips = 0))
+(newd0 <- data.frame(planet = c("Chambr", "Riplyx", "Wickor"), bh_trips = 0))
 (pred0 <- predict(fit_apb, newdata = newd0))
 ```
+
+Note: these predictions are only meaningful when fixing estimates to 0 represent something meaningful.
 
 ## Predicting the mean response with several predictors `r .emo("practice")`
 
@@ -1105,10 +1106,23 @@ Option 2: you can set non-focal variable to their mean (for quantitative variabl
 
 ```{r, predictions_multiple_pred2}
 fit_apb <- lm(age ~ planet * bh_trips, data = Alien2)
-(newd_marginal <- data.frame(planet = c("Chambr", "Riplyx", "Wickor"),
-                             bh_trips = mean(Alien2$bh_trips)))
-(pred_marginal <- predict(fit_apb, newdata = newd_marginal))
+(newd_partial <- data.frame(planet = c("Chambr", "Riplyx", "Wickor"), bh_trips = mean(Alien2$bh_trips)))
+(pred_partial <- predict(fit_apb, newdata = newd_partial))
 ```
+
+## Predicting the mean response with several predictors `r .emo("practice")`
+
+When several predictors are involved, predictions can be computed differently...
+
+Option 2: you can set non-focal variable to their mean (for quantitative variables) or mode (for qualitative variables) within the set of all sampled observations:
+
+Predictions computed this way can directly be obtained with `pdep_effects()` in **{spaMM}**:
+```{r, predictions_multiple_pred2bis, warning=FALSE, message=FALSE}
+fit_apb_spaMM <- spaMM::fitme(age ~ planet * bh_trips, data = Alien2)
+spaMM::pdep_effects(fit_apb_spaMM, focal_var = "planet") ## here no CI because N = P (overfitted model)
+```
+
+Note: those predictions are sometimes called *partial-dependence effects*.
 
 
 ## Predicting the mean response with several predictors `r .emo("practice")`
@@ -1131,14 +1145,14 @@ When several predictors are involved, predictions can be computed differently...
 And this can make a big difference:
 
 ```{r, predictions_all}
-cbind(data.frame(planet = c("Chambr", "Riplyx", "Wickor"),
-                 method = c("0", "marginal", "conditional")),
-      pred0, pred_marginal, pred_conditional)
+cbind(data.frame(planet = c("Chambr", "Riplyx", "Wickor"), method = c("0", "partial dep", "conditional")),
+      pred0, pred_partial, pred_conditional)
 ```
 
-Nothing is incorrect, the different predictions simply represent answers to different questions!
+Notes: 
 
-Note: it could be difficult to identify what packages computing (or plotting) automatically predictions actually do.
+- nothing is incorrect, the different predictions simply represent answers to different questions!
+- it could be difficult to identify what packages computing (or plotting) automatically predictions actually do.
 
 
 ## Predicting future observations `r .emo("info")`
