@@ -835,7 +835,7 @@ Note: you cannot use AIC in this case since the responses differ!
 
 ### You can predict outcomes for 2 different scales
 
-- for the scale of the **linear predictor**, e.g.:
+- for the scale of the **linear predictor** (default for glm), e.g.:
 
 ```{r, predict_link_scale}
 predict(fit_binom, newdata = data.frame(humans_eaten = 1:5), type = "link")
@@ -1030,7 +1030,7 @@ aggregate(survival ~ passengerClass, data = preds, FUN = mean)
 
 ```{r}
 coef(fit_poiss)
-predict(fit_poiss, newdata = data.frame(humans_eaten = 10))
+predict(fit_poiss, newdata = data.frame(humans_eaten = 10)) #Linear predictor scale by default
 coef(fit_poiss)[1] + 10 * coef(fit_poiss)[2]
 ```
 
@@ -1057,7 +1057,7 @@ The model parameters are linear for $\eta$, not $\mu$!
 What happens when different aliens eat one additional human? `r .emo("")`
 
 ```{r}
-(p.eta <- predict(fit_poiss, newdata = data.frame(humans_eaten = 1:5)))
+(p.eta <- predict(fit_poiss, newdata = data.frame(humans_eaten = 1:5))) #Linear predictor scale by default
 diff(p.eta)
 ```
 
