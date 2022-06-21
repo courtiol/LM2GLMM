@@ -282,13 +282,13 @@ What do each of these estimates really mean?
 
 ### Instruction
 
-Create a plot with marginal predictions showing the influence of the weight of girls on their height!
+Create a plot with predictions showing the influence of the weight of girls on their height!
 
-*Tip:* Look back at slides about marginal and conditional predictions to work out how to deal with the effect of 'drink'.
+*Tip:* Look back at slides about predictions to work out how to deal with the effect of 'drink'.
 
 ### Solution
 
-For marginal predictions we use the *modal* value of non-focal qualitative variables within the set of all sampled observations.
+For predictions we will use here the *modal* value of non-focal qualitative variables within the set of all sampled observations.
 
 ```{r}
 

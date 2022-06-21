@@ -141,9 +141,9 @@ What do each of these estimates really mean?
 
 ## More predictions with `fit_UK1`
 
-Create a plot with marginal predictions showing the influence of the weight of girls on their height!
+Create a plot with predictions showing the influence of the weight of girls on their height!
 
-*Tip:* Look back at slides about marginal and conditional predictions to work out how to deal with the effect of 'drink'.
+*Tip:* Look back at slides about predictions to work out how to deal with the effect of 'drink'.
 
 ##
 
