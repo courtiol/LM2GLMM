@@ -1078,7 +1078,7 @@ This is the average number of eggs predicted for aliens eating 10 humans.
 
 The model parameters are linear for $\eta$, not $\mu$!
 
-What happens when different aliens eat one additional human? `r .emo("")`
+What happens when different aliens eat one additional human?
 
 ```{r}
 (p.eta <- predict(fit_poiss, newdata = data.frame(humans_eaten = 1:5))) #Linear predictor scale by default
