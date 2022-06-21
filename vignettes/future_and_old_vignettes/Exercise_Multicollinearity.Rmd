@@ -6,7 +6,7 @@ output:
   html_vignette
 vignette: >
   %\VignetteEncoding{UTF-8}
-  %\VignetteIndexEntry{2.3 z-------------------------------------------------------------solutions}
+  %\VignetteIndexEntry{2.X z-------------------------------------------------------------solutions}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
