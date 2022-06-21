@@ -82,9 +82,9 @@ with:
 
 This is identical to the LM if:
 
-* $\mu = g^{-1}(\eta) = \eta$, thus if $g$ is the *identity* function
-* $\phi = \sigma^2$, thus if the dispersion parameter equals the error variance
-* $\text{V}(\mu) = 1$, thus if the variance function is constant
+* $\mu = g^{-1}(\eta) = \eta$, where $g$ is the *identity* function
+* $\phi = \sigma^2$, the dispersion parameter equals the error variance
+* $\text{V}(\mu) = 1$, the variance function is constant
 
 <br>
 
@@ -155,7 +155,7 @@ Aliens <- simulate_Aliens_GLM(N = 20)
 head(Aliens)
 ```
 
-The true parameter values are stored as attributes if you need them" `r .emo("nerd")`
+The true parameter values are stored as attributes if you need them `r .emo("nerd")`
 ```{r attributes}
 attributes(Aliens)$param.eta$blue_eyes  ## to get back the parameters
 ```
@@ -745,7 +745,7 @@ fit_lm <- lm(log(eggs) ~ humans_eaten, data = manyAliens) ## fails due to log(0)
 
 ```{r}
 fit_lm2 <- lm(log(eggs+1) ~ humans_eaten, data = manyAliens) ## runs since no longer 0s
-fit_glm <- glm(eggs ~ humans_eaten, family = poisson(), data = manyAliens, )
+fit_glm <- glm(eggs ~ humans_eaten, family = poisson(), data = manyAliens)
 rbind(ground_truth = attr(manyAliens, "param.eta")$eggs,
       GLM_Poisson = fit_glm$coefficients,
       LM = fit_lm2$coefficients)
@@ -805,7 +805,7 @@ round(rbind(
   GLM = c(mean(simu[3, ]), sd(simu[3, ]), mean(simu[4, ]), sd(simu[4, ]))), 3)
 ```
 
-Note: here `fit_glm` corresponds the simulation model, so the estimates produced are better than the alternatives.
+Note: here `fit_glm` corresponds to the simulation model, so the estimates produced are better than the alternatives.
 
 
 ## How to compare LM and GLM? `r .emo("practice")`
@@ -1054,7 +1054,7 @@ This is the average number of eggs predicted for aliens eating 10 humans.
 
 The model parameters are linear for $\eta$, not $\mu$!
 
-Ex: what happens when different aliens eat one additional human?
+What happens when different aliens eat one additional human? `r .emo("")`
 
 ```{r}
 (p.eta <- predict(fit_poiss, newdata = data.frame(humans_eaten = 1:5)))
@@ -1070,7 +1070,7 @@ Note: the effect is constant at the scale of the linear predictor.
 
 The model parameters are linear for $\eta$, not $\mu$!
 
-Ex: what happens when different aliens eat one additional human?
+What happens when different aliens eat one additional human?
 
 ```{r}
 (p.mu <- predict(fit_poiss, newdata = data.frame(humans_eaten = 1:5), type = "response"))
@@ -2167,7 +2167,7 @@ testDispersion(r2, plot = FALSE)  ## you can change options to test for underdis
 * there are specific solutions if the origin is zero-augmentation
 
 
-## Modeling simply overdispersion
+## Modeling simple overdispersion
 
 ### For Poisson
 
@@ -2280,7 +2280,7 @@ legend("topleft", fill = c("black", "red", "blue"), legend = c("Poisson", "Negat
 
 ### What is it?
 
-It occurs for any event when too many zeros occur.
+It occurs for any event when there are too many zeros.
 
 ### Why does it occur?
 
@@ -2413,7 +2413,7 @@ Note: parameter estimates confirm that both the hurdle and the zero-inflation fi
 
 ### What is it?
 
-Separation occurs when a level or combination of levels for categorical predictor, or when a particular threshold along a continuous predictor, predicts the outcomes perfectly.
+Separation occurs when a level (or combination of levels) for categorical predictor, or a particular threshold along a continuous predictor, predicts the outcomes perfectly.
 
 ### Complete or quasi separation?
 
