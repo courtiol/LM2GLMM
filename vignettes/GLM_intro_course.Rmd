@@ -2371,7 +2371,7 @@ Fit an **hurdle model**
 Fit a **zero-inflation model**
 
 * e.g. binomial + Poisson or negative binomial
-* two sources of zeros (modelled by binomial AND Poisson/negative binomial)
+* two sources of zeros (usually modelled by a binomial AND a Poisson or a negative binomial)
 * e.g. of response variable: number of viruses in individuals (0 for unexposed, 0 for exposed with strong immune system)
 
 Note: if you are not sure where the zeros come from, try both!
