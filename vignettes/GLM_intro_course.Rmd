@@ -395,7 +395,7 @@ If you use ```cbind``` AND prior weights, the prior weights considered in the mo
 
 ## What does the family object contain? `r .emo("info")`
 
-A lot of functions that will be used by `glm()` and friends:
+A lot of functions that will be used by `stats::glm()` and friends:
 
 ```{r}
 str(binomial(link = "logit"))
@@ -835,7 +835,7 @@ Note: you cannot use AIC in this case since the responses differ!
 
 ### You can predict outcomes for 2 different scales
 
-- for the scale of the **linear predictor** (default for glm), e.g.:
+- for the scale of the **linear predictor** (default for `stats::glm()`), e.g.:
 
 ```{r, predict_link_scale}
 predict(fit_binom, newdata = data.frame(humans_eaten = 1:5), type = "link")
@@ -2510,7 +2510,7 @@ Note: despite the very clear effect, the test does not detect it.
 
 ## The problem of separation in Binomial `r .emo("practice")`
 
-### Detection for `glm()` fits
+### Detection for `stats::glm()` fits
 
 ```{r safebin, error = TRUE, message = FALSE, warning = FALSE}
 library(safeBinaryRegression)  ## overload the glm function
@@ -2520,7 +2520,7 @@ detach(package:safeBinaryRegression) ## stop masking original glm()
 
 ## The problem of separation in Binomial `r .emo("practice")`
 
-### Detection for `fitme()` fits
+### Detection for `spaMM::fitme()` fits
 
 ```{r spaMM separ, error = TRUE}
 fit_separated_spaMM <- fitme(happy ~ sp, data = test, family = binomial())
