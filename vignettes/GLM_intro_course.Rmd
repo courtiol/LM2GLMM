@@ -907,7 +907,7 @@ summary(fit_binom)
 
 \pause
 
-```{r, predict_both_scales, echo = FALSE, fig.width = 3.5}
+```{r, predict_linear_scales, echo = FALSE, fig.width = 3.5}
 ggplot() +
   geom_abline(slope = coef(fit_binom)["humans_eaten"][[1]], intercept = coef(fit_binom)["(Intercept)"][[1]], linetype = "dashed") +
   geom_point(aes(y = link, x = humans_eaten, colour = factor(humans_eaten)), data = pred_data) +
