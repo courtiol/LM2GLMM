@@ -1558,7 +1558,7 @@ CIs are assumed symmetrical (i.e. Gaussian) on the **linear predictor scale** bu
 newdata <- data.frame(humans_eaten = 0:1)
 pred_wrong <- predict(fit_poiss, newdata = newdata, se.fit = TRUE, type = "response")
 lwr_eta <- pred_wrong$fit + qnorm(0.025) * pred_wrong$se.fit ## Wrong: for example purposes only
-upr_eta <- pred_wrong$fit + qnorm(0.975) * pred_wrong$se.fit
+upr_eta <- pred_wrong$fit + qnorm(0.975) * pred_wrong$se.fit ## Wrong: for example purposes only
 cbind(pred = pred_wrong$fit,
       lwr = lwr_eta,
       upr = upr_eta)
