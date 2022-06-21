@@ -2363,7 +2363,7 @@ Examples:
 Fit an **hurdle model**
 
 * e.g. binomial + truncated Poisson or truncated negative binomial
-* a single source of zeros (modelled by binomial)
+* a single source of zeros (usually modelled by a binomial)
 * e.g. of response variable: number of offspring
 
 <br>
