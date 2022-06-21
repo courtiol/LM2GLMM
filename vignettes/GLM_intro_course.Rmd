@@ -1557,8 +1557,8 @@ CIs are assumed symmetrical (i.e. Gaussian) on the **linear predictor scale** bu
 ```{r conf fitted poiss response}
 newdata <- data.frame(humans_eaten = 0:1)
 pred_wrong <- predict(fit_poiss, newdata = newdata, se.fit = TRUE, type = "response")
-lwr_eta <- pred_wrong$fit + qnorm(0.025) * pred_wrong$se.fit
-upr_eta <- pred_wrong$fit + qnorm(0.975) * pred_wrong$se.fit
+lwr_eta <- pred_wrong$fit + qnorm(0.025) * pred_wrong$se.fit ## Wrong: for example purposes only
+upr_eta <- pred_wrong$fit + qnorm(0.975) * pred_wrong$se.fit ## Wrong: for example purposes only
 cbind(pred = pred_wrong$fit,
       lwr = lwr_eta,
       upr = upr_eta)
@@ -2344,7 +2344,7 @@ legend("topleft", fill = c("black", "red", "blue"), legend = c("Poisson", "Negat
 
 ### What is it?
 
-It occurs for any event when there are too many zeros.
+It occurs for when there are more zeros than expected under the probability distribution of the data generation process.
 
 ### Why does it occur?
 
@@ -2363,7 +2363,7 @@ Examples:
 Fit an **hurdle model**
 
 * e.g. binomial + truncated Poisson or truncated negative binomial
-* a single source of zeros (modelled by binomial)
+* a single source of zeros (usually modelled by a binomial)
 * e.g. of response variable: number of offspring
 
 <br>
@@ -2371,7 +2371,7 @@ Fit an **hurdle model**
 Fit a **zero-inflation model**
 
 * e.g. binomial + Poisson or negative binomial
-* two sources of zeros (modelled by binomial AND Poisson/negative binomial)
+* two sources of zeros (usually modelled by a binomial AND a Poisson or a negative binomial)
 * e.g. of response variable: number of viruses in individuals (0 for unexposed, 0 for exposed with strong immune system)
 
 Note: if you are not sure where the zeros come from, try both!
