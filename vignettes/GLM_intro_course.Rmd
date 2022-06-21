@@ -2344,7 +2344,7 @@ legend("topleft", fill = c("black", "red", "blue"), legend = c("Poisson", "Negat
 
 ### What is it?
 
-It occurs for any event when there are too many zeros.
+It occurs for when there are more zeros than expected under the probability distribution of the data generation process.
 
 ### Why does it occur?
 
