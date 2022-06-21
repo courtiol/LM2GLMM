@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{2.1 Fitting procedures}
+  %\VignetteIndexEntry{2.1 LM: Fitting procedures ---------------------------------------course}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 

@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{2.2 Tests & Intervals}
+  %\VignetteIndexEntry{2.2 LM: Tests & Intervals ----------------------------------------course}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 

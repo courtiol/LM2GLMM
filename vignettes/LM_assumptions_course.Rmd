@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{2.3 Assumptions and Outliers}
+  %\VignetteIndexEntry{2.3 LM: Assumptions and Outliers ------------------------------course}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 

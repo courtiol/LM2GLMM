@@ -7,7 +7,7 @@ output:
   html_vignette:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{2.0 z-------------------------------------------------------------solutions}
+  %\VignetteIndexEntry{2.0 LM: Introduction -------------------------------------------solutions}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 

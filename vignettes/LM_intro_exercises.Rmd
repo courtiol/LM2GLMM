@@ -8,7 +8,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{2.0 z-------------------------------------------------------------exercises}
+  %\VignetteIndexEntry{2.0 LM: Introduction -------------------------------------------exercises}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---

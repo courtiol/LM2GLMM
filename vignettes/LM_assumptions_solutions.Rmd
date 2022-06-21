@@ -8,7 +8,7 @@ output:
     toc: true
 vignette: >
   %\VignetteEncoding{UTF-8}
-  %\VignetteIndexEntry{2.3 z-------------------------------------------------------------solutions}
+  %\VignetteIndexEntry{2.3 LM: Assumptions and Outliers ---------------------------solutions}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console

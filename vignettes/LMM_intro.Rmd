@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{4.0 Linear Mixed-effects Models & Generalized Linear Mixed-effects Models }
+  %\VignetteIndexEntry{4.0 MM: Introduction ---------------------------------------------course}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options:

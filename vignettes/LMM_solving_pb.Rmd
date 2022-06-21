@@ -7,7 +7,7 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{4.1 Solving LM problems using LMM}
+  %\VignetteIndexEntry{4.1 MM: Solving LM problems using LMM ------------------course}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
