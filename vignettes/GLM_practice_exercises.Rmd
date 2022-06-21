@@ -21,8 +21,8 @@ knitr::opts_chunk$set(cache = FALSE, fig.width = 5, fig.height = 5, fig.align = 
 
 ## The Generalized Linear Model: GLM
 
-* 3.0 [Introduction](./GLM_intro.html)
-* 3.1 [Let's practice](./GLM_practice.html)
+* 3.0 [Introduction](./GLM_intro_cource.html)
+* 3.1 [Let's practice](./GLM_practice_exercises.html)
 
 <br>
 
@@ -31,87 +31,93 @@ knitr::opts_chunk$set(cache = FALSE, fig.width = 5, fig.height = 5, fig.align = 
 </div>
 
 
-## Dataset: InsectSprays
+## Dataset: InsectSprays (difficulty = ?/5) `r .emo("practice")`
 
 ```{r InsectSprays}
 head(InsectSprays, n = 3)
 levels(InsectSprays$spray)
 ```
 
-### Goal
+<br>
 
-* Compare the effectiveness of various insecticides on the number of insects in agricultural experimental units.
-* What is the efficiency of spray C?
-* Compare results between the LM approach (with and without BoxCox transformation) and the GLM approach.
+`r .emo("goal")` Compare the effectiveness of various insecticides on the number of insects in agricultural experimental units.
+
+`r .emo("goal")` What is the efficiency of spray C?
+
+`r .emo("goal")` Compare results between the LM approach (with and without BoxCox transformation) to those from the GLM approach.
 
 
-## Dataset: Surprise
+## Dataset: Surprise (difficulty = ?/5) `r .emo("practice")`
 
 ```{r}
 head(Surprise)
 ```
 
-### Goal
+<br>
 
-* Do children value more the type of the present, the cost of the present, or both?
+`r .emo("goal")` Do children value more the type of the present, the cost of the present, or both?
 
-## Dataset: esoph
+## Dataset: esoph (difficulty = ?/5) `r .emo("practice")`
 
 ```{r}
 head(esoph)
 ```
 
-### Goal
+<br>
 
-* Find out whether you should rather limit alcohol consumption or tabacco consumption in order to avoid developing an oesophageal cancer?
+`r .emo("goal")` Find out whether you should rather limit alcohol consumption or tabacco consumption in order to avoid developing an oesophageal cancer?
 
 
-## Dataset: TitanicSurvival
+## Dataset: TitanicSurvival (difficulty = ?/5) `r .emo("practice")`
 
 ```{r}
 head(TitanicSurvival)
 ```
 
-### Goal
+<br>
 
-* Find out who mostly survived and who mostly died during the Titanic disaster of 1912.
-* Compute the odds-ratio for survival between the two most contrasting groups of individuals. 
+`r .emo("goal")` Find out who mostly survived and who mostly died during the Titanic disaster of 1912.
+
+`r .emo("goal")` Compute the odds-ratio for survival between the two most contrasting groups of individuals. 
 
 
-## Dataset: Challenger
+## Dataset: Challenger (difficulty = ?/5) `r .emo("practice")`
 
 ```{r}
 head(Challenger)
 ```
 
-### Goal
+<br>
 
-* What was the probability of O-ring failure when the space shuttle Challenger took off on the 28th of January 1986 by 31 degrees F?
+`r .emo("goal")` What was the probability of O-ring failure when the space shuttle Challenger took off on the 28th of January 1986 by 31 degrees F?
 
 
-## Dataset: UK
+## Dataset: UK (difficulty = ?/5) `r .emo("practice")`
 
 ```{r}
 UK[1:2, ]
 ```
 
-### Goal
+<br>
 
-* Try to identify the influential determinants of the smoking behaviour of children.
-* Try to identify the influential determinants of bronchitis in children.
-* Try to identify the influential determinants of the variable ```backward```.
+`r .emo("goal")` Try to identify the influential determinants of the smoking behaviour of children.
+
+`r .emo("goal")` Try to identify the influential determinants of bronchitis in children.
+
+`r .emo("goal")` Try to identify the influential determinants of the variable ```backward```.
 
 
-## Dataset: HSE98women
+## Dataset: HSE98women (difficulty = ?/5) `r .emo("practice")`
 
 ```{r}
 head(HSE98women)
 ```
 
-### Goal
+<br>
 
-* Study the influences of age, body mass index and smoking status upon the probability of being menopaused
-* Estimate the proportion of menopaused women in the population, depending on their age (40, 45, 50, 55, 60 yrs)
+`r .emo("goal")` Study the influences of age, body mass index and smoking status upon the probability of being menopaused.
+
+`r .emo("goal")` Estimate the proportion of menopaused women in the population, depending on their age (40, 45, 50, 55, 60 yrs).
 
 # Solutions
 
@@ -119,7 +125,7 @@ head(HSE98women)
 
 <br>
 
-You can find the solution to all problems [here](./Exercise_Practice_GLM.html).
+You can find the solution to all problems [here](./GLM_practice_solution.html).
 
 Give it a good try before checking how I did it!
 
@@ -128,8 +134,8 @@ Give it a good try before checking how I did it!
 
 ## The Generalized Linear Model: GLM
 
-* 3.0 [Introduction](./GLM_intro.html)
-* 3.1 [Let's practice](./GLM_practice.html)
+* 3.0 [Introduction](./GLM_intro_cource.html)
+* 3.1 [Let's practice](./GLM_practice_exercises.html)
 
 <br>
 
