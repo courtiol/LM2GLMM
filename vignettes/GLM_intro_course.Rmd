@@ -82,9 +82,9 @@ with:
 
 This is identical to the LM if:
 
-* $\mu = g^{-1}(\eta) = \eta$, thus if $g$ is the *identity* function
-* $\phi = \sigma^2$, thus if the dispersion parameter equals the error variance
-* $\text{V}(\mu) = 1$, thus if the variance function is constant
+* $\mu = g^{-1}(\eta) = \eta$, where $g$ is the *identity* function
+* $\phi = \sigma^2$, the dispersion parameter equals the error variance
+* $\text{V}(\mu) = 1$, the variance function is constant
 
 <br>
 
@@ -155,7 +155,7 @@ Aliens <- simulate_Aliens_GLM(N = 20)
 head(Aliens)
 ```
 
-The true parameter values are stored as attributes if you need them" `r .emo("nerd")`
+The true parameter values are stored as attributes if you need them `r .emo("nerd")`
 ```{r attributes}
 attributes(Aliens)$param.eta$blue_eyes  ## to get back the parameters
 ```
@@ -395,7 +395,7 @@ If you use ```cbind``` AND prior weights, the prior weights considered in the mo
 
 ## What does the family object contain? `r .emo("info")`
 
-A lot of functions that will be used by `glm()` and friends:
+A lot of functions that will be used by `stats::glm()` and friends:
 
 ```{r}
 str(binomial(link = "logit"))
@@ -745,7 +745,7 @@ fit_lm <- lm(log(eggs) ~ humans_eaten, data = manyAliens) ## fails due to log(0)
 
 ```{r}
 fit_lm2 <- lm(log(eggs+1) ~ humans_eaten, data = manyAliens) ## runs since no longer 0s
-fit_glm <- glm(eggs ~ humans_eaten, family = poisson(), data = manyAliens, )
+fit_glm <- glm(eggs ~ humans_eaten, family = poisson(), data = manyAliens)
 rbind(ground_truth = attr(manyAliens, "param.eta")$eggs,
       GLM_Poisson = fit_glm$coefficients,
       LM = fit_lm2$coefficients)
@@ -805,7 +805,7 @@ round(rbind(
   GLM = c(mean(simu[3, ]), sd(simu[3, ]), mean(simu[4, ]), sd(simu[4, ]))), 3)
 ```
 
-Note: here `fit_glm` corresponds the simulation model, so the estimates produced are better than the alternatives.
+Note: here `fit_glm` corresponds to the simulation model, so the estimates produced are better than the alternatives.
 
 
 ## How to compare LM and GLM? `r .emo("practice")`
@@ -835,7 +835,7 @@ Note: you cannot use AIC in this case since the responses differ!
 
 ### You can predict outcomes for 2 different scales
 
-- for the scale of the **linear predictor**, e.g.:
+- for the scale of the **linear predictor** (default for `stats::glm()`), e.g.:
 
 ```{r, predict_link_scale}
 predict(fit_binom, newdata = data.frame(humans_eaten = 1:5), type = "link")
@@ -899,6 +899,11 @@ p1 + p2 + p3
 
 The predictions on the linear scale work just as we saw it for LMs.
 
+How do we interpret the coefficients on the *linear* scale?
+
+```{r}
+fit_binom
+```
 
 ## Predictions on the response scale `r .emo("info")`
 
@@ -933,9 +938,9 @@ fit_titanic <- glm(survived ~ sex*age*passengerClass, data = TitanicSurvival, fa
 - Naive (incorrect) computation of the mean survival for all sex - class combinations:
 
 ```{r,  prediction_of_means2}
-newdata1 <- expand.grid(sex = levels(fit_titanic$model$sex),
-                        passengerClass = levels(fit_titanic$model$passengerClass),
-                        age = mean(fit_titanic$model$age))
+newdata1 <- expand.grid(sex = levels(model.frame(fit_titanic)$sex),
+                        passengerClass = levels(model.frame(fit_titanic)$passengerClass),
+                        age = mean(model.frame(fit_titanic)$age))
 preds1 <- predict(fit_titanic, newdata = newdata1, type = "response")
 cbind(newdata1, survival = preds1)
 ```
@@ -951,11 +956,13 @@ fit_titanic <- glm(survived ~ sex*age*passengerClass, data = TitanicSurvival, fa
 - More accurate (marginal) computation of the mean survival for all sex - class combinations:
 
 ```{r,  prediction_of_means3, message=FALSE}
-newdata2 <- expand.grid(sex = levels(fit_titanic$model$sex),
-                        passengerClass = levels(fit_titanic$model$passengerClass),
-                        age = fit_titanic$model$age)
+newdata2 <- expand.grid(sex = levels(model.frame(fit_titanic)$sex),
+                        passengerClass = levels(model.frame(fit_titanic)$passengerClass),
+                        age = model.frame(fit_titanic)$age)
 preds2 <- cbind(newdata2, survival = predict(fit_titanic, newdata = newdata2, type = "response"))
-aggregate(survival ~ sex + passengerClass, data = preds2, FUN = mean)
+output <- aggregate(survival ~ sex + passengerClass, data = preds2, FUN = mean)
+output$wrong_survival <- preds1
+output
 ```
 
 ## Predictions on the response scale `r .emo("practice")`
@@ -969,10 +976,14 @@ fit_titanic <- glm(survived ~ sex*age*passengerClass, data = TitanicSurvival, fa
 - More accurate (conditional) computation of the mean survival for all sex - class combinations:
 
 ```{r,  prediction_of_means4}
-newdata3 <- aggregate(age ~ sex + passengerClass, data = fit_titanic$model, FUN = identity)
+wrong_data <- aggregate(age ~ sex + passengerClass, data = model.frame(fit_titanic), FUN = mean) #Predict at the mean of predictors. Incorrect
+wrong_pred <- predict(fit_titanic, newdata = wrong_data, type = "response")
+newdata3 <- aggregate(age ~ sex + passengerClass, data = model.frame(fit_titanic), FUN = identity) #Mean prediction across predictor values. Correct
 newdata3 <- tidyr::unnest(newdata3, cols = age) ## unnest the list column storing ages
 preds3 <- cbind(newdata3, survival = predict(fit_titanic, newdata = newdata3, type = "response"))
-aggregate(survival ~ sex + passengerClass, data = preds3, FUN = mean)
+output <- aggregate(survival ~ sex + passengerClass, data = preds3, FUN = mean)
+output$wrong_survival <- wrong_pred
+output
 ```
 
 
@@ -1005,7 +1016,7 @@ fit_titanic_spaMM <- fitme(survived ~ sex*age*passengerClass, data = TitanicSurv
 
 Doing the same by hand:
 ```{r,  prediction_of_means6}
-newdata1 <- newdata2 <- newdata3 <- fit_titanic_spaMM$data ## same as fit_titanic$model
+newdata1 <- newdata2 <- newdata3 <- model.frame(fit_titanic_spaMM)
 newdata1["passengerClass"] <- "1st"
 newdata2["passengerClass"] <- "2nd"
 newdata3["passengerClass"] <- "3rd"
@@ -1030,7 +1041,7 @@ aggregate(survival ~ passengerClass, data = preds, FUN = mean)
 
 ```{r}
 coef(fit_poiss)
-predict(fit_poiss, newdata = data.frame(humans_eaten = 10))
+predict(fit_poiss, newdata = data.frame(humans_eaten = 10)) #Linear predictor scale by default
 coef(fit_poiss)[1] + 10 * coef(fit_poiss)[2]
 ```
 
@@ -1054,10 +1065,10 @@ This is the average number of eggs predicted for aliens eating 10 humans.
 
 The model parameters are linear for $\eta$, not $\mu$!
 
-Ex: what happens when different aliens eat one additional human?
+What happens when different aliens eat one additional human?
 
 ```{r}
-(p.eta <- predict(fit_poiss, newdata = data.frame(humans_eaten = 1:5)))
+(p.eta <- predict(fit_poiss, newdata = data.frame(humans_eaten = 1:5))) #Linear predictor scale by default
 diff(p.eta)
 ```
 
@@ -1070,7 +1081,7 @@ Note: the effect is constant at the scale of the linear predictor.
 
 The model parameters are linear for $\eta$, not $\mu$!
 
-Ex: what happens when different aliens eat one additional human?
+What happens when different aliens eat one additional human?
 
 ```{r}
 (p.mu <- predict(fit_poiss, newdata = data.frame(humans_eaten = 1:5), type = "response"))
@@ -1427,9 +1438,9 @@ par(las = 1)
 plot(ecdf(pv["F", ]), col = "blue", cex = 0.5, main = "")
 plot(ecdf(pv["LR", ]), col = "green", add = TRUE, cex = 0.5)
 plot(ecdf(pv_boot["Bart", ]), col = "orange", add = TRUE, cex = 0.5)
-plot(ecdf(pv_boot["raw", ]), col = "purple", add = TRUE, cex = 0.5)
-legend("topleft", fill = c("blue", "green", "orange", "purple"), legend = c("F", "LR", "Param boot Bartlett", "Param boot raw"), bty = "n")
-abline(0, 1, col = "red", lty = 2, lwd = 2)
+plot(ecdf(pv_boot["raw", ]), col = "red", add = TRUE, cex = 0.5)
+legend("topleft", fill = c("blue", "green", "orange", "red"), legend = c("F", "LR", "Param boot Bartlett", "Param boot raw"), bty = "n")
+abline(0, 1, col = "black", lty = 2, lwd = 2)
 ```
 
 
@@ -1442,9 +1453,9 @@ par(las = 1)
 plot(ecdf(pv["F", ]), xlim = c(0, 0.1), ylim = c(0, 0.1), col = "blue", cex = 0.5, main = "")
 plot(ecdf(pv["LR", ]), col = "green", add = TRUE, cex = 0.5)
 plot(ecdf(pv_boot["Bart", ]), col = "orange", add = TRUE, cex = 0.5)
-plot(ecdf(pv_boot["raw", ]), col = "purple", add = TRUE, cex = 0.5)
-legend("topleft", fill = c("blue", "green", "orange", "purple"), legend = c("F", "LR", "Param boot Bartlett", "Param boot raw"), bty = "n")
-abline(0, 1, col = "red", lty = 2, lwd = 2)
+plot(ecdf(pv_boot["raw", ]), col = "red", add = TRUE, cex = 0.5)
+legend("topleft", fill = c("blue", "green", "orange", "red"), legend = c("F", "LR", "Param boot Bartlett", "Param boot raw"), bty = "n")
+abline(0, 1, col = "black", lty = 2, lwd = 2)
 ```
 Note: here the F-test and asymptotic LRT are **anticonservative** `r .emo("warn")`
 
@@ -1529,15 +1540,68 @@ newdata <- data.frame(humans_eaten = 3:4)
 pred <- predict(fit_poiss, newdata = newdata, se.fit = TRUE)
 lwr_eta <- pred$fit + qnorm(0.025) * pred$se.fit
 upr_eta <- pred$fit + qnorm(0.975) * pred$se.fit
-cbind(lwr = poisson(link = "log")$linkinv(lwr_eta),
+cbind(pred = poisson(link = "log")$linkinv(pred$fit),
+      lwr = poisson(link = "log")$linkinv(lwr_eta),
       upr = poisson(link = "log")$linkinv(upr_eta))
 ```
 Notes:
 
-- you cannot use `type = "response"` in `predict()` because transformations need to happen after CI are computed!
+- don't use `type = "response"` in `predict()` because transformations need to happen after CI are computed!
 
 - for proper predictions involving more predictors, better use `pdep_effects()` on a model fitted with **{spaMM}** `r .emo("recap")`
 
+## CI using Gaussian approximation `r .emo("practice")`
+
+CIs are assumed symmetrical (i.e. Gaussian) on the **linear predictor scale** but not on the **response scale**.
+
+```{r conf fitted poiss response}
+newdata <- data.frame(humans_eaten = 0:1)
+pred_wrong <- predict(fit_poiss, newdata = newdata, se.fit = TRUE, type = "response")
+lwr_eta <- pred_wrong$fit + qnorm(0.025) * pred_wrong$se.fit ## Wrong: for example purposes only
+upr_eta <- pred_wrong$fit + qnorm(0.975) * pred_wrong$se.fit ## Wrong: for example purposes only
+cbind(pred = pred_wrong$fit,
+      lwr = lwr_eta,
+      upr = upr_eta)
+```
+
+## CI using Gaussian approximation `r .emo("practice")`
+
+CIs are assumed symmetrical (i.e. Gaussian) on the **linear predictor scale** but not on the **response scale**.
+
+```{r, fig.width = 6, fig.height = 4, echo = FALSE}
+newdata <- data.frame(humans_eaten = 0:1)
+#Correct method. CIs on linear predictor scale
+pred <- predict(fit_poiss, newdata = newdata, se.fit = TRUE)
+lwr_eta <- pred$fit + qnorm(0.025) * pred$se.fit
+upr_eta <- pred$fit + qnorm(0.975) * pred$se.fit
+plot_data <- data.frame(humans_eaten = 0:1,
+                        eggs = poisson(link = "log")$linkinv(pred$fit),
+                        lwr = poisson(link = "log")$linkinv(lwr_eta),
+                        upr = poisson(link = "log")$linkinv(upr_eta),
+                        method = "link")
+#Wrong method. CIs on response scale
+pred_wrong <- predict(fit_poiss, newdata = newdata, se.fit = TRUE, type = "response")
+lwr_eta <- pred_wrong$fit + qnorm(0.025) * pred_wrong$se.fit
+upr_eta <- pred_wrong$fit + qnorm(0.975) * pred_wrong$se.fit
+plot_data <- rbind(plot_data,
+                   data.frame(humans_eaten = 0:1,
+                              eggs = pred_wrong$fit,
+                              lwr = lwr_eta,
+                              upr = upr_eta,
+                              method = "response"))
+
+ggplot(data = plot_data) +
+  geom_hline(yintercept = 0) +
+  geom_errorbar(aes(x = humans_eaten, ymin = lwr, ymax = upr, group = method),
+                width = 0.25, position = position_dodge(width = 0.25)) +
+  geom_point(aes(x = humans_eaten, y = eggs, group = method, shape = method),
+             size = 3, fill = "grey",
+             position = position_dodge(width = 0.25)) +
+  scale_shape_discrete(labels = c("Linear predictor scale", "Response scale"), name = "") +
+  scale_x_continuous(breaks = c(0, 1)) +
+  theme_classic()
+
+```
 
 ## CI using Gaussian approximation `r .emo("practice")`
 
@@ -2167,7 +2231,7 @@ testDispersion(r2, plot = FALSE)  ## you can change options to test for underdis
 * there are specific solutions if the origin is zero-augmentation
 
 
-## Modeling simply overdispersion
+## Simple modeling of overdispersion
 
 ### For Poisson
 
@@ -2280,7 +2344,7 @@ legend("topleft", fill = c("black", "red", "blue"), legend = c("Poisson", "Negat
 
 ### What is it?
 
-It occurs for any event when too many zeros occur.
+It occurs for when there are more zeros than expected under the probability distribution of the data generation process.
 
 ### Why does it occur?
 
@@ -2299,7 +2363,7 @@ Examples:
 Fit an **hurdle model**
 
 * e.g. binomial + truncated Poisson or truncated negative binomial
-* a single source of zeros
+* a single source of zeros (usually modelled by a binomial)
 * e.g. of response variable: number of offspring
 
 <br>
@@ -2307,7 +2371,7 @@ Fit an **hurdle model**
 Fit a **zero-inflation model**
 
 * e.g. binomial + Poisson or negative binomial
-* two sources of zeros
+* two sources of zeros (usually modelled by a binomial AND a Poisson or a negative binomial)
 * e.g. of response variable: number of viruses in individuals (0 for unexposed, 0 for exposed with strong immune system)
 
 Note: if you are not sure where the zeros come from, try both!
@@ -2413,7 +2477,7 @@ Note: parameter estimates confirm that both the hurdle and the zero-inflation fi
 
 ### What is it?
 
-Separation occurs when a level or combination of levels for categorical predictor, or when a particular threshold along a continuous predictor, predicts the outcomes perfectly.
+Separation occurs when a level (or combination of levels) for categorical predictor, or a particular threshold along a continuous predictor, predicts the outcomes perfectly.
 
 ### Complete or quasi separation?
 
@@ -2446,7 +2510,7 @@ Note: despite the very clear effect, the test does not detect it.
 
 ## The problem of separation in Binomial `r .emo("practice")`
 
-### Detection for `glm()` fits
+### Detection for `stats::glm()` fits
 
 ```{r safebin, error = TRUE, message = FALSE, warning = FALSE}
 library(safeBinaryRegression)  ## overload the glm function
@@ -2456,7 +2520,7 @@ detach(package:safeBinaryRegression) ## stop masking original glm()
 
 ## The problem of separation in Binomial `r .emo("practice")`
 
-### Detection for `fitme()` fits
+### Detection for `spaMM::fitme()` fits
 
 ```{r spaMM separ, error = TRUE}
 fit_separated_spaMM <- fitme(happy ~ sp, data = test, family = binomial())
