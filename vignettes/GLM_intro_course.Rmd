@@ -1563,6 +1563,54 @@ Notes:
 
 - for proper predictions involving more predictors, better use `pdep_effects()` on a model fitted with **{spaMM}** `r .emo("recap")`
 
+## CI using Gaussian approximation `r .emo("practice")`
+
+CIs are assumed symmetrical (i.e. Gaussian) on the **linear predictor scale** but not on the **response scale**.
+
+```{r conf fitted poiss}
+newdata <- data.frame(humans_eaten = 0:1)
+pred_wrong <- predict(fit_poiss, newdata = newdata, se.fit = TRUE, type = "response")
+lwr_eta <- pred_wrong$fit + qnorm(0.025) * pred_wrong$se.fit
+upr_eta <- pred_wrong$fit + qnorm(0.975) * pred_wrong$se.fit
+cbind(pred = pred_wrong$fit,
+      lwr = lwr_eta,
+      upr = upr_eta)
+```
+
+```{r, fig.width = 4, echo = FALSE}
+newdata <- data.frame(humans_eaten = 0:1)
+#Correct method. CIs on linear predictor scale
+pred <- predict(fit_poiss, newdata = newdata, se.fit = TRUE)
+lwr_eta <- pred$fit + qnorm(0.025) * pred$se.fit
+upr_eta <- pred$fit + qnorm(0.975) * pred$se.fit
+plot_data <- data.frame(humans_eaten = 0:1,
+                        eggs = poisson(link = "log")$linkinv(pred$fit),
+                        lwr = poisson(link = "log")$linkinv(lwr_eta),
+                        upr = poisson(link = "log")$linkinv(upr_eta),
+                        method = "link")
+#Wrong method. CIs on response scale
+pred_wrong <- predict(fit_poiss, newdata = newdata, se.fit = TRUE, type = "response")
+lwr_eta <- pred_wrong$fit + qnorm(0.025) * pred_wrong$se.fit
+upr_eta <- pred_wrong$fit + qnorm(0.975) * pred_wrong$se.fit
+plot_data <- rbind(plot_data,
+                   data.frame(humans_eaten = 0:1,
+                              eggs = pred_wrong$fit,
+                              lwr = lwr_eta,
+                              upr = upr_eta,
+                              method = "response"))
+
+ggplot(data = plot_data) +
+  geom_hline(yintercept = 0) +
+  geom_errorbar(aes(x = humans_eaten, ymin = lwr, ymax = upr, group = method),
+                width = 0.25, position = position_dodge(width = 0.25)) +
+  geom_point(aes(x = humans_eaten, y = eggs, group = method, shape = method),
+             size = 3, fill = "grey",
+             position = position_dodge(width = 0.25)) +
+  scale_shape_discrete(labels = c("Linear predictor scale", "Response scale"), name = "") +
+  scale_x_continuous(breaks = c(3, 4)) +
+  theme_classic()
+
+```
 
 ## CI using Gaussian approximation `r .emo("practice")`
 
