@@ -1567,7 +1567,7 @@ Notes:
 
 CIs are assumed symmetrical (i.e. Gaussian) on the **linear predictor scale** but not on the **response scale**.
 
-```{r conf fitted poiss}
+```{r conf fitted poiss response}
 newdata <- data.frame(humans_eaten = 0:1)
 pred_wrong <- predict(fit_poiss, newdata = newdata, se.fit = TRUE, type = "response")
 lwr_eta <- pred_wrong$fit + qnorm(0.025) * pred_wrong$se.fit
