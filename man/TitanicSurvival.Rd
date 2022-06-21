@@ -13,7 +13,7 @@ A data frame with 1309 observations on the following 4 variables. \describe{
 }
 \source{
 Data set \code{titanic3} from
-\url{http://biostat.mc.vanderbilt.edu/twiki/bin/view/Main/DataSets}.
+\url{https://biostat.app.vumc.org/wiki/Main/DataSets}.
 }
 \usage{
 TitanicSurvival
