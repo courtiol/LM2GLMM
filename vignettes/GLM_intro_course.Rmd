@@ -1451,9 +1451,9 @@ par(las = 1)
 plot(ecdf(pv["F", ]), col = "blue", cex = 0.5, main = "")
 plot(ecdf(pv["LR", ]), col = "green", add = TRUE, cex = 0.5)
 plot(ecdf(pv_boot["Bart", ]), col = "orange", add = TRUE, cex = 0.5)
-plot(ecdf(pv_boot["raw", ]), col = "purple", add = TRUE, cex = 0.5)
-legend("topleft", fill = c("blue", "green", "orange", "purple"), legend = c("F", "LR", "Param boot Bartlett", "Param boot raw"), bty = "n")
-abline(0, 1, col = "red", lty = 2, lwd = 2)
+plot(ecdf(pv_boot["raw", ]), col = "red", add = TRUE, cex = 0.5)
+legend("topleft", fill = c("blue", "green", "orange", "red"), legend = c("F", "LR", "Param boot Bartlett", "Param boot raw"), bty = "n")
+abline(0, 1, col = "black", lty = 2, lwd = 2)
 ```
 
 
@@ -1466,9 +1466,9 @@ par(las = 1)
 plot(ecdf(pv["F", ]), xlim = c(0, 0.1), ylim = c(0, 0.1), col = "blue", cex = 0.5, main = "")
 plot(ecdf(pv["LR", ]), col = "green", add = TRUE, cex = 0.5)
 plot(ecdf(pv_boot["Bart", ]), col = "orange", add = TRUE, cex = 0.5)
-plot(ecdf(pv_boot["raw", ]), col = "purple", add = TRUE, cex = 0.5)
-legend("topleft", fill = c("blue", "green", "orange", "purple"), legend = c("F", "LR", "Param boot Bartlett", "Param boot raw"), bty = "n")
-abline(0, 1, col = "red", lty = 2, lwd = 2)
+plot(ecdf(pv_boot["raw", ]), col = "red", add = TRUE, cex = 0.5)
+legend("topleft", fill = c("blue", "green", "orange", "red"), legend = c("F", "LR", "Param boot Bartlett", "Param boot raw"), bty = "n")
+abline(0, 1, col = "black", lty = 2, lwd = 2)
 ```
 Note: here the F-test and asymptotic LRT are **anticonservative** `r .emo("warn")`
 
