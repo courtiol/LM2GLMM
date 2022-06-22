@@ -327,9 +327,7 @@ fit_esoph_cauchit <- glm(cbind(ncases, ncontrols) ~ agegp_f + alcgp_f + tobgp_f,
                          family = binomial(link = "cauchit"))
 fit_esoph_probit <- glm(cbind(ncases, ncontrols) ~ agegp_f + alcgp_f + tobgp_f, data = esoph,
                         family = binomial(link = "probit"))
-c(fit_esoph_logit = deviance(fit_esoph_logit),
-  fit_esoph_cauchit = deviance(fit_esoph_cauchit),
-  fit_esoph_probit = deviance(fit_esoph_probit)) ## you could also use AIC
+AIC(fit_esoph_logit, fit_esoph_cauchit, fit_esoph_probit) ## you could also deviance
 ```
 
 The probit link function leads to a model fitting the data best, so we will use it.
@@ -571,10 +569,10 @@ fit_esoph_probit4 <- glm(cbind(ncases, ncontrols) ~ agegp_f + alc_num + tob_num,
                          family = binomial(link = "probit"))
 plot(simulateResiduals(fit_esoph_probit4, n = 1000))
 car::crPlots(fit_esoph_probit4) ## partial residuals (to check linearity, albeit somewhat redundant with polynomial contrasts)
-rbind(factors = AIC(fit_esoph_probit),
-      interaction = AIC(fit_esoph_probit2b),
-      poly = AIC(fit_esoph_probit3),
-      linear = AIC(fit_esoph_probit4))
+AIC(fit_esoph_probit,
+    fit_esoph_probit2b,
+    fit_esoph_probit3,
+    fit_esoph_probit4)
 confint(fit_esoph_probit4)
 ```
 
