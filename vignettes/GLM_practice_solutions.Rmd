@@ -15,27 +15,26 @@ editor_options:
 ---
 ```{r setup, include=FALSE}
 library(LM2GLMM)
-knitr::opts_chunk$set(cache = TRUE, fig.align = "center", fig.width = 6, fig.height = 6,
+knitr::opts_chunk$set(cache = TRUE, fig.align = "center", fig.width = 7, fig.height = 6,
                       cache.path = "./cache_knitr/Exo_GLM_solution/", fig.path = "./fig_knitr/Exo_GLM_solution/")
-options(width = 200)
+options(width = 100, rmarkdown.html_vignette.check_title = FALSE)
 ```
 
 ## Disclamer
 
-In this vignette I illustrate the key steps required to solve the exercises. By no means I am trying to provide a detailed report of the analysis of each dataset. I am trying to put emphasis on different things you could do in the different exercise. Any final real report would need additional analyses and results would have to be written in good English, not in telegraphic style or lines of codes. I have also written this vignette very quickly, so double check I did not mess anything up...
-
+In this vignette I illustrate the key steps required to solve the exercises. By no means I am trying to provide a detailed report of the analysis of each dataset. Any such report may need additional analyses and results would have to be written in good English, not in telegraphic style or lines of codes.
 
 <br>
 
-# Dataset: InsectSprays
+# Dataset: InsectSprays (difficulty = 2/5)
 
-## Goal
+`r .emo("goal")`  Compare the effectiveness of various insecticides on the number of insects in agricultural experimental units.
 
-* Compare the effectiveness of various insecticides on the number of insects in agricultural experimental units.
-* What is the efficiency of spray C?
-* Compare results between the LM approach (with and without BoxCox transformation) and the GLM approach.
+`r .emo("goal")` What is the efficiency of spray C?
 
-Note: I will not check the assumptions for LM, nor detail the dataset (and plotting variables) since we did it before.
+`r .emo("goal")` Compare results between the LM approach (with and without BoxCox transformation) and the GLM approach.
+
+Note: I will not check the assumptions for LM, nor detail the dataset (and plotting variables) since we did it before (see [LM exercises](./LM_practice_solutions.html)).
 
 
 ## Fitting the models
@@ -66,72 +65,74 @@ fit_insect_glm <- glm(count ~ spray, data = InsectSprays, family = poisson())
 
 All assumptions about model structure have been checked before (see exercises for LM).
 
-We still have to test for lack of serial auto-correlation and independance:
+We still have to test all assumptions about the errors.
 
 ```{r insect_glm_resid}
 library(DHARMa)
 insect_glm_resid <- simulateResiduals(fit_insect_glm, n = 1000)
-plot(insect_glm_resid)
-testUniformity(insect_glm_resid)
-plot(insect_glm_resid)
-testTemporalAutocorrelation(insect_glm_resid, time = order(fitted(fit_insect_glm)))
+plot(insect_glm_resid) ## many tests at once
 ```
 
-All look good. We also have to test for the goodness of fit:
+This reveals one issue concerning the dispersion.
+Let's thus look at this in more details:
 
-```{r over}
-testOverdispersion(insect_glm_resid, alternative = "two.sided")
+```{r insect_glm_resid2}
+testDispersion(insect_glm_resid)
 ```
 
-There seem to be slight overdispersion :-(
+The dispersion value is higher than expected, so there is slight overdispersion.
 
+Let's attempt to solve this issue before testing other assumptions.
 
 ## Solving the overdispersion issue
 
 Is the overdispersion caused by two many zeros?
 
 ```{r}
-table(fit_insect_glm$model$count)
+table(fit_insect_glm$model$count) ## we count the zeros and other counts
 testZeroInflation(insect_glm_resid)
 ```
 
-nope...
+nope... the number of observed zeros matches the expectation of the model.
 
-Let's try to fit alternative models to account for the overdispersion:
+Let's try to fit an alternative model to account for the overdispersion:
 
 ```{r}
-fit_insect_glm_quasi <- glm(count ~ spray, data = InsectSprays, family = quasipoisson())
 library(spaMM)
 fit_insect_glm_nb <- fitme(count ~ spray, data = InsectSprays, family = spaMM::negbin())
-rbind(deviance(fit_insect_glm),
-      deviance(fit_insect_glm_quasi),
-      deviance(fit_insect_glm_nb))
+rbind(deviance(fit_insect_glm), deviance(fit_insect_glm_nb))
 ```
 
-Note that the prediction are the same:
+The negative binomial model fits the data much better as shown by its smaller deviance.
+
+Note that the prediction are the same under the 2 models:
 
 ```{r}
 plot(predict(fit_insect_glm, type = "response"), fit_insect_glm$model$count, col = "red", lwd = 6)
 abline(0, 1, col = "red", lwd = 6)
-points(predict(fit_insect_glm_quasi, type = "response"), fit_insect_glm_quasi$model$count, col = "blue", lwd = 4)
-abline(0, 1, col = "blue", lwd = 4)
-points(predict(fit_insect_glm_nb), fit_insect_glm_nb$data$count, col = "green")
-abline(0, 1, col = "green")
+points(predict(fit_insect_glm_nb), fit_insect_glm_nb$data$count, col = "blue")
+abline(0, 1, col = "blue")
 ```
 
-The only thing that differ is the variance around those predictions.
+The only thing that differs is the residual variance around those predictions (not shown).
 
-Note also that the gaussian models have deviance expressed on another scale, which makes the comparison between all models particularly difficult.
+Note also that the Gaussian models have a deviance expressed on another scale, which makes the comparison between models particularly difficult when using Gaussian models (but this is not the case here).
 
 Let us stick to the negative binomial model as our best GLM!
 
-## Re-testing assumptions on the negative binomial model
+## Re-testing assumptions for the fit of the negative binomial model
 
 ```{r insect_glm_nb_resid, warning = FALSE}
 insect_glm_nb_resid   <- simulateResiduals(fit_insect_glm_nb, n = 1000)
-testUniformity(insect_glm_nb_resid)
+testDispersion(insect_glm_nb_resid)
+```
+
+The dispersion issue is solved, but what about the other assumptions?
+
+```{r insect_glm_nb_resid2}
+plot(insect_glm_nb_resid)
+testTemporalAutocorrelation(insect_glm_nb_resid, time = 1:nrow(model.frame(fit_insect_glm_nb)))
 testTemporalAutocorrelation(insect_glm_nb_resid, time = order(fitted(fit_insect_glm_nb)))
-testOverdispersion(insect_glm_nb_resid, alternative = "two.sided")
 testZeroInflation(insect_glm_nb_resid)
 ```
 
@@ -139,74 +140,136 @@ Everything looks great!
 
 ## Tests comparing the fitted models to their respective null models
 ```{r}
-anova(fit_insect, update(fit_insect, . ~ 1))  ## F-test as lm
-anova(fit_insect_bc, update(fit_insect_bc, . ~ 1))  ## F-test as gaussian
-anova(fit_insect_glm, update(fit_insect_glm, . ~ 1), test = "LR") ## LRT using stats
-anova(fit_insect_glm_nb, update(fit_insect_glm_nb, . ~ 1)) ## LRT using spaMM
+anova(fit_insect, update(fit_insect, . ~ 1))  ## F-test for LM
+anova(fit_insect_bc, update(fit_insect_bc, . ~ 1))  ## F-test for LM with BoxCox transformation
+lmtest::lrtest(fit_insect_glm, update(fit_insect_glm, . ~ 1)) ## LRT for GLM Poisson
+anova(fit_insect_glm_nb, update(fit_insect_glm_nb, . ~ 1)) ## LRT for GLM NegBin
 ```
 
-No matter the model the effect of the insecticed is detected!
+No matter the models, the effect of the insecticide is detected!
 
-## Predictions
+## Comparing effect of spray C to others
 
-We now compare the predictions and CI between the different models:
+Let's illustrate how to do that for the two GLMs since they have been fitted with 2 different packages (**{stats}** and **{spaMM}** ):
+
+### GLM Poisson
+
+```{r}
+library(multcomp)
+comp_glm <- glht(fit_insect_glm, linfct = mcp(spray = c("C - A = 0",
+                                                        "C - B = 0",
+                                                        "C - D = 0",
+                                                        "C - E = 0",
+                                                        "C - F = 0")))
+summary(comp_glm)
+```
+
+### GLM NegBin
+
+```{r}
+comp_glm_nb <- glht(fit_insect_glm_nb, linfct = mcp(spray = c("C - A = 0",
+                                                              "C - B = 0",
+                                                              "C - D = 0",
+                                                              "C - E = 0",
+                                                              "C - F = 0")),
+                    coef. = fixef.HLfit) ## needed for glht to work with spaMM
+summary(comp_glm_nb)
+plot(comp_glm_nb)
+```
+
+The sprays C is the most effective one (fewer insects remaining) but we cannot exclude that E is equally effective. 
+
+## Predictions and method comparison
+
+We now compute the predictions and CI for the different models.
+
+### LM
 
 ```{r}
 data.for.pred <- data.frame(spray = levels(InsectSprays$spray))
-pred_lm <- predict(fit_insect, newdata = data.for.pred, interval = "confidence")
-pred_bc <- predict(fit_insect_bc, newdata = data.for.pred, interval = "confidence")
-unboxcox <- function(x, lambda) (x*lambda + 1)^(1/lambda)
-pred_bc_unboxcox <- unboxcox(x = pred_bc, lambda = bc$lambda) - 1  ## we remove one as we added one so to be able to do the BoxCox
-pred_glm_eta <- predict(fit_insect_glm, newdata = data.for.pred, se.fit = TRUE)
-pred_glm_table <- data.frame(fit = exp(pred_glm_eta$fit))
-pred_glm_table$lwr <- exp(pred_glm_eta$fit + qnorm(0.025)*pred_glm_eta$se.fit)
-pred_glm_table$upr <- exp(pred_glm_eta$fit + qnorm(0.975)*pred_glm_eta$se.fit)
-pred_glm_nb_table <- cbind(predict(fit_insect_glm_nb, newdata = data.for.pred),
-                           get_intervals(fit_insect_glm_nb, newdata = data.for.pred, intervals = "predVar"))
-colnames(pred_glm_nb_table) <- c("fit", "lwr", "upr")
+pred_lm <- cbind(data.for.pred,
+                 predict(fit_insect, newdata = data.for.pred, interval = "confidence"))
+pred_lm
 ```
 
-Observe carefully the results:
+### LM with BoxCox
 
-## Plot
 ```{r}
-plot(InsectSprays$count ~  as.numeric(InsectSprays$spray), xlim = c(0.5, 6.5), ylim = c(0, 30),
-     ylab = "Predicted number of instects", xlab = "Sprays", axes = FALSE)
-axis(2, las = 2)
-axis(1, at = 1:6, labels = levels(InsectSprays$spray))
-box()
-
-points(pred_lm[, "fit"] ~  I(-0.2 + 1:6), col = "blue", pch = 20)
-
-arrows(x0 = -0.2 + 1:6, x1 = -0.2 + 1:6, y0 = pred_lm[, "lwr"],
-       y1 = pred_lm[, "upr"], code = 3, col = "blue", angle = 90, length = 0.1)
-
-points(pred_bc_unboxcox[, "fit"] ~  I(-0.1 + 1:6), col = "green", pch = 20)
-
-arrows(x0 = -0.1 + 1:6, x1 = -0.1 + 1:6, y0 = pred_bc_unboxcox[, "lwr"],
-       y1 = pred_bc_unboxcox[, "upr"], code = 3, col = "green", angle = 90, length = 0.1)
-
-points(pred_glm_table[, "fit"] ~  I(0.1 + 1:6), col = "red", pch = 20)
-
-arrows(x0 = 0.1 + 1:6, x1 = 0.1 + 1:6, y0 = pred_glm_table[, "lwr"],
-       y1 = pred_glm_table[, "upr"], code = 3, col = "red", angle = 90, length = 0.1)
-
-points(pred_glm_nb_table[, "fit"] ~  I(0.2 + 1:6), col = "orange", pch = 20)
-
-arrows(x0 = 0.2 + 1:6, x1 = 0.2 + 1:6, y0 = pred_glm_nb_table[, "lwr"],
-       y1 = pred_glm_table[, "upr"], code = 3, col = "orange", angle = 90, length = 0.1)
-
-legend("top", fill = c("blue", "green", "red", "orange"), legend = c("LM", "LM + BoxCox", "GLM Poisson", "GLM Negative Binomial"), bty = "n")
+pred_bc <- cbind(data.for.pred,
+                 predict(fit_insect_bc, newdata = data.for.pred, interval = "confidence"))
+f.inverse <- function(x) car::bcnPowerInverse(x, lambda = bc$lambda, gamma = 0) - 1
+## Note: we removed 1 as we added 1 so to be able to do the BoxCox transformation
+pred_bc$fit <- f.inverse(x = pred_bc$fit)
+pred_bc$lwr <- f.inverse(x = pred_bc$lwr) 
+pred_bc$upr <- f.inverse(x = pred_bc$upr)
+pred_bc
 ```
+
+### GLM Poisson
+
+```{r}
+pred_glm_poiss_eta <- predict(fit_insect_glm, newdata = data.for.pred, se.fit = TRUE)
+pred_glm_poiss <- cbind(data.for.pred, data.frame(fit = exp(pred_glm_poiss_eta$fit)))
+pred_glm_poiss$lwr <- exp(pred_glm_poiss_eta$fit + qnorm(0.025)*pred_glm_poiss_eta$se.fit)
+pred_glm_poiss$upr <- exp(pred_glm_poiss_eta$fit + qnorm(0.975)*pred_glm_poiss_eta$se.fit)
+pred_glm_poiss
+```
+
+### GLM NegBin
+
+```{r}
+pred_glm_nb_table <- cbind(data.for.pred,
+                           predict(fit_insect_glm_nb, newdata = data.for.pred),
+                           get_intervals(fit_insect_glm_nb, newdata = data.for.pred,
+                                         intervals = "predVar"))
+colnames(pred_glm_nb_table)[-1] <- c("fit", "lwr", "upr")
+pred_glm_nb_table
+```
+
+### Combining predicitions
+
+We combine the predictions so as to be able to plot them easily:
+
+```{r}
+predictions_all <- rbind(cbind(pred_lm, method = "LM"),
+                         cbind(pred_bc, method = "LM BoxCox"),
+                         cbind(pred_glm_poiss, method = "GLM Poisson"),
+                         cbind(pred_glm_nb_table, method = "GLM NegBin"))
+
+## declare method as factor for better display
+predictions_all$method <- forcats::fct_inorder(predictions_all$method)
+```
+
+### Plot
+
+```{r}
+library(ggplot2)
+ggplot() +
+  geom_dotplot(aes(y = count, x = spray),
+               data = InsectSprays,
+               binwidth = 0.5,
+               binaxis = "y", stackdir = "center",
+               fill = "white") +
+  geom_point(aes(y = fit, x = spray, colour = method),
+             data = predictions_all,
+             position = position_dodge(width = 0.5)) + ## for spreading things appart
+  geom_errorbar(aes(y = fit, x = spray, colour = method, ymin = lwr, ymax = upr),
+                data = predictions_all, 
+                position = position_dodge(width = 0.5)) +
+  theme_classic()
+```
+
+Conclusions:
+
+- GLM and LM not BoxCoxed fits yield similar point predictions.
+- GLM and LM BoxCoxed fits yield similar CI.
 
 <br>
 
 
-# Dataset: LM2GLMM::Surprise
+# Dataset: LM2GLMM::Surprise (difficulty = 0/5)
 
-## Goal
-
-* Do children value more the type of the present, the cost of the present, or both?
+`r .emo("goal")` Do children value more the type of the present, the cost of the present, or both?
 
 ## Solution
 
@@ -216,11 +279,9 @@ legend("top", fill = c("blue", "green", "red", "orange"), legend = c("LM", "LM +
 
 <br>
 
-# Dataset: esoph
+# Dataset: esoph (difficulty = 3/5)
 
-## Goal
-
-* Find out whether you should rather limit alcohol consumption or tabacco consumption in order to avoid developing an oesophageal cancer?
+`r .emo("goal")` Find out whether you should rather limit alcohol consumption or tabacco consumption in order to avoid developing an oesophageal cancer?
 
 
 ## Exploration of the data
@@ -230,7 +291,7 @@ esoph
 str(esoph)
 ```
 
-The factors are ordered which will select for different default contrast, so we set them as unordered:
+The factors are ordered which -- by default -- will select for different contrasts (polynomial contrasts), so we set them as unordered (note: polynomial contrasts are interesting to identify how to best model ordinal variables as quantitative variables):
 
 ```{r}
 esoph$agegp_f <- factor(esoph$agegp, ordered = FALSE)
@@ -257,6 +318,8 @@ coplot(cancer_freq ~ alcgp_f | agegp_f, data = esoph)
 
 ## We fit the models
 
+Since the outcome is binomial, the only possibilities here are to explore which of the possible link functions fit the data best:
+
 ```{r}
 fit_esoph_logit <- glm(cbind(ncases, ncontrols) ~ agegp_f + alcgp_f + tobgp_f, data = esoph,
                        family = binomial(link = "logit"))
@@ -264,12 +327,12 @@ fit_esoph_cauchit <- glm(cbind(ncases, ncontrols) ~ agegp_f + alcgp_f + tobgp_f,
                          family = binomial(link = "cauchit"))
 fit_esoph_probit <- glm(cbind(ncases, ncontrols) ~ agegp_f + alcgp_f + tobgp_f, data = esoph,
                         family = binomial(link = "probit"))
-AIC(fit_esoph_logit)
-AIC(fit_esoph_cauchit)
-AIC(fit_esoph_probit)
+c(fit_esoph_logit = deviance(fit_esoph_logit),
+  fit_esoph_cauchit = deviance(fit_esoph_cauchit),
+  fit_esoph_probit = deviance(fit_esoph_probit)) ## you could also use AIC
 ```
 
-The probit model fits the data best.
+The probit link function leads to a model fitting the data best, so we will use it.
 
 
 ## Comparison to null model
@@ -277,22 +340,26 @@ The probit model fits the data best.
 ```{r}
 fit_esoph_probit_H0 <- glm(cbind(ncases, ncontrols) ~ 1, data = esoph,
                            family = binomial(link = "probit"))
-anova(fit_esoph_probit_H0, fit_esoph_probit, test = "LR")
+lmtest::lrtest(fit_esoph_probit_H0, fit_esoph_probit)
 ```
 
-The model is much better than a null model!
+The full model fits the data much better than the null model!
 
 ## Testing the model assumptions
+
+Linearity is not an issue since we considered all predictors as factorial variables.
+Collinearity should also not be an issue due to the neat sampling design.
 
 ```{r resid_esoph_probit}
 esoph_probit_resid <- simulateResiduals(fit_esoph_probit, n = 1000)
 plot(esoph_probit_resid)
-testUniformity(esoph_probit_resid)
 testTemporalAutocorrelation(esoph_probit_resid, time = 1:nrow(esoph))
 testTemporalAutocorrelation(esoph_probit_resid, time = fitted(fit_esoph_probit))
 testZeroInflation(esoph_probit_resid)
-testOverdispersion(esoph_probit_resid, alternative = "two.sided")
+testDispersion(esoph_probit_resid)
 ```
+
+Everything seems in order.
 
 ## Testing the model effects
 
@@ -302,74 +369,178 @@ car::Anova(fit_esoph_probit)
 
 ## Plotting the effects
 
+Let us first try to plot the effects using functions from packages:
+
 ```{r}
 library(effects)
-plot(allEffects(fit_esoph_probit)) ## response scale
-plot(allEffects(fit_esoph_probit, transformation = list(link = NULL, inverse = NULL))) ## linear scale
+plot(predictorEffects(fit_esoph_probit)) ## response scale
+plot(predictorEffects(fit_esoph_probit, transformation = list(link = NULL, inverse = NULL))) ## linear scale
 ```
 
 ```{r}
 library(visreg)
-visreg(fit_esoph_probit, scale = "response")
+visreg(fit_esoph_probit, scale = "response", ylim  = c(0, 1))
 visreg2d(fit_esoph_probit, "alcgp_f", "tobgp_f", plot.type = "image", scale = "response")
 visreg2d(fit_esoph_probit, "alcgp_f", "tobgp_f", plot.type = "persp", scale = "response")
 ```
 
-Note: the two packages differ in how they compute predictions. The package effects seems to here compute the average effect of the non focal factor by weighing them by their sample size. The package visreg seems to here select the level with the highest number of observation for the non focal factor. I am not sure what it does when there are equalities in sample size... Doing predictions yourself is perhaps the easiest way to know what is actually happening!
+```{r}
+fit_esoph_probit_spaMM <- fitme(cbind(ncases, ncontrols) ~ agegp_f + alcgp_f + tobgp_f,
+                                data = esoph,
+                                family = binomial(link = "probit"))
+#plot_effects(fit_esoph_probit_spaMM, focal_var = "agegp_f") ## buggy in current spaMM
+#plot_effects(fit_esoph_probit_spaMM, focal_var = "alcgp_f")
+#plot_effects(fit_esoph_probit_spaMM, focal_var = "tobgp_f")
+
+plot_effects_manual <- function(data) { 
+  ggplot(data) +
+     aes(y = pointp, x = forcats::fct_inorder(focal_var), ymax = up, ymin = low) +
+     geom_point() +
+     geom_errorbar(width = 0.1) +
+     scale_y_continuous(limits = c(0, 1)) +
+     theme_classic()
+}
+
+plot_effects_manual(pdep_effects(fit_esoph_probit_spaMM, focal_var = "agegp_f"))
+plot_effects_manual(pdep_effects(fit_esoph_probit_spaMM, focal_var = "alcgp_f"))
+plot_effects_manual(pdep_effects(fit_esoph_probit_spaMM, focal_var = "tobgp_f"))
+```
+
+
+Note: the 3 packages differ in how they compute predictions!
+
+This is not part of the exercise, but let us compare precisely the predictions for the age group 25-34 according to all 3 packages to better characterise and understand the differences.
+
+We first need a little data wrangling to create a table comparing the predictions across methods:
+
+```{r}
+effects_pred <- predictorEffect(fit_esoph_probit, predictor = "agegp_f")
+effects_pred <- as.data.frame(summary(effects_pred)[c("effect", "lower", "upper")])[1, ]
+colnames(effects_pred) <- c("fit", "lwr", "upr")
+
+visreg_pred <- visreg(fit_esoph_probit, scale = "response", plot = FALSE)
+visreg_pred <- visreg_pred[[1]]$fit[1, c("visregFit", "visregLwr", "visregUpr")]
+colnames(visreg_pred) <- c("fit", "lwr", "upr")
+
+spaMM_pred <- pdep_effects(fit_esoph_probit_spaMM, focal_var = "agegp_f")
+spaMM_pred <- spaMM_pred[1, c("pointp", "low", "up")]
+colnames(spaMM_pred) <- c("fit", "lwr", "upr")
+
+rbind(effects = effects_pred,
+      visreg = visreg_pred,
+      spaMM = spaMM_pred)
+```
+
+- **{effects}** (under its default settings) computes partial-dependence effects (i.e. consider all values for non focal predictors, irrespective of the focal predictor, and compute the mean effect) and compute the mean BEFORE transforming the data back to the scale of the response:
+
+```{r}
+newdata <- data.frame(agegp_f = "25-34",
+                      alcgp_f = esoph$alcgp_f,
+                      tobgp_f = esoph$tobgp_f)
+fit_esoph_probit$family$linkinv(mean(predict(fit_esoph_probit, newdata = newdata)))
+```
+
+- **{visreg}** (under its default settings) selects the level with the highest number of observation for the non focal factor (and when there are equal group sizes, it seems to pick the first level that comes out of the candidate ones; I did not check if that follows the order of the levels or their position in the data...).
+
+```{r}
+table(esoph$alcgp_f)
+table(esoph$tobgp_f)
+newdata <- data.frame(agegp_f = "25-34",
+                      alcgp_f = "0-39g/day",
+                      tobgp_f = "0-9g/day")
+predict(fit_esoph_probit, newdata = newdata, type = "response")
+```
+
+- the function `pdep_effects()` from **{spaMM}** (under its default settings) computes partial-dependence effects (i.e. consider all values for non focal predictors, irrespective of the focal predictor, and compute the mean effect) and compute the mean AFTER transforming the data back to the scale of the response:
+
+```{r}
+newdata <- data.frame(agegp_f = "25-34",
+                      alcgp_f = esoph$alcgp_f,
+                      tobgp_f = esoph$tobgp_f)
+mean(predict(fit_esoph_probit, newdata = newdata, type = "response"))
+```
+
+Note: doing predictions yourself is perhaps the easiest way to know what is actually happening!
 
 ## Predictions by hand
 
-Let us compare extreme situations
+Doing things by hand is tedious but it gives you more control.
+
+For example, here, to answer the question we may want to compare extreme situations:
 
 ```{r}
 newdata_esoph_young <- expand.grid(agegp_f = c("25-34"),
                                    alcgp_f = c("0-39g/day", "120+"),
                                    tobgp_f = c("0-9g/day", "30+"))
-pred_esoph_young <- predict(fit_esoph_probit, newdata = newdata_esoph_young, type = "link", se.fit = TRUE)
+pred_esoph_young <- predict(fit_esoph_probit, newdata = newdata_esoph_young,
+                            type = "link", se.fit = TRUE)
 newdata_esoph_young$pred <- binomial(link = "probit")$linkinv(pred_esoph_young$fit)
-newdata_esoph_young$lwr <- binomial(link = "probit")$linkinv(pred_esoph_young$fit + qnorm(0.025)*pred_esoph_young$se.fit)
-newdata_esoph_young$upr <- binomial(link = "probit")$linkinv(pred_esoph_young$fit + qnorm(0.975)*pred_esoph_young$se.fit)
+newdata_esoph_young$lwr <- binomial(link = "probit")$linkinv(pred_esoph_young$fit +
+                            qnorm(0.025)*pred_esoph_young$se.fit)
+newdata_esoph_young$upr <- binomial(link = "probit")$linkinv(pred_esoph_young$fit +
+                            qnorm(0.975)*pred_esoph_young$se.fit)
 newdata_esoph_young
 ```
+
+Same for old people:
 
 ```{r}
 newdata_esoph_old <- expand.grid(agegp_f = c("75+"),
                                  alcgp_f = c("0-39g/day", "120+"),
                                  tobgp_f = c("0-9g/day", "30+"))
-pred_esoph_old <- predict(fit_esoph_probit, newdata = newdata_esoph_old, type = "link", se.fit = TRUE)
+pred_esoph_old <- predict(fit_esoph_probit, newdata = newdata_esoph_old,
+                          type = "link", se.fit = TRUE)
 newdata_esoph_old$pred <- binomial(link = "probit")$linkinv(pred_esoph_old$fit)
-newdata_esoph_old$lwr <- binomial(link = "probit")$linkinv(pred_esoph_old$fit + qnorm(0.025)*pred_esoph_old$se.fit)
-newdata_esoph_old$upr <- binomial(link = "probit")$linkinv(pred_esoph_old$fit + qnorm(0.975)*pred_esoph_old$se.fit)
+newdata_esoph_old$lwr <- binomial(link = "probit")$linkinv(pred_esoph_old$fit +
+                            qnorm(0.025)*pred_esoph_old$se.fit)
+newdata_esoph_old$upr <- binomial(link = "probit")$linkinv(pred_esoph_old$fit +
+                            qnorm(0.975)*pred_esoph_old$se.fit)
 newdata_esoph_old
 ```
 
-So alcool seems to be a bit worse than smoking but we are extrapolating a bit since very few individuals correspond to the predicted conditions! (see `table()` call above)
+So again, drinking seems to be a worse than smoking but we are extrapolating a bit since very few individuals correspond to the predicted conditions! (see `table()` call above).
 
 One thing is clear, not smoking and not drinking seems to be the way to avoid these cancers.
 
-## Trying to fit the interaction to answer our question
+## Interaction drink - alcohol?
+
+We could also consider the interaction between drink and alcohol.
+
+```{r}
+fit_esoph_probit2a <- glm(cbind(ncases, ncontrols) ~ agegp_f + alcgp_f * tobgp_f,
+                          data = esoph,
+                          family = binomial(link = "probit"))
+car::Anova(fit_esoph_probit2a)
+summary(fit_esoph_probit2a)
+```
+
+For the ease of interpretation, when you have 2 factors in interaction you can also directly code their combination:
 
 ```{r}
 esoph$drink_smoke <- factor(paste(esoph$alcgp_f, esoph$tobgp_f, sep = "_"))
-fit_esoph_probit2 <- glm(cbind(ncases, ncontrols) ~ agegp_f + drink_smoke, data = esoph,
-                        family = binomial(link = "probit"))
-car::Anova(fit_esoph_probit2)
-summary(fit_esoph_probit2)
+fit_esoph_probit2b <- glm(cbind(ncases, ncontrols) ~ agegp_f + drink_smoke, data = esoph,
+                          family = binomial(link = "probit"))
+summary(fit_esoph_probit2b)
 ```
+
+The fits `fit_esoph_probit2a` and `fit_esoph_probit2b` have the same likelihood and number of degrees of freedom.
+They are equivalent, but just use a different parameterisation of the same thing.
+
+The summary table from `fit_esoph_probit2b` now directly compares all drink - alcohol combination to the reference group with no cigarette and minimum alcohol consumption.
 
 Ideally we should again check all assumptions (you should do it!).
 
 Let us do the minimum here:
 
 ```{r fit_esoph_probit2 resid, warning = FALSE}
-plot(simulateResiduals(fit_esoph_probit2, n = 1000))
+plot(simulateResiduals(fit_esoph_probit2b, n = 1000))
 ```
 
-Let us now compare the alcool and drink effects.
+Let us now compare if it is better to drink a lot and not smoke or the reverse: 
 
 ```{r, message = FALSE}
 library(multcomp)
-posthoc <- glht(fit_esoph_probit2, linfct = c("`drink_smoke120+_0-9g/day` - `drink_smoke0-39g/day_30+` == 0"))
+posthoc <- glht(fit_esoph_probit2b, linfct = c("`drink_smoke120+_0-9g/day` - `drink_smoke0-39g/day_30+` == 0"))
 par(oma = c(1, 5, 1, 1))
 plot(posthoc)
 confint(posthoc)
@@ -377,38 +548,54 @@ summary(posthoc, test = Chisqtest()) ## choose tests the better suited to your c
 ```
 
 We have compared two different situations, using a posthoc approach.
+Drinking a lot seems to be worse than smoking a lot for this particular cancer.
 
 ## Alternative: effects considered as linear
+
+We could also have considered the predictor as quantitative predictors:
+
+```{r}
+fit_esoph_probit3 <- glm(cbind(ncases, ncontrols) ~ agegp_f + alcgp + tobgp, data = esoph,
+                         family = binomial(link = "probit"))
+summary(fit_esoph_probit3)
+```
+
+The test on the polynomial contrasts (automatic due to the variable being ordered factors) suggest that linear (`.L`) effects matter but that quadratic (`.Q`) effects don't. For alcohol, there are hints of a slight cubic (`.C`) effect, but we will ignore this for the sake of simplicity (the effect is small and in the absence of a quadratic effect, it is a little strange to interpret).
+
+So let's recode the variable as truly quantitative and let's fit linear effects:
 
 ```{r}
 esoph$alc_num <- unclass(esoph$alcgp)
 esoph$tob_num <- unclass(esoph$tobgp)
-fit_esoph_probit3 <- glm(cbind(ncases, ncontrols) ~ agegp_f + alc_num + tob_num, data = esoph,
+fit_esoph_probit4 <- glm(cbind(ncases, ncontrols) ~ agegp_f + alc_num + tob_num, data = esoph,
                          family = binomial(link = "probit"))
-plot(simulateResiduals(fit_esoph_probit3, n = 1000))
-car::crPlots(fit_esoph_probit3) ## partial residuals
-AIC(fit_esoph_probit)
-AIC(fit_esoph_probit2)
-AIC(fit_esoph_probit3)
-confint(fit_esoph_probit3)
+plot(simulateResiduals(fit_esoph_probit4, n = 1000))
+car::crPlots(fit_esoph_probit4) ## partial residuals (to check linearity, albeit somewhat redundant with polynomial contrasts)
+rbind(factors = AIC(fit_esoph_probit),
+      interaction = AIC(fit_esoph_probit2b),
+      poly = AIC(fit_esoph_probit3),
+      linear = AIC(fit_esoph_probit4))
+confint(fit_esoph_probit4)
 ```
 
-This last model seems quite good and it allows to answer our question!
+This last model seems quite good.
+Again, our results suggest that alcohol matters most.
+Do but bear in mind that it now compares the effect of increasing by one category in each predictor.
+
 
 ## More?
 
-* One could also do a model with only age and tabaco, one with only age and alcool and compare those by parametric bootstrap to get a p-value. But let us stop here for this exercise.
-* One could explore interactions.
+* One could also do a model with only age and tobacco, one with only age and alcohol and compare those by parametric bootstrap to get a p-value. But let us stop here for this exercise.
+* One could explore interactions with the quantitative predictors.
 
 <br>
 
 
-# Dataset: TitanicSurvival
+# Dataset: TitanicSurvival (difficulty = ?/5)
 
-## Goal
+`r .emo("goal")` Find out who mostly survived and who mostly died during the Titanic disaster of 1912.
 
-* Find out who mostly survived and who mostly died during the Titanic disaster of 1912.
-* Compute the odds-ratio for survival between the two most contrasting groups of individuals. 
+`r .emo("goal")` Compute the odds-ratio for survival between the two most contrasting groups of individuals. 
 
 ## Exploration of the data
 ```{r}
@@ -604,11 +791,9 @@ with(subset(TitanicSurvival, age_f == "(50,81]"), table(passengerClass, sex))
 <br>
 
 
-# Dataset: Challenger
+# Dataset: Challenger (difficulty = ?/5)
 
-### Goal
-
-* What was the probability of O-ring failure when the space shuttle Challenger took off on the 28th of January 1986 by 31 degrees F?
+`r .emo("goal")` What was the probability of O-ring failure when the space shuttle Challenger took off on the 28th of January 1986 by 31 degrees F?
 
 
 ## Let's explore the data
@@ -710,13 +895,13 @@ You could try to replicate the original study that excluded all the OK flights!
 <br>
 
 
-# Dataset: UK
+# Dataset: UK (difficulty = ?/5)
 
-## Goal
+`r .emo("goal")` Try to identify the influential determinants of the smoking behaviour of children.
 
-* Try to identify the influential determinants of the smoking behaviour of children.
-* Try to identify the influential determinants of bronchitis in children.
-* Try to identify the influential determinants of the variable ```backward```.
+`r .emo("goal")` Try to identify the influential determinants of bronchitis in children.
+
+`r .emo("goal")` Try to identify the influential determinants of the variable ```backward```.
 
 ## Smoking behaviour
 
@@ -783,12 +968,11 @@ visreg(fit_logit, "cigarettes_friends", by = "sex", scale = "response",
 
 <br>
 
-# Dataset: HSE98women, exercise menopause
+# Dataset: HSE98women, exercise menopause (difficulty = ?/5)
 
-## Goal
+`r .emo("goal")` Study the influences of age, body mass index and smoking status upon the probability of being menopaused.
 
-* Study the influences of age, body mass index and smoking status upon the probability of being menopaused
-* Estimate the proportion of menopaused women in the population, depending on their age (40, 45, 50, 55, 60 yrs)
+`r .emo("goal")` Estimate the proportion of menopaused women in the population, depending on their age (40, 45, 50, 55, 60 yrs).
 
 Note: here, for the sake of simplicity we simply define menopause as the lack of periods in old ages.
 

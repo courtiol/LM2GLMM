@@ -31,7 +31,7 @@ knitr::opts_chunk$set(cache = FALSE, fig.width = 5, fig.height = 5, fig.align = 
 </div>
 
 
-## Dataset: InsectSprays (difficulty = ?/5) `r .emo("practice")`
+## Dataset: InsectSprays (difficulty = 2/5) `r .emo("practice")`
 
 ```{r InsectSprays}
 head(InsectSprays, n = 3)
@@ -47,7 +47,7 @@ levels(InsectSprays$spray)
 `r .emo("goal")` Compare results between the LM approach (with and without BoxCox transformation) to those from the GLM approach.
 
 
-## Dataset: Surprise (difficulty = ?/5) `r .emo("practice")`
+## Dataset: Surprise (difficulty = 0/5) `r .emo("practice")`
 
 ```{r}
 head(Surprise)
@@ -57,7 +57,7 @@ head(Surprise)
 
 `r .emo("goal")` Do children value more the type of the present, the cost of the present, or both?
 
-## Dataset: esoph (difficulty = ?/5) `r .emo("practice")`
+## Dataset: esoph (difficulty = 3/5) `r .emo("practice")`
 
 ```{r}
 head(esoph)
