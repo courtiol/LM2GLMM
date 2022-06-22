@@ -28,11 +28,11 @@ In this vignette I illustrate the key steps required to solve the exercises. By 
 
 # Dataset: InsectSprays (difficulty = 2/5)
 
-`r .emo("goal")`  Compare the effectiveness of various insecticides on the number of insects in agricultural experimental units.
+`r .emo("goal")`  Test whether insecticide type significantly affects the number of insects in agricultural experimental units.
 
-`r .emo("goal")` What is the efficiency of spray C?
+`r .emo("goal")` Compare the effect of spray C to all other spray types.
 
-`r .emo("goal")` Compare results between the LM approach (with and without BoxCox transformation) and the GLM approach.
+`r .emo("goal")` What is the mean number of insects we would predict to find on a plot treated with each insecticide spray. Compare results between the LM approach (with and without BoxCox transformation) to those from the GLM approach.
 
 Note: I will not check the assumptions for LM, nor detail the dataset (and plotting variables) since we did it before (see [LM exercises](./LM_practice_solutions.html)).
 
