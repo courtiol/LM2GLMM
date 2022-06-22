@@ -765,13 +765,23 @@ ggplot(pred_age_gam) +
   theme_classic() +
   labs(title = "Age as GAM", y = "Predicted survival prob.") -> plot2
 
-library(patchwork) ## to combine plots
+library(patchwork) ## to combine plots and legend
 
-plot1 + plot2 & theme(legend.position = "bottom")
+plots12 <- plot1 + plot2 & theme(legend.position = "bottom")
+plots12 + plot_layout(guides = "collect")
 ```
 
 
-Note: as the model is not fitted with `link = logit`, the odd ratios are not constant with age, so we cannot quantify effects using them.
+Notes:
+
+- as the model is not fitted with `link = logit`, the odd ratios are not constant with age, so we cannot quantify effects using them.
+
+- the two fits plotted also differ by the fact that the one on the right considers an interaction but not the one on the right.
+
+## More?
+
+Try to figure out why predictions are so different for the young males from the second class.
+
 
 <br>
 
