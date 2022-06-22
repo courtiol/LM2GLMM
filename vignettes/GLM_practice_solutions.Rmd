@@ -281,7 +281,7 @@ Conclusions:
 
 # Dataset: esoph (difficulty = 3/5)
 
-`r .emo("goal")` Find out whether you should rather limit alcohol consumption or tabacco consumption in order to avoid developing an oesophageal cancer?
+`r .emo("goal")` Would it be better to limit alcohol consumption or tobacco consumption in order to avoid developing an oesophageal cancer? Use a GLM to find out.
 
 
 ## Exploration of the data
