@@ -502,9 +502,9 @@ So again, drinking seems to be a worse than smoking but we are extrapolating a b
 
 One thing is clear, not smoking and not drinking seems to be the way to avoid these cancers.
 
-## Interaction drink - alcohol?
+## Interaction tobacco - alcohol?
 
-We could also consider the interaction between drink and alcohol.
+We could also consider the interaction between tobacco and alcohol.
 
 ```{r}
 fit_esoph_probit2a <- glm(cbind(ncases, ncontrols) ~ agegp_f + alcgp_f * tobgp_f,
