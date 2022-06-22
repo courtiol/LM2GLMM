@@ -198,6 +198,28 @@ fit_poiss
 fit_poiss_spaMM_ML
 ```
 
+## Sometimes data wrangling is necessary to fit a particular model `r .emo("practice")`
+
+```{r, eval = FALSE}
+#EXAMPLE 1: Wrangle binomial data to be used as count data
+#Model total number of eyes, not proportion of blue eyes
+Aliens$CountEyes <- Aliens$blue_eyes + Aliens$pink_eyes
+glm(CountEyes ~ humans_eaten, data = Aliens, family = poisson(link = "log"))
+```
+```{r, eval = FALSE}
+#EXAMPLE 2: Wrangle count data to be used as binary data
+#Model whether aliens had 0 or >0 eggs, rather than modelling egg count
+Aliens$hadeggs <- Aliens$eggs > 0
+glm(hadeggs ~ humans_eaten, data = Aliens, family = binomial(link = "logit"))
+```
+```{r, eval = FALSE}
+#EXAMPLE 3: Wrangle quantitative predictor to be used as qualitative predictor
+#Treat size as three categories
+#Here 'small' is less than 25th percentile, 'big' is greater than 75th percentile
+Aliens$size_cat <- ifelse(Aliens$size < 60, "small", ifelse(Aliens$size > 68, "big", "medium"))
+glm(hadeggs ~ size_cat, data = Aliens, family = binomial(link = "logit"))
+```
+
 <!--
 # The GLM object
 
