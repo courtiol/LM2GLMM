@@ -28,11 +28,11 @@ In this vignette I illustrate the key steps required to solve the exercises. By 
 
 # Dataset: InsectSprays (difficulty = 2/5)
 
-`r .emo("goal")`  Compare the effectiveness of various insecticides on the number of insects in agricultural experimental units.
+`r .emo("goal")`  Test whether insecticide type significantly affects the number of insects in agricultural experimental units.
 
-`r .emo("goal")` What is the efficiency of spray C?
+`r .emo("goal")` Compare the effect of spray C to all other spray types.
 
-`r .emo("goal")` Compare results between the LM approach (with and without BoxCox transformation) and the GLM approach.
+`r .emo("goal")` What is the mean number of insects we would predict to find on a plot treated with each insecticide spray. Compare results between the LM approach (with and without BoxCox transformation) to those from the GLM approach.
 
 Note: I will not check the assumptions for LM, nor detail the dataset (and plotting variables) since we did it before (see [LM exercises](./LM_practice_solutions.html)).
 
@@ -281,7 +281,7 @@ Conclusions:
 
 # Dataset: esoph (difficulty = 3/5)
 
-`r .emo("goal")` Find out whether you should rather limit alcohol consumption or tabacco consumption in order to avoid developing an oesophageal cancer?
+`r .emo("goal")` Would it be better to limit alcohol consumption or tobacco consumption in order to avoid developing an oesophageal cancer? Use a GLM to find out.
 
 
 ## Exploration of the data
@@ -312,8 +312,8 @@ table(esoph$alcgp_f, esoph$tobgp_f, esoph$agegp_f)
 We plot the data:
 
 ```{r}
-coplot(cancer_freq ~ tobgp_f | agegp_f, data = esoph)
-coplot(cancer_freq ~ alcgp_f | agegp_f, data = esoph)
+coplot(cancer_freq ~ tobgp_f | agegp_f, data = esoph, panel = panel.smooth)
+coplot(cancer_freq ~ alcgp_f | agegp_f, data = esoph, panel = panel.smooth)
 ```
 
 ## We fit the models
@@ -327,9 +327,7 @@ fit_esoph_cauchit <- glm(cbind(ncases, ncontrols) ~ agegp_f + alcgp_f + tobgp_f,
                          family = binomial(link = "cauchit"))
 fit_esoph_probit <- glm(cbind(ncases, ncontrols) ~ agegp_f + alcgp_f + tobgp_f, data = esoph,
                         family = binomial(link = "probit"))
-c(fit_esoph_logit = deviance(fit_esoph_logit),
-  fit_esoph_cauchit = deviance(fit_esoph_cauchit),
-  fit_esoph_probit = deviance(fit_esoph_probit)) ## you could also use AIC
+AIC(fit_esoph_logit, fit_esoph_cauchit, fit_esoph_probit) ## you could also deviance
 ```
 
 The probit link function leads to a model fitting the data best, so we will use it.
@@ -571,16 +569,16 @@ fit_esoph_probit4 <- glm(cbind(ncases, ncontrols) ~ agegp_f + alc_num + tob_num,
                          family = binomial(link = "probit"))
 plot(simulateResiduals(fit_esoph_probit4, n = 1000))
 car::crPlots(fit_esoph_probit4) ## partial residuals (to check linearity, albeit somewhat redundant with polynomial contrasts)
-rbind(factors = AIC(fit_esoph_probit),
-      interaction = AIC(fit_esoph_probit2b),
-      poly = AIC(fit_esoph_probit3),
-      linear = AIC(fit_esoph_probit4))
+AIC(fit_esoph_probit,
+    fit_esoph_probit2b,
+    fit_esoph_probit3,
+    fit_esoph_probit4)
 confint(fit_esoph_probit4)
 ```
 
 This last model seems quite good.
 Again, our results suggest that alcohol matters most.
-Do but bear in mind that it now compares the effect of increasing by one category in each predictor.
+But do bear in mind that this model now compares the effect of increasing by one category in each predictor.
 
 
 ## More?
