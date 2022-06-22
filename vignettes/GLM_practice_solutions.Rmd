@@ -312,8 +312,8 @@ table(esoph$alcgp_f, esoph$tobgp_f, esoph$agegp_f)
 We plot the data:
 
 ```{r}
-coplot(cancer_freq ~ tobgp_f | agegp_f, data = esoph)
-coplot(cancer_freq ~ alcgp_f | agegp_f, data = esoph)
+coplot(cancer_freq ~ tobgp_f | agegp_f, data = esoph, panel = panel.smooth)
+coplot(cancer_freq ~ alcgp_f | agegp_f, data = esoph, panel = panel.smooth)
 ```
 
 ## We fit the models
