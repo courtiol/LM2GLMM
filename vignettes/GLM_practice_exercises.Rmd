@@ -68,7 +68,7 @@ head(esoph)
 `r .emo("goal")` Find out whether you should rather limit alcohol consumption or tabacco consumption in order to avoid developing an oesophageal cancer?
 
 
-## Dataset: TitanicSurvival (difficulty = ?/5) `r .emo("practice")`
+## Dataset: TitanicSurvival (difficulty = 3/5) `r .emo("practice")`
 
 ```{r}
 head(TitanicSurvival)
@@ -76,9 +76,7 @@ head(TitanicSurvival)
 
 <br>
 
-`r .emo("goal")` Find out who mostly survived and who mostly died during the Titanic disaster of 1912.
-
-`r .emo("goal")` Compute the odds-ratio for survival between the two most contrasting groups of individuals. 
+`r .emo("goal")` Find out how the sex, age and passenger class influenced who died during the Titanic disaster of 1912.
 
 
 ## Dataset: Challenger (difficulty = ?/5) `r .emo("practice")`

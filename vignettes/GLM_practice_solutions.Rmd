@@ -502,9 +502,9 @@ So again, drinking seems to be a worse than smoking but we are extrapolating a b
 
 One thing is clear, not smoking and not drinking seems to be the way to avoid these cancers.
 
-## Interaction drink - alcohol?
+## Interaction alcohol - tobacco?
 
-We could also consider the interaction between drink and alcohol.
+We could also consider the interaction between alcohol and tobacco.
 
 ```{r}
 fit_esoph_probit2a <- glm(cbind(ncases, ncontrols) ~ agegp_f + alcgp_f * tobgp_f,
@@ -591,11 +591,9 @@ Do but bear in mind that it now compares the effect of increasing by one categor
 <br>
 
 
-# Dataset: TitanicSurvival (difficulty = ?/5)
+# Dataset: TitanicSurvival (difficulty = 3/5)
 
-`r .emo("goal")` Find out who mostly survived and who mostly died during the Titanic disaster of 1912.
-
-`r .emo("goal")` Compute the odds-ratio for survival between the two most contrasting groups of individuals. 
+`r .emo("goal")` Find out how the sex, age and passenger class influenced who died during the Titanic disaster of 1912.
 
 ## Exploration of the data
 ```{r}
@@ -606,12 +604,14 @@ with(data = TitanicSurvival,
      tapply(survived, sex, function(x) mean(x == "yes")))
 with(data = TitanicSurvival,
      tapply(survived, passengerClass, function(x) mean(x == "yes")))
-with(data = TitanicSurvival, table(sex, passengerClass))
+with(data = TitanicSurvival,
+     table(cut(age, breaks = c(0, 10, 25, 35, 50, Inf), include.lowest = TRUE), ## make groups
+           sex, passengerClass))
 ```
 
 ## Visualization of the data
 ```{r}
-hist(TitanicSurvival$age)
+coplot(survived ~ age | sex * passengerClass, data = TitanicSurvival, panel = panel.smooth)
 library(car)
 scatterplot(survived == "yes" ~ age, data = TitanicSurvival)
 ```
@@ -621,36 +621,35 @@ The effect of age does not seem linear...
 ## We recode some variables
 ```{r}
 TitanicSurvival$surv <-  TitanicSurvival$survived == "yes"
-TitanicSurvival$age_f <- cut(TitanicSurvival$age, breaks = c(0, 10, 25, 35, 50, 81), include.lowest = TRUE)
+TitanicSurvival$age_f <- cut(TitanicSurvival$age,
+                             breaks = c(0, 10, 25, 35, 50, Inf), include.lowest = TRUE)
 table(TitanicSurvival$age_f)
 ```
 
 
 ## Fitting the models
 
-We fit a serie of models with different links and considering age as factor or continuous:
+We fit a series of models with different links and considering age as factor or continuous:
 
 ```{r}
-fit_logit <- glm(surv ~ age_f+passengerClass+sex, data = TitanicSurvival, family = binomial(link = "logit"))
-fit_probit <- glm(surv ~ age_f+passengerClass+sex, data = TitanicSurvival, family = binomial(link = "probit"))
-fit_cauchit <- glm(surv ~ age_f+passengerClass+sex, data = TitanicSurvival, family = binomial(link = "cauchit"))
-
-fit_logit2 <- glm(surv ~ age+passengerClass+sex, data = TitanicSurvival,
-                 family = binomial(link = "logit"))
-fit_probit2 <- glm(surv ~ age+passengerClass+sex, data = TitanicSurvival,
-                  family = binomial(link = "probit"))
-fit_cauchit2 <- glm(surv ~ age+passengerClass+sex, data = TitanicSurvival,
+fit_logit <-   glm(surv ~ age_f + passengerClass + sex, data = TitanicSurvival,
+                   family = binomial(link = "logit"))
+fit_probit <-  glm(surv ~ age_f + passengerClass + sex, data = TitanicSurvival,
+                   family = binomial(link = "probit"))
+fit_cauchit <- glm(surv ~ age_f + passengerClass + sex, data = TitanicSurvival,
                    family = binomial(link = "cauchit"))
 
-rbind(AIC(fit_logit),
-      AIC(fit_probit),
-      AIC(fit_cauchit),
-      AIC(fit_logit2),
-      AIC(fit_probit2),
-      AIC(fit_cauchit2))
+fit_logit2 <-   glm(surv ~ age + passengerClass + sex, data = TitanicSurvival,
+                   family = binomial(link = "logit"))
+fit_probit2 <-  glm(surv ~ age + passengerClass + sex, data = TitanicSurvival,
+                   family = binomial(link = "probit"))
+fit_cauchit2 <- glm(surv ~ age + passengerClass + sex, data = TitanicSurvival,
+                   family = binomial(link = "cauchit"))
+
+AIC(fit_logit, fit_probit, fit_cauchit, fit_logit2, fit_probit2, fit_cauchit2)
 ```
 
-The cauchit model with age as a factor provides a much better fit than other models.
+The cauchit model with age as a factor provides a much better fit than other models, so we will select that one.
 
 
 ## Checking the assumptions
@@ -660,17 +659,21 @@ library(DHARMa)
 resid_Titanic <- simulateResiduals(fit_cauchit, n = 1000)
 plot(resid_Titanic)
 testTemporalAutocorrelation(resid_Titanic, time = order(fitted(fit_cauchit)))
-testTemporalAutocorrelation(resid_Titanic, time = 1:nrow(fit_cauchit$model))
+testTemporalAutocorrelation(resid_Titanic, time = 1:nrow(model.frame(fit_cauchit)))
 ```
 
-No need to test for overdispersion in a binary model!
+There is a little bit of serial autocorrelation but it is low and hard to understand (observation are sorted by alphabetical order) so we will ignore that for now.
+
+There is no need to test for overdispersion in a binary model!
 
 
 ## We look at predictions
 
 ```{r}
 data.for.pred <- with(data = TitanicSurvival,
-                 expand.grid(age_f = levels(age_f), passengerClass = levels(passengerClass), sex = levels(sex)))
+                 expand.grid(age_f = levels(age_f),
+                             passengerClass = levels(passengerClass),
+                             sex = levels(sex)))
 pred <- predict(fit_cauchit, newdata = data.for.pred, type = "link")
 data.to.plot <- cbind(data.for.pred, pred = pred)
 coplot(pred ~ unclass(age_f) | passengerClass + sex, data = data.to.plot)
@@ -682,9 +685,11 @@ xyplot(pred ~ unclass(age_f) | passengerClass + sex, data = data.to.plot)
 
 Another way to cope with the non-linearity of the age effect would be to do a GAM model:
 
-```{r}
+```{r, gam_fit}
 library(mgcv)
-fit_cauchit_gam <- gam(surv ~ s(age) + passengerClass + sex, data = TitanicSurvival, family = binomial(link = "cauchit"))
+fit_cauchit_gam <- gam(surv ~ s(age) + passengerClass + sex,
+                       data = TitanicSurvival,
+                       family = binomial(link = "cauchit"))
 AIC(fit_cauchit_gam)
 ```
 
@@ -695,98 +700,80 @@ The model is a bit better, we could use it.
 ```{r cauchit_gam_resid}
 cauchit_gam_resid <- simulateResiduals(fit_cauchit_gam)
 plot(cauchit_gam_resid)
-scatter.smooth(fit_cauchit_gam$model$age, cauchit_gam_resid$scaledResiduals, col = 2) ## linearity
+```
+The QQ plot is good (left), but the uniformity plot on the right suggests things are not quite perfect.
+
+Two predictors are factors the third is already modelled quite flexibly using GAM, so the issue is probably not about how we modelled each variable but more about something important we are missing.
+
+Let's see if an interaction between `passengerClass` & `sex` would improve things:
+
+```{r, gam_fit2}
+fit_cauchit_gam2 <- gam(surv ~ s(age) + passengerClass*sex,
+                        data = TitanicSurvival,
+                        family = binomial(link = "cauchit"))
+AIC(fit_cauchit_gam2)
+cauchit_gam_resid2 <- simulateResiduals(fit_cauchit_gam2)
+plot(cauchit_gam_resid2)
 ```
 
+Everything is much better!
+Ideally we should re-examine what link function is best but let's stick to what we have for simplicity.
+
+
 ## Tests
+
+For GAM models, we need to use `anova()` (which calls `mgcv::anova.gam()` and thus does perform an type I anova but a marginal anova -- documentation says type III, so not type II as `car::Anova()` unfortunately, but perhaps the documentation is wrong... I did not check):
+
 ```{r}
-Anova(fit_cauchit)
-anova(fit_cauchit_gam)
+anova(fit_cauchit_gam2)
 ```
 
 ## Predictions
 
 ```{r}
 data.for.pred2 <- with(data = TitanicSurvival,
-                      expand.grid(age_f = levels(TitanicSurvival$age_f), passengerClass = levels(passengerClass), sex = levels(sex)))
+                      expand.grid(age_f = levels(TitanicSurvival$age_f),
+                                  passengerClass = levels(passengerClass),
+                                  sex = levels(sex)))
 data.for.pred2$age <- NA
 data.for.pred2$age[data.for.pred2$age_f == "[0,10]"] <- (10 - 0)/2
 data.for.pred2$age[data.for.pred2$age_f == "(10,25]"] <- (25 + 10)/2
 data.for.pred2$age[data.for.pred2$age_f == "(25,35]"] <- (25 + 35)/2
 data.for.pred2$age[data.for.pred2$age_f == "(35,50]"] <- (35 + 50)/2
-data.for.pred2$age[data.for.pred2$age_f == "(50,81]"] <- (50 + 81)/2
+data.for.pred2$age[data.for.pred2$age_f == "(50,Inf]"] <- (50 + 81)/2
 
-pred_age_f <- predict(fit_cauchit, newdata = data.for.pred2, type = "response")
-pred_age_gam <- predict(fit_cauchit_gam, newdata = data.for.pred2, type = "response")
-data.to.plot2 <- cbind(data.for.pred2, pred_age_f = pred_age_f, pred_age_gam = pred_age_gam)
-
-pred_f_1 <- subset(data.to.plot2, sex == "female" & passengerClass == "1st")
-pred_f_2 <- subset(data.to.plot2, sex == "female" & passengerClass == "2nd")
-pred_f_3 <- subset(data.to.plot2, sex == "female" & passengerClass == "3rd")
-
-pred_m_1 <- subset(data.to.plot2, sex == "male" & passengerClass == "1st")
-pred_m_2 <- subset(data.to.plot2, sex == "male" & passengerClass == "2nd")
-pred_m_3 <- subset(data.to.plot2, sex == "male" & passengerClass == "3rd")
+pred_age_f <- cbind(data.for.pred2,
+                    fit = predict(fit_cauchit, newdata = data.for.pred2,
+                                  type = "response"))
+pred_age_gam <- cbind(data.for.pred2,
+                      fit = predict(fit_cauchit_gam2, newdata = data.for.pred2,
+                                    type = "response"))
 ```
 
 ```{r}
-par(mfrow = c(1, 2))
-plot(pred_f_1$pred_age_f ~ pred_f_1$age, type = "o", lwd = 2, ylim = c(0, 1.4),
-    ylab = "Prob. Survival", xlab = "Age", main = "Age as factor")
-points(pred_f_2$pred_age_f ~ pred_f_2$age, type = "o", lwd = 2, col = 2)
-points(pred_f_3$pred_age_f ~ pred_f_3$age, type = "o", lwd = 2, col = 3)
+ggplot(pred_age_f) +
+  aes(y = fit, x = age, colour = passengerClass, linetype = sex, shape = sex) +
+  geom_point() +
+  geom_line() +
+  scale_y_continuous(limits = c(0, 1)) +
+  theme_classic() +
+  labs(title = "Age as factor", y = "Predicted survival prob.") -> plot1
 
-points(pred_m_1$pred_age_f ~ pred_m_1$age, type = "o", lwd = 2, col = 1, lty = 2)
-points(pred_m_2$pred_age_f ~ pred_m_2$age, type = "o", lwd = 2, col = 2, lty = 2)
-points(pred_m_3$pred_age_f ~ pred_m_3$age, type = "o", lwd = 2, col = 3, lty = 2)
+ggplot(pred_age_gam) +
+  aes(y = fit, x = age, colour = passengerClass, linetype = sex, shape = sex) +
+  geom_point() +
+  geom_line() +
+  scale_y_continuous(limits = c(0, 1)) +
+  theme_classic() +
+  labs(title = "Age as GAM", y = "Predicted survival prob.") -> plot2
 
-legend("top", lty = c(1, 1, 1, 2, 2, 2), col = c(1:3, 1:3),
-       legend = c("f_1", "f_2", "f_3", "m_1", "m_2", "m_3"),
-       lwd = rep(2, 6), cex = 0.6)
+library(patchwork) ## to combine plots
 
-plot(pred_f_1$pred_age_gam ~ pred_f_2$age, type = "o", ylim = c(0, 1.4),
-    ylab = "Prob. Survival", xlab = "Age", main = "Age as GAM")
-points(pred_f_2$pred_age_gam ~ pred_f_2$age, type = "o", col = 2)
-points(pred_f_3$pred_age_gam ~ pred_f_3$age, type = "o", col = 3)
-
-points(pred_m_1$pred_age_gam ~ pred_m_1$age, type = "o", col = 1, lty = 2)
-points(pred_m_2$pred_age_gam ~ pred_m_2$age, type = "o", col = 2, lty = 2)
-points(pred_m_3$pred_age_gam ~ pred_m_3$age, type = "o", col = 3, lty = 2)
-
-legend("top", lty = c(1, 1, 1, 2, 2, 2), col = c(1:3, 1:3),
-       legend = c("f_1", "f_2", "f_3", "m_1", "m_2", "m_3"),
-       lwd = rep(1, 6), cex = 0.6)
+plot1 + plot2 & theme(legend.position = "bottom")
 ```
 
 
-## Odds-ratio
-
-As the model is not fitted with link = logit, the odd ratio are not constant with age...
-
-```{r}
-p1 <- pred_f_1[pred_f_1$age == 5, "pred_age_f"]
-p2 <- pred_m_3[pred_m_3$age == 5, "pred_age_f"]
-(p1/(1 - p1)) / (p2/(1 - p2))
-
-p1 <- pred_f_1[pred_f_1$age == 65.5, "pred_age_f"]
-p2 <- pred_m_3[pred_m_3$age == 65.5, "pred_age_f"]
-(p1/(1 - p1)) / (p2/(1 - p2))
-
-p1 <- pred_f_1[pred_f_1$age == 5, "pred_age_gam"]
-p2 <- pred_m_3[pred_m_3$age == 5, "pred_age_gam"]
-(p1/(1 - p1)) / (p2/(1 - p2))
-
-p1 <- pred_f_1[pred_f_1$age == 65.5, "pred_age_gam"]
-p2 <- pred_m_3[pred_m_3$age == 65.5, "pred_age_gam"]
-(p1/(1 - p1)) / (p2/(1 - p2))
-```
-
-Note: the differences between the two models are at the extrems for which have few observations.
-
-```{r}
-with(subset(TitanicSurvival, age_f == "[0,10]"), table(passengerClass, sex))
-with(subset(TitanicSurvival, age_f == "(50,81]"), table(passengerClass, sex))
-```
+Note: as the model is not fitted with `link = logit`, the odd ratios are not constant with age, so we cannot quantify effects using them.
 
 <br>
 
