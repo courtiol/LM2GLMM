@@ -580,7 +580,7 @@ confint(fit_esoph_probit4)
 
 This last model seems quite good.
 Again, our results suggest that alcohol matters most.
-Do but bear in mind that it now compares the effect of increasing by one category in each predictor.
+But do bear in mind that this model now compares the effect of increasing by one category in each predictor.
 
 
 ## More?
