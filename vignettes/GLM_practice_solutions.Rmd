@@ -786,7 +786,7 @@ Try to figure out why predictions are so different for the young males from the 
 <br>
 
 
-# Dataset: Challenger (difficulty = ?/5)
+# Dataset: Challenger (difficulty = 2/5)
 
 `r .emo("goal")` What was the probability of O-ring failure when the space shuttle Challenger took off on the 28th of January 1986 by 31 degrees F?
 
@@ -821,26 +821,25 @@ fit_binom_probit <- glm(cbind(oring_fine, oring_dt) ~ temp, data = Challenger,
                         family = binomial(link = "probit"))
 fit_binom_cauchit <- glm(cbind(oring_fine, oring_dt) ~ temp, data = Challenger,
                          family = binomial(link = "cauchit"))
-AIC(fit_binom_logit)
-AIC(fit_binom_probit)
-AIC(fit_binom_cauchit)
+AIC(fit_binom_logit, fit_binom_probit, fit_binom_cauchit)
 ```
 
-We could choose the logit or the probit model. It would be easier with the logit to interprete the estimates but we do not need this here, so let us consider the probit model since it is best.
+We could choose the logit or the probit model.
+It would be easier with the logit to interpret the estimates but we do not need this here, so let us consider the probit model since it is best.
 
 ## Let's check assumptions
 ```{r}
-r_probit <- simulateResiduals(fit_binom_probit, n = 1000)
+## let's use 2 seeds since it is a small sample size
+r_probit <- simulateResiduals(fit_binom_probit, n = 1000, seed = 1)
 plot(r_probit)
 r_probit2 <- simulateResiduals(fit_binom_probit, n = 1000, seed = 2)
-plot(r_probit2) ## replicate with other seed
-testUniformity(r_probit)
+plot(r_probit2)
 testTemporalAutocorrelation(r_probit, time = 1:nrow(Challenger))
 testTemporalAutocorrelation(r_probit, time = order(fitted(fit_binom_probit)))
 testTemporalAutocorrelation(r_probit, time = order(Challenger$temp))
 ```
-There are some problems about the autocorrelation.
-One thing that may help is to consider non linear effects for the temperature, but we don't have much data and we want to extrapolate and polynomials are terrible for that, so we will stick to what we have.
+
+Things seems OK although it is hard to be sure on such a small dataset.
 
 ## Tests
 
@@ -851,41 +850,61 @@ summary(fit_binom_probit)
 
 ## Predictions
 
-```{r}
-pred <- data.frame(temp = 31:81)
-pred_probit <- predict(fit_binom_probit, newdata = pred, se.fit = TRUE)
-pred$pred <- binomial(link = "probit")$linkinv(pred_probit$fit)
-pred$lwr <- binomial(link = "probit")$linkinv(
-  pred_probit$fit + qnorm(0.025) * pred_probit$se.fit)
-pred$upr <- binomial(link = "probit")$linkinv(
-  pred_probit$fit + qnorm(0.975) * pred_probit$se.fit)
+Let's compare the prediction using both the probit and logit link, since they lead to quite equivalent fits:
 
-plot(1 - pred$pred ~ pred$temp, type = "l",
-     ylim = c(0, 1), ylab = "Probability of failure",
-     xlab = "Temp (F)")
-points(1 - pred$lwr ~ pred$temp, type = "l", lty = 2)
-points(1 - pred$upr ~ pred$temp, type = "l", lty = 2)
-points(oring_dt / oring_tot ~ temp, data = Challenger, col = "red")
+```{r}
+pred_probit <- pred_logit <- data.frame(temp = 31:81)
+
+## Predict probit
+pred_probit_res <- predict(fit_binom_probit, newdata = pred_probit, se.fit = TRUE)
+
+pred_probit$fit <- fit_binom_probit$family$linkinv(pred_probit_res$fit)
+pred_probit$lwr <- fit_binom_probit$family$linkinv(
+  pred_probit_res$fit + qnorm(0.025) * pred_probit_res$se.fit)
+pred_probit$upr <- fit_binom_probit$family$linkinv(
+  pred_probit_res$fit + qnorm(0.975) * pred_probit_res$se.fit)
+pred_probit
 
 ## Predict logit
-pred2 <- data.frame(temp = 31:81)
-pred_logit <- predict(fit_binom_logit, newdata = pred, se.fit = TRUE)
-pred2$pred <- binomial(link = "logit")$linkinv(pred_logit$fit)
-pred2$lwr <- binomial(link = "logit")$linkinv(
-  pred_logit$fit + qnorm(0.025) * pred_logit$se.fit)
-pred2$upr <- binomial(link = "logit")$linkinv(
-  pred_logit$fit + qnorm(0.975) * pred_logit$se.fit)
+pred_logit_res <- predict(fit_binom_logit, newdata = pred_logit, se.fit = TRUE)
 
-points(1 - pred2$pred ~ pred2$temp, type = "l", col = 3)
-points(1 - pred2$lwr ~ pred2$temp, type = "l", lty = 2, col = 3)
-points(1 - pred2$upr ~ pred2$temp, type = "l", lty = 2, col = 3)
+pred_logit$fit <- fit_binom_logit$family$linkinv(pred_logit_res$fit)
+pred_logit$lwr <- fit_binom_logit$family$linkinv(
+  pred_logit_res$fit + qnorm(0.025) * pred_logit_res$se.fit)
+pred_logit$upr <- fit_binom_logit$family$linkinv(
+  pred_logit_res$fit + qnorm(0.975) * pred_logit_res$se.fit)
+pred_logit
 ```
 
-## More
+Note: we could have done it only for 31 degrees, but computing predictions for a range of temperature allows to better understand the situation. 
 
-Since a single failure could be fatal, perhaps a binary model would make more sense!
+## Plotting predictions
 
-You could try to replicate the original study that excluded all the OK flights!
+```{r}
+all_preds <- rbind(cbind(link = "probit", pred_probit),
+                   cbind(link = "logit", pred_logit))
+
+ggplot() +
+  geom_line(aes(y = 1 - fit, x = temp, colour = link), data = all_preds) +
+  geom_ribbon(aes(ymin = 1 - upr, ymax = 1 - lwr, x = temp, fill = link), alpha = 0.1, data = all_preds) +
+  geom_jitter(aes(y = oring_dt/oring_tot, x = temp), shape = 1, height = 0.005, data = Challenger) +
+  labs(y = "Probabiltiy that at least one oring will fail") +
+  theme_classic()
+```
+
+Notes: 
+
+- we do `1 - fit` because our models predict the probability of having no failure. 
+
+- the uncertainty is large, but both model agree that launching the shuttle by 31 degree F was a very risky...
+
+## More?
+
+- Perhaps it would be good to test if a non linear effect of the temperature would fit the data better (using a GAM model) although that may lead to poor extrapolation (the more flexible the function, the more unreliable the extrapolations).
+
+- Since a single failure could be fatal, perhaps a binary model would make more sense!
+
+- You could try to replicate the original study that excluded all the OK flights! (although this turned out deadly and not just silly).
 
 <br>
 

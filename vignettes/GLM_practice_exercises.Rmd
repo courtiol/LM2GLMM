@@ -79,7 +79,7 @@ head(TitanicSurvival)
 `r .emo("goal")` Find out how the sex, age and passenger class influenced who died during the Titanic disaster of 1912.
 
 
-## Dataset: Challenger (difficulty = ?/5) `r .emo("practice")`
+## Dataset: Challenger (difficulty = 2/5) `r .emo("practice")`
 
 ```{r}
 head(Challenger)
