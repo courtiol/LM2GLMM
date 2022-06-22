@@ -1628,6 +1628,14 @@ For actual testing, the only method available is the parametric bootstrap!
 
 Note: using the deviance is not recommended because some family return a scaled deviance while other do not `r .emo("broken")`
 
+```{r compare_links}
+mod_poiss   <- glm(happy ~ humans_eaten, family = poisson(link = "log"), data = Aliens) #Wrong family used
+mod_logit   <- glm(happy ~ humans_eaten, family = binomial(link = "logit"), data = Aliens) #Default link function
+mod_probit  <- glm(happy ~ humans_eaten, family = binomial(link = "probit"), data = Aliens) #Alternative link
+mod_cauchit <- glm(happy ~ humans_eaten, family = binomial(link = "cauchit"), data = Aliens) #Alternative link
+AIC(mod_poiss, mod_logit, mod_probit, mod_cauchit)
+```
+
 <!--
 ## Comparing LM vs GLM
 
