@@ -100,7 +100,8 @@ Let's try to fit an alternative model to account for the overdispersion:
 ```{r}
 library(spaMM)
 fit_insect_glm_nb <- fitme(count ~ spray, data = InsectSprays, family = spaMM::negbin())
-rbind(deviance(fit_insect_glm), deviance(fit_insect_glm_nb))
+AIC(fit_insect_glm)
+AIC(fit_insect_glm_nb)
 ```
 
 The negative binomial model fits the data much better as shown by its smaller deviance.
@@ -435,7 +436,7 @@ rbind(effects = effects_pred,
 newdata <- data.frame(agegp_f = "25-34",
                       alcgp_f = esoph$alcgp_f,
                       tobgp_f = esoph$tobgp_f)
-fit_esoph_probit$family$linkinv(mean(predict(fit_esoph_probit, newdata = newdata)))
+family(fit_esoph_probit)$linkinv(mean(predict(fit_esoph_probit, newdata = newdata)))
 ```
 
 - **{visreg}** (under its default settings) selects the level with the highest number of observation for the non focal factor (and when there are equal group sizes, it seems to pick the first level that comes out of the candidate ones; I did not check if that follows the order of the levels or their position in the data...).
@@ -472,10 +473,10 @@ newdata_esoph_young <- expand.grid(agegp_f = c("25-34"),
                                    tobgp_f = c("0-9g/day", "30+"))
 pred_esoph_young <- predict(fit_esoph_probit, newdata = newdata_esoph_young,
                             type = "link", se.fit = TRUE)
-newdata_esoph_young$pred <- binomial(link = "probit")$linkinv(pred_esoph_young$fit)
-newdata_esoph_young$lwr <- binomial(link = "probit")$linkinv(pred_esoph_young$fit +
+newdata_esoph_young$pred <- family(fit_esoph_probit)$linkinv(pred_esoph_young$fit)
+newdata_esoph_young$lwr <- family(fit_esoph_probit)$linkinv(pred_esoph_young$fit +
                             qnorm(0.025)*pred_esoph_young$se.fit)
-newdata_esoph_young$upr <- binomial(link = "probit")$linkinv(pred_esoph_young$fit +
+newdata_esoph_young$upr <- family(fit_esoph_probit)$linkinv(pred_esoph_young$fit +
                             qnorm(0.975)*pred_esoph_young$se.fit)
 newdata_esoph_young
 ```
@@ -488,10 +489,10 @@ newdata_esoph_old <- expand.grid(agegp_f = c("75+"),
                                  tobgp_f = c("0-9g/day", "30+"))
 pred_esoph_old <- predict(fit_esoph_probit, newdata = newdata_esoph_old,
                           type = "link", se.fit = TRUE)
-newdata_esoph_old$pred <- binomial(link = "probit")$linkinv(pred_esoph_old$fit)
-newdata_esoph_old$lwr <- binomial(link = "probit")$linkinv(pred_esoph_old$fit +
+newdata_esoph_old$pred <- family(fit_esoph_probit)$linkinv(pred_esoph_old$fit)
+newdata_esoph_old$lwr <- family(fit_esoph_probit)$linkinv(pred_esoph_old$fit +
                             qnorm(0.025)*pred_esoph_old$se.fit)
-newdata_esoph_old$upr <- binomial(link = "probit")$linkinv(pred_esoph_old$fit +
+newdata_esoph_old$upr <- family(fit_esoph_probit)$linkinv(pred_esoph_old$fit +
                             qnorm(0.975)*pred_esoph_old$se.fit)
 newdata_esoph_old
 ```
@@ -538,7 +539,8 @@ Let us now compare if it is better to drink a lot and not smoke or the reverse:
 
 ```{r, message = FALSE}
 library(multcomp)
-posthoc <- glht(fit_esoph_probit2b, linfct = c("`drink_smoke120+_0-9g/day` - `drink_smoke0-39g/day_30+` == 0"))
+posthoc <- glht(fit_esoph_probit2b,
+                linfct = c("`drink_smoke120+_0-9g/day` - `drink_smoke0-39g/day_30+` == 0"))
 par(oma = c(1, 5, 1, 1))
 plot(posthoc)
 confint(posthoc)
@@ -788,7 +790,7 @@ Try to figure out why predictions are so different for the young males from the 
 
 # Dataset: Challenger (difficulty = 2/5)
 
-`r .emo("goal")` What was the probability of O-ring failure when the space shuttle Challenger took off on the 28th of January 1986 by 31 degrees F?
+`r .emo("goal")` What was the probability of an O-ring experiencing thermal distress when the space shuttle Challenger took off on the 28th of January 1986 by 31 degrees F?
 
 
 ## Let's explore the data
@@ -844,7 +846,7 @@ Things seems OK although it is hard to be sure on such a small dataset.
 ## Tests
 
 ```{r}
-Anova(fit_binom_probit)
+car::Anova(fit_binom_probit)
 summary(fit_binom_probit)
 ```
 
@@ -858,20 +860,20 @@ pred_probit <- pred_logit <- data.frame(temp = 31:81)
 ## Predict probit
 pred_probit_res <- predict(fit_binom_probit, newdata = pred_probit, se.fit = TRUE)
 
-pred_probit$fit <- fit_binom_probit$family$linkinv(pred_probit_res$fit)
-pred_probit$lwr <- fit_binom_probit$family$linkinv(
+pred_probit$fit <- family(fit_binom_probit)$linkinv(pred_probit_res$fit)
+pred_probit$lwr <- family(fit_binom_probit)$linkinv(
   pred_probit_res$fit + qnorm(0.025) * pred_probit_res$se.fit)
-pred_probit$upr <- fit_binom_probit$family$linkinv(
+pred_probit$upr <- family(fit_binom_probit)$linkinv(
   pred_probit_res$fit + qnorm(0.975) * pred_probit_res$se.fit)
 pred_probit
 
 ## Predict logit
 pred_logit_res <- predict(fit_binom_logit, newdata = pred_logit, se.fit = TRUE)
 
-pred_logit$fit <- fit_binom_logit$family$linkinv(pred_logit_res$fit)
-pred_logit$lwr <- fit_binom_logit$family$linkinv(
+pred_logit$fit <- family(fit_binom_logit)$linkinv(pred_logit_res$fit)
+pred_logit$lwr <- family(fit_binom_logit)$linkinv(
   pred_logit_res$fit + qnorm(0.025) * pred_logit_res$se.fit)
-pred_logit$upr <- fit_binom_logit$family$linkinv(
+pred_logit$upr <- family(fit_binom_logit)$linkinv(
   pred_logit_res$fit + qnorm(0.975) * pred_logit_res$se.fit)
 pred_logit
 ```
@@ -886,7 +888,7 @@ all_preds <- rbind(cbind(link = "probit", pred_probit),
 
 ggplot() +
   geom_line(aes(y = 1 - fit, x = temp, colour = link), data = all_preds) +
-  geom_ribbon(aes(ymin = 1 - upr, ymax = 1 - lwr, x = temp, fill = link), alpha = 0.1, data = all_preds) +
+  geom_ribbon(aes(ymin = 1 - upr, ymax = 1 - lwr, x = temp, fill = link), alpha = 0.2, data = all_preds) +
   geom_jitter(aes(y = oring_dt/oring_tot, x = temp), shape = 1, height = 0.005, data = Challenger) +
   labs(y = "Probabiltiy that at least one oring will fail") +
   theme_classic()
@@ -896,11 +898,11 @@ Notes:
 
 - we do `1 - fit` because our models predict the probability of having no failure. 
 
-- the uncertainty is large, but both model agree that launching the shuttle by 31 degree F was a very risky...
+- the uncertainty is large, but both model agree that launching the shuttle at 31 degree F was a very risky...
 
 ## More?
 
-- Perhaps it would be good to test if a non linear effect of the temperature would fit the data better (using a GAM model) although that may lead to poor extrapolation (the more flexible the function, the more unreliable the extrapolations).
+- Perhaps it would be good to test if a non-linear effect of the temperature would fit the data better (using a GAM model) although that may lead to poor extrapolation (the more flexible the function, the more unreliable the extrapolations).
 
 - Since a single failure could be fatal, perhaps a binary model would make more sense!
 
@@ -921,7 +923,7 @@ Notes:
 ```{r}
 str(UK)
 lapply(UK, summary)
-UK$cigarettes_kid_bin <- UK$cigarettes_kid != "Never" ## we recode the variable
+UK$cigarettes_kid_bin <- UK$cigarettes_kid != "Never" ## we recode the variable to be binary
 table(UK$cigarettes_kid_bin, UK$cigarettes_friends)
 ```
 
@@ -929,7 +931,6 @@ Let's explore the data to see if there are any obvious effects:
 ```{r}
 scatterplot(cigarettes_kid_bin ~ age + sex, data = UK)
 scatterplot(cigarettes_kid_bin ~ cigarettes + sex, data = UK)
-scatter.smooth(UK$age, UK$cigarettes, lpars = list(col = "red", lwd = 2))
 ```
 
 There could be some small interactions with sex.
@@ -969,7 +970,7 @@ testTemporalAutocorrelation(resid_fit_logit, time = 1:nrow(model.matrix(fit_logi
 ### Tests
 
 ```{r}
-Anova(fit_logit)
+car::Anova(fit_logit)
 ```
 
 Let's test all interactions at once:
@@ -986,7 +987,7 @@ There is no clear sign of interactions, so we will drop them for simplicity.
 fit_logit2 <- update(fit_logit, . ~ . - sex:(cigarettes + age + cigarettes_friends),
                      data = fit_logit$model)
 summary(fit_logit2)
-Anova(fit_logit2)
+car::Anova(fit_logit2)
 ```
 
 All predictors are highly significant but this is not very surprising since the dataset is very large.
@@ -1023,7 +1024,7 @@ You may try different model formulas including different predictors (biological 
 
 # Dataset: HSE98women, exercise menopause (difficulty = 2/5)
 
-`r .emo("goal")` Study the influences of age, body mass index and smoking status upon the probability of being in menopause.
+`r .emo("goal")` Study the influences of age, body mass index and smoking status upon the probability of a woman being in menopause.
 
 `r .emo("goal")` Estimate the proportion of women in menopause in the population, depending on their age (40, 45, 50, 55, 60 yrs).
 
@@ -1065,7 +1066,7 @@ summary(fit_menop_logit$model)
 ```
 
 The only big discrepancy between the two datasets is that the minimal age is now 18 yrs old while the original dataset also contains children.
-That suggests that girls too young to have periods are not being considered, which is not an issue for studying model menopause.
+That suggests that girls too young to have periods are not being considered, which is not an issue for studying menopause.
 
 Let's check the correlation between our two continuous predictor:
 
@@ -1340,7 +1341,7 @@ cbind(predictions_at_specific_ages2, tab)
 
 These results are roughly consistent with the predictions from the GAM model.
 It confirms that the GLM logit and cauchit are underestimating the prevalence of menopause at old age.
-All models however may overestimate the prevalence of menaupose at young age.
+All models however may overestimate the prevalence of menaupose at young age (although the problem seems worst in GLM logit).
 Depending on the goal of the study, other link functions, not implemented in base R, could be tried but it is quite advanced so we won't do that.
 
 We can now turn to the exploration of the smoking effect by comparing predictions between smokers and non smokers at median BMI:

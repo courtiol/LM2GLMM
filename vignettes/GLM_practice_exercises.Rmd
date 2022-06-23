@@ -87,7 +87,7 @@ head(Challenger)
 
 <br>
 
-`r .emo("goal")` What was the probability of O-ring failure when the space shuttle Challenger took off on the 28th of January 1986 by 31 degrees F?
+`r .emo("goal")` What was the probability of an O-ring experiencing thermal distress when the space shuttle Challenger took off on the 28th of January 1986 by 31 degrees F?
 
 
 ## Dataset: UK (difficulty = 2/5) `r .emo("practice")`
@@ -115,7 +115,7 @@ head(HSE98women)
 
 <br>
 
-`r .emo("goal")` Study the influences of age, body mass index and smoking status upon the probability of being in menopause.
+`r .emo("goal")` Study the influences of age, body mass index and smoking status upon the probability of a woman being in menopause.
 
 `r .emo("goal")` Estimate the proportion of women in menopause in the population, depending on their age (40, 45, 50, 55, 60 yrs).
 
