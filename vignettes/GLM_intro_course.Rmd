@@ -969,7 +969,7 @@ newdata1 <- expand.grid(sex = levels(model.frame(fit_titanic)$sex),
                         passengerClass = levels(model.frame(fit_titanic)$passengerClass),
                         age = mean(model.frame(fit_titanic)$age))
 preds1 <- predict(fit_titanic, newdata = newdata1, type = "response")
-cbind(newdata1, survival = preds1)
+cbind(newdata1, wrong_survival = preds1)
 ```
 
 ## Predictions on the response scale `r .emo("practice")`
@@ -980,16 +980,16 @@ Let's illustrate the issue on a more realistic model fit:
 fit_titanic <- glm(survived ~ sex*age*passengerClass, data = TitanicSurvival, family = binomial())
 ```
 
-- More accurate (partial-dependence effects) computation of the mean survival for all sex - class combinations:
+- More accurate (partial-dependence) computation of the mean survival for all sex - class combinations:
 
 ```{r,  prediction_of_means3, message=FALSE}
 newdata2 <- expand.grid(sex = levels(model.frame(fit_titanic)$sex),
                         passengerClass = levels(model.frame(fit_titanic)$passengerClass),
                         age = model.frame(fit_titanic)$age)
-preds2 <- cbind(newdata2, survival = predict(fit_titanic, newdata = newdata2, type = "response"))
-output <- aggregate(survival ~ sex + passengerClass, data = preds2, FUN = mean)
-output$wrong_survival <- preds1
-output
+preds2 <- cbind(newdata2, survival_pdep = predict(fit_titanic, newdata = newdata2, type = "response"))
+output_pdep <- aggregate(survival_pdep ~ sex + passengerClass, data = preds2, FUN = mean)
+output_pdep$wrong_survival <- preds1
+output_pdep
 ```
 
 ## Predictions on the response scale `r .emo("practice")`
@@ -1003,14 +1003,13 @@ fit_titanic <- glm(survived ~ sex*age*passengerClass, data = TitanicSurvival, fa
 - More accurate (conditional) computation of the mean survival for all sex - class combinations:
 
 ```{r,  prediction_of_means4}
-wrong_data <- aggregate(age ~ sex + passengerClass, data = model.frame(fit_titanic), FUN = mean) #Predict at the mean of predictors. Incorrect
-wrong_pred <- predict(fit_titanic, newdata = wrong_data, type = "response")
 newdata3 <- aggregate(age ~ sex + passengerClass, data = model.frame(fit_titanic), FUN = identity) #Mean prediction across predictor values. Correct
 newdata3 <- tidyr::unnest(newdata3, cols = age) ## unnest the list column storing ages
-preds3 <- cbind(newdata3, survival = predict(fit_titanic, newdata = newdata3, type = "response"))
-output <- aggregate(survival ~ sex + passengerClass, data = preds3, FUN = mean)
-output$wrong_survival <- wrong_pred
-output
+preds3 <- cbind(newdata3, survival_cond = predict(fit_titanic, newdata = newdata3, type = "response"))
+output_cond <- aggregate(survival_cond ~ sex + passengerClass, data = preds3, FUN = mean)
+output_cond$survival_pdep  <- output_pdep$survival
+output_cond$wrong_survival <- preds1
+output_cond
 ```
 
 
