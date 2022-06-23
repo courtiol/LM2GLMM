@@ -789,7 +789,7 @@ Try to figure out why predictions are so different for the young males from the 
 
 # Dataset: Challenger (difficulty = 2/5)
 
-`r .emo("goal")` What was the probability of O-ring failure when the space shuttle Challenger took off on the 28th of January 1986 by 31 degrees F?
+`r .emo("goal")` What was the probability of an O-ring experiencing thermal distress when the space shuttle Challenger took off on the 28th of January 1986 by 31 degrees F?
 
 
 ## Let's explore the data

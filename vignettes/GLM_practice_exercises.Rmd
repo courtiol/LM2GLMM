@@ -87,7 +87,7 @@ head(Challenger)
 
 <br>
 
-`r .emo("goal")` What was the probability of O-ring failure when the space shuttle Challenger took off on the 28th of January 1986 by 31 degrees F?
+`r .emo("goal")` What was the probability of an O-ring experiencing thermal distress when the space shuttle Challenger took off on the 28th of January 1986 by 31 degrees F?
 
 
 ## Dataset: UK (difficulty = 2/5) `r .emo("practice")`
