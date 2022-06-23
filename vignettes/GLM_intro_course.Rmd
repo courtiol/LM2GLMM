@@ -1481,6 +1481,8 @@ plot(ecdf(pv["F", ]), xlim = c(0, 0.1), ylim = c(0, 0.1), col = "blue", cex = 0.
 plot(ecdf(pv["LR", ]), col = "green", add = TRUE, cex = 0.5)
 plot(ecdf(pv_boot["Bart", ]), col = "orange", add = TRUE, cex = 0.5)
 plot(ecdf(pv_boot["raw", ]), col = "red", add = TRUE, cex = 0.5)
+axis(1, at = seq(0, 0.1, 0.025))
+abline(v = 0.05, lty = 3, lwd = 0.75)
 legend("topleft", fill = c("blue", "green", "orange", "red"), legend = c("F", "LR", "Param boot Bartlett", "Param boot raw"), bty = "n")
 abline(0, 1, col = "black", lty = 2, lwd = 2)
 ```
