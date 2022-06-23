@@ -1558,7 +1558,7 @@ Note: here the construction of CI by likelihood profiling behaves best.
 
 There is no longer a direct method offered by `predict()` for models fitted with `stats::glm()`:
 ```{r conf fitted poiss}
-newdata <- data.frame(humans_eaten = 3:4)
+newdata <- data.frame(humans_eaten = 0:1)
 pred <- predict(fit_poiss, newdata = newdata, se.fit = TRUE)
 lwr_eta <- pred$fit + qnorm(0.025) * pred$se.fit
 upr_eta <- pred$fit + qnorm(0.975) * pred$se.fit
@@ -1631,7 +1631,7 @@ It is much easier with **{spaMM}**:
 
 ```{r conf fitted poiss spaMM}
 get_intervals(fit_poiss_spaMM_ML, newdata = newdata, intervals = "fixefVar")
-pdep_effects(fit_poiss_spaMM_ML, focal_var = "humans_eaten", focal_values = 3:4)
+pdep_effects(fit_poiss_spaMM_ML, focal_var = "humans_eaten", focal_values = 0:1)
 ```
 
 Note: here the 2 methods are equivalent because only one predictor is considered in the model fit.
@@ -1641,7 +1641,7 @@ Note: here the 2 methods are equivalent because only one predictor is considered
 
 ## Comparing different links or different families `r .emo("info")`
 
-Since the response variable does not change but models are not nested, you can use:
+If the response variable does not change but models are not nested (e.g. with different family or link function), you can use:
 
 * likelihood (larger = better)
 * AIC (smaller = better)
