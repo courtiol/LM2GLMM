@@ -980,7 +980,7 @@ Let's illustrate the issue on a more realistic model fit:
 fit_titanic <- glm(survived ~ sex*age*passengerClass, data = TitanicSurvival, family = binomial())
 ```
 
-- More accurate (marginal) computation of the mean survival for all sex - class combinations:
+- More accurate (partial-dependence effects) computation of the mean survival for all sex - class combinations:
 
 ```{r,  prediction_of_means3, message=FALSE}
 newdata2 <- expand.grid(sex = levels(model.frame(fit_titanic)$sex),
