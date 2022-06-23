@@ -930,7 +930,6 @@ Let's explore the data to see if there are any obvious effects:
 ```{r}
 scatterplot(cigarettes_kid_bin ~ age + sex, data = UK)
 scatterplot(cigarettes_kid_bin ~ cigarettes + sex, data = UK)
-scatter.smooth(UK$age, UK$cigarettes, lpars = list(col = "red", lwd = 2))
 ```
 
 There could be some small interactions with sex.
