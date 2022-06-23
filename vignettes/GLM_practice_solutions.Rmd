@@ -859,20 +859,20 @@ pred_probit <- pred_logit <- data.frame(temp = 31:81)
 ## Predict probit
 pred_probit_res <- predict(fit_binom_probit, newdata = pred_probit, se.fit = TRUE)
 
-pred_probit$fit <- fit_binom_probit$family$linkinv(pred_probit_res$fit)
-pred_probit$lwr <- fit_binom_probit$family$linkinv(
+pred_probit$fit <- family(fit_binom_probit)$linkinv(pred_probit_res$fit)
+pred_probit$lwr <- family(fit_binom_probit)$linkinv(
   pred_probit_res$fit + qnorm(0.025) * pred_probit_res$se.fit)
-pred_probit$upr <- fit_binom_probit$family$linkinv(
+pred_probit$upr <- family(fit_binom_probit)$linkinv(
   pred_probit_res$fit + qnorm(0.975) * pred_probit_res$se.fit)
 pred_probit
 
 ## Predict logit
 pred_logit_res <- predict(fit_binom_logit, newdata = pred_logit, se.fit = TRUE)
 
-pred_logit$fit <- fit_binom_logit$family$linkinv(pred_logit_res$fit)
-pred_logit$lwr <- fit_binom_logit$family$linkinv(
+pred_logit$fit <- family(fit_binom_logit)$linkinv(pred_logit_res$fit)
+pred_logit$lwr <- family(fit_binom_logit)$linkinv(
   pred_logit_res$fit + qnorm(0.025) * pred_logit_res$se.fit)
-pred_logit$upr <- fit_binom_logit$family$linkinv(
+pred_logit$upr <- family(fit_binom_logit)$linkinv(
   pred_logit_res$fit + qnorm(0.975) * pred_logit_res$se.fit)
 pred_logit
 ```
