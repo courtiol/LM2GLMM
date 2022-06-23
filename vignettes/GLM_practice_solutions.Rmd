@@ -1052,7 +1052,8 @@ summary(HSE98women[, c("menopause", "age", "bmi", "smoked")])
 summary(fit_menop_logit$model)
 ```
 
-The only big discrepancy between the two datasets is that the minimal age is now 18 yrs old while the original dataset also contains children. That suggests that girls too young to have periods are not being considered, which will greatly help us to model menopause.
+The only big discrepancy between the two datasets is that the minimal age is now 18 yrs old while the original dataset also contains children.
+That suggests that girls too young to have periods are not being considered, which is not an issue for studying menopause.
 
 Let's check the correlation between our two continuous predictor:
 
@@ -1308,7 +1309,10 @@ rownames(tab) <- c(40, 45, 50, 55, 60)
 round(tab, 2)
 ```
 
-These results are roughly consistent with the predictions from the GAM model. It confirms that the GLM logit and cauchit are underestimating the prevalence of menopause at old age. All models however may overestimate the prevalence of menaupose at young age. Depending on the goal of the study, other link functions, not implemented in R base, could be tried but it is quite advanced so we won't do that.
+These results are roughly consistent with the predictions from the GAM model.
+It confirms that the GLM logit and cauchit are underestimating the prevalence of menopause at old age.
+All models however may overestimate the prevalence of menaupose at young age (although the problem seems worst in GLM logit).
+Depending on the goal of the study, other link functions, not implemented in base R, could be tried but it is quite advanced so we won't do that.
 
 We can now turn to the exploration of the smoking effect by comparing predictions between smokers and non smokers at median BMI:
 
