@@ -1557,7 +1557,7 @@ apply((do.call("rbind", coverage_small_list)), 2, mean, na.rm = TRUE)
 Note: here the construction of CI by likelihood profiling behaves best.
 
 
-# Intervals for new observations
+# Intervals for the predicted mean response
 
 ## CI using Gaussian approximation `r .emo("practice")`
 
