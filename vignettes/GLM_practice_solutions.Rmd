@@ -1021,37 +1021,51 @@ You may try different model formulas including different predictors (biological 
 
 <br>
 
-# Dataset: HSE98women, exercise menopause (difficulty = ?/5)
+# Dataset: HSE98women, exercise menopause (difficulty = 2/5)
 
-`r .emo("goal")` Study the influences of age, body mass index and smoking status upon the probability of being menopaused.
+`r .emo("goal")` Study the influences of age, body mass index and smoking status upon the probability of being in menopause.
 
-`r .emo("goal")` Estimate the proportion of menopaused women in the population, depending on their age (40, 45, 50, 55, 60 yrs).
+`r .emo("goal")` Estimate the proportion of women in menopause in the population, depending on their age (40, 45, 50, 55, 60 yrs).
 
 Note: here, for the sake of simplicity we simply define menopause as the lack of periods in old ages.
 
 
 ## Data preparation and exploration
 
-We create the response variable:
 ```{r}
-HSE98women$menopause <-  HSE98women$period == FALSE
+str(HSE98women)
 ```
+
+
+We first create the response variable:
+```{r}
+HSE98women$menopause <- HSE98women$period == FALSE
+```
+
+We also recode the `smoked` variable as a factor (improves some plots):
+
+```{r}
+HSE98women$smoked2 <- factor(HSE98women$smoked, labels = c("non-smoker", "smoker"))
+table(HSE98women$smoked, HSE98women$smoked2) ## always check you did the right thing!
+```
+
 
 We fit a first model to help us easily exploring the data used for fitting and not all data (there are many missing values in the dataset).
 
 ```{r}
-fit_menop_logit <- glm(menopause ~ age + bmi + smoked, data = HSE98women, family = binomial())
+fit_menop_logit <- glm(menopause ~ age + bmi + smoked2, data = HSE98women, family = binomial())
 nrow(HSE98women) ## original number of observations
 nrow(fit_menop_logit$model)  ## number of observations considered in the model
 ```
 
-We compare the variables before and after filtering to see if any obvious biais is introduced by the observations we discared:
+We compare the variables before and after filtering to see if any obvious bias is introduced by the observations we discard:
 ```{r}
-summary(HSE98women[, c("menopause", "age", "bmi", "smoked")])
+summary(HSE98women[, c("menopause", "age", "bmi", "smoked2")])
 summary(fit_menop_logit$model)
 ```
 
-The only big discrepancy between the two datasets is that the minimal age is now 18 yrs old while the original dataset also contains children. That suggests that girls too young to have periods are not being considered, which will greatly help us to model menopause.
+The only big discrepancy between the two datasets is that the minimal age is now 18 yrs old while the original dataset also contains children.
+That suggests that girls too young to have periods are not being considered, which is not an issue for studying model menopause.
 
 Let's check the correlation between our two continuous predictor:
 
@@ -1064,278 +1078,306 @@ The correlation is not very high, especially in the dataset that is used for the
 
 We visualise the relationship between the predictor and the response:
 ```{r}
-scatterplot(menopause ~ age + smoked, data = fit_menop_logit$model)
-scatterplot(menopause ~ bmi + smoked, data = fit_menop_logit$model)
+scatterplot(menopause ~ age + smoked2, data = fit_menop_logit$model)
+scatterplot(menopause ~ bmi + smoked2, data = fit_menop_logit$model)
 ```
-There don't seem to be any obvious interaction between the age and smoked or between BMI and smoked, so we won't consider any. We will however consider that the effect of age may depend on the BMI.
+
+There don't seem to be any obvious interaction between the age and smoked or between BMI and smoked, so we won't consider any.
+We will however consider that the effect of age may depend on the BMI.
+The BMI also seems to exert a non monotonous effect.
 
 
 ## Fitting the models
 
 ```{r}
-fit_menop_logit   <- glm(menopause ~ age * bmi + smoked, data = HSE98women, family = binomial(link = "logit"))
-fit_menop_probit  <- glm(menopause ~ age * bmi + smoked, data = HSE98women, family = binomial(link = "probit"))
-fit_menop_cauchit <- glm(menopause ~ age * bmi + smoked, data = HSE98women, family = binomial(link = "cauchit"))
+fit_menop_logit   <- glm(menopause ~ age * bmi + smoked2,
+                         data = HSE98women, family = binomial(link = "logit"))
+fit_menop_probit  <- glm(menopause ~ age * bmi + smoked2,
+                         data = HSE98women, family = binomial(link = "probit"))
+fit_menop_cauchit <- glm(menopause ~ age * bmi + smoked2,
+                         data = HSE98women, family = binomial(link = "cauchit"))
 ```
 
-Because it is very difficult to explore the shape of the relationship between the age and bmi upon the probability of being menopaused, we will also fit general additive models (GAM), which allows parameters to vary along the predictors.
+Because it is very difficult to explore the shape of the relationship between the age and BMI upon the probability of being menopaused, we will also fit general additive models (GAMs), which allow for parameters to vary along the predictors.
 
 ```{r, message=FALSE}
-fit_menop_logit_gam   <- gam(menopause ~ s(age, bmi) + smoked, data = HSE98women, family = binomial(link = "logit"))
-fit_menop_probit_gam  <- gam(menopause ~ s(age, bmi) + smoked, data = HSE98women, family = binomial(link = "probit"))
-fit_menop_cauchit_gam <- gam(menopause ~ s(age, bmi) + smoked, data = HSE98women, family = binomial(link = "cauchit"))
+fit_menop_logit_gam   <- gam(menopause ~ s(age, bmi) + smoked2,
+                             data = HSE98women, family = binomial(link = "logit"))
+fit_menop_probit_gam  <- gam(menopause ~ s(age, bmi) + smoked2,
+                             data = HSE98women, family = binomial(link = "probit"))
+fit_menop_cauchit_gam <- gam(menopause ~ s(age, bmi) + smoked2,
+                             data = HSE98women, family = binomial(link = "cauchit"))
 ```
 
 ```{r}
-rbind(logit = AIC(fit_menop_logit),
-      probit = AIC(fit_menop_probit),
-      cauchit = AIC(fit_menop_cauchit),
-      logit_GAM = AIC(fit_menop_logit_gam),
-      probit_GAM = AIC(fit_menop_probit_gam),
-      cauchit_GAM = AIC(fit_menop_cauchit_gam)
-      )
+AIC(fit_menop_logit,
+    fit_menop_probit,
+    fit_menop_cauchit,
+    fit_menop_logit_gam,
+    fit_menop_probit_gam,
+    fit_menop_cauchit_gam)
 ```
 
-The GAM logit model seems to be the best model, which will prevent us to express simply the effect of coefficients compared to a usual GLM. That's too bad but as the model is much better, we will go for it.
+(Note that GAMs have non-integer degrees of freedom. This is normal.)
+
+The GAM logit model seems to be the best model, which will prevent us to express simply the effect of coefficients compared to a usual GLM.
+That's too bad but since the GAM fits are much better, we will go for those.
+Among those, we will consider the one with the logit link since it is both more simple to discuss and it here fits the data best.
 
 ## Tests
 
-The best practices for testing effects in GAM are not quite established.
+The best practices for testing effects in GAMs are not quite established.
 
-We are going to test for the effect of the interaction by Likelihood ratio test:
+We are going to test for the effect of the interaction by Likelihood Ratio Test (LRT):
 ```{r}
-fit_menop_logit_gam_no_int <- gam(menopause ~ s(age) + s(bmi) + smoked, family = binomial(), data = fit_menop_logit_gam$model)
-anova(fit_menop_logit_gam_no_int, fit_menop_logit_gam, test = "Chisq")
-```
-Note that models with GAM have non-integer degrees of freedom. This is normal.
-
-Let's now test the effect of BMI by Likelihood ratio test:
-
-```{r}
-fit_menop_logit_gam_no_bmi <- gam(menopause ~ s(age) + smoked, family = binomial(), data = fit_menop_logit_gam$model)
-anova(fit_menop_logit_gam_no_bmi, fit_menop_logit_gam, test = "Chisq")
+fit_menop_logit_gam_no_int <- gam(menopause ~ s(age) + s(bmi) + smoked2,
+                                  family = binomial(), data = fit_menop_logit_gam$model)
+lmtest::lrtest(fit_menop_logit_gam_no_int, fit_menop_logit_gam)
 ```
 
-Let's now test the effect of age by Likelihood ratio test:
+Let's now test the overall effect of BMI by LRT:
 
 ```{r}
-fit_menop_logit_gam_no_age <- gam(menopause ~ s(bmi) + smoked, family = binomial(), data = fit_menop_logit_gam$model)
-anova(fit_menop_logit_gam_no_age, fit_menop_logit_gam, test = "Chisq")
+fit_menop_logit_gam_no_bmi <- gam(menopause ~ s(age) + smoked2,
+                                  family = binomial(), data = fit_menop_logit_gam$model)
+lmtest::lrtest(fit_menop_logit_gam_no_bmi, fit_menop_logit_gam)
 ```
 
-Let's now test the effect of smoking by Likelihood ratio test:
+Let's now test the overall effect of age by LRT:
 
 ```{r}
-fit_menop_logit_gam_never_smoked <- gam(menopause ~ s(age, bmi), family = binomial(), data = fit_menop_logit_gam$model)
-anova(fit_menop_logit_gam_never_smoked, fit_menop_logit_gam, test = "Chisq")
+fit_menop_logit_gam_no_age <- gam(menopause ~ s(bmi) + smoked2,
+                                  family = binomial(), data = fit_menop_logit_gam$model)
+lmtest::lrtest(fit_menop_logit_gam_no_age, fit_menop_logit_gam)
 ```
 
+Let's now test the effect of smoking by LRT:
+
+```{r}
+fit_menop_logit_gam_never_smoked <- gam(menopause ~ s(age, bmi),
+                                        family = binomial(), data = fit_menop_logit_gam$model)
+lmtest::lrtest(fit_menop_logit_gam_never_smoked, fit_menop_logit_gam)
+```
 
 ## Predictions
 
-Let's first explore the model output with the pacakge **{visreg}**, which also works on GAM models:
+The package **{mgcv}** has a plotting function but in this particular case, the output is hard to read in the link scale and the conversion to response scale crashes for some reason....
+
+```{r}
+plot(fit_menop_logit_gam)
+```
+
+Let's thus explore the model output with the package **{visreg}**, which we saw before and which also works on GAM fits (but remember that it computes predictions with weird meaning):
 
 ```{r}
 visreg(fit_menop_logit_gam)
 ```
 
-These plots show the patterns identified by the smoothing parameters in the GAM: the effect of age seems to change after 40 yrs and the effect of BMI seem to be changing between 23 and 32 yrs. It is difficult to account for such threshold effects by polynoms, so we will have to stick to GAM here...
+These plots show the patterns identified by the smoothing parameters in the GAM: the effect of age seems to change after 40 yrs and the effect of BMI seem to be changing between 23 and 32 Kg/(m^2). It is difficult to account for such threshold effects using polynomials, so we will have to stick to GAMs here...
 
-Le't us do the same plots on the scale of the response variable:
+Let's do the same plots on the scale of the response variable:
 ```{r}
 visreg(fit_menop_logit_gam, scale = "response")
 visreg2d(fit_menop_logit_gam, "age", "bmi", scale = "response")
 #visreg2d(fit_menop_logit_gam, "age", "bmi", scale = "response", plot.type = "rgl")
 ```
 
-We will now plot the predictions for the model with the logit link, the model with the cauchit link and the model with the GAM model with the logit link to explore their differences. We will predict the influence of age and consider the median BMI and smokers.
+We will now plot the predictions for the GLM fit with the logit link, the GLM fit with the cauchit link and the GAM fit with the logit link to explore their differences.
+
+We will predict the influence of age and consider the median BMI and smokers.
 
 ```{r}
-age.for.pred <- seq(min(fit_menop_cauchit_gam$model$age), max(fit_menop_cauchit_gam$model$age), length = 100)
+age.for.pred <- seq(min(fit_menop_cauchit_gam$model$age),
+                    max(fit_menop_cauchit_gam$model$age), length = 100)
+
 data.for.pred <- expand.grid(
   age = age.for.pred,
   bmi = median(fit_menop_cauchit_gam$model$bmi),
-  smoked = TRUE
+  smoked2 = "smoker"
   )
 
-gam.p <- predict(fit_menop_logit_gam, newdata = data.for.pred, se.fit = TRUE)
-gam.upr <- binomial(link = "logit")$linkinv(gam.p$fit + qnorm(0.975) * gam.p$se.fit)
-gam.lwr <- binomial(link = "logit")$linkinv(gam.p$fit + qnorm(0.025) * gam.p$se.fit)
-gam.fit <- binomial(link = "logit")$linkinv(gam.p$fit)
+logit.p <- predict(fit_menop_logit, newdata = data.for.pred, se.fit = TRUE)
+
+predict_GLM_logit <- data.frame(fit = family(fit_menop_logit)$linkinv(logit.p$fit),
+                                upr = family(fit_menop_logit)$linkinv(logit.p$fit + 
+                                        qnorm(0.975) * logit.p$se.fit),
+                                lwr = family(fit_menop_logit)$linkinv(logit.p$fit +
+                                        qnorm(0.025) * logit.p$se.fit))
 
 cauchit.p <- predict(fit_menop_cauchit, newdata = data.for.pred, se.fit = TRUE)
-cauchit.upr <- binomial(link = "cauchit")$linkinv(cauchit.p$fit + qnorm(0.975) * cauchit.p$se.fit)
-cauchit.lwr <- binomial(link = "cauchit")$linkinv(cauchit.p$fit + qnorm(0.025) * cauchit.p$se.fit)
-cauchit.fit <- binomial(link = "cauchit")$linkinv(cauchit.p$fit)
 
-logit.p <- predict(fit_menop_logit, newdata = data.for.pred, se.fit = TRUE)
-logit.upr <- binomial(link = "logit")$linkinv(logit.p$fit + qnorm(0.975) * logit.p$se.fit)
-logit.lwr <- binomial(link = "logit")$linkinv(logit.p$fit + qnorm(0.025) * logit.p$se.fit)
-logit.fit <- binomial(link = "logit")$linkinv(logit.p$fit)
+predict_GLM_cauchit <- data.frame(fit = family(fit_menop_cauchit)$linkinv(cauchit.p$fit),
+                                  upr = family(fit_menop_cauchit)$linkinv(cauchit.p$fit +
+                                        qnorm(0.975) * cauchit.p$se.fit),
+                                  lwr = family(fit_menop_cauchit)$linkinv(cauchit.p$fit + 
+                                        qnorm(0.025) * cauchit.p$se.fit))
 
-plot(gam.fit ~ age.for.pred, type = "l", las = 1, ylab = "Probability of being menopaused", xlab = "Age (yrs)", ylim = c(0, 1))
-points(gam.upr ~ age.for.pred, type = "l", lty = 2)
-points(gam.lwr ~ age.for.pred, type = "l", lty = 2)
+gam.p <- predict(fit_menop_logit_gam, newdata = data.for.pred, se.fit = TRUE)
 
-points(cauchit.fit ~ age.for.pred, type = "l", lty = 1, col = "green")
-points(cauchit.upr ~ age.for.pred, type = "l", lty = 2, col = "green")
-points(cauchit.lwr ~ age.for.pred, type = "l", lty = 2, col = "green")
+predict_GAM_logit <- data.frame(fit = family(fit_menop_logit_gam)$linkinv(gam.p$fit),
+                                upr = family(fit_menop_logit_gam)$linkinv(gam.p$fit +
+                                        qnorm(0.975) * gam.p$se.fit),
+                                lwr = family(fit_menop_logit_gam)$linkinv(gam.p$fit + 
+                                        qnorm(0.025) * gam.p$se.fit))
 
-points(logit.fit ~ age.for.pred, type = "l", lty = 1, col = "red")
-points(logit.upr ~ age.for.pred, type = "l", lty = 2, col = "red")
-points(logit.lwr ~ age.for.pred, type = "l", lty = 2, col = "red")
+all_predictions_for_age <- rbind(
+  cbind(data.for.pred, method = "GLM_logit", predict_GLM_logit),
+  cbind(data.for.pred, method = "GLM_cauchit", predict_GLM_cauchit),
+  cbind(data.for.pred, method = "GAM_logit", predict_GAM_logit))
 
-legend("topleft", fill = c("black", "green", "red"), legend = c("logit GAM", "cauchit", "logit"), bty = "n")
+head(all_predictions_for_age) ## show the top of the table we created
 ```
+
+Let's plot the result:
+
+```{r}
+ggplot(all_predictions_for_age) +
+  aes(y = fit, ymin = lwr, ymax = upr, x = age, colour = method) +
+  geom_ribbon(fill = NA, linetype = "dashed", size = 0.2) +
+  geom_line() +
+  labs(y = "Probability of being in menopause", x = "Age (yrs)") +
+  theme_classic() +
+  theme(legend.position = "top")
+```
+
 
 Selecting the best model, let's now look at the effect of BMI, still using smokers:
 
 ```{r}
-data.for.pred <- expand.grid(
+data.for.pred2 <- expand.grid(
   age = age.for.pred,
   bmi = c(18.5, 25, 30),
-  smoked = TRUE
-  )
+  smoked2 = "smoker")
 
-gam.skiny.p <- predict(fit_menop_logit_gam, newdata = subset(data.for.pred, bmi == 18.5), se.fit = TRUE)
-gam.skiny.upr <- binomial(link = "logit")$linkinv(gam.skiny.p$fit + qnorm(0.975) * gam.skiny.p$se.fit)
-gam.skiny.lwr <- binomial(link = "logit")$linkinv(gam.skiny.p$fit + qnorm(0.025) * gam.skiny.p$se.fit)
-gam.skiny.fit <- binomial(link = "logit")$linkinv(gam.skiny.p$fit)
+gam.p2 <- predict(fit_menop_logit_gam, newdata = data.for.pred2, se.fit = TRUE)
 
-gam.overweight.p <- predict(fit_menop_logit_gam, newdata = subset(data.for.pred, bmi == 25), se.fit = TRUE)
-gam.overweight.upr <- binomial(link = "logit")$linkinv(gam.overweight.p$fit + qnorm(0.975) * gam.overweight.p$se.fit)
-gam.overweight.lwr <- binomial(link = "logit")$linkinv(gam.overweight.p$fit + qnorm(0.025) * gam.overweight.p$se.fit)
-gam.overweight.fit <- binomial(link = "logit")$linkinv(gam.overweight.p$fit)
+predict_GAM_logit2 <- data.frame(fit = family(fit_menop_logit_gam)$linkinv(gam.p2$fit),
+                                 upr = family(fit_menop_logit_gam)$linkinv(gam.p2$fit +
+                                         qnorm(0.975) * gam.p2$se.fit),
+                                 lwr = family(fit_menop_logit_gam)$linkinv(gam.p2$fit + 
+                                         qnorm(0.025) * gam.p2$se.fit))
 
-gam.obese.p <- predict(fit_menop_logit_gam, newdata = subset(data.for.pred, bmi == 30), se.fit = TRUE)
-gam.obese.upr <- binomial(link = "logit")$linkinv(gam.obese.p$fit + qnorm(0.975) * gam.obese.p$se.fit)
-gam.obese.lwr <- binomial(link = "logit")$linkinv(gam.obese.p$fit + qnorm(0.025) * gam.obese.p$se.fit)
-gam.obese.fit <- binomial(link = "logit")$linkinv(gam.obese.p$fit)
+predictions_for_age_by_BMI <- cbind(data.for.pred2, predict_GAM_logit2)
 
-plot(gam.skiny.fit ~ age.for.pred, type = "l", las = 1, ylab = "Probability of being menopaused", xlab = "Age (yrs)", ylim = c(0, 1))
-points(gam.skiny.upr ~ age.for.pred, type = "l", lty = 2)
-points(gam.skiny.lwr ~ age.for.pred, type = "l", lty = 2)
-
-points(gam.overweight.fit ~ age.for.pred, type = "l", lty = 1, col = "green")
-points(gam.overweight.upr ~ age.for.pred, type = "l", lty = 2, col = "green")
-points(gam.overweight.lwr ~ age.for.pred, type = "l", lty = 2, col = "green")
-
-points(gam.obese.fit ~ age.for.pred, type = "l", lty = 1, col = "red")
-points(gam.obese.upr ~ age.for.pred, type = "l", lty = 2, col = "red")
-points(gam.obese.lwr ~ age.for.pred, type = "l", lty = 2, col = "red")
-
-legend("topleft", fill = c("black", "green", "red"), legend = c("skiny", "overweight", "obese"), bty = "n")
+ggplot(predictions_for_age_by_BMI) +
+  aes(y = fit, ymin = lwr, ymax = upr, x = age, colour = factor(bmi)) +
+  geom_ribbon(fill = NA, linetype = "dashed", size = 0.2) +
+  geom_line() +
+  labs(y = "Probability of being in menopause", x = "Age (yrs)") +
+  theme_classic() +
+  theme(legend.position = "top")
 ```
 
 We can see on this plot that obesity seems to accelerate the onset of menopause, but it does not seem to make any difference later on.
 
-We will now predict the proportion of women in menopause at 40, 45, 50, 55 and 60 yrs. To illustrate the effect ofthe BMI will will perform prediction for a BMI of 21.75 (middle of normal BMI range according to WHO) and 30 (lower limit for obesity) Kg/(m^2). Again, we will perform the predictions considering smoker since we have data for this category. We will also compute the confidence intervals (prediction intervals make little sense in the context of the prediction of proportion...).
+We will now predict the proportion of women in menopause at 40, 45, 50, 55 and 60 yrs.
+To illustrate the effect of the BMI we will perform predictions for a BMI of 21.75 (middle of normal BMI range according to WHO) and 30 (lower limit for obesity) Kg/(m^2).
+Again, we will perform the predictions considering smoker since we have more data for this category. We will also compute the confidence intervals.
 
 ```{r}
-data.for.pred <- expand.grid(
+data.for.pred3 <- expand.grid(
   age = c(40, 45, 50, 55, 60),
   bmi = c(21.75, 30),
-  smoked = TRUE
-  )
-pred_normal <- predict(fit_menop_logit_gam, newdata = subset(data.for.pred, bmi == 21.75), se.fit = TRUE)
-tab_normal <- cbind(
-  predict = plogis(pred_normal$fit),
-  lwr.CI = plogis(pred_normal$fit + qnorm(0.025)*pred_normal$se.fit),
-  upr.CI = plogis(pred_normal$fit + qnorm(0.975)*pred_normal$se.fit)
-)
-rownames(tab_normal) <- c(40, 45, 50, 55, 60)
-round(tab_normal, 2)
+  smoked2 = "smoker")
+
+gam.p3 <- predict(fit_menop_logit_gam, newdata = data.for.pred3, se.fit = TRUE)
+
+predict_GAM_logit3 <- data.frame(fit = family(fit_menop_logit_gam)$linkinv(gam.p3$fit),
+                                 upr = family(fit_menop_logit_gam)$linkinv(gam.p3$fit +
+                                         qnorm(0.975) * gam.p3$se.fit),
+                                 lwr = family(fit_menop_logit_gam)$linkinv(gam.p3$fit + 
+                                         qnorm(0.025) * gam.p3$se.fit))
+
+predictions_at_specific_ages <- cbind(data.for.pred3, predict_GAM_logit3)
+predictions_at_specific_ages
 ```
 
-This gives the information for individuals for normal BMI. Let's now look at the corresponding proportion for the obeses:
+These table confirms our expectation concerning the influence of BMI upon the onset of menopause.
+
+For the sake of comparison, let's compare predictions (without CI this time, for simplicity) using the other candidate fits:
 
 ```{r}
-pred_obses <- predict(fit_menop_logit_gam, newdata = subset(data.for.pred, bmi == 30), se.fit = TRUE)
-tab_obses <- cbind(
-  predict = plogis(pred_obses$fit),
-  lwr.CI = plogis(pred_obses$fit + qnorm(0.025)*pred_obses$se.fit),
-  upr.CI = plogis(pred_obses$fit + qnorm(0.975)*pred_obses$se.fit)
-)
-rownames(tab_obses) <- c(40, 45, 50, 55, 60)
-round(tab_obses, 2)
+data.for.pred4 <- expand.grid(age = c(40, 45, 50, 55, 60), bmi = 21.75, smoked2 = "smoker")
+
+pred_GAM4     <- predict(fit_menop_logit_gam, newdata = data.for.pred4, type = "response")
+pred_logit4   <- predict(fit_menop_logit, newdata = data.for.pred4, type = "response")
+pred_cauchit4 <- predict(fit_menop_cauchit, newdata = data.for.pred4, type = "response")
+
+predictions_at_specific_ages2 <- cbind(data.for.pred4,
+                                       logit_GAM = pred_GAM4,
+                                       logit_GLM = pred_logit4,
+                                       cauchit_GLM = pred_cauchit4)
+predictions_at_specific_ages2
 ```
 
-These tables confirm our expectation concerning the influenc of BMI upon the onset of menopause.
-
-For the sake of comparion, let's compare the first table to what we would have predicted using the cauchit model or the logit GLM model:
-
-```{r}
-data.for.pred <- expand.grid(age = c(40, 45, 50, 55, 60), bmi = 21.75, smoked = TRUE)
-pred_GAM <- predict(fit_menop_logit_gam, newdata = subset(data.for.pred, bmi == 21.75), se.fit = TRUE)
-pred_logit <- predict(fit_menop_logit, newdata = subset(data.for.pred, bmi == 21.75), se.fit = TRUE)
-pred_cauchit <- predict(fit_menop_cauchit, newdata = subset(data.for.pred, bmi == 21.75), se.fit = TRUE)
-tab <- cbind(
-  logit_GAM = plogis(pred_GAM$fit),
-  logit_GLM = plogis(pred_logit$fit),
-  cauchit_GLM = binomial(link = "cauchit")$linkinv(pred_cauchit$fit)
-)
-rownames(tab) <- c(40, 45, 50, 55, 60)
-round(tab, 2)
-```
-
-Let's look at the same proportion in the raw data. We cannot be as strict otherwise we won't get much individuals, so let's enlarge a bit the selection and see that we get a few hundred individuals at least:
+Let's look at the same proportion in the raw data.
+We cannot be as strict during selection otherwise we won't get much individuals, so let's enlarge a bit the selection and see that we get a few hundred individuals at least:
 ```{r}
 tab <- with(HSE98women,
-     rbind(sum(age >= 39 & age <= 41 & bmi > 18.5 & bmi < 25, na.rm = TRUE),
-           sum(age >= 44 & age <= 46 & bmi > 18.5 & bmi < 25, na.rm = TRUE),
-           sum(age >= 49 & age <= 51 & bmi > 18.5 & bmi < 25, na.rm = TRUE),
-           sum(age >= 54 & age <= 56 & bmi > 18.5 & bmi < 25, na.rm = TRUE),
-           sum(age >= 59 & age <= 61 & bmi > 18.5 & bmi < 25, na.rm = TRUE)
-           )
-)
-rownames(tab) <- c(40, 45, 50, 55, 60)
+     data.frame(N = c(
+       sum(age >= 39 & age <= 41 & bmi > 18.5 & bmi < 25, na.rm = TRUE),
+       sum(age >= 44 & age <= 46 & bmi > 18.5 & bmi < 25, na.rm = TRUE),
+       sum(age >= 49 & age <= 51 & bmi > 18.5 & bmi < 25, na.rm = TRUE),
+       sum(age >= 54 & age <= 56 & bmi > 18.5 & bmi < 25, na.rm = TRUE),
+       sum(age >= 59 & age <= 61 & bmi > 18.5 & bmi < 25, na.rm = TRUE)
+           )))
 tab
 ```
-That seems a good selection process (+/- 1 year and the whole WHO normal BMI category), so let's check the proportion of menopaused individuals in each of these categories (keeping both smokers and non smokers as the effect is rather small, see later):
+That seems a good selection process (+/- 1 year and the whole WHO normal BMI category), so let's check the proportion of individuals in menopause in each of these categories (keeping both smokers and non smokers as the effect is rather small, see later):
 
 ```{r}
 tab <- with(HSE98women, 
-     rbind(
+     data.frame(observed_freq = c(
        mean(menopause[age >= 39 & age <= 41 & bmi > 18.5 & bmi < 25], na.rm = TRUE),
        mean(menopause[age >= 44 & age <= 46 & bmi > 18.5 & bmi < 25], na.rm = TRUE),
        mean(menopause[age >= 49 & age <= 51 & bmi > 18.5 & bmi < 25], na.rm = TRUE),
        mean(menopause[age >= 54 & age <= 56 & bmi > 18.5 & bmi < 25], na.rm = TRUE),
        mean(menopause[age >= 59 & age <= 61 & bmi > 18.5 & bmi < 25], na.rm = TRUE)
-     )
-)
-rownames(tab) <- c(40, 45, 50, 55, 60)
-round(tab, 2)
+     )))
+
+cbind(predictions_at_specific_ages2, tab)
 ```
 
-These results are roughly consistent with the predictions from the GAM model. It confirms that the GLM logit and cauchit are underestimating the prevalence of menopause at old age. All models however may overestimate the prevalence of menaupose at young age. Depending on the goal of the study, other link functions, not implemented in R base, could be tried but it is quite advanced so we won't do that.
+These results are roughly consistent with the predictions from the GAM model.
+It confirms that the GLM logit and cauchit are underestimating the prevalence of menopause at old age.
+All models however may overestimate the prevalence of menaupose at young age.
+Depending on the goal of the study, other link functions, not implemented in base R, could be tried but it is quite advanced so we won't do that.
 
 We can now turn to the exploration of the smoking effect by comparing predictions between smokers and non smokers at median BMI:
 
 Selecting the best model, let's now look at the effect of BMI, still using smokers:
 
 ```{r}
-data.for.pred.nosmoke <- expand.grid(
+data.for.pred5 <- expand.grid(
   age = age.for.pred,
-  bmi = median(fit_menop_cauchit_gam$model$bmi),
-  smoked = FALSE
-  )
+  bmi = 21.75,
+  smoked2 = (c("smoker", "non-smoker")))
 
-gam.p.nosmoke <- predict(fit_menop_logit_gam, newdata = data.for.pred.nosmoke, se.fit = TRUE)
-gam.upr.nosmoke <- binomial(link = "logit")$linkinv(gam.p.nosmoke$fit + qnorm(0.975) * gam.p.nosmoke$se.fit)
-gam.lwr.nosmoke <- binomial(link = "logit")$linkinv(gam.p.nosmoke$fit + qnorm(0.025) * gam.p.nosmoke$se.fit)
-gam.fit.nosmoke <- binomial(link = "logit")$linkinv(gam.p.nosmoke$fit)
+gam.p5 <- predict(fit_menop_logit_gam, newdata = data.for.pred5, se.fit = TRUE)
 
+predict_GAM_logit5 <- data.frame(fit = family(fit_menop_logit_gam)$linkinv(gam.p5$fit),
+                                 upr = family(fit_menop_logit_gam)$linkinv(gam.p5$fit +
+                                         qnorm(0.975) * gam.p5$se.fit),
+                                 lwr = family(fit_menop_logit_gam)$linkinv(gam.p5$fit + 
+                                         qnorm(0.025) * gam.p5$se.fit))
 
-plot(gam.fit ~ age.for.pred, type = "l", las = 1, ylab = "Probability of being menopaused", xlab = "Age (yrs)", ylim = c(0, 1), col = "red")
-points(gam.upr ~ age.for.pred, type = "l", lty = 2, col = "red")
-points(gam.lwr ~ age.for.pred, type = "l", lty = 2, col = "red")
+predictions_for_age_by_smoking <- cbind(data.for.pred5, predict_GAM_logit5)
 
-points(gam.fit.nosmoke ~ age.for.pred, type = "l", col = "green")
-points(gam.upr.nosmoke ~ age.for.pred, type = "l", lty = 2, col = "green")
-points(gam.lwr.nosmoke ~ age.for.pred, type = "l", lty = 2, col = "green")
-
-legend("topleft", fill = c("green", "red"), legend = c("non-smoker", "smoker"), bty = "n")
+ggplot(predictions_for_age_by_smoking) +
+  aes(y = fit, ymin = lwr, ymax = upr, x = age, colour = factor(smoked2)) +
+  geom_ribbon(fill = NA, linetype = "dashed", size = 0.2) +
+  geom_line() +
+  labs(y = "Probability of being in menopause", x = "Age (yrs)") +
+  theme_classic() +
+  theme(legend.position = "top")
 ```
 
-Although significant, the effect of smoking is rather small. Because the interaction between the smoking status and the BMI was not significant, we won't draw predictions to explore that.
+Although significant, the effect of smoking is rather small.
+Because the interaction between the smoking status and the BMI was not significant, we won't draw predictions to explore that.
+
+## More?
+
+We did not compute predictions properly.
+Ideally instead of considering fixed values for non-focal predictors, we could in some case compute partial-dependence effects.
+There is no function doing that on GAM fits directly, so it would have to be done by hand...
 
