@@ -95,7 +95,7 @@ So in GLM, the probability distribution of $\text{Y}$ can be Gaussian.
 ### The response
 
 * one dimension: $n \times 1$
-* continuous or categorical
+* continuous or discrete
 * member of the univariate linear exponential family: $f(y; \theta; \phi) = \text{exp}\left( \frac{y\theta-b(\theta)}{a(\phi)} + c(y; \phi)\right)$ `r .emo("nerd")`
 
 This includes:
