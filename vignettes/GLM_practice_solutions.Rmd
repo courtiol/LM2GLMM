@@ -887,7 +887,7 @@ all_preds <- rbind(cbind(link = "probit", pred_probit),
 
 ggplot() +
   geom_line(aes(y = 1 - fit, x = temp, colour = link), data = all_preds) +
-  geom_ribbon(aes(ymin = 1 - upr, ymax = 1 - lwr, x = temp, fill = link), alpha = 0.1, data = all_preds) +
+  geom_ribbon(aes(ymin = 1 - upr, ymax = 1 - lwr, x = temp, fill = link), alpha = 0.2, data = all_preds) +
   geom_jitter(aes(y = oring_dt/oring_tot, x = temp), shape = 1, height = 0.005, data = Challenger) +
   labs(y = "Probabiltiy that at least one oring will fail") +
   theme_classic()
