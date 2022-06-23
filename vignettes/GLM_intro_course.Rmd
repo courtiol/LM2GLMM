@@ -95,7 +95,7 @@ So in GLM, the probability distribution of $\text{Y}$ can be Gaussian.
 ### The response
 
 * one dimension: $n \times 1$
-* continuous or categorical
+* continuous or discrete
 * member of the univariate linear exponential family: $f(y; \theta; \phi) = \text{exp}\left( \frac{y\theta-b(\theta)}{a(\phi)} + c(y; \phi)\right)$ `r .emo("nerd")`
 
 This includes:
@@ -691,7 +691,7 @@ rbind(fit_binom$coefficients,
 ```{r, error = TRUE}
 test <- data.frame(x = c(8.752, 20.27, 24.71, 32.88, 27.27, 19.09),
                    y = c(5254, 35.92, 84.14, 641.8, 1.21, 47.2))
-glm(y ~ x, data = test, family = Gamma(link = "log")) 
+glm(y ~ x, data = test, family = Gamma(link = "log"), control = list(trace = TRUE)) 
 ```
 
 ## Coping with iterative algorithm failures `r .emo("practice")`
@@ -699,7 +699,8 @@ glm(y ~ x, data = test, family = Gamma(link = "log"))
 You may try to play with parameters of the iterative algorithm...
 
 ```{r}
-glm(y ~ x, data = test, family = Gamma(link = "log"), start = c(10, -0.1), control = list(epsilon = 1e-3))
+glm(y ~ x, data = test, family = Gamma(link = "log"), start = c(10, -0.1),
+    control = list(epsilon = 1e-3, trace = TRUE))
 ```
 
 ... but unless you really know what you are doing (& I don't), you risk to make the optimisation algorithm stop prematurely without warning.
@@ -890,31 +891,35 @@ pred_data_expanded <- data.frame(x = x <- seq(0, 10, length = 100),
 
 ggplot() +
   geom_abline(slope = coef(fit_binom)["humans_eaten"][[1]], intercept = coef(fit_binom)["(Intercept)"][[1]], linetype = "dashed") +
-  geom_point(aes(y = link, x = humans_eaten, colour = factor(humans_eaten)), data = pred_data) +
+  geom_point(aes(y = link, x = humans_eaten, colour = factor(humans_eaten)), data = pred_data, size = 2) +
   scale_x_continuous(limits = c(0, 10), breaks = 0:10) +
   scale_y_continuous(limits = c(-4, 4), breaks = seq(-4, 4, by = 2)) +
   labs(y = "prediction (link scale)", x = "humans eaten", colour = "humans eaten") +
-  theme_bw() +
-  theme(legend.position = "top") -> p1
+  theme_bw() -> p1
+
+ggplot() +
+    geom_segment(aes(y = response, yend = response, xend = -4, x = link), data = pred_data, lty = 1, size = 0.25,
+                 arrow = arrow(length = unit(3, "mm"))) +
+    geom_segment(aes(y = response, yend = -Inf, x = link, xend = link),
+                 data = pred_data, lty = 1, size = 0.25) +
+    geom_text(aes(y = response + 0.05, x = -2, label = "Inverse\nlink function"),
+              data = pred_data[5, ], size = 3.5) +
+    geom_line(aes(y = y, x = x), data = logit_data, linetype = "dashed") +
+    geom_point(aes(y = response, x = link, colour = factor(humans_eaten)), data = pred_data, size = 2) +
+    labs(y = "prediction (response scale)", x = "prediction (link scale)", colour = "humans eaten") +
+    scale_x_continuous(expand = c(0, 0)) +
+    theme_bw() -> p2
 
 ggplot() +
   geom_line(aes(y = y, x = x), data = pred_data_expanded, linetype = "dashed") +
-  geom_point(aes(y = response, x = humans_eaten, colour = factor(humans_eaten)), data = pred_data) +
+  geom_point(aes(y = response, x = humans_eaten, colour = factor(humans_eaten)), data = pred_data, size = 2) +
   scale_x_continuous(limits = c(0, 10), breaks = 0:10) +
   labs(y = "prediction (response scale)", x = "humans eaten", colour = "humans eaten") +
   scale_y_continuous(limits = c(0, 1)) +
-  theme_bw() +
-  theme(legend.position = "top") -> p2
-
-ggplot() +
-    geom_line(aes(y = y, x = x), data = logit_data, linetype = "dashed") +
-    geom_point(aes(y = response, x = link, colour = factor(humans_eaten)), data = pred_data) +
-    labs(y = "prediction (response scale)", x = "prediction (link scale)", colour = "humans eaten") +
-    theme_bw() +
-    theme(legend.position = "top") -> p3
+  theme_bw() -> p3
 
 library(patchwork)
-p1 + p2 + p3
+p1 + p2 + p3 + plot_layout(guides = "collect")
 ```
 
 ## Predictions on the linear scale `r .emo("recap")`
@@ -964,7 +969,7 @@ newdata1 <- expand.grid(sex = levels(model.frame(fit_titanic)$sex),
                         passengerClass = levels(model.frame(fit_titanic)$passengerClass),
                         age = mean(model.frame(fit_titanic)$age))
 preds1 <- predict(fit_titanic, newdata = newdata1, type = "response")
-cbind(newdata1, survival = preds1)
+cbind(newdata1, wrong_survival = preds1)
 ```
 
 ## Predictions on the response scale `r .emo("practice")`
@@ -975,16 +980,16 @@ Let's illustrate the issue on a more realistic model fit:
 fit_titanic <- glm(survived ~ sex*age*passengerClass, data = TitanicSurvival, family = binomial())
 ```
 
-- More accurate (marginal) computation of the mean survival for all sex - class combinations:
+- More accurate (partial-dependence) computation of the mean survival for all sex - class combinations:
 
 ```{r,  prediction_of_means3, message=FALSE}
 newdata2 <- expand.grid(sex = levels(model.frame(fit_titanic)$sex),
                         passengerClass = levels(model.frame(fit_titanic)$passengerClass),
                         age = model.frame(fit_titanic)$age)
-preds2 <- cbind(newdata2, survival = predict(fit_titanic, newdata = newdata2, type = "response"))
-output <- aggregate(survival ~ sex + passengerClass, data = preds2, FUN = mean)
-output$wrong_survival <- preds1
-output
+preds2 <- cbind(newdata2, survival_pdep = predict(fit_titanic, newdata = newdata2, type = "response"))
+output_pdep <- aggregate(survival_pdep ~ sex + passengerClass, data = preds2, FUN = mean)
+output_pdep$wrong_survival <- preds1
+output_pdep
 ```
 
 ## Predictions on the response scale `r .emo("practice")`
@@ -998,14 +1003,13 @@ fit_titanic <- glm(survived ~ sex*age*passengerClass, data = TitanicSurvival, fa
 - More accurate (conditional) computation of the mean survival for all sex - class combinations:
 
 ```{r,  prediction_of_means4}
-wrong_data <- aggregate(age ~ sex + passengerClass, data = model.frame(fit_titanic), FUN = mean) #Predict at the mean of predictors. Incorrect
-wrong_pred <- predict(fit_titanic, newdata = wrong_data, type = "response")
 newdata3 <- aggregate(age ~ sex + passengerClass, data = model.frame(fit_titanic), FUN = identity) #Mean prediction across predictor values. Correct
 newdata3 <- tidyr::unnest(newdata3, cols = age) ## unnest the list column storing ages
-preds3 <- cbind(newdata3, survival = predict(fit_titanic, newdata = newdata3, type = "response"))
-output <- aggregate(survival ~ sex + passengerClass, data = preds3, FUN = mean)
-output$wrong_survival <- wrong_pred
-output
+preds3 <- cbind(newdata3, survival_cond = predict(fit_titanic, newdata = newdata3, type = "response"))
+output_cond <- aggregate(survival_cond ~ sex + passengerClass, data = preds3, FUN = mean)
+output_cond$survival_pdep  <- output_pdep$survival
+output_cond$wrong_survival <- preds1
+output_cond
 ```
 
 
@@ -1472,10 +1476,12 @@ Let us compare the performances of all 4 tests (a perfect test would follow the 
 
 ```{r ecfd spaMM 2, echo = FALSE, fig.width = 7, fig.height = 5}
 par(las = 1)
-plot(ecdf(pv["F", ]), xlim = c(0, 0.1), ylim = c(0, 0.1), col = "blue", cex = 0.5, main = "")
-plot(ecdf(pv["LR", ]), col = "green", add = TRUE, cex = 0.5)
-plot(ecdf(pv_boot["Bart", ]), col = "orange", add = TRUE, cex = 0.5)
-plot(ecdf(pv_boot["raw", ]), col = "red", add = TRUE, cex = 0.5)
+plot(ecdf(pv["F", ]), xlim = c(0, 0.1), ylim = c(0, 0.1), col = "blue", cex = 0.5, main = "", xaxt = "n")
+plot(ecdf(pv["LR", ]), col = "green", add = TRUE, cex = 0.5, xaxt = "n")
+plot(ecdf(pv_boot["Bart", ]), col = "orange", add = TRUE, cex = 0.5, xaxt = "n")
+plot(ecdf(pv_boot["raw", ]), col = "red", add = TRUE, cex = 0.5, xaxt = "n")
+axis(1, at = seq(0, 0.1, 0.025))
+abline(v = 0.05, lty = 3, lwd = 0.75)
 legend("topleft", fill = c("blue", "green", "orange", "red"), legend = c("F", "LR", "Param boot Bartlett", "Param boot raw"), bty = "n")
 abline(0, 1, col = "black", lty = 2, lwd = 2)
 ```
@@ -1552,19 +1558,19 @@ apply((do.call("rbind", coverage_small_list)), 2, mean, na.rm = TRUE)
 Note: here the construction of CI by likelihood profiling behaves best.
 
 
-# Intervals for new observations
+# Intervals for the predicted mean response
 
 ## CI using Gaussian approximation `r .emo("practice")`
 
 There is no longer a direct method offered by `predict()` for models fitted with `stats::glm()`:
 ```{r conf fitted poiss}
-newdata <- data.frame(humans_eaten = 3:4)
+newdata <- data.frame(humans_eaten = 0:1)
 pred <- predict(fit_poiss, newdata = newdata, se.fit = TRUE)
 lwr_eta <- pred$fit + qnorm(0.025) * pred$se.fit
 upr_eta <- pred$fit + qnorm(0.975) * pred$se.fit
-cbind(pred = poisson(link = "log")$linkinv(pred$fit),
-      lwr = poisson(link = "log")$linkinv(lwr_eta),
-      upr = poisson(link = "log")$linkinv(upr_eta))
+cbind(pred = family(fit_poiss)$linkinv(pred$fit),
+      lwr = family(fit_poiss)$linkinv(lwr_eta),
+      upr = family(fit_poiss)$linkinv(upr_eta))
 ```
 Notes:
 
@@ -1597,9 +1603,9 @@ pred <- predict(fit_poiss, newdata = newdata, se.fit = TRUE)
 lwr_eta <- pred$fit + qnorm(0.025) * pred$se.fit
 upr_eta <- pred$fit + qnorm(0.975) * pred$se.fit
 plot_data <- data.frame(humans_eaten = 0:1,
-                        eggs = poisson(link = "log")$linkinv(pred$fit),
-                        lwr = poisson(link = "log")$linkinv(lwr_eta),
-                        upr = poisson(link = "log")$linkinv(upr_eta),
+                        eggs = family(fit_poiss)$linkinv(pred$fit),
+                        lwr = family(fit_poiss)$linkinv(lwr_eta),
+                        upr = family(fit_poiss)$linkinv(upr_eta),
                         method = "link")
 #Wrong method. CIs on response scale
 pred_wrong <- predict(fit_poiss, newdata = newdata, se.fit = TRUE, type = "response")
@@ -1631,7 +1637,7 @@ It is much easier with **{spaMM}**:
 
 ```{r conf fitted poiss spaMM}
 get_intervals(fit_poiss_spaMM_ML, newdata = newdata, intervals = "fixefVar")
-pdep_effects(fit_poiss_spaMM_ML, focal_var = "humans_eaten", focal_values = 3:4)
+pdep_effects(fit_poiss_spaMM_ML, focal_var = "humans_eaten", focal_values = 0:1)
 ```
 
 Note: here the 2 methods are equivalent because only one predictor is considered in the model fit.
@@ -1641,7 +1647,7 @@ Note: here the 2 methods are equivalent because only one predictor is considered
 
 ## Comparing different links or different families `r .emo("info")`
 
-Since the response variable does not change but models are not nested, you can use:
+If the response variable does not change but models are not nested (e.g. with different family or link function), you can use:
 
 * likelihood (larger = better)
 * AIC (smaller = better)
