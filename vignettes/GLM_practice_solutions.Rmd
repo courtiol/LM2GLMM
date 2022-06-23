@@ -845,7 +845,7 @@ Things seems OK although it is hard to be sure on such a small dataset.
 ## Tests
 
 ```{r}
-Anova(fit_binom_probit)
+car::Anova(fit_binom_probit)
 summary(fit_binom_probit)
 ```
 
@@ -970,7 +970,7 @@ testTemporalAutocorrelation(resid_fit_logit, time = 1:nrow(model.matrix(fit_logi
 ### Tests
 
 ```{r}
-Anova(fit_logit)
+car::Anova(fit_logit)
 ```
 
 Let's test all interactions at once:
@@ -987,7 +987,7 @@ There is no clear sign of interactions, so we will drop them for simplicity.
 fit_logit2 <- update(fit_logit, . ~ . - sex:(cigarettes + age + cigarettes_friends),
                      data = fit_logit$model)
 summary(fit_logit2)
-Anova(fit_logit2)
+car::Anova(fit_logit2)
 ```
 
 All predictors are highly significant but this is not very surprising since the dataset is very large.
