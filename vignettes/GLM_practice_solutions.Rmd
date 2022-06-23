@@ -539,7 +539,8 @@ Let us now compare if it is better to drink a lot and not smoke or the reverse:
 
 ```{r, message = FALSE}
 library(multcomp)
-posthoc <- glht(fit_esoph_probit2b, linfct = c("`drink_smoke120+_0-9g/day` - `drink_smoke0-39g/day_30+` == 0"))
+posthoc <- glht(fit_esoph_probit2b,
+                linfct = c("`drink_smoke120+_0-9g/day` - `drink_smoke0-39g/day_30+` == 0"))
 par(oma = c(1, 5, 1, 1))
 plot(posthoc)
 confint(posthoc)
