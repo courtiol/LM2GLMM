@@ -1477,10 +1477,10 @@ Let us compare the performances of all 4 tests (a perfect test would follow the 
 
 ```{r ecfd spaMM 2, echo = FALSE, fig.width = 7, fig.height = 5}
 par(las = 1)
-plot(ecdf(pv["F", ]), xlim = c(0, 0.1), ylim = c(0, 0.1), col = "blue", cex = 0.5, main = "")
-plot(ecdf(pv["LR", ]), col = "green", add = TRUE, cex = 0.5)
-plot(ecdf(pv_boot["Bart", ]), col = "orange", add = TRUE, cex = 0.5)
-plot(ecdf(pv_boot["raw", ]), col = "red", add = TRUE, cex = 0.5)
+plot(ecdf(pv["F", ]), xlim = c(0, 0.1), ylim = c(0, 0.1), col = "blue", cex = 0.5, main = "", xaxt = "n")
+plot(ecdf(pv["LR", ]), col = "green", add = TRUE, cex = 0.5, xaxt = "n")
+plot(ecdf(pv_boot["Bart", ]), col = "orange", add = TRUE, cex = 0.5, xaxt = "n")
+plot(ecdf(pv_boot["raw", ]), col = "red", add = TRUE, cex = 0.5, xaxt = "n")
 axis(1, at = seq(0, 0.1, 0.025))
 abline(v = 0.05, lty = 3, lwd = 0.75)
 legend("topleft", fill = c("blue", "green", "orange", "red"), legend = c("F", "LR", "Param boot Bartlett", "Param boot raw"), bty = "n")
