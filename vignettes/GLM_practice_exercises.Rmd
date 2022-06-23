@@ -107,7 +107,7 @@ Optional (not corrected):
 `r .emo("goal")` Try to identify the influential determinants of the variable ```backward```.
 
 
-## Dataset: HSE98women (difficulty = ?/5) `r .emo("practice")`
+## Dataset: HSE98women (difficulty = 2/5) `r .emo("practice")`
 
 ```{r}
 head(HSE98women)
@@ -117,7 +117,7 @@ head(HSE98women)
 
 `r .emo("goal")` Study the influences of age, body mass index and smoking status upon the probability of a woman being in menopause.
 
-`r .emo("goal")` Estimate the proportion of menopaused women in the population, depending on their age (40, 45, 50, 55, 60 yrs).
+`r .emo("goal")` Estimate the proportion of women in menopause in the population, depending on their age (40, 45, 50, 55, 60 yrs).
 
 # Solutions
 
