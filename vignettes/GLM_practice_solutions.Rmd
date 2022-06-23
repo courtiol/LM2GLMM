@@ -897,11 +897,11 @@ Notes:
 
 - we do `1 - fit` because our models predict the probability of having no failure. 
 
-- the uncertainty is large, but both model agree that launching the shuttle by 31 degree F was a very risky...
+- the uncertainty is large, but both model agree that launching the shuttle at 31 degree F was a very risky...
 
 ## More?
 
-- Perhaps it would be good to test if a non linear effect of the temperature would fit the data better (using a GAM model) although that may lead to poor extrapolation (the more flexible the function, the more unreliable the extrapolations).
+- Perhaps it would be good to test if a non-linear effect of the temperature would fit the data better (using a GAM model) although that may lead to poor extrapolation (the more flexible the function, the more unreliable the extrapolations).
 
 - Since a single failure could be fatal, perhaps a binary model would make more sense!
 
@@ -922,7 +922,7 @@ Notes:
 ```{r}
 str(UK)
 lapply(UK, summary)
-UK$cigarettes_kid_bin <- UK$cigarettes_kid != "Never" ## we recode the variable
+UK$cigarettes_kid_bin <- UK$cigarettes_kid != "Never" ## we recode the variable to be binary
 table(UK$cigarettes_kid_bin, UK$cigarettes_friends)
 ```
 
