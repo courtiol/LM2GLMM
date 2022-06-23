@@ -691,7 +691,7 @@ rbind(fit_binom$coefficients,
 ```{r, error = TRUE}
 test <- data.frame(x = c(8.752, 20.27, 24.71, 32.88, 27.27, 19.09),
                    y = c(5254, 35.92, 84.14, 641.8, 1.21, 47.2))
-glm(y ~ x, data = test, family = Gamma(link = "log")) 
+glm(y ~ x, data = test, family = Gamma(link = "log"), control = list(trace = TRUE)) 
 ```
 
 ## Coping with iterative algorithm failures `r .emo("practice")`
@@ -699,7 +699,8 @@ glm(y ~ x, data = test, family = Gamma(link = "log"))
 You may try to play with parameters of the iterative algorithm...
 
 ```{r}
-glm(y ~ x, data = test, family = Gamma(link = "log"), start = c(10, -0.1), control = list(epsilon = 1e-3))
+glm(y ~ x, data = test, family = Gamma(link = "log"), start = c(10, -0.1),
+    control = list(epsilon = 1e-3, trace = TRUE))
 ```
 
 ... but unless you really know what you are doing (& I don't), you risk to make the optimisation algorithm stop prematurely without warning.
