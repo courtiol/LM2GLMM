@@ -100,7 +100,8 @@ Let's try to fit an alternative model to account for the overdispersion:
 ```{r}
 library(spaMM)
 fit_insect_glm_nb <- fitme(count ~ spray, data = InsectSprays, family = spaMM::negbin())
-rbind(deviance(fit_insect_glm), deviance(fit_insect_glm_nb))
+AIC(fit_insect_glm)
+AIC(fit_insect_glm_nb)
 ```
 
 The negative binomial model fits the data much better as shown by its smaller deviance.
