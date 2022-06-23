@@ -1562,9 +1562,9 @@ newdata <- data.frame(humans_eaten = 0:1)
 pred <- predict(fit_poiss, newdata = newdata, se.fit = TRUE)
 lwr_eta <- pred$fit + qnorm(0.025) * pred$se.fit
 upr_eta <- pred$fit + qnorm(0.975) * pred$se.fit
-cbind(pred = poisson(link = "log")$linkinv(pred$fit),
-      lwr = poisson(link = "log")$linkinv(lwr_eta),
-      upr = poisson(link = "log")$linkinv(upr_eta))
+cbind(pred = family(fit_poiss)$linkinv(pred$fit),
+      lwr = family(fit_poiss)$linkinv(lwr_eta),
+      upr = family(fit_poiss)$linkinv(upr_eta))
 ```
 Notes:
 
@@ -1597,9 +1597,9 @@ pred <- predict(fit_poiss, newdata = newdata, se.fit = TRUE)
 lwr_eta <- pred$fit + qnorm(0.025) * pred$se.fit
 upr_eta <- pred$fit + qnorm(0.975) * pred$se.fit
 plot_data <- data.frame(humans_eaten = 0:1,
-                        eggs = poisson(link = "log")$linkinv(pred$fit),
-                        lwr = poisson(link = "log")$linkinv(lwr_eta),
-                        upr = poisson(link = "log")$linkinv(upr_eta),
+                        eggs = family(fit_poiss)$linkinv(pred$fit),
+                        lwr = family(fit_poiss)$linkinv(lwr_eta),
+                        upr = family(fit_poiss)$linkinv(upr_eta),
                         method = "link")
 #Wrong method. CIs on response scale
 pred_wrong <- predict(fit_poiss, newdata = newdata, se.fit = TRUE, type = "response")
