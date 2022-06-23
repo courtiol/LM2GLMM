@@ -436,7 +436,7 @@ rbind(effects = effects_pred,
 newdata <- data.frame(agegp_f = "25-34",
                       alcgp_f = esoph$alcgp_f,
                       tobgp_f = esoph$tobgp_f)
-fit_esoph_probit$family$linkinv(mean(predict(fit_esoph_probit, newdata = newdata)))
+family(fit_esoph_probit)$linkinv(mean(predict(fit_esoph_probit, newdata = newdata)))
 ```
 
 - **{visreg}** (under its default settings) selects the level with the highest number of observation for the non focal factor (and when there are equal group sizes, it seems to pick the first level that comes out of the candidate ones; I did not check if that follows the order of the levels or their position in the data...).
@@ -473,10 +473,10 @@ newdata_esoph_young <- expand.grid(agegp_f = c("25-34"),
                                    tobgp_f = c("0-9g/day", "30+"))
 pred_esoph_young <- predict(fit_esoph_probit, newdata = newdata_esoph_young,
                             type = "link", se.fit = TRUE)
-newdata_esoph_young$pred <- binomial(link = "probit")$linkinv(pred_esoph_young$fit)
-newdata_esoph_young$lwr <- binomial(link = "probit")$linkinv(pred_esoph_young$fit +
+newdata_esoph_young$pred <- family(fit_esoph_probit)$linkinv(pred_esoph_young$fit)
+newdata_esoph_young$lwr <- family(fit_esoph_probit)$linkinv(pred_esoph_young$fit +
                             qnorm(0.025)*pred_esoph_young$se.fit)
-newdata_esoph_young$upr <- binomial(link = "probit")$linkinv(pred_esoph_young$fit +
+newdata_esoph_young$upr <- family(fit_esoph_probit)$linkinv(pred_esoph_young$fit +
                             qnorm(0.975)*pred_esoph_young$se.fit)
 newdata_esoph_young
 ```
@@ -489,10 +489,10 @@ newdata_esoph_old <- expand.grid(agegp_f = c("75+"),
                                  tobgp_f = c("0-9g/day", "30+"))
 pred_esoph_old <- predict(fit_esoph_probit, newdata = newdata_esoph_old,
                           type = "link", se.fit = TRUE)
-newdata_esoph_old$pred <- binomial(link = "probit")$linkinv(pred_esoph_old$fit)
-newdata_esoph_old$lwr <- binomial(link = "probit")$linkinv(pred_esoph_old$fit +
+newdata_esoph_old$pred <- family(fit_esoph_probit)$linkinv(pred_esoph_old$fit)
+newdata_esoph_old$lwr <- family(fit_esoph_probit)$linkinv(pred_esoph_old$fit +
                             qnorm(0.025)*pred_esoph_old$se.fit)
-newdata_esoph_old$upr <- binomial(link = "probit")$linkinv(pred_esoph_old$fit +
+newdata_esoph_old$upr <- family(fit_esoph_probit)$linkinv(pred_esoph_old$fit +
                             qnorm(0.975)*pred_esoph_old$se.fit)
 newdata_esoph_old
 ```
