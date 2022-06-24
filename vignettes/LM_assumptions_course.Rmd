@@ -834,7 +834,7 @@ det(vcov(update(fit_davis, data = Davis[-19, ]))) / det(vcov(fit_davis))
 
 ## Exploring in depth outliers: all at once `r .emo("practice")`
 
-Note: don't trust much rule of thumbs to identify outliers "automatically". If you still want to know some of them, you can look at the beginning of the code of the function ```influence.measures()```.
+Note: stars flag candidate outliers, but do check them carefully since it may almost always flag observations even if they are not problematic for your analysis..
 
 ```{r influence.measures}
 influence.measures(fit_davis)  ## stars are just there to attract your attention, there is no proper tests!
@@ -847,7 +847,7 @@ Tip: if your dataset is large, you can select the rows flagged with the stars as
 
 ```{r influence.measures2}
 influence_results <- influence.measures(fit_davis)
-influence_results$infmat[apply(influence_results$is.inf, 1, sum) > 0, ]
+influence_results$infmat[rowSums(influence_results$is.inf) > 0, ]
 ```
 
 

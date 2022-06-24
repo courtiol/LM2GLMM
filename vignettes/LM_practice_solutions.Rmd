@@ -753,7 +753,8 @@ There seem to be some issues caused by outliers.
 So let's examine the outliers in more details:
 
 ```{r}
-influence.measures(fit)
+im <- influence.measures(fit)
+im$infmat[rowSums(im$is.inf) > 0, ] ## extract candidate outliers
 plot(fit, which = 4)
 ```
 
@@ -891,7 +892,8 @@ Animals$log_body <-  log(Animals$body)
 ```{r}
 fit <- lm(log_brain ~ log_body, data = Animals)
 plot(fit)
-influence.measures(fit)
+im <- influence.measures(fit)
+im$infmat[rowSums(im$is.inf) > 0, ] ## extract candidate outliers
 plot(fit, which = 4)
 ```
 
@@ -902,7 +904,8 @@ Animals_nodino <- Animals[!rownames(Animals) %in%
                           c("Triceratops", "Brachiosaurus", "Dipliodocus"), ]
 fit_nodino <- lm(log_brain ~ log_body, data = Animals_nodino)
 plot(fit_nodino)
-influence.measures(fit_nodino)
+im <- influence.measures(fit_nodino)
+im$infmat[rowSums(im$is.inf) > 0, ] ## extract candidate outliers
 plot(fit_nodino, which = 4)
 ```
 
