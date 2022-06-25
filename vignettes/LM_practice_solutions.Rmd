@@ -776,27 +776,29 @@ fit <- lm(log_brain ~ log_body, data = mammals)
 plot(fit)
 ```
 
-There seem to be some issues caused by outliers.
+There seem to be some outliers but otherwise the diagnostics look good.
 
 So let's examine the outliers in more details:
 
 ```{r}
 im <- influence.measures(fit)
-im$infmat[rowSums(im$is.inf) > 0, ] ## extract candidate outliers
+im$infmat[rowSums(im$is.inf) > 0, , drop = FALSE] ## extract candidate outliers
 plot(fit, which = 4)
 ```
 
-Humans seem to be the problem, so let's refit the model without them:
+Humans seem to be a little problematic because they exert a strong effect on the slope (check column `dfb.lg_b`) and thus on the estimate of the allometry relationship... so let's refit the model without them:
 
 ```{r}
 summary(fit) ## fit with humans
 fit_nohuman <- lm(log_brain ~ log_body, data = mammals[rownames(mammals) != "Human", ])
 summary(fit_nohuman) ## fit without humans
 plot(fit_nohuman)
+im2 <- influence.measures(fit_nohuman)
+im2$infmat[rowSums(im2$is.inf) > 0, , drop = FALSE]
 plot(fit_nohuman, which = 4)
 ```
 
-The fit diagnostics are somewhat better without humans.
+The fit diagnostics are still OK without humans, so we could use either model, or even better: both!
 
 
 ## Comparing to an allometry coefficient of 2/3
@@ -921,7 +923,7 @@ Animals$log_body <-  log(Animals$body)
 fit <- lm(log_brain ~ log_body, data = Animals)
 plot(fit)
 im <- influence.measures(fit)
-im$infmat[rowSums(im$is.inf) > 0, ] ## extract candidate outliers
+im$infmat[rowSums(im$is.inf) > 0, , drop = FALSE] ## extract candidate outliers
 plot(fit, which = 4)
 ```
 
@@ -933,11 +935,12 @@ Animals_nodino <- Animals[!rownames(Animals) %in%
 fit_nodino <- lm(log_brain ~ log_body, data = Animals_nodino)
 plot(fit_nodino)
 im <- influence.measures(fit_nodino)
-im$infmat[rowSums(im$is.inf) > 0, ] ## extract candidate outliers
+im$infmat[rowSums(im$is.inf) > 0, , drop = FALSE] ## extract candidate outliers
 plot(fit_nodino, which = 4)
 ```
 
 That is not great, but much better!
+
 
 ## Comparing to an allometry coefficient of 2/3
 
