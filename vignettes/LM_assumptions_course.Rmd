@@ -263,6 +263,19 @@ summary(fit_poison) ## original (mispecified) model
 summary(fit_poison_bc) ## BoxCoxed model
 ```
 
+## Limits of the Box-Cox transformation `r .emo("info")`
+
+- it does not always solve the issues (e.g. if count data, GLM should be best)
+
+- it does not work in the presence of null or negative values
+
+    - a simple option is to transform the response variable following the motif:
+    ```{r, eval=FALSE}
+    data$y <- abs(min(data$y)) + 1
+    ```
+    - better transformations have been proposed for that case (see e.g. `car::bcnPower()`)
+
+
 
 # Lack of perfect multicollinearity
 
