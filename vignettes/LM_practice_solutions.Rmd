@@ -634,6 +634,9 @@ visreg::visreg(fit_insect_bc, trans = f.inverse, ylab = "Count (UnBoxCoxed)", gg
   theme_bw()
 ```
 
+For GLM, we will see later that **{effects}** and **{visreg}** have issues, but these packages work fine for LM.
+They do differ however about what they assume for non focal effect (more on that during the GLM course), although here it has no effect since we only have considered a single predictor.
+
 ## Clean up
 We clean the session for the next exercise:
 
