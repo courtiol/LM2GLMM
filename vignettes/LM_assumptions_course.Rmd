@@ -860,8 +860,10 @@ Tip: if your dataset is large, you can select the rows flagged with the stars as
 
 ```{r influence.measures2}
 influence_results <- influence.measures(fit_davis)
-influence_results$infmat[rowSums(influence_results$is.inf) > 0, ]
+influence_results$infmat[rowSums(influence_results$is.inf) > 0, , drop = FALSE]
 ```
+
+Note: `drop = FALSE` will avoid the output to be automatically turned into a vector if there is only one flagged outlier. Such a vector would have lost the name of the row and with it the identity of the outlier.
 
 
 ## What you need to remember `r .emo("goal")`
