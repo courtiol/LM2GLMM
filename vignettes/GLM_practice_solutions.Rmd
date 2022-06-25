@@ -437,8 +437,8 @@ rbind(effects = effects_pred,
 
 ```{r}
 newdata <- data.frame(agegp_f = "25-34",
-                      alcgp_f = esoph$alcgp_f,
-                      tobgp_f = esoph$tobgp_f)
+                      alcgp_f = model.frame(fit_esoph_probit)$alcgp_f,
+                      tobgp_f = model.frame(fit_esoph_probit)$tobgp_f)
 family(fit_esoph_probit)$linkinv(mean(predict(fit_esoph_probit, newdata = newdata)))
 ```
 
@@ -457,8 +457,8 @@ predict(fit_esoph_probit, newdata = newdata, type = "response")
 
 ```{r}
 newdata <- data.frame(agegp_f = "25-34",
-                      alcgp_f = esoph$alcgp_f,
-                      tobgp_f = esoph$tobgp_f)
+                      alcgp_f = model.frame(fit_esoph_probit)$alcgp_f,
+                      tobgp_f = model.frame(fit_esoph_probit)$tobgp_f)
 mean(predict(fit_esoph_probit, newdata = newdata, type = "response"))
 ```
 
@@ -466,9 +466,31 @@ Note: doing predictions yourself is perhaps the easiest way to know what is actu
 
 ## Predictions by hand
 
-Doing things by hand is tedious but it gives you more control.
+Doing things by hand is tedious but it gives you more clarity, control and you are no longer bounded to use a particular package.
 
-For example, here, to answer the question we may want to compare extreme situations:
+Here for example, to plot the partial-dependence effects for all combinations of alcohol and tobacco categories we could do the following:
+
+```{r}
+newdata_focal <- expand.grid(alcgp_f = levels(model.frame(fit_esoph_probit)$alcgp_f),
+                             tobgp_f = levels(model.frame(fit_esoph_probit)$tobgp_f))
+
+newdata_nonfocal <- data.frame(agegp_f = model.frame(fit_esoph_probit)$agegp_f)
+
+newdata <- merge(newdata_focal, newdata_nonfocal)
+
+predicts <- cbind(newdata, fit = predict(fit_esoph_probit, newdata = newdata, type = "response"))
+d <- aggregate(fit ~ alcgp_f + tobgp_f, data = predicts, mean)
+d
+
+ggplot(d) +
+  aes(y = alcgp_f, x = tobgp_f, fill = fit) +
+  geom_tile() +
+  scale_fill_binned(type = "viridis", breaks = seq(0, 1, by = 0.2), limits = c(0, 1)) +
+  theme_minimal()
+```
+
+
+To answer the question we may alternativelly want to compare extreme situations:
 
 ```{r}
 newdata_esoph_young <- expand.grid(agegp_f = c("25-34"),
