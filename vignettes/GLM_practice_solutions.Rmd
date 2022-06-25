@@ -210,9 +210,12 @@ pred_bc
 
 ```{r}
 pred_glm_poiss_eta <- predict(fit_insect_glm, newdata = data.for.pred, se.fit = TRUE)
-pred_glm_poiss <- cbind(data.for.pred, data.frame(fit = exp(pred_glm_poiss_eta$fit)))
-pred_glm_poiss$lwr <- exp(pred_glm_poiss_eta$fit + qnorm(0.025)*pred_glm_poiss_eta$se.fit)
-pred_glm_poiss$upr <- exp(pred_glm_poiss_eta$fit + qnorm(0.975)*pred_glm_poiss_eta$se.fit)
+pred_glm_poiss <- cbind(data.for.pred,
+                     data.frame(fit = family(fit_insect_glm)$linkinv(pred_glm_poiss_eta$fit)))
+pred_glm_poiss$lwr <- family(fit_insect_glm)$linkinv(pred_glm_poiss_eta$fit +
+                                                     qnorm(0.025)*pred_glm_poiss_eta$se.fit)
+pred_glm_poiss$upr <- family(fit_insect_glm)$linkinv(pred_glm_poiss_eta$fit +
+                                                     qnorm(0.975)*pred_glm_poiss_eta$se.fit)
 pred_glm_poiss
 ```
 
