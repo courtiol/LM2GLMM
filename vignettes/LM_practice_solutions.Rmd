@@ -78,8 +78,21 @@ Let's have a look at the residuals of the model:
 par(mfrow = c(2, 2))
 plot(fit_chick)
 ```
-
 Everything looks very good. The errors should thus be independent, homoscedastic and normally distributed.
+
+Let's check potential outliers:
+
+```{r}
+infl_res <- influence.measures(fit_chick)
+infl_res$infmat[rowSums(infl_res$is.inf) > 0, , drop = FALSE]
+plot(fit_chick, which = 4)
+```
+
+Nothing too bad here, just one observation (54) a little different from the rest in its group (meatmeal):
+
+```{r}
+chickwts[chickwts$feed == "meatmeal", ]
+```
 
 
 ## Testing the effect of diet
@@ -127,25 +140,21 @@ for (row in 1:nrow(pred)) {
 
 The plot shows the predicted mean weight of chicken for each diet (black) with associated 95% confidence intervals. The observed weights of the chicken included in the analysis are represented by grey dots.
 
-To make the plot even better we could have sorted the diet by increasing order of their effects.
+To make the plot even better we could have sorted the diet by their effects and separating points by adding some jitter so that points overlapping on top of each others becomes more spread out.
 
 We can also use **{ggplot2}** if you prefer:
 ```{r plot ggplot chicken}
 library(ggplot2)
 ggplot() +
-  geom_point(aes(y = weight, x = feed),
-             shape = 1,
-             position = position_nudge(x = -0.1),
-             data = chickwts) +
-  geom_point(aes(y = fit, x = feed),
-             position = position_nudge(x = 0.1),
-             data = pred) +
-  geom_errorbar(aes(ymin = lwr, ymax = upr, x = feed),
-                width = 0.2,
-                position = position_nudge(x = 0.1),
-                data = pred) +
-  labs(y = "Chicken weight (gr)", x = "Diet") +
-  theme_minimal()
+  geom_point(aes(y = fit, x = forcats::fct_reorder(feed, fit, .desc = TRUE)), data = pred) +
+  geom_errorbar(aes( x = forcats::fct_reorder(feed, fit, .desc = TRUE), min = lwr, ymax = upr), , data = pred, width = 0.2) +
+  geom_jitter(aes(y = weight, x = feed),
+              height = 0,
+              width = 0.1,
+              shape = 1, colour = "blue",
+              data = chickwts, inherit.aes = FALSE) +
+  labs(x = "Diet", y = "Weight of 6 weeks old chicken (gr)") +
+  theme_bw()
 ```
 
 
@@ -155,6 +164,22 @@ ggplot() +
 summary(posthoc <- multcomp::glht(fit_chick, linfct = multcomp::mcp(feed = "Tukey")))
 par(oma = c(0, 8, 0, 0))
 plot(posthoc)
+```
+
+Instead of comparing all diets to each others, we can also choose specific comparisons so as to  save some statistical power:
+
+```{r}
+library(multcomp)
+comp <- glht(model = fit_chick,
+             linfct = mcp(feed = c("sunflower - casein == 0",
+                                   "sunflower - horsebean == 0",
+                                   "sunflower - linseed == 0",
+                                   "sunflower - meatmeal == 0",
+                                   "sunflower - soybean == 0")))
+summary(comp)
+old_par <- par(mar = c(5, 10, 4, 2))
+plot(comp)
+par(old_par)
 ```
 
 ## Clean up
