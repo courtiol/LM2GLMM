@@ -983,9 +983,10 @@ fit_titanic <- glm(survived ~ sex*age*passengerClass, data = TitanicSurvival, fa
 - More accurate (partial-dependence) computation of the mean survival for all sex - class combinations:
 
 ```{r,  prediction_of_means3, message=FALSE}
-newdata2 <- expand.grid(sex = levels(model.frame(fit_titanic)$sex),
-                        passengerClass = levels(model.frame(fit_titanic)$passengerClass),
-                        age = model.frame(fit_titanic)$age)
+newdata_focal <- expand.grid(sex = levels(model.frame(fit_titanic)$sex),
+                             passengerClass = levels(model.frame(fit_titanic)$passengerClass))
+newdata_nonfocal <- data.frame(age = model.frame(fit_titanic)$age)
+newdata2 <- merge(newdata_focal, newdata_nonfocal)
 preds2 <- cbind(newdata2, survival_pdep = predict(fit_titanic, newdata = newdata2, type = "response"))
 output_pdep <- aggregate(survival_pdep ~ sex + passengerClass, data = preds2, FUN = mean)
 output_pdep$wrong_survival <- preds1

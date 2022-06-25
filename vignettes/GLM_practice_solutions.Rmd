@@ -490,7 +490,7 @@ ggplot(d) +
 ```
 
 
-To answer the question we may alternativelly want to compare extreme situations:
+To answer the question we may alternatively want to compare extreme situations (fixing all predictors to fixed values):
 
 ```{r}
 newdata_esoph_young <- expand.grid(agegp_f = c("25-34"),
