@@ -23,11 +23,20 @@ options(width = 120)
 knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/MM_solving_pb/", fig.path = "./fig_knitr/MM_solving_pb/", fig.width = 5, fig.height = 5, fig.align = "center", error = FALSE)
 ```
 
+<!-- cannot remove italic... :-( -->
+```{css csssmall, echo=FALSE, chache=FALSE} 
+.prettyprint.lang-small {
+  background-color: transparent;
+  line-height: 13px;
+  font-size: 12px;
+}
+```
+
 ## Mixed-effects models
 
-* 4.0 [Introduction to LMM & GLMM](./LMM_intro.html)
-* 4.1 [Solving LM problems using LMM](./LMM_solving_pb.html)
-* 4.2 [A showcase of some useful applications](./LMM_showcase.html)
+* 4.0 [Introduction to LMM & GLMM](./MM_intro_course.html)
+* 4.1 [Solving LM problems using LMM](./MM_solving_pb_course.html)
+* 4.2 [A showcase of some useful applications](./MM_showcase_course.html)
 
 <br>
 
@@ -36,7 +45,7 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/MM_solving_pb/",
 </div>
 
 
-## You will learn in this session
+## You will learn in this session `r .emo("goal")`
 
 * how to handle temporal and spatial autocorrelation
 * how to model heteroskedasticity
@@ -44,30 +53,30 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/MM_solving_pb/",
 
 # Temporal autocorrelation
 
-## The ```AirPassengers``` data
+## The ```AirPassengers``` data `r .emo("alien")`
 
 ```{r airpassenger data}
 AirPassengers
 ```
 
 
-## The ```AirPassengers``` data
+## The ```AirPassengers``` data `r .emo("alien")`
 
 ```{r plot airpassenger data}
 plot(AirPassengers)
 ```
 
 
-## Reformating the dataset for the fit
+## Reformating the dataset for the fit `r .emo("alien")`
 
 ```{r reshape airpassenger}
 (air <- data.frame(passengers = as.numeric(AirPassengers),
-                  year = rep(1949:1960, each = 12),
-                  month = factor(rep(1:12, 12))))
+                   year = rep(1949:1960, each = 12),
+                   month = factor(rep(1:12, 12))))
 ```
 
 
-## Looking at the average trend per year
+## Looking at the average trend per year `r .emo("info")`
 
 ```{r airpassenger time trend per year}
 plot(with(air, tapply(passengers, year, mean)) ~ I(1949:1960),
@@ -75,7 +84,7 @@ plot(with(air, tapply(passengers, year, mean)) ~ I(1949:1960),
 ```
 
 
-## Looking at the average trend per month
+## Looking at the average trend per month `r .emo("info")`
 
 ```{r airpassenger time trend per month}
 plot(with(air, tapply(passengers, month, mean)) ~ I(1:12),
@@ -83,21 +92,21 @@ plot(with(air, tapply(passengers, month, mean)) ~ I(1:12),
 ```
 
 
-## Simple LM fit
+## Simple LM fit `r .emo("info")`
 
-```{r airpassenger simple fit}
-(fit_air_LM <- lm(passengers ~ year * month, data = air))
+```{r airpassenger simple fit, class.output="small"}
+(fit_air_LM <- lm(passengers ~ year + month, data = air))
 ```
 
 
-## The problem
+## The problem `r .emo("info")`
 ```{r airpassenger assumptions}
 par(mfrow = c(2, 2))
 plot(fit_air_LM)
 ```
 
 
-## The problem
+## The problem `r .emo("info")`
 
 ```{r airpassenger residuals}
 plot(residuals(fit_air_LM), type = "b")
@@ -105,50 +114,80 @@ abline(h = 0, lty = 2, col = "red")
 ```
 
 
-## The problem
+## The problem `r .emo("info")`
 
 ```{r airpassenger dw test}
 lmtest::dwtest(fit_air_LM)
 ```
 
+<br>
 
-## The problem
+There is strong serial autocorrelation in these data!
+
+
+## The problem `r .emo("info")`
 
 ```{r airpassenger acf}
 acf(residuals(fit_air_LM))
 ```
 
 
-## Autoregressive fit using **{spaMM}**
+## Autoregressive fit using **{spaMM}** `r .emo("practice")`
 
-```{r spaMM air, message = FALSE}
+```{r spaMM air, message = FALSE, class.output="small"}
 air$time <- 1:nrow(air)
 library(spaMM)
-(fit_air_spaMM <- fitme(passengers ~ month * year + AR1(1|time), data = air))
+(fit_air_spaMM <- fitme(passengers ~ month + year + AR1(1|time), data = air))
 ```
 
 
-## Autoregressive fit using **{glmmTMB}**
+## Autoregressive fit using **{glmmTMB}** `r .emo("practice")`
 
-```{r glmmTMB air, message = FALSE}
+```{r glmmTMB air, message = FALSE, class.output="small"}
 library(glmmTMB)
 air$group <- factor("A")
 air$Year <- air$year - 1949 ## remove 1949 to help with convergence
 air$Time <- numFactor(air$time)
-(fit_air_glmmTMB <- glmmTMB(passengers ~ month * Year + ar1(Time + 0|group), data = air))
+(fit_air_glmmTMB <- glmmTMB(passengers ~ month + Year + ar1(Time + 0|group), data = air))
 ```
 
 
-## Autocorrelation estimate
+## Autocorrelation estimate `r .emo("practice")`
 
 You can extract the autocorrelation estimate:
 ```{r corr values}
- fit_air_spaMM$corrPars[[1]]
- get_cor(getME(fit_air_glmmTMB, "theta")[2])
+spaMM::get_ranPars(fit_air_spaMM, which = "corrPars")[[1]][[1]]
+get_cor(getME(fit_air_glmmTMB, "theta")[2])
 ```
 
+## Assumptions `r .emo("info")`
 
-## Fitted values
+Unfortunately, in the presence of correlation function(s) in the models, the approach followed by **{DHARMa}** is no longer valid and there is no easy workaround I am aware of...
+
+```{r resid, fig.width = 9, fig.height = 4}
+plot(simulateResiduals(fit_air_spaMM))
+```
+
+## Assumptions `r .emo("info")`
+
+Unfortunately, in the presence of correlation function(s) in the models, the approach followed by **{DHARMa}** is no longer valid and there is no easy workaround I am aware of...
+
+... but you can still check which model fits the data the best:
+```{r AIC}
+AIC(fit_air_LM)
+```
+```{r AIC2}
+AIC(fit_air_spaMM)
+```
+```{r AIC3, echo=FALSE}
+print(AIC(fit_air_spaMM))
+```
+
+Note: 
+
+- you need to compare here the AIC from the LM to the marginal AIC from the LMM.
+
+## Fitted values `r .emo("info")`
 
 ```{r air fitted, fig.height = 4, fig.width = 4}
 pred_spaMM <- predict(fit_air_spaMM)
@@ -156,10 +195,10 @@ plot(passengers ~ time, data = air, type = "l", lwd = 3, ylim = c(0, 700), ylab 
 points(pred_spaMM ~ air$time, type = "l", col = "green")
 ```
 
-Note: never extrapolate using such model! The perfect fit is not unusual.
+Note: never extrapolate using such model! Obtaining a perfect fit is not unusual in the presence of autocorrelation.
 
 
-## Testing the effect of years
+## Testing the effect of years `r .emo("practice")`
 
 ```{r spaMM air 2}
 fit_air_spaMM_no_year <- fitme(passengers ~ month + AR1(1|time), data = air)
@@ -185,7 +224,7 @@ plot(bodyweight)
 ## Fitting with the exponential correlation function
 
 ```{r bodyweight fitme spaMM}
-(fit_rat_spaMM1 <- fitme(weight ~ Diet * Time + (Time|Rat) + Matern(1|Time),
+(fit_rat1 <- fitme(weight ~ Diet * Time + (Time|Rat) + Matern(1|Time),
                          fixed = list(nu = 0.5),
                          data = bodyweight, method = "REML"))
 ```
@@ -194,7 +233,7 @@ plot(bodyweight)
 ## Fitting with the ```Matern()``` correlation function
 
 ```{r bodyweight fitme spaMM 2}
-(fit_rat_spaMM2 <- fitme(weight ~ Diet * Time + (Time|Rat) + Matern(1|Time),
+(fit_rat2 <- fitme(weight ~ Diet * Time + (Time|Rat) + Matern(1|Time),
                          data = bodyweight, method = "REML"))
 ```
 
@@ -203,11 +242,11 @@ plot(bodyweight)
 ```{r plot autocorr Matern prep}
 time_for_pred <- seq(0, 30, length.out = 100)
 pred_corr1 <- MaternCorr(time_for_pred,
-                         rho = fit_rat_spaMM1$corrPars[[1]]$rho,
-                         nu = fit_rat_spaMM1$corrPars[[1]]$nu)
+                         rho = fit_rat1$corrPars[[1]]$rho,
+                         nu = fit_rat1$corrPars[[1]]$nu)
 pred_corr2 <- MaternCorr(time_for_pred,
-                         rho = fit_rat_spaMM2$corrPars[[1]]$rho,
-                         nu = fit_rat_spaMM2$corrPars[[1]]$nu)
+                         rho = fit_rat2$corrPars[[1]]$rho,
+                         nu = fit_rat2$corrPars[[1]]$nu)
 ```
 
 ## Plotting the autocorrelation functions
@@ -220,8 +259,8 @@ Note: this is not OK, the full Matern model badly converged...
 
 ## Model comparison
 ```{r Matern vs AR1}
-print(AIC(fit_rat_spaMM1))
-print(AIC(fit_rat_spaMM2))
+print(AIC(fit_rat1))
+print(AIC(fit_rat2))
 ```
 
 <br>
@@ -232,14 +271,14 @@ Note: the model should not look really different in their ability to fit the dat
 ## AR1
 
 ```{r bodyweight fitme AR1 spaMM}
-(fit_rat_spaMM_AR1 <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time),
+(fit_rat_AR1 <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time),
                             data = bodyweight, method = "REML"))
 ```
 
 
 ## AR1 vs Matern
 ```{r plot autocorr Matern 2}
-pred_corr3 <- fit_rat_spaMM_AR1$corrPars[[1]]$ARphi^time_for_pred
+pred_corr3 <- fit_rat_AR1$corrPars[[1]]$ARphi^time_for_pred
 plot(pred_corr1 ~ time_for_pred, type = "l", lwd = 5, col = "red", ylim = c(0, 1), xlab="Time", ylab="Correlation")
 points(pred_corr3 ~ time_for_pred, type = "l", lwd = 2, col = "green", ylim = c(0, 1))
 ```
@@ -248,9 +287,9 @@ points(pred_corr3 ~ time_for_pred, type = "l", lwd = 2, col = "green", ylim = c(
 ## AR1 vs Matern
 
 ```{r AR1 vs Matern}
-logLik(fit_rat_spaMM1)[[1]] ## Matern nu = 0.5
-logLik(fit_rat_spaMM_AR1)[[1]] ## AR1
-round(fixef(fit_rat_spaMM1) - fixef(fit_rat_spaMM_AR1), 3)
+logLik(fit_rat1)[[1]] ## Matern nu = 0.5
+logLik(fit_rat_AR1)[[1]] ## AR1
+round(fixef(fit_rat1) - fixef(fit_rat_AR1), 3)
 ```
 
 <br>
@@ -263,13 +302,13 @@ Note 2: AR1 cannot work if time is not discrete.
 ## Model comparison
 
 ```{r corrHLfit spaMM2}
-fit_rat_spaMM_noAR <- fitme(weight ~ Diet * Time + (Time|Rat), data = bodyweight,
+fit_rat_noAR <- fitme(weight ~ Diet * Time + (Time|Rat), data = bodyweight,
                             method = "REML")
 ```
 
 ```{r corrHLfit spaMM2 2}
-print(AIC(fit_rat_spaMM1))
-print(AIC(fit_rat_spaMM_noAR))
+print(AIC(fit_rat1))
+print(AIC(fit_rat_noAR))
 ```
 
 <br>
@@ -282,11 +321,11 @@ Note: the model accounting for the autocorrelation fits the data best!
 ### ```spaMM```
 
 ```{r spaMM rat}
-fit_rat_spaMM3ML <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time),
+fit_rat3ML <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time),
                           data = bodyweight, method = "ML")
 fit_rat_no_diet <- fitme(weight ~ 1 + Time + (Time|Rat) + AR1(1|Time),
                           data = bodyweight, method = "ML")
-anova(fit_rat_spaMM3ML, fit_rat_no_diet)
+anova(fit_rat3ML, fit_rat_no_diet)
 ```
 
 -->
@@ -303,7 +342,7 @@ There are more complex autocorrelation functions out there.
 ```
 -->
 
-## More complex autocorrelation functions
+## More complex autocorrelation functions `r .emo("info")`
 
 There are more complex autocorrelation functions out there.
 
@@ -334,7 +373,7 @@ Note: do not compare AIC between ```spaMM``` and ```nlme```, as the latter seems
 
 # Spatial autocorrelation
 
-## Maximum normalised-difference vegetation index in north Cameroon
+## Maximum normalised-difference vegetation index in north Cameroon `r .emo("alien")`
 
 ```{r loaloa data}
 data("Loaloa")
@@ -343,7 +382,7 @@ head(ndvi)
 ```
 
 
-## Visualising the data
+## Visualising the data `r .emo("practice")`
 
 ```{r loaloa plot, fig.width = 9}
 library(maps)
@@ -352,47 +391,48 @@ spaMMplot2D(x = ndvi$longitude, y = ndvi$latitude, z = ndvi$maxNDVI, add.map = T
 ```
 
 
-## Visualising the data
+## Visualising the data `r .emo("practice")`
 
 ```{r loaloa pairs}
 pairs(ndvi)
 ```
 
 
-## Fitting the model
+## Fitting the model `r .emo("practice")`
 
 ```{r mod ndvi}
 (fit_ndvi1 <- fitme(maxNDVI ~ 1 + Matern(1|longitude + latitude), data = ndvi, method = "REML"))
 ```
 
 
-## Predictions
+## Fitted values `r .emo("practice")`
 
 ```{r mapMM 1, fig.width = 9}
 mapMM(fit_ndvi1, add.map = TRUE, plot.title = title(xlab = "Longitude", ylab = "Latitude"))
 ```
 
 
-## Predictions
+## Predictions `r .emo("practice")`
 
 ```{r mapMM 2, fig.width = 9}
 filled.mapMM(fit_ndvi1, add.map = TRUE, plot.title = title(xlab = "Longitude", ylab = "Latitude"))
 ```
 
 
-## Prediction uncertainty
+## Prediction uncertainty `r .emo("practice")`
+
+It is also possible to estimate how the uncertainty of the predictions varies in space:
 
 ```{r loaloa pred uncertainty}
 x.for.pred <- seq(min(ndvi$longitude), max(ndvi$longitude), length.out = 100)
 y.for.pred <- seq(min(ndvi$latitude), max(ndvi$latitude), length.out = 50)
 data.for.pred <- expand.grid(longitude = x.for.pred, latitude = y.for.pred)
-gridpred <- predict(fit_ndvi1, newdata = data.for.pred, variances = list(predVar = TRUE))
-data.for.pred$predVar <- attr(gridpred, "predVar")
+data.for.pred$predVar <- get_predVar(fit_ndvi1, newdata = data.for.pred)
 m <- matrix(data.for.pred$predVar, ncol = length(y.for.pred))
 ```
 
 
-## Prediction uncertainty
+## Prediction uncertainty `r .emo("practice")`
 
 ```{r loaloa plot uncertainty, fig.width = 8}
 spaMM.filled.contour(x = x.for.pred, y = y.for.pred, z = m, plot.axes = {
@@ -401,7 +441,7 @@ spaMM.filled.contour(x = x.for.pred, y = y.for.pred, z = m, plot.axes = {
 ```
 
 
-## Spatial fit in **{glmmTMB}**
+## Spatial fit in **{glmmTMB}** `r .emo("practice")`
 
 You can also use **{glmmTMB}**, but it is considerable slower than **{spaMM}** with a Matern correlation function, and it does not seem quite ready yet (status = "experimental/untested").
 
@@ -412,10 +452,14 @@ ndvi$coord <- numFactor(ndvi$latitude, ndvi$longitude)
 fit_ndvi1_TMB <- glmmTMB(maxNDVI ~ 1 + mat(0 + coord|group), data = ndvi, REML = TRUE)
 ```
 
+Note:
+
+- see `vignette("covstruct", package = "glmmTMB")` for more details.
+
 
 # Heteroscedasticity
 
-## Heteroscedasticity
+## Heteroscedasticity `r .emo("info")`
 
 We used random effects to model variance components from random variables.
 
@@ -423,56 +467,59 @@ We can thus use the same kind of tools to also model the variance components of 
 
 Do not mix-up random variance components from residual ones: remember that in the error, all covariance terms are null (by definition).
 
+## The `bodyweight` dataset `r .emo("alien")`
 
-## Let's revisit the rats
+```{r bodyweight data2, fig.width = 10}
+head(bodyweight)
+str(bodyweight)
+```
+
+## The `bodyweight` dataset `r .emo("alien")`
+
+```{r bodyweight data3, fig.width = 10}
+coplot(weight ~ Time | Rat * Diet, data = bodyweight, panel = panel.smooth)
+```
+
+## Let's model growth in rats `r .emo("practice")`
 
 ```{r rat hetero}
-fit_rat_spaMM <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time), data = bodyweight,
-                            method = "REML")
+(fit_rat <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time), data = bodyweight,
+                  method = "REML"))
 ```
+
+
+## Let's model growth in rats `r .emo("practice")`
 
 ```{r rat hetero plot}
-coplot(residuals(fit_rat_spaMM) ~ I(1:nrow(bodyweight)) | bodyweight$Diet, show.given = FALSE)
+coplot(residuals(fit_rat) ~ I(1:nrow(bodyweight)) | bodyweight$Diet, show.given = FALSE)
 ```
 
 
-## Let's revisit the rats
+## Let's model growth in rats `r .emo("practice")`
 
-```{r rat hetero 2}
+```{r rat hetero 2, class.output="small"}
+(fit_rat_hetero <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time), data = bodyweight,
+                         method = "REML", resid.model = ~ Diet))
+```
+
+
+## Let's test the overal effect of the diet `r .emo("practice")`
+
+```{r hetero 3, results='hold'}
 fit_rat_hetero <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time), data = bodyweight,
-                        method = "REML", resid.model = ~ Diet)
-```
-
-```{r rat summary, results="hide"}
-summary.tables <- summary(fit_rat_hetero)
-```
-
-```{r rat phi}
-summary.tables$phi_table
-```
-
-```{r rat AIC spaMM}
-print(rbind(AIC(fit_rat_spaMM),
-            AIC(fit_rat_hetero)))
-```
-
-
-## Let's re-test the overal effect of the diet
-
-```{r hetero 3}
-fit_rat_hetero <- fitme(weight ~ Diet * Time + (Time|Rat) + AR1(1|Time), data = bodyweight,
-                           method = "ML", resid.model = ~ Diet)
+                        method = "ML", resid.model = ~ Diet)
 
 fit_rat_hetero0 <- fitme(weight ~ Time + (Time|Rat) + AR1(1|Time), data = bodyweight,
-                           method = "ML", resid.model = ~ Diet)
+                         method = "ML", resid.model = ~ Diet)
 
-anova(fit_rat_hetero, fit_rat_hetero0)
+anova(fit_rat_hetero, fit_rat_hetero0) ## parametric bootstrap would be best here, but very slow
+                                       ## and it would not affect the conclusion since the effect is very strong
 ```
 
 
-## Heteroscedasticity in LM
+## Heteroscedasticity in LM `r .emo("practice")`
 
-Just do the same:
+You can also model heteroskedasticity in LM as we just saw it:
 
 ```{r hetero simple}
 set.seed(1L)
@@ -481,17 +528,20 @@ d <- data.frame(y = c(rnorm(100, mean = 10, sd = sqrt(10)),
                 group = factor(c(rep("A", 100), rep("B", 100))))
 
 fit_hetero_spaMM <- fitme(y ~ group, resid.model = ~ group, data = d, method = "REML")
-unique(get_residVar(fit_hetero_spaMM))
+phi_spaMM <- summary(fit_hetero_spaMM, verbose = FALSE)$phi[, "Estimate"] ## in log scale using contrast treatment
+exp(c(phi_spaMM[[1]], sum(phi_spaMM))) ## residual variance in response scale without contrasts
 ```
 
 Once again **{glmmTMB}** does that too:
 ```{r hetero simple glmmTMB}
 fit_hetero_glmmTMB <- glmmTMB(y ~ group, dispformula = ~ group, data = d, REML = TRUE)
-exp(cumsum(fit_hetero_glmmTMB$fit$par[1:2]))
+phi_glmmTMB <- fit_hetero_glmmTMB$fit$par ## in log scale using contrast treatment
+exp(c(phi_glmmTMB[[1]], sum(phi_glmmTMB))) ## residual variance in response scale without contrasts
 ```
+Note: **{spaMM}** even allows for including random effects influencing the residual variance! `r .emo("slow")``r .emo("slow")``r .emo("slow")`
 
 
-## What you need to remember
+## What you need to remember `r .emo("goal")`
 
 * how to handle temporal and spatial autocorrelation
 * how to model heteroskedasticity
@@ -501,9 +551,9 @@ exp(cumsum(fit_hetero_glmmTMB$fit$par[1:2]))
 
 ## Mixed-effects models
 
-* 4.0 [Introduction to LMM & GLMM](./LMM_intro.html)
-* 4.1 [Solving LM problems using LMM](./LMM_solving_pb.html)
-* 4.2 [A showcase of some useful applications](./LMM_showcase.html)
+* 4.0 [Introduction to LMM & GLMM](./MM_intro_course.html)
+* 4.1 [Solving LM problems using LMM](./MM_solving_pb_course.html)
+* 4.2 [A showcase of some useful applications](./MM_showcase_course.html)
 
 <br>
 
