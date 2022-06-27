@@ -16,6 +16,7 @@ Imports:
     ape,
     boot,
     brglm2,
+    cAIC4,
     car,
     caret,
     dplyr,
