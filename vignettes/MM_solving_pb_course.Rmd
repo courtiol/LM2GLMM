@@ -24,7 +24,7 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/MM_solving_pb/",
 ```
 
 <!-- cannot remove italic... :-( -->
-```{css csssmall, echo=FALSE, chache=FALSE} 
+```{css csssmall, echo=FALSE, cache=FALSE} 
 .prettyprint.lang-small {
   background-color: transparent;
   line-height: 13px;
@@ -164,7 +164,8 @@ get_cor(getME(fit_air_glmmTMB, "theta")[2])
 
 Unfortunately, in the presence of correlation function(s) in the models, the approach followed by **{DHARMa}** is no longer valid and there is no easy workaround I am aware of...
 
-```{r resid, fig.width = 9, fig.height = 4}
+```{r resid, fig.width = 9, fig.height = 4, message=FALSE}
+library(DHARMa)
 plot(simulateResiduals(fit_air_spaMM))
 ```
 
@@ -179,8 +180,8 @@ AIC(fit_air_LM)
 ```{r AIC2}
 AIC(fit_air_spaMM)
 ```
-```{r AIC3, echo=FALSE}
-print(AIC(fit_air_spaMM))
+```{r AIC3, echo = FALSE}
+AIC(fit_air_spaMM, verbose = TRUE)
 ```
 
 Note: 
@@ -401,9 +402,20 @@ pairs(ndvi)
 ## Fitting the model `r .emo("practice")`
 
 ```{r mod ndvi}
-(fit_ndvi1 <- fitme(maxNDVI ~ 1 + Matern(1|longitude + latitude), data = ndvi, method = "REML"))
+(fit_ndvi1 <- fitme(maxNDVI ~ 1 + Matern(1|longitude + latitude), data = ndvi, method = "REML",
+                    control.dist = list(dist.method = "Earth"))) ## optional but more accurate than Euclidean
 ```
 
+## Plotting the autocorrelation
+
+Here is how the correlation varies as a function of the distance between points:
+```{r plot autocorr ndvi, fig.height = 4}
+distance <- seq(0, 500, length.out = 100)
+matern_cor <- MaternCorr(distance, rho = fit_ndvi1$corrPars[[1]]$rho, nu  = fit_ndvi1$corrPars[[1]]$nu)
+plot(matern_cor ~ distance, type = "l")
+```
+
+Note: if the fit considers instead euclidean distances, then the x-axis would be in degrees, not Km.
 
 ## Fitted values `r .emo("practice")`
 
