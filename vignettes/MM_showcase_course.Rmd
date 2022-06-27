@@ -7,8 +7,8 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{4.2 MM: A showcase of some useful applications of MM ---course}
   %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{4.2 MM: A showcase of some useful applications of MM ---course}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options:
   chunk_output_type: console
@@ -19,7 +19,7 @@ library(LM2GLMM)
 library(doSNOW)
 spaMM::spaMM.options(nb_cores = 4L, barstyle = FALSE)
 options(width = 120)
-knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LMM_showcase/", fig.path = "./fig_knitr/LMM_showcase/", fig.width = 5, fig.height = 5, fig.align = "center", error = TRUE)
+knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/MM_showcase/", fig.path = "./fig_knitr/MM_showcase/", fig.width = 5, fig.height = 5, fig.align = "center", error = TRUE)
 ```
 
 

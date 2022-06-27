@@ -17,17 +17,17 @@ editor_options:
 ```{r setup, include=FALSE}
 library(LM2GLMM)
 library(doSNOW)
-spaMM::spaMM.options(nb_cores = 4L)
+spaMM::spaMM.options(nb_cores = parallel::detectCores() - 1)
 options(width = 120)
-knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LMM_intro/", fig.path = "./fig_knitr/LMM_intro/", fig.width = 5, fig.height = 5, fig.align = "center")
+knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/MM_intro/", fig.path = "./fig_knitr/MM_intro/", fig.width = 5, fig.height = 5, fig.align = "center")
 ```
 
 
 ## Mixed-effects models
 
-* 4.0 [Introduction to LMM & GLMM](./LMM_intro.html)
-* 4.1 [Solving LM problems using LMM](./LMM_solving_pb.html)
-* 4.2 [A showcase of some useful applications](./LMM_showcase.html)
+* 4.0 [Introduction to LMM & GLMM](./MM_intro_course.html)
+* 4.1 [Solving LM problems using LMM](./MM_solving_pb_course.html)
+* 4.2 [A showcase of some useful applications](./MM_showcase_course.html)
 
 <br>
 
@@ -36,7 +36,7 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LMM_intro/", fig
 </div>
 
 
-## You will learn in this session
+## You will learn in this session `r .emo("goal")`
 
 * what mixed models (LMM & GLMM) are
 * how to use **{lme4}**, **{spaMM}** and **{glmmTMB}** to fit mixed models
@@ -49,7 +49,7 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/LMM_intro/", fig
 # Linear Mixed-effects Models
 
 
-## Why mixed models?
+## Why mixed models? `r .emo("info")`
 
 
 ### Goal:
@@ -73,7 +73,7 @@ The main sources of heterogeneity considered by mixed-effects models are:
 * space
 
 
-## The linear mixed-effects model
+## The linear mixed-effects model `r .emo("info")`
 
 <br>
 
@@ -82,7 +82,7 @@ The main sources of heterogeneity considered by mixed-effects models are:
 * a LMM is a specific linear model for which, given the design matrix $\mathbf{X}$, the responses ($\mathbf{Y}$) are no longer independent, but where the correlations can be described in terms of a random effect, i.e. a random variable that is not included in the predictor variables
 
 
-## Mathematical notation of LM
+## Mathematical notation of LM `r .emo("info")`
 
 LM, which we have seen before:
 
@@ -118,7 +118,7 @@ $$
 $$
 </font></center>
 
-## Mathematical notation of LMM
+## Mathematical notation of LMM `r .emo("info")`
 
 LMM with one random factor with $q$ levels:
 
@@ -174,12 +174,10 @@ c_{q,1} & c_{q,2} & c_{q,3} & \dots & c_{q,q} \\
 $$
 </font></center>
 
-<br>
-
 with $\text{E}(b) = 0$, $\text{Cov}(b) = \mathbf{C}$, which is symmetrical ($c_{i, j} = c_{j, i}$). Also, $\text{Cov}(b, \epsilon) = 0$.
 
 
-## Mathematical notation of LMM
+## Mathematical notation of LMM `r .emo("info")`
 
 LMM with one random factor with $q$ levels:
 
@@ -235,13 +233,11 @@ b \sim
 $$
 </font></center>
 
-<br>
-
 Note: the dimensions of the matrices differ: $n \times n$ for $\mathbf{X}$ vs $q \times q$ for $\mathbf{Z}$
 
 # Fitting procedure
 
-## A simple simulation function
+## A simple simulation function `r .emo("alien")`
 
 ```{r}
 simulate_Mix <- function(intercept, slope, n, group_nb, var.rand, var.error){
@@ -263,14 +259,14 @@ Aliens <- simulate_Mix(intercept = 50, slope = 1.5, n = 30, group_nb = 10, var.r
 Note: look carefully at the next slide to better understand.
 
 
-## Our toy dataset
+## Our toy dataset `r .emo("alien")`
 
 ```{r}
 Aliens
 ```
 
 
-## Fitting the model with **{lme4}**
+## Fitting the model with **{lme4}** `r .emo("practice")`
 
 ```{r, message=FALSE}
 library(lme4)
@@ -279,7 +275,7 @@ print(VarCorr(fit_lme4), comp = "Variance") ## extract REML variance estimates
 ```
 
 
-## Fitting the model with **{spaMM}**
+## Fitting the model with **{spaMM}** `r .emo("practice")`
 
 ```{r, message=FALSE}
 library(spaMM)
@@ -287,7 +283,7 @@ library(spaMM)
 ```
 
 
-## Functions for fitting the mixed model numerically
+## Functions for fitting the mixed model numerically `r .emo("nerd")`
 
 ```{r}
 lik_b <- function(b.vec, level, intercept, slope, var.rand, var.error, data, scale = 1) {
@@ -315,7 +311,7 @@ log_lik_b_prod <- function(param, data, scale = 1){
 Note: this is a ML fit for simplicity.
 
 
-## Testing the functions
+## Testing the functions `r .emo("nerd")`
 
 Let's test the function under fixed parameter values:
 ```{r}
@@ -326,7 +322,7 @@ logLik(fit_constr)
 ```
 
 
-## Fitting the mixed model numerically
+## Fitting the mixed model numerically `r .emo("nerd")`
 
 ```{r}
 bad_mod <- lm(y ~ x + group, data = Aliens)
@@ -347,7 +343,7 @@ system.time(
 ```
 
 
-## Fitting the mixed model numerically
+## Fitting the mixed model numerically `r .emo("proof")`
 
 ```{r}
 fit_spaMM_ML <- fitme(y ~ x + (1|group), data = Aliens, method = "ML")
@@ -360,7 +356,7 @@ c(logLik.num = -1 * opt$objective, logLik.spaMM = logLik(fit_spaMM_ML)[[1]])
 ```
 
 
-## The estimation of random effects
+## The estimation of random effects `r .emo("nerd")`
 
 We estimate the realized values of the random variable:
 
@@ -373,14 +369,14 @@ ranef_num <- sapply(levels(Aliens$group), function(group) {
                  opts = list(algorithm = "NLOPT_LN_BOBYQA", xtol_rel = 1.0e-4, maxeval = -1))$solution})
 
 rbind(ranef_num,
-      ranef_spaMM = as.numeric(unlist(ranef(fit_spaMM_ML))))
+      ranef_spaMM = ranef(fit_spaMM_ML)[1][[1]])
 ```
 
 
-## Best Linear Unbiased Predictions
+## Best Linear Unbiased Predictions (BLUPs) `r .emo("info")`
 
-* The numbers we obtained with `ranef` are BLUPs of the random effects.
-* Even if BLUPs can be estimated, they are not parameters of the statistical model!!!
+* The numbers we obtained with `ranef()` are BLUPs of the random effects.
+* Even if BLUPs can be estimated, they are not parameters of the statistical model!
 * BLUPs can be computed using ML or REML (REML is best when BLUPs are not added to fitted values, unclear otherwise)
 
 ```{r, fig.height = 3.5, fig.width = 4}
@@ -392,7 +388,7 @@ points(dnorm(ranef_num, mean = 0, sd = sqrt(estimates[1, "var.group"])) ~ ranef_
 
 # A simple example of LMM
 
-## The `oatsyield` dataset
+## The `oatsyield` dataset `r .emo("alien")` 
 
 ```{r}
 head(oatsyield)
@@ -400,20 +396,20 @@ str(oatsyield)
 ```
 
 
-## The `oatsyield` dataset
+## The `oatsyield` dataset `r .emo("alien")`
 
 ```{r}
 coplot(yield ~ nitro | Variety + Block, data = oatsyield, type = "b")
 ```
 
-## LMM using **{lme4}**
+## LMM using **{lme4}** `r .emo("practice")`
 
 ```{r}
 (fit_lmm_lme4 <- lmer(yield ~ nitro + Variety + (1|Block), data = oatsyield))
 ```
 
 
-## LMM using **{lme4}**
+## LMM using **{lme4}** `r .emo("practice")`
 
 ```{r}
 head(model.matrix(fit_lmm_lme4))  ## X
@@ -422,7 +418,7 @@ print(VarCorr(fit_lmm_lme4), comp = "Variance") ## extract REML variance estimat
 ```
 
 
-## LMM using **{lme4}**
+## LMM using **{lme4}** `r .emo("practice")`
 
 ```{r}
 head(getME(fit_lmm_lme4, "Z"))  ## Z
@@ -430,37 +426,37 @@ getME(fit_lmm_lme4, "Zt") ## Z transposed
 ```
 
 
-## LMM using **{lme4}**
+## LMM using **{lme4}** `r .emo("practice")`
 
 ```{r}
 ranef(fit_lmm_lme4)  ## b estimates
 ```
 
 
-## LMM using **{spaMM}**
+## LMM using **{spaMM}** `r .emo("practice")`
 
 ```{r}
 (fit_lmm_spaMM <- fitme(yield ~ nitro + Variety + (1|Block), data = oatsyield, method = "REML"))
 ```
 
 
-## LMM using **{spaMM}**
+## LMM using **{spaMM}** `r .emo("practice")`
 
 ```{r}
 head(model.matrix(fit_lmm_spaMM))  ## X
 fixef(fit_lmm_spaMM)  ## beta estimates
-as.numeric(c(fit_lmm_spaMM$lambda, fit_lmm_spaMM$phi))  ## lambda and phi estimates
+VarCorr(fit_lmm_spaMM) ## lambda and phi estimates
 ```
 
 
-## LMM using **{spaMM}**
+## LMM using **{spaMM}** `r .emo("practice")`
 
 ```{r}
 head(get_ZALMatrix(fit_lmm_spaMM))  ## Z
 ```
 
 
-## LMM using **{spaMM}**
+## LMM using **{spaMM}** `r .emo("practice")`
 
 ```{r}
 ranef(fit_lmm_spaMM)  ## b estimates
@@ -468,7 +464,7 @@ ranef(fit_lmm_spaMM)  ## b estimates
 
 # Predictions
 
-## Predictions with LM
+## Predictions with LM `r .emo("recap")`
 
 ```{r}
 fit_lm <- lm(yield ~ nitro + Variety + Block, data = oatsyield)
@@ -476,8 +472,9 @@ data.for.pred <- data.frame(nitro = 0.3, Variety = "Victory", Block = levels(oat
 (p <- predict(fit_lm, newdata = data.for.pred, interval = "confidence", se.fit = TRUE))
 ```
 
-## Predictions with LM
+## Predictions with LM `r .emo("recap")`
 
+<!--
 ```{r, fig.width = 4, fig.height = 4}
 plot(oatsyield$yield ~ unclass(oatsyield$Block), axes = FALSE, ylab = "Yield", xlab = "Block",
      xlim = c(0.5, length(levels(oatsyield$Block)) + 0.5), col = "blue", cex = 0.3)
@@ -486,29 +483,39 @@ arrows(x0 = 1:length(levels(oatsyield$Block)), y0 = p$fit[, "lwr"], y1 = p$fit[,
        code = 3, angle = 90, length = 0.05)
 axis(1, at = 1:length(levels(oatsyield$Block)), labels = levels(oatsyield$Block)); axis(2, las = 1); box()
 ```
+-->
 
-## Marginal predictions for LMM using **{lme4}**
+```{r, fig.width = 4, fig.height = 3.5, message = FALSE}
+library(ggplot2)
+ggplot() +
+  geom_jitter(aes(y = yield, x = Block), data = oatsyield, shape = 1, width = 0.05, color = "blue") +
+  geom_point(aes(y = fit,  x = Block), data = cbind(data.for.pred, p$fit)) +
+  geom_errorbar(aes(ymin = lwr, ymax = upr, x = Block), data = cbind(data.for.pred, p$fit),
+                width = 0.1) +  theme_classic()
+```
+
+## Marginal predictions for LMM using **{lme4}** `r .emo("practice")`
 
 In LMM (but not in GLMM), you can obtain predictions averaged over the random variable (i.e. marginal prediction), by considering a realisation of the random effects equals to 0:
 
 ```{r}
 data.for.pred <- data.frame(nitro = 0.3, Variety = "Victory", Block = "new")
-p <- predict(fit_lmm_lme4, newdata = data.for.pred, re.form = NA)
-X <- matrix(c(1, 0.3, 0, 1), nrow = 1)
+p <- predict(fit_lmm_lme4, newdata = data.for.pred, re.form = NA) ## NA to ignore ranef
+X <- matrix(c(1, 0.3, 0, 1), nrow = 1) ## column of X corresponding to newdata
 se.fit <- sqrt(X %*% vcov(fit_lmm_lme4) %*% t(X))
 se.rand <- attr(VarCorr(fit_lmm_lme4)$Block, "stddev")
-(se.predVar <- as.numeric(sqrt(se.fit^2 + se.rand^2)))
+se.predVar <- as.numeric(sqrt(se.fit^2 + se.rand^2))
 lwr <- as.numeric(p + qnorm(0.025) * se.predVar)
 upr <- as.numeric(p + qnorm(0.975) * se.predVar)
 c(fit = as.numeric(p), lwr = lwr, upr = upr)
 ```
 Notes:
 
-- unlike in **{spaMM}**, you have to do it by hand here...
+- **{lme4}** does not compute CI (because method shown here is not perfect). 
 - I don't know why people don't use the Student's here, but it would not make a big difference.
 
 
-## Marginal predictions for LMM using **{spaMM}**
+## Marginal predictions for LMM using **{spaMM}** `r .emo("practice")`
 
 In LMM (but not in GLMM), you can obtain predictions averaged over the random variable (i.e. marginal prediction), by considering a realisation of the random effects equals to 0:
 
@@ -517,11 +524,28 @@ data.for.pred <- data.frame(nitro = 0.3, Variety = "Victory", Block = "new")
 predict(fit_lmm_spaMM, newdata = data.for.pred)
 get_intervals(fit_lmm_spaMM, newdata = data.for.pred, intervals = "predVar")
 ```
+Notes:
 
-Note: we use `intervals = "predVar"` and not `intervals = "fixefVar"` to account for the uncertainty in both fixed and random effects.
+- **{spaMM}** directly produces CI as we computed them by hand for **{lme4}**.
+- we use `intervals = "predVar"` and not `intervals = "fixefVar"` to account for the uncertainty in both fixed and random effects.
 
 
-## Conditional predictions for LMM using **{spaMM}**
+## Conditional predictions using **{lme4}** `r .emo("practice")`
+
+Predictions conditional on the random variable ($\mathbf{X}\widehat{\beta}+\mathbf{Z}\widehat{b}$):
+
+```{r, message = FALSE}
+data.for.pred.with.b <- data.frame(nitro = 0.3, Variety = "Victory", Block = levels(oatsyield$Block))
+library(merTools)
+predictInterval(fit_lmm_lme4, newdata = data.for.pred.with.b, include.resid.var = FALSE)
+```
+Notes:
+
+- using the companion package **{merTools}** makes things easier (but it cannot be used in the marginal case as it neglects random effect variance).
+- `merTools::predictInterval()` uses simulations to build CI, so results differ slightly each time you run the function.
+
+
+## Conditional predictions using **{spaMM}** `r .emo("practice")`
 
 Predictions conditional on the random variable ($\mathbf{X}\widehat{\beta}+\mathbf{Z}\widehat{b}$):
 
@@ -532,55 +556,40 @@ get_intervals(fit_lmm_spaMM, newdata = data.for.pred.with.b, intervals = "predVa
 ```
 
 
-## Conditional predictions using **{lme4}** + **{merTools}**
-
-Predictions conditional on the random variable ($\mathbf{X}\widehat{\beta}+\mathbf{Z}\widehat{b}$):
-
-```{r, message = FALSE}
-data.for.pred <- data.frame(nitro = 0.3, Variety = "Victory", Block = levels(oatsyield$Block))
-library(merTools)
-predictInterval(fit_lmm_lme4, newdata = data.for.pred, include.resid.var = FALSE)
-```
-
-<br>
-
-Note 1: **{lme4}** does not compute asymptotic confidence intervals, which is why we use **{merTools}**.
-
-Note 2: **{merTools}** uses simulation so results differ slightly each time you run the function.
-
-
-## Conditional predictions from LM and LMM
+## Conditional predictions from LM and LMM `r .emo("info")`
 
 ```{r, fig.width = 5, fig.height = 5, echo = FALSE}
-p <- predict(fit_lm, newdata = data.for.pred, interval = "confidence", se.fit = TRUE)
+p <- predict(fit_lm, newdata = data.for.pred.with.b, interval = "confidence", se.fit = TRUE)
 p3 <- predict(fit_lmm_spaMM, newdata = data.for.pred.with.b, intervals = "predVar")
-p4 <- predictInterval(fit_lmm_lme4, newdata = data.for.pred, include.resid.var = FALSE)
-plot(yield ~ as.numeric(Block), axes = FALSE, ylab = "Yield", xlab = "Block",
-     xlim = c(0.5, length(levels(oatsyield$Block)) + 0.5), col = "blue", cex = 0.3, data = oatsyield)
-abline(h = mean(tapply(oatsyield$yield, oatsyield$Block, mean)), lty = 2, lwd = 2, col = "blue")
-points(p$fit[, "fit"] ~ I(1:length(levels(oatsyield$Block))-0.1))
-arrows(x0 = (1:length(levels(oatsyield$Block))) - 0.1, y0 = p$fit[, "lwr"],
-       y1 = p$fit[, "upr"], code = 3, angle = 90, length = 0.05)
-points(p3 ~ I(1:length(levels(oatsyield$Block)) + 0.1), col = "red")
-arrows(x0 = (1:length(levels(oatsyield$Block))) + 0.1, y0 = attr(p3, "intervals")[, 1],
-       y1 = attr(p3, "intervals")[, 2], code = 3, angle = 90, length = 0.05, col = "red")
-points(p4$fit ~ I(1:length(levels(oatsyield$Block)) + 0.2), col = "orange")
-arrows(x0 = (1:length(levels(oatsyield$Block))) + 0.2, y0 = p4$upr,
-       y1 = p4$lwr, code = 3, angle = 90, length = 0.05, col = "orange")
-axis(1, at = 1:length(levels(oatsyield$Block)), labels = levels(oatsyield$Block))
-axis(2, las = 1)
-box()
-legend("top", fill = c("black", "red", "orange"), legend = c("fix", "spaMM", "merTools"),
-       bty = "n", horiz = TRUE)
+p4 <- predictInterval(fit_lmm_lme4, newdata = data.for.pred.with.b, include.resid.var = FALSE)
+a <- cbind(data.for.pred.with.b, p$fit, method = "LM")
+b <- cbind(data.for.pred.with.b, fit = p3[ ,1],
+           get_intervals(fit_lmm_spaMM, newdata = data.for.pred.with.b, intervals = "predVar"),
+           method = "spaMM")
+colnames(b)[colnames(b) == "predVar_0.025"] <- "lwr"
+colnames(b)[colnames(b) == "predVar_0.975"] <- "upr"
+c <- cbind(data.for.pred.with.b, p4[, c(1, 3, 2)], method = "merTools")
+res <- rbind(a, b, c)
+ggplot() +
+  geom_jitter(aes(y = yield, x = Block), data = oatsyield, shape = 1, width = 0.05, color = "blue") +
+  geom_point(aes(y = fit,  x = Block, colour = method), data = res,
+             position = position_dodge(width = 0.2)) +
+  geom_errorbar(aes(ymin = lwr, ymax = upr, x = Block, colour = method), data = res,
+                width = 0.1, position = position_dodge(width = 0.2)) +
+  geom_hline(yintercept = mean(tapply(oatsyield$yield, oatsyield$Block, mean)),
+             linetype = "dashed") +
+  scale_colour_manual(values = c("red", "purple", "orange")) +
+  theme_classic() +
+  theme(legend.position = "top")
 ```
 
-Note: in LMM predictions (with gaussian random effects) are always attracted toward the mean.
+Note: in LMM predictions (with Gaussian random effects) are always attracted toward the mean.
 
 
 
 # Random or fixed?
 
-## Choosing between fixed and random effects
+## Choosing between fixed and random effects `r .emo("info")`
 
 The choice between considering a predictor has having fixed or random effect can be difficult; it depends on the trade-off between the pros and cons of both approaches.
 
@@ -602,7 +611,7 @@ The choice between considering a predictor has having fixed or random effect can
 
 # Tests
 
-## Testing the effect of `nitro`
+## Testing the effect of `nitro` `r .emo("practice")`
 
 With **{lme4}** using an asymptotic LRT:
 
@@ -616,7 +625,7 @@ anova(fit_lmm_lme4, fit_lmm_lme4_nonitro)
 Note: always use ML fits for testing fixed effects (but `anova()` from **{lme4}** does that automatically!)
 
 
-## Testing the effect of the effect of `nitro`
+## Testing the effect of the effect of `nitro` `r .emo("practice")`
 
 With **{spaMM}** using an asymptotic LRT:
 
@@ -631,7 +640,7 @@ anova(fit_lmm_spaMM_ML, fit_lmm_spaMM_nonitro)
 Note: always use ML fits for testing fixed effects (`anova()` from **{spaMM}** does NOT do that automatically)
 
 
-## Reliability of the test of the asymptotic LRT
+## Reliability of the test of the asymptotic LRT `r .emo("proof")`
 
 ```{r simu lme4, fig.height = 3.5, fig.width = 3.5, warning = FALSE, message = FALSE}
 pvalues <- replicate(1000, {
@@ -640,12 +649,12 @@ pvalues <- replicate(1000, {
   ## We use ML to save time because anova won't trigger refit
   fit_lmm_lme4_new_nonitro <- lmer(yield ~ Variety + (1|Block), data = oatsyield, REML = FALSE)
   anova(fit_lmm_lme4_new, fit_lmm_lme4_new_nonitro)$"Pr(>Chisq)"[2]})
-plot(ecdf(pvalues), xlim = c(0, 1), ylim = c(0, 1))
+plot(ecdf(pvalues), xlim = c(0, 1), ylim = c(0, 1)) ## looks good here, but design is ideal
 abline(0, 1, col = 2, lwd = 2, lty = 2)
 ```
 
 
-## Testing the effect of the effect of `nitro`
+## Testing the effect of the effect of `nitro` `r .emo("practice")`
 
 With **{lme4}** + **{pbkrtest}** using parametric bootstrap:
 
@@ -654,7 +663,7 @@ pbkrtest::PBmodcomp(fit_lmm_lme4, fit_lmm_lme4_nonitro, nsim = 999)
 ```
 
 
-## Testing the effect of the effect of `nitro`
+## Testing the effect of the effect of `nitro` `r .emo("practice")`
 
 With **{spaMM}** using parametric bootstrap:
 
@@ -669,7 +678,7 @@ print(res)
 ```
 
 
-## Never use the outdated `aov()`!!!
+## Never use the outdated `aov()`! `r .emo("warn")`
 
 ```{r simu aov, fig.height = 3, fig.width = 3}
 pvalues <- replicate(1000, {
@@ -679,12 +688,14 @@ pvalues <- replicate(1000, {
 plot(ecdf(pvalues), xlim = c(0, 1), ylim = c(0, 1))
 abline(0, 1, col = 2, lwd = 2, lty = 2)
 ```
-Note: even the help file tells you that tests using `aov()` are *"not particularly sensible statistically"*...
+Note:
+
+- even the help file tells you that tests using `aov()` are *"not particularly sensible statistically"*...
 
 
-## A summary table for mixed models?
+## A summary table for mixed models? `r .emo("practice")`
 
-Testing estimates of the different levels is not implemented in **{lme4}** or **{spaMM}** because the t-test have bad properties for LMM. Some alternatives have been proposed:
+**{lme4}** or **{spaMM}** do not report p-values in the summary table because t-tests and Wald tests have bad properties for MMs. Some alternatives have been proposed:
 
 ```{r, message = FALSE}
 library(lmerTest)  ## overwrite lmer!
@@ -697,7 +708,7 @@ detach(package:lmerTest)  ## to restore original lmer
 
 Note: here you must use a ML fit (not automatic here, and the results would change if you don't!).
 
-The method relies on the so-called Satterthwaite's degrees of freedom method, which correct the degrees of freedom to account for the facts that the design is not always ballanced.
+The method relies on the so-called Satterthwaite's degrees of freedom method, which corrects the degrees of freedom to account for the facts that the design is not always balanced.
 
 <!--
 ## Testing ```lme4 + lmerTest``` summary table
@@ -713,10 +724,25 @@ abline(0, 1, col = 2)
 ```
 -->
 
+## A summary table for mixed models? `r .emo("practice")`
+
+You can modify options in **{spaMM}** to give you Wald p-values, but those are unlikely to be reliable:
+
+```{r}
+summary(fit_lmm_spaMM_ML, details = c(p_value = "Wald"), verbose = FALSE)$beta
+```
+
+Instead, it should be better to compute confidence intervals by parametric bootstrap:
+
+```{r}
+boot_res <- confint(fit_lmm_spaMM_ML, parm = "nitro", boot_args = list(nsim = 1000, seed = 123), verbose = FALSE)
+boot_res$normal
+```
+
 
 # Information Criteria
 
-## Information Criteria
+## Information Criteria `r .emo("info")`
 
 As for predictions, you can compute a marginal or a conditional AIC depending on whether you are interested in the fit under the average realisations of the random effect or conditional on the estimates for such random values under the observed levels in particular.
 
@@ -731,14 +757,16 @@ print(AIC(fit_lmm_spaMM))
 * rely on the marginal AIC if you are interested in marginal predictions.
 * rely on the conditional AIC if you are interested in conditional predictions.
 
-<br>
+**{lme4}** only returns the marginal AIC, but (again) you can use another companion package for computing the conditional AIC (note: methods implemented in **{spaMM}** and **{cAIC4}** are not the same, so results may differ):
 
-Note: **{lme4}** does not offer this possibility and only returns the marginal AIC.
+```{r}
+cAIC4::cAIC(fit_lmm_lme4)
+```
 
 
 # Assumptions
 
-## What are the assumptions in LMM?
+## What are the assumptions in LMM? `r .emo("info")`
 
 Same as LM (except for independence) +
 
@@ -747,42 +775,44 @@ Same as LM (except for independence) +
 * the levels of the factorial variable for which random effects are estimated must be representative from the whole population
 
 
-## Plotting residuals with **{lme4}**
+## Plotting residuals with **{lme4}** `r .emo("practice")`
 
 ```{r}
 plot(fit_lmm_lme4, type = c("p", "smooth"))  ## see ?lme4:::plot.merMod for details
 ```
 
 
-## Plotting residuals with **{lme4}**
+## Plotting residuals with **{lme4}** `r .emo("practice")`
 
 ```{r}
 plot(fit_lmm_lme4, resid(., scaled=TRUE) ~ fitted(.) | Block, abline = 0)
 ```
 
 
-## Plotting residuals with **{lme4}**
+## Plotting residuals with **{lme4}** `r .emo("practice")`
 
 ```{r}
 lattice::qqmath(fit_lmm_lme4, id = 0.05) ## id allows to see outliers
 ```
 
 
-## Plotting BLUPs with **{lme4}**
+## Plotting BLUPs with **{lme4}** `r .emo("practice")`
 
 ```{r, fig.width = 4, fig.height = 4}
 lattice::qqmath(lme4::ranef(fit_lmm_lme4))
 ```
 
 
-## Plotting residuals with **{spaMM}**
+## Plotting residuals with **{spaMM}** `r .emo("practice")`
 
 ```{r, fig.width = 4, fig.height = 4}
 plot(fit_lmm_spaMM)
 ```
 
+Note: it does not work on the slide, but should work in your RStudio...
 
-## Using simulated residuals
+
+## Using simulated residuals `r .emo("practice")`
 
 You can also rely on **{DHARMa}** as we have seen it for GLM:
 
@@ -1049,16 +1079,16 @@ exp(boot.ci(boot.out = list(R = n_boot),
 
 # Specifying multiple random effects
 
-## The `lme4::Penicillin` dataset
+## The `lme4::Penicillin` dataset `r .emo("alien")`
 
 ```{r}
 str(Penicillin)
 table(Penicillin$sample, Penicillin$plate)
 ```
 
-## The `lme4::Penicillin` dataset
+## The `lme4::Penicillin` dataset `r .emo("info")`
 
-The random effects are "crossed", i.e. we have now 2 independent random effects:
+The random effects are **crossed**, i.e. we have now 2 independent random effects:
 
 ```{r}
 fit_peni <- fitme(diameter ~ 1 + (1|plate) + (1|sample), data = Penicillin)
@@ -1069,7 +1099,7 @@ fit_peni$lambda
 ```
 
 
-## The `lme4::cake` dataset
+## The `lme4::cake` dataset `r .emo("alien")`
 
 ```{r}
 head(cake)
@@ -1077,30 +1107,30 @@ str(cake)
 ```
 
 
-## The `lme4::cake` dataset
+## The `lme4::cake` dataset `r .emo("alien")`
 
 ```{r}
 table(cake$recipe, cake$replicate, cake$temperature)
 ```
 
 
-## The `lme4::cake` dataset
+## The `lme4::cake` dataset `r .emo("info")`
 
-The random effect is nested within a fixed effect, so we must account for that:
+The random effect is **nested** within a fixed effect, so we must account for that:
 
 ```{r}
 fit_cake <- fitme(angle ~ recipe + temperature + (1|recipe:replicate), data = cake)
 fit_cake$lambda
 ```
 
-<br>
+Note: 
 
-Note: considering random effects as crossed here would be wrong. For example, it would imply that the random realization of the effect associated with replicate 1 from recipe A would be the same as that for the replicate 1 from recipe B.
+- considering random effects as crossed here would be wrong. For example, it would imply that the random realization of the effect associated with replicate 1 from recipe A would be the same as that for the replicate 1 from recipe B.
 
 
-## The `lme4::cake` dataset
+## The `lme4::cake` dataset `r .emo("practice")`
 
-The random effect is nested within a fixed effect, so we must account for that, (alternative specification):
+The random effect is **nested** within a fixed effect, so we must account for that, (alternative specification):
 
 ```{r}
 cake$replicate_tot <- factor(paste(cake$recipe, cake$replicate, sep = "_"))
@@ -1109,12 +1139,12 @@ fit_cake <- fitme(angle ~ recipe + temperature + (1|replicate_tot), data = cake)
 fit_cake$lambda
 ```
 
-<br>
+Note: 
 
-Whatever you do, the important thing is to make sure that replicates across recipes do not share the same names.
+- whatever you do, the important thing is to make sure that replicates across recipes do not share the same names.
 
 
-## The `carnivora` dataset
+## The `carnivora` dataset `r .emo("alien")`
 
 ```{r}
 carnivora$log_brain <- log(carnivora$Brain)
@@ -1123,7 +1153,7 @@ str(carnivora)
 ```
 
 
-## The `carnivora` dataset
+## The `carnivora` dataset `r .emo("info")`
 
 Genus names are unique across families:
 ```{r}
@@ -1135,9 +1165,9 @@ coplot(log_brain ~ log_body | Family, data = carnivora)
 ```
 
 
-## The `carnivora` dataset
+## The `carnivora` dataset `r .emo("info")`
 
-Here we could consider two nested random effects:
+Here we could consider one random effect nested into another one:
 
 ```{r}
 fit_carnivora <- fitme(log_brain ~ log_body + (1|Family/Genus), data = carnivora, method = "REML")
@@ -1145,9 +1175,9 @@ fit_carnivora
 ```
 
 
-## The `carnivora` dataset
+## The `carnivora` dataset `r .emo("info")`
 
-Here we could consider two nested random effects (alternative specification):
+Here we could consider one random effect nested into another one (alternative specification):
 
 ```{r}
 fit_carnivora_bis <- fitme(log_brain ~ log_body + (1|Family) + (1|Family:Genus), data = carnivora, method = "REML")
@@ -1155,7 +1185,7 @@ fit_carnivora_bis
 ```
 
 
-## The `carnivora` dataset
+## The `carnivora` dataset `r .emo("info")`
 
 But since genus names are not (here) replicated across families, nested random effects are equivalent to crossed random effects:
 
@@ -1195,12 +1225,12 @@ lF$reTrms$flist  ## list of grouping factors used in the random-effects terms; s
 ```
 -->
 
-## Checking the random structure
+## Checking the random structure `r .emo("practice")`
 
 Checking the names of the BLUPs structure is an easy solution to check that you did specify the random structure correctly:
 
 ```{r}
-lapply(ranef(fit_carnivora), function(x) head(names(x)))  ## or just ranef(fit_carnivora)
+lapply(ranef(fit_carnivora), function(x) head(names(x)))  ## or simply ranef(fit_carnivora)
 ```
 
 <!--
@@ -1247,8 +1277,7 @@ head(ranef(mod2_lme4))
 
 # Random slopes
 
-
-## Fitting a random slope model
+## Fitting a random slope model `r .emo("practice")`
 
 ```{r}
 (fit_rand_slope_spaMM <- fitme(log_brain ~ log_body + (log_body|Family) + (1|Genus),
@@ -1256,7 +1285,7 @@ head(ranef(mod2_lme4))
 ```
 
 
-## The BLUPs for the slopes
+## The BLUPs for the slopes `r .emo("info")`
 
 A random slope model is a model in which one slope is a random variable.
 
@@ -1267,14 +1296,13 @@ ranef(fit_rand_slope_spaMM)$`( log_body | Family )`
 ```
 
 
-## Predictions
+## Predictions `r .emo("practice")`
 
 ```{r, fig.width = 5.5, fig.height = 3.5}
 data_pred <- predict(fit_rand_slope_spaMM,
                      newdata = expand.grid(log_body = range(carnivora$log_body),
                                            Family = levels(carnivora$Family), Genus = "new"),
-                     binding = "log_brain_pred")  ## binding adds predictions to newdata!
-library(ggplot2)
+                     binding = "log_brain_pred")  ## Tip: binding adds predictions to newdata
 ggplot() +
   geom_line(aes(y = log_brain_pred, x = log_body, colour = Family), data = data_pred) +
   geom_point(aes(y = log_brain, x = log_body, colour = Family), shape = 1, data = carnivora) +
@@ -1282,7 +1310,7 @@ ggplot() +
 ```
 
 
-## Testing the random slope using **{lme4}**
+## Testing the random slope using **{lme4}** `r .emo("practice")`
 
 Asymptotic LRT are really poor for that, so better use parametric bootstrap:
 
@@ -1299,10 +1327,10 @@ Notes:
 - fits differ by 2 degrees of freedom (1 for the fit of the variance of the random slope + 1 for its covariance with the random intercept).
 - `pbkrtest::PBmodcomp()` uses ML logLik.
 
-
+<!--
 ## Testing the random slope using **{spaMM}**
 
-```{r test slope spaMM boot, results="hide"}
+```{r test slope spaMM boot, results="hide", eval=FALSE}
 fit_no_rand_slope_spaMM <- fitme(log_brain ~ log_body + (1|Family) + (1|Genus),
                                      data = carnivora, method = "REML")
 LRT_obs <- -2 * (logLik(fit_no_rand_slope_spaMM) - logLik(fit_rand_slope_spaMM))  ## LRT observed
@@ -1315,13 +1343,29 @@ LRT_H0 <- spaMM_boot(fit_rand_slope_spaMM, simuland = LRT_slope, type = "margina
                      nsim = 999, nb_cores = 1)$bootreps  ## more complex with more cores...
 p_value <- sum(LRT_obs >= LRT_H0) / (length(LRT_H0) + 1)
 ```
-```{r, cache = FALSE}
+```{r, cache = FALSE, eval=FALSE}
 c(LRT_obs = LRT_obs, p_value = p_value)
 ```
 
 <br>
 
 Note: `anova()` from **{spaMM}** does not let you compare random structures, so we do it by hand...
+-->
+
+## Testing the random slope using **{spaMM}** `r .emo("practice")`
+
+Asymptotic LRT are really poor for that, so better use parametric bootstrap `r .emo("slow")`:
+
+```{r test slope spaMM boot auto}
+fit_no_rand_slope_spaMM <- fitme(log_brain ~ log_body + (1|Family) + (1|Genus),
+                                 data = carnivora, method = "REML")
+anova(fit_rand_slope_spaMM, fit_no_rand_slope_spaMM, boot.repl = 999)
+```
+
+Note:
+
+- I used REML fit unlike `pbkrtest::PBmodcomp()` (but it is not clear what the best choice is).
+
 
 <!--
 ## Testing if slopes differ between families
@@ -1366,7 +1410,7 @@ Note 2: unless you have a very good reason not to, you should consider the corre
 
 # Generalized Linear Mixed-effects Models
 
-## GLM + LMM = GLMM
+## GLM + LMM = GLMM `r .emo("info")`
 
 $$\begin{array}{lcl}
 \mu &=& g^{-1}(\eta)\\
@@ -1381,195 +1425,213 @@ with (as for GLM):
 
 <br>
 
-Note:
+Notes:
 
 * If $g^{-1}$ is the identity function, $\phi = \sigma^2$ and $\text{V}(\mu) = 1$, we have the LMM.
 * If $\mathbf{Z}b = 0$, we have the GLM.
 * If $g^{-1}$ is the identity function, $\phi = \sigma^2$, $\text{V}(\mu) = 1$, and $\mathbf{Z}b = 0$, we have the LM.
 
+If you combine everything we said about GLMs and LMMs, then you should know how to handle GLMMs.
 
-## The `Flatwork` dataset
+Let illustrate this with an example!
+
+
+## The `Flatwork` dataset `r .emo("alien")`
 
 ```{r Flatwork}
 Flatwork
 ```
 
 
-## The `Flatwork` dataset
+## The `Flatwork` dataset `r .emo("alien")`
 
 ```{r Flatwork str}
 str(Flatwork)
 ```
 
 
-## GLMM with **{lme4}**
+## Fitting GLMM with **{lme4}** `r .emo("practice")`
 
-```{r Flatwork lme4}
-(fit_glmm_lme4 <- glmer(shopping ~ gender + (1|individual) + (1|month), family = poisson(),
-                        data = Flatwork))
-```
-
-
-## GLMM with **{spaMM}**
-
-```{r Flatwork spaMM 2}
-(fit_glmm_spaMM <- fitme(shopping ~ gender + (1|individual) + (1|month), family = poisson(),
-                         data = Flatwork))
-```
-
-
-## Checking residuals
-
-You can test the assumptions of (simple) GLMM with **{DHARMa}**:
-
-```{r Flatwork res, fig.width = 9}
-library(DHARMa)
-resid <- simulateResiduals(fit_glmm_spaMM)
-plot(resid)
-```
-
-## Overdispersion?
-
-```{r Flatwork disp}
-testDispersion(resid)
-```
-
-
-
-## Extra 0s?
-
-```{r Flatwork shopping}
-barplot(table(Flatwork$shopping))
-```
-
-
-## Extra 0s!
-
-```{r Flatwork zeros}
-testZeroInflation(resid)
-```
-
-
-## Attempt 1: negative binomial
-
-```{r}
-(fit_glmm_spaMM_NB <- fitme(shopping ~ gender + (1|individual) + (1|month), family = spaMM::negbin(),
+```{r fw_fit_lme4_pois}
+(fit_fw_lme4_pois <- glmer(shopping ~ gender + (1|individual) + (1|month), family = poisson(),
                            data = Flatwork))
 ```
 
+Note:
 
-## Attempt 1: negative binomial
+- with **{lme4}** you cannot choose between ML and REML for GLMMs (it does a ML fit).
 
-```{r}
-resid2 <- simulateResiduals(fit_glmm_spaMM_NB)
-plot(resid2)
+
+## Fitting GLMM with **{spaMM}** `r .emo("practice")`
+
+With **{spaMM}** you can still choose between ML and REML for GLMMs (REML sensu stricto does not exist for GLMMs for **{spaMM}** has implemented generalisation of the concept proposed in the statistical literature).
+
+By default, as for LMMs, `spaMM::fitme()` produces a ML fit.
+
+```{r fw_fit_spaMM_pois}
+(fit_fw_spaMM_pois <- fitme(shopping ~ gender + (1|individual) + (1|month), family = poisson(),
+                            data = Flatwork))
+```
+
+## Checking residuals `r .emo("practice")`
+
+You can still test the assumptions of GLMMs with **{DHARMa}**:
+
+```{r fw_resid_spaMM_pois, fig.width = 8, fig.height = 4}
+fw_resid_spaMM_pois <- simulateResiduals(fit_fw_spaMM_pois)
+plot(fw_resid_spaMM_pois)
+```
+
+## Overdispersion? `r .emo("practice")`
+
+```{r fw_disp_spaMM_pois}
+testDispersion(fw_resid_spaMM_pois)
+```
+
+## Extra 0s? `r .emo("practice")`
+
+```{r fw_zeros_spaMM_pois}
+testZeroInflation(fw_resid_spaMM_pois)
 ```
 
 
-## Attempt 1: negative binomial
+## Alternative 1: negative binomial `r .emo("practice")`
 
-```{r}
-testDispersion(resid2)
+```{r fw_fit_spaMM_nb}
+(fit_fw_spaMM_nb <- fitme(shopping ~ gender + (1|individual) + (1|month), family = spaMM::negbin(),
+                          data = Flatwork))
 ```
 
 
-## Attempt 1: negative binomial
+## Alternative 1: negative binomial `r .emo("practice")`
 
-```{r}
-testZeroInflation(resid2)
+```{r fw_resid_spaMM_nb, fig.width = 8, fig.height = 4}
+fw_resid_spaMM_nb <- simulateResiduals(fit_fw_spaMM_nb)
+plot(fw_resid_spaMM_nb)
 ```
 
 
-## Attempt 1: negative binomial
+## Alternative 1: negative binomial `r .emo("practice")`
 
-```{r Flatwork gender param boot, results='hide'}
-fit_glmm_spaMM_NB_no_gender <- fitme(shopping ~ 1 + (1|individual) + (1|month),
-                                     family = spaMM::negbin(), data = Flatwork)
-
-result <- anova(fit_glmm_spaMM_NB, fit_glmm_spaMM_NB_no_gender, boot.repl = 999)
-```
-
-```{r}
-result
+```{r fw_disp_spaMM_nb}
+testDispersion(fw_resid_spaMM_nb)
 ```
 
 
-## Attempt 2: zero-augmented negative binomial
+## Alternative 1: negative binomial `r .emo("practice")`
 
-```{r TMB 1}
+```{r fw_zeros_spaMM_nb}
+testZeroInflation(fw_resid_spaMM_nb)
+```
+
+
+## Alternative 2: zero-augmented Poisson `r .emo("practice")`
+
+```{r fw_fit_glmmTMB_pois}
 library(glmmTMB)
-fit_TMB_gender <- glmmTMB(shopping ~ gender + (1|individual) + (1|month), family = nbinom1(), data = Flatwork,
-        ziformula = ~ 1)
+fit_fw_glmmTMB_zipois <- glmmTMB(shopping ~ gender + (1|individual) + (1|month), family = poisson(),
+                                 data = Flatwork, ziformula = ~ 1)
 ```
 
 <br>
 
-**{glmmTMB}** is extremelly flexible package that is still relativelly young but that look very promising.
+Like **{spaMM}**, **{glmmTMB}** is extremely flexible package (it can fit models **{spaMM}** cannot fit, and the reverse is also true).
 
-It allows for both zero-inflation and hurdle models (using truncated distributions), as well as many covariance functions, modeling the residual variance...
+**{glmmTMB}** allows for both zero-inflation and hurdle models (using truncated distributions), as well as many covariance functions, modelling the residual variance...
 
-There is no full-fletched parametric bootstrap methods implemented as far as I know, nor conditional AIC, but this could change in the near future.
+There is no full-fetched parametric bootstrap methods implemented as far as I know, nor conditional AIC, but this could change in the near future.
 
-The package is also a wrapper around general numerical methods, so it may not be as robust as packages build with mixed models in mind (e.g. **{spaMM}** and **{lme4}**) in some cases (i.e., convergence issues could happen more often).
+The package is a wrapper around general numerical methods, so it may not be as robust as packages build with mixed models in mind (e.g. **{spaMM}** and **{lme4}**) in some cases; so convergence issues could happen more often.
 
 
-## Attempt 2: zero-augmented negative binomial
+## Alternative 2: zero-inflated Poisson `r .emo("practice")`
 
-As for GLM, do not trust the tests in the summary table:
+**{glmmTMB}** is again compatible with **{DHARMa}**:
 
-```{r TMB 2}
-summary(fit_TMB_gender)
+```{r fw_resid_glmmTMB_pois, fig.width = 8, fig.height = 4}
+fw_resid_glmmTMB_zipois <- simulateResiduals(fit_fw_glmmTMB_zipois)
+plot(fw_resid_glmmTMB_zipois)
 ```
 
 
-## Attempt 2: zero-inflated GLMM
+## Alternative 2: zero-inflated Poisson `r .emo("practice")`
 
 **{glmmTMB}** is also compatible with **{DHARMa}**:
 
-```{r fit_TMB_gender, fig.width = 9}
-resid3 <- simulateResiduals(fit_TMB_gender)
-plot(resid3)
+```{r fw_disp_glmmTMB_pois 2, fig.height = 4.5, results='hide'}
+testDispersion(fw_resid_glmmTMB_zipois)
 ```
 
 
-## Attempt 2: zero-inflated GLMM
+## Alternative 2: zero-inflated Poisson `r .emo("practice")`
 
 **{glmmTMB}** is also compatible with **{DHARMa}**:
 
-```{r fit_TMB_gender 2, fig.width = 9}
-testDispersion(resid3)
+```{r fw_zeros_glmmTMB_pois, fig.height = 4.5, results='hide'}
+testZeroInflation(fw_resid_glmmTMB_zipois)
+```
+
+## Alternative 3: zero-inflated negative binomial `r .emo("practice")`
+
+```{r fw_fit_glmmTMB_nb}
+(fit_fw_glmmTMB_zinb <- glmmTMB(shopping ~ gender + (1|individual) + (1|month), family = nbinom1(),
+                                data = Flatwork, ziformula = ~ 1))
 ```
 
 
-## Attempt 2: zero-inflated GLMM
+## Alternative 3: zero-inflated negative binomial `r .emo("practice")`
 
-**{glmmTMB}** is also compatible with **{DHARMa}**:
-
-```{r fit_TMB_gender 3, fig.width = 9}
-testZeroInflation(resid3)
-```
-
-This is better!
-
-
-## Attempt 2: zero-augmented negative binomial
-
-```{r TMB3}
-fit_TMB_nogender <- glmmTMB(shopping ~ 1 + (1|individual) + (1|month), family = nbinom1(), data = Flatwork,
-        ziformula = ~ 1)
-anova(fit_TMB_gender, fit_TMB_nogender)
+```{r fw_resid_glmmTMB_nb, fig.width = 9}
+fw_resid_glmmTMB_zinb <- simulateResiduals(fit_fw_glmmTMB_zinb)
+plot(fw_resid_glmmTMB_zinb)
 ```
 
 
-## Predictions for GLMM?
+## Alternative 3: zero-inflated negative binomial `r .emo("practice")`
 
-- building conditional predictions is similar to what we have seen in LMM: just use  `predict()` for that.
+```{r fw_disp_glmmTMB_nb}
+testDispersion(fw_resid_glmmTMB_zinb)
+```
+
+
+## Alternative 3: zero-inflated negative binomial `r .emo("practice")`
+
+```{r fw_zeros_glmmTMB_nb}
+testZeroInflation(fw_resid_glmmTMB_zinb)
+```
+
+## What is the best alternative for our GLMM? `r .emo("practice")`
+
+```{r fw_AIC_compared1}
+AIC(fit_fw_spaMM_pois)
+```
+```{r fw_AIC_compared2, echo=FALSE}
+print(AIC(fit_fw_spaMM_pois))
+```
+```{r fw_AIC_compared3}
+AIC(fit_fw_spaMM_nb)
+```
+```{r fw_AIC_compared4, echo=FALSE}
+print(AIC(fit_fw_spaMM_nb))
+```
+```{r fw_AIC_compared5}
+AIC(fit_fw_glmmTMB_zipois, fit_fw_glmmTMB_zinb)
+```
+
+Note:
+
+- the zero-inflated negative binomial model fits the data much better than the alternative models we tried.
+
+
+## Predictions for GLMM? `r .emo("info")`
+
+- building conditional predictions is similar to what we have seen in GLM and LMM: just use  `predict()` (or `fitme::pdep_effects()`) for that.
 
 - building marginal predictions is more complex because you need to integrate the predictions over the distribution of the random effects... There is no function doing that automatically and this is a little too advanced for this course.
 
 
 
-## What you need to remember
+## What you need to remember `r .emo("goal")`
 
 * what mixed models (LMM & GLMM) are
 * how to use **{lme4}**, **{spaMM}** and **{glmmTMB}** to fit mixed models
@@ -1583,9 +1645,9 @@ anova(fit_TMB_gender, fit_TMB_nogender)
 
 ## Mixed-effects models
 
-* 4.0 [Introduction to LMM & GLMM](./LMM_intro.html)
-* 4.1 [Solving LM problems using LMM](./LMM_solving_pb.html)
-* 4.2 [A showcase of some useful applications](./LMM_showcase.html)
+* 4.0 [Introduction to LMM & GLMM](./LMM_intro_course.html)
+* 4.1 [Solving LM problems using LMM](./LMM_solving_pb_course.html)
+* 4.2 [A showcase of some useful applications](./LMM_showcase_course.html)
 
 <br>
 

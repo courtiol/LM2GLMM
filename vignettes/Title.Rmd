@@ -19,4 +19,4 @@ vignette: >
 1. [Introduction](./Introduction_course.html)
 2. [The Linear Model](./LM_intro_course.html)
 3. [The Generalized Linear Model (GLM)](./GLM_intro_course.html)
-4. [Mixed-effects Models (LMM and GLMM)](./LMM_intro_course.html)
+4. [Mixed-effects Models (LMM and GLMM)](./MM_intro_course.html)
