@@ -17,17 +17,18 @@ editor_options:
 ```{r setup, include=FALSE}
 library(LM2GLMM)
 library(doSNOW)
-spaMM::spaMM.options(nb_cores = 4L, barstyle = FALSE)
+spaMM::spaMM.options(nb_cores = parallel::detectCores() - 1, barstyle = FALSE)
 options(width = 120)
-knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/MM_showcase/", fig.path = "./fig_knitr/MM_showcase/", fig.width = 5, fig.height = 5, fig.align = "center", error = TRUE)
+knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/MM_showcase/", fig.path = "./fig_knitr/MM_showcase/",
+                      fig.width = 5, fig.height = 4, fig.align = "center", error = TRUE)
 ```
 
 
 ## Mixed-effects models
 
-* 4.0 [Introduction to LMM & GLMM](./LMM_intro.html)
-* 4.1 [Solving LM problems using LMM](./LMM_solving_pb.html)
-* 4.2 [A showcase of some useful applications](./LMM_showcase.html)
+* 4.0 [Introduction to LMM & GLMM](./MM_intro_course.html)
+* 4.1 [Solving LM problems using LMM](./MM_solving_pb_course.html)
+* 4.2 [A showcase of some useful applications](./MM_showcase_course.html)
 
 <br>
 
@@ -36,7 +37,7 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/MM_showcase/", f
 </div>
 
 
-## You will learn in this session
+## You will learn in this session `r .emo("goal")`
 
 * how to estimate heritability
 * how to perform phylogenetic regressions
@@ -46,7 +47,10 @@ knitr::opts_chunk$set(cache = TRUE, cache.path = "./cache_knitr/MM_showcase/", f
 
 # Studying genetic variation using LMM
 
-## The animal model
+## The animal model `r .emo("info")`
+
+The goal of the animal model is to study the unobservable genetic potential of individuals.
+It can be used, for instance, to know which bull to breed in order to yield daughters with maximal milk production.
 
 Nothing but a simple LMM:
 
@@ -58,21 +62,22 @@ with:
 * $a_i$ the breeding value (i.e. the effects of the $i$'s genotype relative to $\mu$)
 * $e_i$ a residual term.
 
-<br>
+The simplest animal model considers the genetic covariance between two individuals as $\text{A}\times V_\text{A}$:
 
-The variance of the breeding values is the additive genetic variance $V_\text{A}$.
+- $\text{A}$ is the relatedness matrix: an input.
+- $V_\text{A}$ is the variance of the breeding values (i.e. the additive genetic variance): unknown but estimated.
 
-The additive genetic covariance between two individuals = $\text{A}V_\text{A}$, where $\text{A}$ is the relatedness matrix.
+The fit yields an estimation of the breeding values ($a_i$s) and their variance ($V_\text{A}$).
 
 
-## The relatedness matrix
+## The relatedness matrix $V_\text{A}$ `r .emo("info")`
 
 <center>
 <img src="./relatedness_matrix.png" alt="relatedness" style="width: 750px;"/>
 </center>
 
 
-## The Gryphon dataset
+## The Gryphon dataset `r .emo("alien")`
 
 <center>
 <img src="./AnimalModel.png" alt="Gryphon" style="width: 750px;"/>
@@ -80,7 +85,7 @@ The additive genetic covariance between two individuals = $\text{A}V_\text{A}$, 
 <img src="./Gryphon.jpg" alt="Gryphon" style="width: 500px;"/>
 </center>
 
-## Building the matrix A
+## Building the matrix $\text{A}$ `r .emo("practice")`
 
 ```{r, message = FALSE}
 tail(Gryphon$pedigree)
@@ -90,296 +95,379 @@ colnames(A) <- rownames(A) <- Gryphon$pedigree$ID
 A[1305:1309, 1296:1309]
 ```
 
-## Fitting a simple Animal Model
+## Fitting a simple animal model `r .emo("practice")`
+
+Let us fit an animal model of the birth weight of gryphons:
 
 ```{r animal model, message=FALSE}
 library(spaMM)
-system.time(mod1 <- fitme(BWT ~ 1 + corrMatrix(1|ID), corrMatrix = A, data = Gryphon$data, method = "REML"))
-(h2 <- as.numeric(mod1$lambda / (mod1$lambda + mod1$phi)))
+(fit_bwt1 <- fitme(BWT ~ 1 + corrMatrix(1|ID), corrMatrix = A, data = Gryphon$data, method = "REML"))
 ```
 
-<br>
+## Using the animal model to study variances `r .emo("practice")`
 
-So `r round(100*h2,1)` % of the variation in birth weight is due to inheritance!
+Here is the estimate for the variance of the breeding values (i.e. the additive genetic variance):
+
+```{r Va}
+(Va <- get_ranPars(fit_bwt1 , which = "lambda")[[1]])
+```
+
+Here is the estimate of the remaining phenotypic variance:
+
+```{r Ve}
+(Ve <- unique(get_residVar(fit_bwt1)))
+```
+
+So we can compute the so called *heritability*:
+
+```{r heritability}
+(h2 <- Va / (Va + Ve))
+```
+
+Interpretation: `r round(100*h2,1)` % of the variation in birth weight is due to inheritance!
 
 
-## Fitting a more complex Animal Model
+## Fitting a more complex animal model `r .emo("practice")`
+
+More complex animal models attempt to decompose variance into more than 2 components.
+
+Here for instance, we can add fixed effects and distinguish the contribution of years and of so-called maternal effects:
 
 ```{r animal model 2, message=FALSE}
 Gryphon$data$sex    <- factor(Gryphon$data$SEX)
 Gryphon$data$year   <- factor(Gryphon$data$BYEAR)
 Gryphon$data$mother <- factor(Gryphon$data$MOTHER)
 
-system.time(
-  fit2 <- fitme(BWT ~ sex + (1|year) + (1|mother) + corrMatrix(1|ID), corrMatrix = A,
-                data = Gryphon$data, method = "REML")
-)
+fit_bwt2 <- fitme(BWT ~ sex + (1|year) + (1|mother) + corrMatrix(1|ID), corrMatrix = A,
+                  data = Gryphon$data, method = "REML")
 
-h2 <- as.numeric(fit2$lambda[3] / (sum(fit2$lambda) + fit2$phi)) ## ID
-m2 <- as.numeric(fit2$lambda[2] / (sum(fit2$lambda) + fit2$phi)) ## mother
+Va <- get_ranPars(fit_bwt2 , which = "lambda")[["ID.(Intercept)"]] ## additive genetic variance
+Vm <- get_ranPars(fit_bwt2 , which = "lambda")[["mother.(Intercept)"]] ## variance of maternal effects
+Vp <- sum(get_ranPars(fit_bwt2 , which = "lambda")) + unique(get_residVar(fit_bwt2)) ## variance not accounted 
+                                                                                     ## for by fixed effects
 
-round(c("heritability (without maternal effect)" = h2, "maternal effect" = m2), 3)
+round(c("heritability (without maternal effect)" = Va/Vp, "maternal effect" = Vm/Vp), 3)
 ```
 
 
-## Predicting the breeding values ($a_i$)
+## Predicting the breeding values ($a_i$) `r .emo("practice")`
 
-```{r, fig.height=3.5, fig.width=4}
-curve(dnorm(x, sd = sqrt(as.numeric(fit2$lambda[3]))), from = -3, to = 3, las = 1,
-      ylab = "pdf", xlab = "predicted breeding value")
-BLUPs <- ranef(fit2)$"corrMatrix(1 | ID)"
-points(dnorm(BLUPs, sd = sqrt(as.numeric(fit2$lambda[3]))) ~ BLUPs, col = "blue", type = "h", lwd = 0.1)
+We can estimate the breeding values using *BLUPs* (Best Linear Unbiased Predictions):
+
+```{r, fig.height=3, fig.width=4}
+par(mar = c(4, 4, 0, 0))
+curve(dnorm(x, sd = sqrt(Va)), from = -3, to = 3, las = 1, ylab = "pdf", xlab = "predicted breeding value")
+BLUPs <- ranef(fit_bwt2)$"corrMatrix(1 | ID)"
+points(dnorm(BLUPs, sd = sqrt(Va)) ~ BLUPs, col = "blue", type = "h", lwd = 0.1)
 ```
 
-Never do statistics on BLUPs! Neglecting the uncertainty associated to these predictions is wrong.
+- never do statistics on BLUPs (neglecting the uncertainty associated to these predictions is wrong).
+- since BLUPs are here not added to fitted values, fitting by REML is the proper way to get them.
 
-Since BLUPs are here not added to fitted values, REML fit is the proper way to get them!
 
-## Predicting the breeding values ($a_i$)
+## Breeding vs phenotypic values `r .emo("info")`
 
 ```{r}
-plot(BLUPs ~ scale(fit2$data$BWT), ylab = "Predicted breeding values", xlab = "Scaled phenotypic values")
+par(mar = c(4, 4, 0, 0))
+plot(BLUPs[paste(fit_bwt2$data$ID)] ~ scale(fit_bwt2$data$BWT), cex = 0.5,
+     ylab = "Predicted breeding values", xlab = "Scaled phenotypic values")
 ```
 
 
 # Phylogenetic regressions
 
 
-## The ```ade4::carni70``` dataset
+## The ```ade4::carni70``` dataset `r .emo("alien")`
+
+We will use these data to study how the geographic range size (km) of a species is influenced by its body size (kg) while accounting for the genetic relatedness between species.
 
 ```{r}
-library(ade4)
-data(carni70)
+data("carni70", package = "ade4")
 carni70$tab
 ```
 
 
-## The phylogeny
+## The phylogeny `r .emo("practice")`
 
-```{r}
-library(ape)
-tree <- read.tree(text = carni70$tre)
+To accounting for the genetic relatedness between species, we start by reading the phylogenetic tree:
+```{r, fig.height=4}
+par(mar = c(1, 0, 0, 0))
+tree <- ape::read.tree(text = carni70$tre)
 plot(tree, cex = 0.3)
 ```
 
 
-## Turning a tree into a correlation matrix
+## Turning a phylogeny into a correlation matrix `r .emo("practice")`
 
+In order to use the phylogeny as an input of a MM, we then need to turn it into a correlation matrix:
 ```{r}
-(corrM <- vcv(tree, model = "Brownian", corr = TRUE))
+(corrM <- ape::vcv(tree, model = "Brownian", corr = TRUE)) ## other models are possible
 ```
 
 
-## Fitting the phylogenetic regression model
+## Fitting the phylogenetic regression model `r .emo("practice")`
 
+We can now fit our phylogenetic regression model similarly to an animal model (but this time using ML to study fixed effects):
 ```{r}
 carni70$tab$sp <- factor(rownames(corrM))
 (fit_carni <- fitme(range ~ size + corrMatrix(1|sp), corrMatrix = corrM, data = carni70$tab))
 ```
 
 
-## Testing the fixed effects
+## Testing the fixed effects `r .emo("practice")`
 
-Here we test the effect of the body size on the geographic range of the species accounting for the phylogeny:
+We can now test the effect of the body size on the geographic range of the species accounting for the phylogeny as usual:
 
-```{r}
+```{r anov_para_boot_phylo}
 fit_carni_no_size <- fitme(range ~ 1 + corrMatrix(1|sp), corrMatrix = corrM, data = carni70$tab)
-anova(fit_carni, fit_carni_no_size)
+anova(fit_carni, fit_carni_no_size, boot.repl = 999,
+      fit_env = list(corrM = corrM)) ## fit_env is used for parallel processing: it declares objects not in data
 ```
 
-Note: **{spaMM}** does not allow (out-of-the-box) for using a correlation function that is dependent on a parameter (unless such correlation is implemented in **{spaMM}**). So we cannot use all the possibilites offered by **{ape}**.
+Note:
+
+- **{spaMM}** does not allow (out-of-the-box) for using a correlation function that is dependent on a parameter (unless such correlation is implemented in **{spaMM}**), so we cannot use all the evolutionary models implemented in **{ape}**.
 
 
-## Comparison with the traditional **{gls}** fit
+## Comparison with the traditional **{gls}** fit `r .emo("practice")`
+
+The package **{nlme}** is more flexible in this regard, but it presents its own drawbacks.
 
 ```{r, message = FALSE}
 library(nlme)
 rownames(carni70$tab) <- rownames(corrM)
-(fit_carni2 <- gls(range ~ size, correlation = corBrownian(1, phy = tree), method = "ML", data = carni70$tab))
+(fit_carni2 <- gls(range ~ size, correlation = ape::corBrownian(1, phy = tree, form = ~ sp),
+                   method = "ML", data = carni70$tab))
 ```
 
-A key benefit of using a proper (G)LMM instead of the Generalized Least Squares is that we could also consider other random effects and model a non gaussian response (GLMM).
-The function ```fitme()``` does that, but ```gls()``` cannot.
+A key benefit of using a proper (G)LMM (as in **{spaMM}**) instead of a Generalized Least Squares fit (as in **{nlme}**) is that we could also consider other random effects and a non Gaussian response (GLMM).
 
 
-## Comparison with the traditional **{gls}** fit
+## Comparison with the traditional **{gls}** fit `r .emo("practice")`
 
 ```{r}
-fit_carni2_no_size <- gls(range ~ 1, correlation = corBrownian(1, tree), method = "ML", data = carni70$tab)
+fit_carni2_no_size <- gls(range ~ 1, correlation = ape::corBrownian(1, tree, form = ~ sp),
+                          method = "ML", data = carni70$tab)
 anova(fit_carni2, fit_carni2_no_size)
 ```
 
 <br>
 
-Note: differences between LMM and GLS are expected.
+Notes:
+
+- differences between LMM and GLS are expected (and LMM should be more reliable).
+- here estimates for the effect of body size differ in signs across fitting methods, but both agree that the effect is not significant.
+- many other methods have been proposed and many implementations exist.
+
 
 # Meta-analyses
 
-## Example: The ```metafor::dat.bcg``` dataset
+## The ```metafor::dat.bcg``` dataset `r .emo("alien")`
 
-Studies on the effectiveness of the BCG vaccine against Tuberculosis
+We will perform a meta-analysis of 13 studies on the effectiveness of the BCG vaccine against tuberculosis:
 
 ```{r, message = FALSE}
 library(metafor)
+dat.bcg$study <- factor(dat.bcg$trial)
+dat.bcg$alloc <- factor(dat.bcg$alloc)
 dat.bcg
 ```
 
+Note: **{metafor}** is a very good package dedicated to perform meta-analyses.
 
-## We compute an effect size
 
- Let's compute the relative risks and associated sampling variances:
+## Computing effect size(s) `r .emo("info")`
+
+To compare studies, we need a single metric (and the uncertainty around it).
+
+Here, we compute the relative risk and its associated sampling variance:
 ```{r}
 dat.bcg$RR  <- with(dat.bcg, log((tpos/(tpos + tneg)) / (cpos/(cpos + cneg))))
 dat.bcg$sampling.var <- with(dat.bcg, 1/tpos - 1/tneg + 1/cpos - 1/cneg)
-dat.bcg
+dat.bcg ## t = treatment = vaccinated / c = control = non-vaccinated
 ```
 
 
-## We fit the model with **{metafor}**
+## Fitting the meta-analysis with **{metafor}** `r .emo("practice")`
 
-```{r}
-(fit <- rma(yi = RR ~ factor(alloc) + year + ablat, vi = sampling.var, data = dat.bcg, method = "REML"))
+```{r fit_metafor}
+(fit_tub_meta <- rma(yi = RR ~ factor(alloc) + year + ablat, vi = sampling.var, data = dat.bcg, method = "REML"))
 ```
 
 
-## We fit the model with **{spaMM}**
+## Fitting the meta-analysis with **{spaMM}** `r .emo("practice")`
 
 ```{r}
-dat.bcg$study <- factor(dat.bcg$trial)
-(fit_spaMM <- fitme(RR ~ factor(alloc) + year + ablat + (1|study), data = dat.bcg,
-                    fixed = list(phi = dat.bcg$sampling.var), method = "REML"))
+(fit_tub_spaMM <- fitme(RR ~ alloc + year + ablat + (1|study), data = dat.bcg,
+                        fixed = list(phi = dat.bcg$sampling.var), method = "REML")) ## phi must be fixed!!
 ```
 
 
-## Comparing outputs
+## Comparing outputs `r .emo("practice")`
 
+Estimated amount of residual heterogeneity between studies:
 ```{r}
-round(c(tau2_metafor = fit$tau2, lambda_spaMM = fit_spaMM$lambda[[1]]), 4)  ## heterogeneity between studies
-
-fit_spaMMRE <- fitme(RR ~ 1 + (1|study), data = dat.bcg,
-                     fixed = list(phi = dat.bcg$sampling.var), method = "REML")
-
-R2_spaMM <- 100 * (fit_spaMMRE$lambda[[1]] - fit_spaMM$lambda[[1]]) / fit_spaMMRE$lambda[[1]]
-round(c(R2_metafor = fit$R2, R2_spaMM = R2_spaMM), 4)  ## amount of heterogeneity accounted for by fixed effects
+lambda <- get_ranPars(fit_tub_spaMM, which = "lambda")[[1]]
+round(c(tau2_metafor = fit_tub_meta$tau2, lambda_spaMM = lambda), 4)
 ```
 
-Conclusion: if you know a general and flexible package like **{spaMM}** you can reproduce what many specialised packages do. Here, we use **{spaMM}** to perform a meta-analysis exactly as the specialised package **{metafor}** does it. **{spaMM}** can consider complexities that **{metafor}** cannot handle, but the reverse is also true.
-
-
-## Comparing outputs (more)
-
+Amount of heterogeneity accounted for by fixed effects:
 ```{r}
-c(fit$I2, fit$H2, fit$QE) ## from metafor, see ?print.rma.uni for details
+fit_tub_spaMM_null <- fitme(RR ~ 1 + (1|study), data = dat.bcg,
+                            fixed = list(phi = dat.bcg$sampling.var), method = "REML")
+lambda0 <- get_ranPars(fit_tub_spaMM_null, which = "lambda")[[1]]
+R2_spaMM <- 100 * (lambda0 - lambda) / lambda0
+round(c(R2_metafor = fit_tub_meta$R2, R2_spaMM = R2_spaMM), 4)
+```
 
-get_meta_metrics <- function(model, vi) {
+Conclusion: if you know a general and flexible package like **{spaMM}**, with a little tinkering of the outputs, you should be able to reproduce what many specialised packages do.
+
+
+## Comparing outputs `r .emo("nerd")`
+
+We can retrieve the usual metrics used in such studies:
+```{r}
+get_meta_metrics <- function(fit, vi) {
   wi <- 1/vi  ## weights = inverse of sampling variance
-  k <- length(model$ranef)  ## number of groups in random term (here number of studies)
-  p <- length(model$fixef)  ## number of fixed effect parameters
+  k <- length(ranef(fit)[[1]])  ## number of groups in random term (here number of studies)
+  p <- length(fixef(fit))  ## number of fixed effect parameters
   W <- diag(wi, nrow = k, ncol = k)  ## matrix of weights
-  X <- as.matrix(as.data.frame(model$X.pv))  ## design matrix
+  X <- model.matrix(fit)  ## design matrix
   stXWX <- solve(t(X) %*% W %*% X)  ## weighted vcov of estimates
   P <- W - W %*% X %*% stXWX %*% crossprod(X, W)  ## weighted vcov of ??
-  vi.avg <- (k - p) / sum(diag(P))
-  I2 <- as.numeric(100 * model$lambda / (vi.avg + model$lambda) )
-  H2 <- as.numeric((vi.avg + model$lambda) / vi.avg)
-  QE <- max(0, c(crossprod(model$y, P) %*% model$y))
-  return(c(I2 = I2, H2 = H2, QE = QE, vi.avg = vi.avg))
+  vi.avg <- (k - p) / sum(diag(P)) # weighted mean within study sampling variance
+  lambda <- get_ranPars(fit, which = "lambda")[[1]]
+  I2 <- as.numeric(100 * lambda / (vi.avg + lambda)) # residual heterogeneity / unaccounted variability
+  H2 <- as.numeric((vi.avg + lambda) / vi.avg) # unaccounted variability / sampling variability
+  QE <- max(0, c(crossprod(response(fit), P) %*% response(fit))) # residual heterogeneity
+  return(c(I2 = I2, H2 = H2, QE = QE)) ## see ?print.rma.uni for details on the metrics
 }
-
-get_meta_metrics(fit_spaMM, dat.bcg$sampling.var) ## add vi.avg: weighted mean within study sampling variance
+rbind(metafor = c(fit_tub_meta$I2, fit_tub_meta$H2, fit_tub_meta$QE),
+      spaMM = get_meta_metrics(fit_tub_spaMM, dat.bcg$sampling.var))
 ```
 
 
-## Nice plots with **{metafor}**
+## Easy & useful plots from **{metafor}** `r .emo("practice")`
 
-```{r, fig.width = 6, fig.height = 5.5}
-metafor::plot.rma.uni(fit)  ## or just plot(fit)
+```{r, fig.width = 6, fig.height = 5}
+plot(fit_tub_meta)
 ```
 
 
-## Can we do abstraction of fixed effects?
+## Testing fixed effects with **{spaMM}** `r .emo("practice")`
+
+To summarise the global effect of vaccination, it would be helpful if the fixed effect where not significant... let us check:
 
 ```{r}
-fit_spaMM2    <- fitme(RR ~ factor(alloc) + year + ablat + (1|study), data = dat.bcg,
-                       fixed = list(phi = dat.bcg$sampling.var))
-fit_spaMM2_H0 <- fitme(RR ~ 1 + (1|study), data = dat.bcg, fixed = list(phi = dat.bcg$sampling.var))
-anova(fit_spaMM2, fit_spaMM2_H0)
+fit_tub_spaMM_ML    <- fitme(RR ~ alloc + year + ablat + (1|study), data = dat.bcg,
+                             fixed = list(phi = dat.bcg$sampling.var)) ## ML fit!
+fit_tub_spaMM_ML_H0 <- fitme(RR ~ 1 + (1|study), data = dat.bcg, fixed = list(phi = dat.bcg$sampling.var))
 ```
 
-
-## Can we do abstraction of fixed effects?
-
-```{r test for metafor, results = "hide"}
-res.boot <- anova(fit_spaMM2, fit_spaMM2_H0, boot.repl = 1000, fit_env = list(dat.bcg = dat.bcg))
+```{r test for metafor, message=FALSE}
+anova(fit_tub_spaMM_ML, fit_tub_spaMM_ML_H0, boot.repl = 999, fit_env = list(dat.bcg = dat.bcg))
 ```
-
-```{r, cache = FALSE}
-res.boot
-```
-
-Yes we can! (but only just)
+Note: we are far from asymptotic conditions due to the low number of studies, so parametric bootstrap gives very different results but is clearly more reliable in these conditions.
 
 
-## Can we do abstraction of fixed effects?
+## Testing fixed effects with **{metafor}** `r .emo("practice")`
+
+The default test is a Wald test and thus performs poorly especially when the number of studies is low...
 
 ```{r}
-(fit2 <- rma(yi = RR ~ factor(alloc) + year + ablat, vi = sampling.var, data = dat.bcg, method = "ML"))
+(fit_tub_meta_ML <- rma(yi = RR ~ alloc + year + ablat, vi = sampling.var, data = dat.bcg, method = "ML"))
 ```
 
 
-## Can we do abstraction of fixed effects?
+## Testing fixed effects with **{metafor}** `r .emo("practice")`
+
+You can use the F / t tests instead by setting `test="knha"`, which is already better:
+```{r}
+rma(yi = RR ~ alloc + year + ablat, vi = sampling.var, data = dat.bcg, method = "ML", test = "knha")
+```
+
+## Testing fixed effects with **{metafor}** `r .emo("practice")`
+
+You can also use a permutation test which now reveals that fixed effects (called moderators) are not significant overall:
+```{r}
+permutest(fit_tub_meta_ML)
+```
+
+
+## Does tuberculosis vaccination work? `r .emo("practice")`
+
+To quantify the overall effect of vaccination, we can thus drop all fixed effect and refit our model:
 
 ```{r}
-(fit3 <- rma(yi = RR ~ factor(alloc) + year + ablat, vi = sampling.var, data = dat.bcg, method = "ML",
-             test = "knha"))
+(fit_tub_spaMM_ML2    <- fitme(RR ~ 1 + (1|study), data = dat.bcg, fixed = list(phi = dat.bcg$sampling.var)))
 ```
 
 
-## Does vaccination work?
+## Does tuberculosis vaccination work? `r .emo("practice")`
 
+Let's now test the intercept estimates which quantifies how the relative risk of getting turberculosis increases for vaccinated people:
+
+```{r overltest_spaMM, message = FALSE}
+fit_tub_spaMM_ML2_H0 <- fitme(RR ~ 0 + (1|study), data = dat.bcg, fixed = list(phi = dat.bcg$sampling.var))
+anova(fit_tub_spaMM_ML2, fit_tub_spaMM_ML2_H0, boot.repl = 999, fit_env = list(dat.bcg = dat.bcg))
+```
+
+Conclusion: yes, vaccination is effective!
+
+
+## Does tuberculosis vaccination work? `r .emo("practice")`
+
+Here is the overall effect size with 95% CI:
+```{r, message=FALSE}
+fixef(fit_tub_spaMM_ML2)
+confint(fit_tub_spaMM_ML2, parm = "(Intercept)") ## FIXME: compute CI by parametric bootstrap
+```
+
+
+## Does tuberculosis vaccination work? `r .emo("practice")`
+
+We can also test the overall effect of vaccination using **{metafor}**:
 ```{r}
-fit_spaMM3    <- fitme(RR ~ 1 + (1|study), data = dat.bcg, fixed = list(phi = dat.bcg$sampling.var))
-fit_spaMM3_H0 <- fitme(RR ~ 0 + (1|study), data = dat.bcg, fixed = list(phi = dat.bcg$sampling.var))
-anova(fit_spaMM3, fit_spaMM3_H0)
+fit_tub_meta_ML2 <- rma(yi = RR ~ 1, vi = sampling.var, data = dat.bcg, method = "ML")
+permutest(fit_tub_meta_ML2)
 ```
 
+Notes: 
 
-## Does vaccination work?
+- the results are a little different from those produced by **{spaMM}** but they are consistent.
+- permutation cannot compute CI, so the latter is still based on normality assumption and using `test = "knha"` would thus be best to compute such interval in the absence of alternatives.
 
-```{r test for metafor 2, results = "hide"}
-res.boot2 <- anova(fit_spaMM3, fit_spaMM3_H0, boot.repl = 1000, fit_env = list(dat.bcg = dat.bcg))
+
+## Does tuberculosis vaccination work? `r .emo("practice")`
+
+The overall effect of vaccination is shown at the bottom of the forest plot:
+```{r, fig.height=4}
+par(mar = c(4, 0, 0, 0))
+forest(fit_tub_meta_ML2)
 ```
 
-```{r, cache = FALSE}
-res.boot2
-```
+## So which R package shall you use? `r .emo("info")`
 
-Yes it does!
+Generic packages like **{spaMM}** offer options that specialised packages like **{metafor}** do not offer, such as modelling heteroskedasticity & autocorrelation, computing parametric bootstrap....
 
+But the reverse is also true:
 
-## Does vaccination work?
+Specialised packages like **{metafor}** offer easy ways to compute all the usual metrics you need and to draw the plots people expect in a publication covering a meta-analysis.
 
-```{r}
-fit_spaMM3$fixef
-get_intervals(fit_spaMM3, re.form = NA, intervals = "predVar")[1, ]
-```
+For this reason, I tend to use both generic and specialised packages and compare results.
 
+<br>
 
-## Does vaccination work?
+Specialised R packages are typically more accessible and easier to use but they tend to rely on outdated or suboptimal statistical methods because they are conceived by people only interested in their particular application and not by people generally knowledgeable in statistics.
 
-```{r}
-(fit4 <- rma(yi = RR ~ 1, vi = sampling.var, data = dat.bcg, method = "ML"))
-```
+Yet, **{metafor}** seems to be an exception in this respect: it seems as good as R packages get.
 
+Personally, for the rare meta-analyses and meta-regressions I did, I used **{spaMM}** which I know better, but I checked that **{metafor}** was generating the same metrics and plots I was creating myself using outputs from **{spaMM}**.
 
-## Does vaccination work?
-
-```{r}
-forest(fit4)
-```
+[Here](https://www.nature.com/articles/s41467-019-10924-4) is an example of such a work I did with my colleague Viktoriia Radchuk.
 
 
-## What you need to remember
+## What you need to remember `r .emo("goal")`
 
 * that mixed models can do a lot, but that they are a bit tedious
 
@@ -388,9 +476,9 @@ forest(fit4)
 
 ## Mixed-effects models
 
-* 4.0 [Introduction to LMM & GLMM](./LMM_intro.html)
-* 4.1 [Solving LM problems using LMM](./LMM_solving_pb.html)
-* 4.2 [A showcase of some useful applications](./LMM_showcase.html)
+* 4.0 [Introduction to LMM & GLMM](./MM_intro_course.html)
+* 4.1 [Solving LM problems using LMM](./MM_solving_pb_course.html)
+* 4.2 [A showcase of some useful applications](./MM_showcase_course.html)
 
 <br>
 
