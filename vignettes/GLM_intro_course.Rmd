@@ -2461,7 +2461,7 @@ testZeroInflation(r, plot = TRUE)
 
 ## Hurdle fit of zero-augmented data `r .emo("practice")`
 
-You can fit hurdle models with `glmmTMB::glmmTMB()`. glmmTMB is extremely flexible package that is still relatively young but that looks very promising.
+You can fit hurdle models with `glmmTMB::glmmTMB()`.  **{glmmTMB}** is extremely flexible package that is relatively similar to **{spaMM}** (more details later).
 
 ```{r hurdle, message = FALSE}
 library(glmmTMB)
