@@ -1615,7 +1615,7 @@ AIC(fit_fw_spaMM_nb)
 print(AIC(fit_fw_spaMM_nb))
 ```
 ```{r fw_AIC_compared5}
-AIC(fit_fw_glmmTMB_zipois, fit_fw_glmmTMB_zinb)
+AIC(fit_fw_glmmTMB_zipois, fit_fw_glmmTMB_zinb) #Marginal AIC
 ```
 
 Note:
