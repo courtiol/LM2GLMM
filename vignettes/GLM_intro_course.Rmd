@@ -2461,7 +2461,7 @@ testZeroInflation(r, plot = TRUE)
 
 ## Hurdle fit of zero-augmented data `r .emo("practice")`
 
-You can fit hurdle models with `glmmTMB::glmmTMB()`. glmmTMB is extremely flexible package that is still relativelly young but that look very promising.
+You can fit hurdle models with `glmmTMB::glmmTMB()`. glmmTMB is extremely flexible package that is still relatively young but that looks very promising.
 
 ```{r hurdle, message = FALSE}
 library(glmmTMB)
@@ -2476,7 +2476,7 @@ Note: here we tested whether `humans_eaten` influenced the production of all 0s 
 
 ## Zero-inflation fit of zero-augmented data `r .emo("practice")`
 
-You can also fit zero-inflation models with `almmTMB::glmmTMB()`:
+You can also fit zero-inflation models with `glmmTMB::glmmTMB()`:
 ```{r zeroinfl fit, message = FALSE}
 fit_Zzi1 <- glmmTMB(eggs ~ humans_eaten, ziformula = ~humans_eaten,
                     family = poisson(link = "log"), data = AliensZ)
