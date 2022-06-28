@@ -586,29 +586,6 @@ ggplot() +
 Note: in LMM predictions (with Gaussian random effects) are always attracted toward the mean.
 
 
-
-# Random or fixed?
-
-## Choosing between fixed and random effects `r .emo("info")`
-
-The choice between considering a predictor as a fixed or random effect can be difficult; there is a trade-off between both approaches.
-
-### Fixed
-
-* no assumption about the distribution of the parameter values associated with each level of a predictor
-* requires many datapoints for each additional level to get reliable results
-* allows for the prediction of the effect of observed levels only (for factors)
-* simple to study
-
-### Random
-
-* the values associated with the levels of a predictor follow a probability distribution (usually gaussian)
-* requires at least one datapoint for each additional level to get reliable results (more is better)
-* requires many levels for the variance estimates to be reliable (5 being strict minimum)
-* allow for the prediction of the effect of both observed and unobserved levels (for factors)
-* more difficult to study
-
-
 # Tests
 
 ## Testing the effect of `nitro` `r .emo("practice")`
@@ -738,6 +715,32 @@ Instead, it should be better to compute confidence intervals by parametric boots
 boot_res <- confint(fit_lmm_spaMM_ML, parm = "nitro", boot_args = list(nsim = 1000, seed = 123), verbose = FALSE)
 boot_res$normal
 ```
+
+## Testing random effects `r .emo("practice")`
+
+It is possible, at least for relatively simple LMM to test if the variance of the random effect is null:
+
+```{r RLRsim_lme4}
+fit1 <- lmer(yield ~ nitro + Variety + (1|Block), data = oatsyield, REML = FALSE)
+fit2 <- lm(yield ~ nitro + Variety, data = oatsyield)
+RLRsim::exactLRT(fit1, fit2)
+```
+
+
+## Testing random effects `r .emo("practice")`
+
+The same package can be used with model fitted with **{spaMM}** with some more code:
+
+```{r RLRsim_spaMM}
+fit1 <- fitme(yield ~ nitro + Variety + (1|Block), data = oatsyield)
+fit2 <- fitme(yield ~ nitro + Variety, data = oatsyield)
+(obs.LRT <- 2*(logLik(fit1) - logLik(fit2)))
+args <- get_RLRsim_args(fit1, fit2)
+sim.LRT <- do.call(RLRsim::LRTSim, args)
+(RLRpval <- (sum(sim.LRT >= obs.LRT) + 1) / (length(sim.LRT) + 1))
+```
+
+Note: you can alternatively use `anova(fit1, fit2, boot.repl = 999)` but it is much slower.
 
 
 # Information Criteria
@@ -1075,6 +1078,122 @@ exp(boot.ci(boot.out = list(R = n_boot),
         t  = matrix(res_sim, ncol = 1), type = "basic")$basic[, 4:5])
 ```
 -->
+
+
+# Random or fixed?
+
+## Choosing between fixed and random effects `r .emo("info")`
+
+The choice between considering a predictor as a fixed or random effect can be difficult; there is a trade-off between both approaches.
+
+### Fixed
+
+* no assumption about the distribution of the parameter values associated with each level of a predictor
+* requires many datapoints for each additional level to get reliable results
+* allows for the prediction of the effect of observed levels only (for factors)
+* simple to handle
+
+### Random
+
+* the values associated with the levels of a predictor follow a probability distribution (usually Gaussian)
+* requires at least one datapoint for each additional level to get reliable results (more is better)
+* requires many levels for the variance estimates to be reliable (5 being strict minimum)
+* allow for the prediction of the effect of both observed and unobserved levels (for factors)
+* more difficult to handle
+
+
+## Choosing between fixed and random effects `r .emo("info")`
+
+Let us revisit the fits of the `oatsyield` data:
+```{r}
+str(oatsyield)
+fit_lm
+```
+
+
+## Choosing between fixed and random effects `r .emo("info")`
+
+Let us revisit the fits of the `oatsyield` data:
+```{r, fig.width=8, fig.height=4}
+plot(simulateResiduals(fit_lm)) ## LM assumptions seem alright
+```
+
+
+## Choosing between fixed and random effects `r .emo("info")`
+
+Let us revisit the fits of the `oatsyield` data:
+
+```{r}
+car::Anova(fit_lm)
+```
+
+Using the LM fit, predictors other than `Block` (e.g. `Variety`) are tested against the residual variance which corresponds to variation within blocks only.
+
+Conclusion: in design with repeated measurements performed quickly on the same individuals, then declaring individuals as a random factor, test would thus compare the effect of predictors to measurement errors only.
+
+
+## Choosing between fixed and random effects `r .emo("info")`
+
+Let us revisit the fits of the `oatsyield` data:
+
+```{r}
+fit_lmm_spaMM_novar <- fitme(yield ~ nitro + (1 | Block), data = oatsyield)
+anova(fit_lmm_spaMM_ML, fit_lmm_spaMM_novar, boot.repl = 999)
+```
+
+Using the LMM fit, tests of predictors other than `Block` (e.g. `Variety`) correspond to a test against a variation that combine both the variation within and between blocks.
+
+Conclusion: the meaning of the test is different for LM and LMM (although here the p-values are similar...).
+
+
+## Choosing between fixed and random effects `r .emo("nerd")`
+
+Let us test a predictor under different variances within and between "blocks" (here `group` of aliens) when such "blocks" are declared as a fixed factor `r .emo("slow")`:
+
+```{r simu_test_LM, message=FALSE, warning=FALSE}
+testLM <- expand.grid(var_interblock = seq(1, 5, length = 10), var_other = seq(1, 5, length = 10))
+res_testLM <- apply(testLM, 1, function(variances) {
+  replicate(1000, {
+    data_test <- simulate_Mix(intercept = 50, slope = 0.5, n = 500, group_nb = 20,
+                              var.rand = variances[1], var.error = variances[2])
+    fit  <- lm(y ~ x + group, data = data_test)
+    fit0 <- lm(y ~ 1 + group, data = data_test)
+    anova(fit, fit0)$"Pr(>F)"[2]
+  })
+})
+testLM$pv.signif <- apply(res_testLM, 2, \(pv) mean(pv < 0.05))
+```
+
+
+## Choosing between fixed and random effects `r .emo("nerd")`
+
+Let us test a predictor under different variances within and between "blocks" (here `group` of aliens) when such "blocks" are declared as a random factor `r .emo("slow")``r .emo("slow")``r .emo("slow")`:
+
+```{r simu_test_LMM, message=FALSE, warning=FALSE}
+testLMM <- expand.grid(var_interblock = seq(1, 5, length = 10), var_other = seq(1, 5, length = 10))
+res_testLMM <- apply(testLMM, 1, function(variances) {
+  replicate(1000, {
+    data_test <- simulate_Mix(intercept = 50, slope = 0.5, n = 500, group_nb = 20,
+                              var.rand = variances[1], var.error = variances[2])
+    fit  <- lmer(y ~ x + (1|group), data = data_test, REML = FALSE)
+    fit0 <- lmer(y ~ 1 + (1|group), data = data_test, REML = FALSE)
+    anova(fit, fit0)$"Pr(>Chisq)"[2]
+  })
+})
+testLMM$pv.signif <- apply(res_testLMM, 2, \(pv) mean(pv < 0.05))
+```
+
+
+## Choosing between fixed and random effects `r .emo("info")`
+
+```{r plot_test_var, fig.width = 8, fig.height = 4, cache = FALSE}
+test_LMvsLMM <- rbind(cbind(testLM, method = "LM"), cbind(testLMM, method = "LMM"))
+ggplot(test_LMvsLMM) +
+  geom_tile(aes(x = var_other, y = var_interblock, fill = pv.signif)) +
+  scale_fill_viridis_c() + theme_bw() + facet_wrap(~ method) +
+  ggtitle("Proportion of significant tests of `x` when declaring group as fixed vs random")
+```
+
 
 
 # Specifying multiple random effects
@@ -1628,7 +1747,6 @@ Note:
 - building conditional predictions is similar to what we have seen in GLM and LMM: just use  `predict()` (or `fitme::pdep_effects()`) for that.
 
 - building marginal predictions is more complex because you need to integrate the predictions over the distribution of the random effects... There is no function doing that automatically and this is a little too advanced for this course.
-
 
 
 ## What you need to remember `r .emo("goal")`
