@@ -2500,8 +2500,8 @@ cbind(Poisson = AIC(fit_Zpoiss), ## poor fit
 Let's also compare the model parameter estimates:
 ```{r comp zeroinfl2}
 tab <- rbind(Poisson = c(fit_Zpoiss$coefficients, NA, NA),
-             Hurdle = unlist(fixef(fit_Zhurd1)),  ## NOTE: the hurdle part predicts positive counts, not zeros!!
-             ZeroInfl = unlist(fixef(fit_Zzi1)),  ## NOTE: the binary part predicts zeros, not counts!!
+             Hurdle = unlist(fixef(fit_Zhurd1)),  ## NOTE: the hurdle part predicts the number of zeros
+             ZeroInfl = unlist(fixef(fit_Zzi1)),  ## NOTE: the binary part predicts the number of zeros
              Truth = c(attr(AliensZ, "param.eta")$eggs, attr(AliensZ, "param.eta")$happy))
 colnames(tab) <- c("Int.count", "Slope.count", "Int.bin", "Slope.bin")
 tab
