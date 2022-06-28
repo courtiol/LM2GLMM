@@ -61,7 +61,7 @@ To study, or to account for, unobservable sources of heterogeneity between obser
 Mixed-effects models allow for:
 
 * the study of other questions than LM/GLM (e.g. heritability)
-* the fixing of assumption violations in LM/GLM (lack of dependence, some cases of overdispersion)
+* the fixing of assumption violations in LM/GLM (lack of independence, some cases of overdispersion)
 * the reduction of the uncertainty in estimates and predictions in cases where many parameters would have to be estimated at the cost of an additional hypothesis (the distribution of the random effects)
 
 <br>
@@ -591,19 +591,19 @@ Note: in LMM predictions (with Gaussian random effects) are always attracted tow
 
 ## Choosing between fixed and random effects `r .emo("info")`
 
-The choice between considering a predictor has having fixed or random effect can be difficult; it depends on the trade-off between the pros and cons of both approaches.
+The choice between considering a predictor as a fixed or random effect can be difficult; there is a trade-off between both approaches.
 
 ### Fixed
 
 * no assumption about the distribution of the parameter values associated with each level of a predictor
-* requires many datapoints for each additional levels to get reliable results
+* requires many datapoints for each additional level to get reliable results
 * allows for the prediction of the effect of observed levels only (for factors)
 * simple to study
 
 ### Random
 
 * the values associated with the levels of a predictor follow a probability distribution (usually gaussian)
-* requires at least one datapoint for each additional levels to get reliable results (more is better)
+* requires at least one datapoint for each additional level to get reliable results (more is better)
 * requires many levels for the variance estimates to be reliable (5 being strict minimum)
 * allow for the prediction of the effect of both observed and unobserved levels (for factors)
 * more difficult to study
@@ -1464,7 +1464,7 @@ Note:
 
 ## Fitting GLMM with **{spaMM}** `r .emo("practice")`
 
-With **{spaMM}** you can still choose between ML and REML for GLMMs (REML sensu stricto does not exist for GLMMs for **{spaMM}** has implemented generalisation of the concept proposed in the statistical literature).
+With **{spaMM}** you can still choose between ML and REML for GLMMs (REML sensu stricto does not exist for GLMMs, but **{spaMM}** has implemented a generalisation of the concept proposed in the statistical literature).
 
 By default, as for LMMs, `spaMM::fitme()` produces a ML fit.
 
@@ -1539,7 +1539,7 @@ Like **{spaMM}**, **{glmmTMB}** is extremely flexible package (it can fit models
 
 **{glmmTMB}** allows for both zero-inflation and hurdle models (using truncated distributions), as well as many covariance functions, modelling the residual variance...
 
-There is no full-fetched parametric bootstrap methods implemented as far as I know, nor conditional AIC, but this could change in the near future.
+There is no full-fledged parametric bootstrap methods implemented as far as I know, nor conditional AIC, but this could change in the near future.
 
 The package is a wrapper around general numerical methods, so it may not be as robust as packages build with mixed models in mind (e.g. **{spaMM}** and **{lme4}**) in some cases; so convergence issues could happen more often.
 
