@@ -2462,13 +2462,14 @@ testZeroInflation(r, plot = TRUE)
 
 ## Hurdle fit of zero-augmented data `r .emo("practice")`
 
-You can fit hurdle models with `pscl::hurdle()`:
+You can fit hurdle models with `glmmTMB::glmmTMB()`.  **{glmmTMB}** is an extremely flexible package that is relatively similar to **{spaMM}** (more details on differences between them later).
+
 ```{r hurdle, message = FALSE}
-library(pscl)
-fit_Zhurd1 <- hurdle(eggs ~ humans_eaten | humans_eaten, dist = "poisson", zero.dist = "binomial",
-                     data = AliensZ)
-fit_Zhurd2 <- hurdle(eggs ~ humans_eaten | 1, dist = "poisson", zero.dist = "binomial",
-                     data = AliensZ)
+library(glmmTMB)
+fit_Zhurd1 <- glmmTMB(eggs ~ humans_eaten, ziformula = ~humans_eaten,
+                      family = truncated_poisson(link = "log"), data = AliensZ)
+fit_Zhurd2 <- glmmTMB(eggs ~ humans_eaten, ziformula = ~1,
+                      family = truncated_poisson(link = "log"), data = AliensZ)
 lmtest::lrtest(fit_Zhurd1, fit_Zhurd2)
 ```
 
@@ -2476,10 +2477,12 @@ Note: here we tested whether `humans_eaten` influenced the production of all 0s 
 
 ## Zero-inflation fit of zero-augmented data `r .emo("practice")`
 
-You can fit zero-inflation models with `pscl::zeroinfl()`:
+You can also fit zero-inflation models with `glmmTMB::glmmTMB()`:
 ```{r zeroinfl fit, message = FALSE}
-fit_Zzi1 <- zeroinfl(eggs ~ humans_eaten | humans_eaten, dist = "poisson", data = AliensZ)
-fit_Zzi2 <- zeroinfl(eggs ~ humans_eaten | 1, dist = "poisson", data = AliensZ)
+fit_Zzi1 <- glmmTMB(eggs ~ humans_eaten, ziformula = ~humans_eaten,
+                    family = poisson(link = "log"), data = AliensZ)
+fit_Zzi2 <- glmmTMB(eggs ~ humans_eaten, ziformula = ~1,
+                    family = poisson(link = "log"), data = AliensZ)
 lmtest::lrtest(fit_Zzi1, fit_Zzi2)
 ```
 
@@ -2498,8 +2501,8 @@ cbind(Poisson = AIC(fit_Zpoiss), ## poor fit
 Let's also compare the model parameter estimates:
 ```{r comp zeroinfl2}
 tab <- rbind(Poisson = c(fit_Zpoiss$coefficients, NA, NA),
-             Hurdle = unlist(fit_Zhurd1$coefficients),  ## NOTE: the hurdle part predicts positive counts, not zeros!!
-             ZeroInfl = unlist(fit_Zzi1$coefficients),  ## NOTE: the binary part predicts zeros, not counts!!
+             Hurdle = unlist(fixef(fit_Zhurd1)),  ## NOTE: the hurdle part predicts positive counts, not zeros!!
+             ZeroInfl = unlist(fixef(fit_Zzi1)),  ## NOTE: the binary part predicts zeros, not counts!!
              Truth = c(attr(AliensZ, "param.eta")$eggs, attr(AliensZ, "param.eta")$happy))
 colnames(tab) <- c("Int.count", "Slope.count", "Int.bin", "Slope.bin")
 tab
