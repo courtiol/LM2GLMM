@@ -537,12 +537,12 @@ Predictions conditional on the random variable ($\mathbf{X}\widehat{\beta}+\math
 ```{r, message = FALSE}
 data.for.pred.with.b <- data.frame(nitro = 0.3, Variety = "Victory", Block = levels(oatsyield$Block))
 library(merTools)
-predictInterval(fit_lmm_lme4, newdata = data.for.pred.with.b, include.resid.var = FALSE)
+predictInterval(fit_lmm_lme4, newdata = data.for.pred.with.b, include.resid.var = FALSE, seed = 1)
 ```
 Notes:
 
 - using the companion package **{merTools}** makes things easier (but it cannot be used in the marginal case as it neglects random effect variance).
-- `merTools::predictInterval()` uses simulations to build CI, so results differ slightly each time you run the function.
+- `merTools::predictInterval()` uses simulations to build CI, so results differ slightly each time you run the function (or set `seed`).
 
 
 ## Conditional predictions using **{spaMM}** `r .emo("practice")`
