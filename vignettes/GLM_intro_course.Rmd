@@ -2503,7 +2503,7 @@ AIC(fit_Zpoiss, fit_Zhurd1, fit_Zzi1)
 Let's also compare the model parameter estimates:
 ```{r comp zeroinfl2}
 tab <- rbind(Poisson = c(fit_Zpoiss$coefficients, NA, NA),
-             Hurdle = unlist(fixef(fit_Zhurd1)), ## NOTE: the binary part predicts zeros, not counts!!
+             Hurdle = unlist(fixef(fit_Zhurd1)), ## NOTE: the binary part predicts the number of zeros
              ZeroInfl = unlist(fixef(fit_Zzi1)), 
              Truth = c(attr(AliensZ, "param.eta")$eggs, -1 * attr(AliensZ, "param.eta")$happy))
 colnames(tab) <- c("Int.count", "Slope.count", "Int.zeros", "Slope.zeros")
