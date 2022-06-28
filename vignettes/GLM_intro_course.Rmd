@@ -2462,7 +2462,7 @@ testZeroInflation(r, plot = TRUE)
 
 ## Hurdle fit of zero-augmented data `r .emo("practice")`
 
-You can fit hurdle models with `glmmTMB::glmmTMB()`.  **{glmmTMB}** is an extremely flexible package that is relatively similar to **{spaMM}** (more details on differences between them later).
+You can fit hurdle models with `glmmTMB::glmmTMB()`:
 
 ```{r hurdle, message = FALSE}
 library(glmmTMB)
@@ -2473,7 +2473,11 @@ fit_Zhurd2 <- glmmTMB(eggs ~ humans_eaten, ziformula = ~1,
 lmtest::lrtest(fit_Zhurd1, fit_Zhurd2)
 ```
 
-Note: here we tested whether `humans_eaten` influenced the production of all 0s (since they all come from the binary process).
+Notes: 
+
+- **{glmmTMB}** is an extremely flexible package that is relatively similar to **{spaMM}**.
+- here we tested whether `humans_eaten` influenced the production of all 0s (since they all come from the binary process).
+
 
 ## Zero-inflation fit of zero-augmented data `r .emo("practice")`
 
@@ -2493,18 +2497,16 @@ Note: here we tested whether `humans_eaten` influenced the production of some of
 ## Comparison of alternative fits `r .emo("practice")`
 
 ```{r comp zeroinfl}
-cbind(Poisson = AIC(fit_Zpoiss), ## poor fit
-      Hurdle  = AIC(fit_Zhurd1), ## close to best
-      ZeroInf = AIC(fit_Zzi1))   ## best but not by much
+AIC(fit_Zpoiss, fit_Zhurd1, fit_Zzi1)
 ```
 
 Let's also compare the model parameter estimates:
 ```{r comp zeroinfl2}
 tab <- rbind(Poisson = c(fit_Zpoiss$coefficients, NA, NA),
-             Hurdle = unlist(fixef(fit_Zhurd1)),  ## NOTE: the hurdle part predicts positive counts, not zeros!!
-             ZeroInfl = unlist(fixef(fit_Zzi1)),  ## NOTE: the binary part predicts zeros, not counts!!
-             Truth = c(attr(AliensZ, "param.eta")$eggs, attr(AliensZ, "param.eta")$happy))
-colnames(tab) <- c("Int.count", "Slope.count", "Int.bin", "Slope.bin")
+             Hurdle = unlist(fixef(fit_Zhurd1)), ## NOTE: the binary part predicts zeros, not counts!!
+             ZeroInfl = unlist(fixef(fit_Zzi1)), 
+             Truth = c(attr(AliensZ, "param.eta")$eggs, -1 * attr(AliensZ, "param.eta")$happy))
+colnames(tab) <- c("Int.count", "Slope.count", "Int.zeros", "Slope.zeros")
 tab
 ```
 

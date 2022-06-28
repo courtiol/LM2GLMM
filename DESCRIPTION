@@ -51,7 +51,6 @@ Imports:
     nloptr,
     nortest,
     pbkrtest,
-    pscl,
     rasterVis,
     rgl,
     ROI.plugin.glpk,
