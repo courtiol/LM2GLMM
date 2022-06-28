@@ -2466,9 +2466,9 @@ You can fit hurdle models with `glmmTMB::glmmTMB()`.  **{glmmTMB}** is an extrem
 ```{r hurdle, message = FALSE}
 library(glmmTMB)
 fit_Zhurd1 <- glmmTMB(eggs ~ humans_eaten, ziformula = ~humans_eaten,
-                      family = glmmTMB::truncated_poisson(link = "log"), data = AliensZ)
+                      family = truncated_poisson(link = "log"), data = AliensZ)
 fit_Zhurd2 <- glmmTMB(eggs ~ humans_eaten, ziformula = ~1,
-                      family = glmmTMB::truncated_poisson(link = "log"), data = AliensZ)
+                      family = truncated_poisson(link = "log"), data = AliensZ)
 lmtest::lrtest(fit_Zhurd1, fit_Zhurd2)
 ```
 
