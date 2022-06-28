@@ -420,7 +420,8 @@ Conclusion: yes, vaccination is effective!
 Here is the overall effect size with 95% CI:
 ```{r, message=FALSE}
 fixef(fit_tub_spaMM_ML2)
-confint(fit_tub_spaMM_ML2, parm = "(Intercept)") ## FIXME: compute CI by parametric bootstrap
+confint(fit_tub_spaMM_ML2, parm = "(Intercept)", 
+        boot_args = list(nsim = 999, fit_env = list(dat.bcg = dat.bcg)))
 ```
 
 
