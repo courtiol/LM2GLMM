@@ -1101,7 +1101,7 @@ The choice between considering a predictor as a fixed or random effect can be di
 * allow for the prediction of the effect of both observed and unobserved levels (for factors)
 * more difficult to handle
 
-
+<!--
 ## Choosing between fixed and random effects `r .emo("info")`
 
 Let us revisit the fits of the `oatsyield` data:
@@ -1188,12 +1188,13 @@ testLMM$pv.signif <- apply(res_testLMM, 2, \(pv) mean(pv < 0.05))
 
 ```{r plot_test_var, fig.width = 8, fig.height = 4, cache = FALSE}
 test_LMvsLMM <- rbind(cbind(testLM, method = "LM"), cbind(testLMM, method = "LMM"))
+library(ggplot2)
 ggplot(test_LMvsLMM) +
   geom_tile(aes(x = var_other, y = var_interblock, fill = pv.signif)) +
   scale_fill_viridis_c() + theme_bw() + facet_wrap(~ method) +
   ggtitle("Proportion of significant tests of `x` when declaring group as fixed vs random")
 ```
-
+ -->
 
 
 # Specifying multiple random effects
