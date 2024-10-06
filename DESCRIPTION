@@ -1,14 +1,14 @@
 Package: LM2GLMM
 Type: Package
 Title: Data science for biologists: Generalized linear modelling with R
-Version: 20220629.2
+Version: 20241005.1
 Author: Alexandre Courtiol [aut, cre], François Rousset [ctb], Liam Bailey [ctb]
 Maintainer: Alexandre Courtiol <courtiol@izw-berlin.de>
 Description: This package provides all required material for the course.
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.0
+RoxygenNote: 7.3.2
 Depends:
     R (>= 4.1.0)
 Imports:
@@ -19,6 +19,7 @@ Imports:
     cAIC4,
     car,
     caret,
+    detectseparation,
     dplyr,
     DHARMa,
     drat,
@@ -54,9 +55,9 @@ Imports:
     rasterVis,
     rgl,
     ROI.plugin.glpk,
-    safeBinaryRegression,
     scales,
     sem,
+    tidyr,
     tools,
     visreg
 Suggests:
@@ -64,6 +65,7 @@ Suggests:
     doSNOW,
     emojifont,
     IsoriX,
+    patchwork,
     rmarkdown,
     rcdd
 VignetteBuilder: knitr

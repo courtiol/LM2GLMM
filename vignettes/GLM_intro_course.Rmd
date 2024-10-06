@@ -7,8 +7,8 @@ output:
     widescreen: true
     smaller: true
 vignette: >
-  %\VignetteIndexEntry{3.0 GLM: All -------------------------------------------------------course}
   %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{3.0 GLM: All -------------------------------------------------------course}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
   chunk_output_type: console
@@ -2555,9 +2555,8 @@ Note: despite the very clear effect, the test does not detect it.
 ### Detection for `stats::glm()` fits
 
 ```{r safebin, error = TRUE, message = FALSE, warning = FALSE}
-library(safeBinaryRegression)  ## overload the glm function
-fit_separated <- glm(happy ~ sp, data = test, family = binomial()) ## don't mind warnings here
-detach(package:safeBinaryRegression) ## stop masking original glm()
+library(detectseparation)  ## overload the glm function
+glm(happy ~ sp, data = test, family = binomial(), method = "detect_separation")
 ```
 
 ## The problem of separation in Binomial `r .emo("practice")`

@@ -5,11 +5,13 @@
 \alias{TitanicSurvival}
 \title{Survival of Passengers on the Titanic (from package carData)}
 \format{
-A data frame with 1309 observations on the following 4 variables. \describe{
+A data frame with 1309 observations on the following 4 variables.
+\describe{
   \item{survived}{\code{no} or \code{yes}.} \item{sex}{\code{female} or \code{male}.}
   \item{age}{in years (and for some children, fractions of a year); age is missing for
   263 of the passengers.}
-  \item{passengerClass}{\code{1st}, \code{2nd}, or \code{3rd} class.} }
+  \item{passengerClass}{\code{1st}, \code{2nd}, or \code{3rd} class.}
+ }
 }
 \source{
 Data set \code{titanic3} from

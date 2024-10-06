@@ -6,9 +6,11 @@
 \title{Poison data (taken from package fastR)}
 \format{
 A data frame with 48 observations on the following 3 variables.
-\itemize{ \item{Poison}{ type of poison (1, 2, or 3)}
-\item{Treatment}{ manner of treatment (1, 2, 3, or 4)}
-\item{Time}{ time until death (hours)} }
+\describe{
+  \item{Poison}{ type of poison (1, 2, or 3)}
+  \item{Treatment}{ manner of treatment (1, 2, 3, or 4)}
+  \item{Time}{ time until death (hours)}
+}
 }
 \source{
 These data are also available from OzDASL, the Australian Data and

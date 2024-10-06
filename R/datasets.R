@@ -340,9 +340,11 @@
 #' animals is completely randomized.
 #'
 #' @format A data frame with 48 observations on the following 3 variables.
-#' \itemize{ \item{Poison}{ type of poison (1, 2, or 3)}
-#' \item{Treatment}{ manner of treatment (1, 2, 3, or 4)}
-#' \item{Time}{ time until death (hours)} }
+#' \describe{
+#'   \item{Poison}{ type of poison (1, 2, or 3)}
+#'   \item{Treatment}{ manner of treatment (1, 2, 3, or 4)}
+#'   \item{Time}{ time until death (hours)}
+#' }
 #' @references Box, G. E. P., and Cox, D. R. (1964). An analysis of
 #' transformations (with Discussion). J. R. Statist. Soc. B, 26, 211-252.
 #'
@@ -368,11 +370,13 @@
 #' details are given in the sources cited below.
 #'
 #' @docType data
-#' @format A data frame with 1309 observations on the following 4 variables. \describe{
+#' @format A data frame with 1309 observations on the following 4 variables.
+#' \describe{
 #'   \item{survived}{\code{no} or \code{yes}.} \item{sex}{\code{female} or \code{male}.}
 #'   \item{age}{in years (and for some children, fractions of a year); age is missing for
 #'   263 of the passengers.}
-#'   \item{passengerClass}{\code{1st}, \code{2nd}, or \code{3rd} class.} }
+#'   \item{passengerClass}{\code{1st}, \code{2nd}, or \code{3rd} class.}
+#'  }
 #' @references \url{http://www.encyclopedia-titanica.org/}
 #'
 #' F. E. Harrell, Jr. (2001) \emph{Regression Modeling Strategies} New York:
